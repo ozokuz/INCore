@@ -8,6 +8,11 @@ public final class SanityClientCache {
     private static long millisUntilNextIncrease;
     private static long millisUntilFull;
     private static long receivedAtMs;
+    private static long boosterAnimationToken;
+    private static int boosterAnimationFrom;
+    private static int boosterAnimationTo;
+    private static int boosterAnimationCap = 1;
+    private static int boosterAnimationGain;
 
     private SanityClientCache() {
     }
@@ -43,8 +48,52 @@ public final class SanityClientCache {
         return (int) Math.min(cap, estimated);
     }
 
+    public static synchronized int getSyncedCurrent() {
+        return current;
+    }
+
     public static synchronized int getCap() {
         return cap;
+    }
+
+    public static synchronized long getReceivedAtMs() {
+        return receivedAtMs;
+    }
+
+    public static synchronized void recordBoosterGainAnimation(int from, int to, int capValue, int gain) {
+        int normalizedCap = Math.max(1, capValue);
+        int normalizedFrom = Math.clamp(from, 0, normalizedCap);
+        int normalizedTo = Math.clamp(to, normalizedFrom, normalizedCap);
+        int normalizedGain = Math.max(0, gain);
+        if (normalizedGain <= 0 || normalizedTo <= normalizedFrom) {
+            return;
+        }
+
+        boosterAnimationFrom = normalizedFrom;
+        boosterAnimationTo = normalizedTo;
+        boosterAnimationCap = normalizedCap;
+        boosterAnimationGain = normalizedGain;
+        boosterAnimationToken++;
+    }
+
+    public static synchronized long getBoosterAnimationToken() {
+        return boosterAnimationToken;
+    }
+
+    public static synchronized int getBoosterAnimationFrom() {
+        return boosterAnimationFrom;
+    }
+
+    public static synchronized int getBoosterAnimationTo() {
+        return boosterAnimationTo;
+    }
+
+    public static synchronized int getBoosterAnimationCap() {
+        return boosterAnimationCap;
+    }
+
+    public static synchronized int getBoosterAnimationGain() {
+        return boosterAnimationGain;
     }
 
     public static synchronized long getMillisUntilNextIncrease() {

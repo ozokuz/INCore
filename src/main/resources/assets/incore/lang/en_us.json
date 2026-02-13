@@ -3,6 +3,8 @@
   "block.incore.encounter_spawner": "Encounter Spawner",
   "item.incore.encounter_wand": "Encounter Wand",
   "item.incore.sanity_crate": "Sanity Crate",
+  "item.incore.sanity_booster_small": "Small Sanity Booster",
+  "item.incore.sanity_booster_large": "Large Sanity Booster",
   "item.incore.sanity_vessel": "Sanity Vessel",
 
   "incore.configuration.title": "INCore Configs",
@@ -23,6 +25,8 @@
   "incore.sanity.status": "Sanity: %s/%s",
   "incore.sanity.crate.not_enough": "You need %s sanity to open this crate. Current sanity: %s/%s",
   "incore.sanity.crate.opened": "Opened crate for %s sanity. Remaining sanity: %s/%s",
+  "incore.sanity.booster.used": "Restored %s sanity. Sanity: %s/%s",
+  "incore.sanity.booster.full": "Sanity is already full: %s/%s",
   "incore.sanity.vessel.used": "Max sanity increased by %s. Sanity: %s/%s",
   "key.categories.incore": "INCore",
   "key.incore.open_player_status": "Open Player Status",

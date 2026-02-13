@@ -15,6 +15,8 @@ public class ICItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         basicItem(Registration.ENCOUNTER_WAND_ITEM.get());
         basicItem(Registration.SANITY_CRATE_ITEM.get());
+        basicItem(Registration.SANITY_BOOSTER_SMALL_ITEM.get());
+        basicItem(Registration.SANITY_BOOSTER_LARGE_ITEM.get());
         basicItem(Registration.SANITY_VESSEL_ITEM.get());
     }
 }

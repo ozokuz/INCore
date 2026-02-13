@@ -14,6 +14,7 @@ public final class SanityNetworking {
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToClient(SanitySyncPayload.TYPE, SanitySyncPayload.STREAM_CODEC, SanitySyncPayload::handle);
+        registrar.playToClient(SanityBoosterGainPayload.TYPE, SanityBoosterGainPayload.STREAM_CODEC, SanityBoosterGainPayload::handle);
     }
 
     public static void syncToPlayer(ServerPlayer player) {
@@ -32,5 +33,13 @@ public final class SanityNetworking {
                 millisUntilNextIncrease,
                 millisUntilFull
         ));
+    }
+
+    public static void sendBoosterGainAnimation(ServerPlayer player, int from, int to, int cap, int gain) {
+        if (gain <= 0) {
+            return;
+        }
+
+        PacketDistributor.sendToPlayer(player, new SanityBoosterGainPayload(from, to, cap, gain));
     }
 }
