@@ -29,5 +29,9 @@ public class Config {
             .comment("How close players must be to trigger an encounter spawner.")
             .defineInRange("encounterTriggerRadius", 8, 1, Integer.MAX_VALUE);
 
+    public static final ModConfigSpec.IntValue WALL_JUMP_STAMINA_COST = BUILDER
+            .comment("Stamina cost consumed by each wall jump.")
+            .defineInRange("wallJumpStaminaCost", 200, 0, Integer.MAX_VALUE);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }

@@ -2,7 +2,12 @@
   "required": true,
   "package": "io.github.ozokuz.incore.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "walljump.MessageWallJumpMixin"
+  ],
+  "client": [
+    "walljump.WallJumpLogicMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   },
