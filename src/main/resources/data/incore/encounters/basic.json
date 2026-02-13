@@ -1,0 +1,13 @@
+{
+  "mobs": [
+    {
+      "type": "minecraft:zombie",
+      "count": 3
+    },
+    {
+      "type": "minecraft:skeleton",
+      "count": 1
+    }
+  ],
+  "loot_table": "minecraft:entities/slime"
+}

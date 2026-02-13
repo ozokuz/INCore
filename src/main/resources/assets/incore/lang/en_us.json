@@ -1,0 +1,19 @@
+{
+  "itemGroup.incore": "INCore",
+  "block.incore.encounter_spawner": "Encounter Spawner",
+  "item.incore.encounter_wand": "Encounter Wand",
+
+  "incore.configuration.title": "INCore Configs",
+  "incore.configuration.section.incore.common.toml": "INCore Configs",
+  "incore.configuration.section.incore.common.toml.title": "INCore Configs",
+  "incore.configuration.items": "Item List",
+  "incore.configuration.logDirtBlock": "Log Dirt Block",
+  "incore.configuration.magicNumberIntroduction": "Magic Number Text",
+  "incore.configuration.magicNumber": "Magic Number",
+  "incore.encounter_wand.messages.not_named": "You need to rename the wand to the encounter resource id to set the data for the spawner.",
+  "incore.encounter_wand.messages.no_location": "You need to click elsewhere with this wand first to set the position for the spawner.",
+  "incore.encounter_spawner.mob": "Dungeoner %s",
+  "incore.encounter_wand.messages.store_location": "Stored position %s",
+  "incore.encounter_wand.tooltip.position": "Position: %s",
+  "incore.encounter_wand.messages.stored_to_spawner": "Stored wand info to spawner."
+}
