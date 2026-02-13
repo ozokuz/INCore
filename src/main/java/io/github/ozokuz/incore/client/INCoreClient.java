@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.client;
 
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import io.github.ozokuz.incore.client.status.PlayerStatusScreen;
 import io.github.ozokuz.incore.features.sanity.SanityClientCache;
 import net.minecraft.client.Minecraft;
@@ -25,6 +26,7 @@ public class INCoreClient {
         modEventBus.addListener(this::onRegisterKeyMappings);
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
         NeoForge.EVENT_BUS.addListener(this::onRenderGui);
+        StaminaBarHudFeature.register();
     }
 
     private void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {

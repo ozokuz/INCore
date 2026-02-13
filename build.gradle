@@ -115,6 +115,7 @@ dependencies {
     api("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
     interfaceInjectionData("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
     implementation("curse.maven:paragliders-289240:6739615")
+    implementation("curse.maven:walljumptxf-909143:6584352")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
