@@ -131,6 +131,6 @@ public class EncounterSpawnerBE extends BlockEntity {
             pos.move(Direction.DOWN);
         }
 
-        return pos.getY();
+        return pos.getY() + 1;
     }
 }

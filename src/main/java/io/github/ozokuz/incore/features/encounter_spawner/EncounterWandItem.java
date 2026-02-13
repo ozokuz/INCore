@@ -1,6 +1,6 @@
 package io.github.ozokuz.incore.features.encounter_spawner;
 
-import net.minecraft.core.Vec3i;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -40,7 +40,8 @@ public class EncounterWandItem extends Item {
 
             be.setEncounterId(customName.getString());
             var posArr = data.copyTag().getIntArray("pos");
-            be.setSpawnOffset(pos.subtract(new Vec3i(posArr[0], posArr[1], posArr[2])));
+            var storedPos = new BlockPos(posArr[0], posArr[1], posArr[2]);
+            be.setSpawnOffset(storedPos.subtract(pos));
 
             context.getPlayer().sendSystemMessage(Component.translatable("incore.encounter_wand.messages.stored_to_spawner"));
 
