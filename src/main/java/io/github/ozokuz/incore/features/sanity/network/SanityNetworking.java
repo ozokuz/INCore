@@ -19,14 +19,16 @@ public final class SanityNetworking {
     public static void syncToPlayer(ServerPlayer player) {
         int current = SanityManager.getCurrentSanity(player);
         int cap = SanityManager.getSanityCap(player);
-        int regenPerMinute = Config.SANITY_REGEN_PER_MINUTE.get();
+        int regenPerTick = Config.SANITY_REGEN_PER_MINUTE.get();
+        long regenIntervalMillis = SanityManager.getRegenIntervalMillis();
         long millisUntilNextIncrease = SanityManager.getMillisUntilNextIncrease(player);
         long millisUntilFull = SanityManager.getMillisUntilFull(player);
 
         PacketDistributor.sendToPlayer(player, new SanitySyncPayload(
                 current,
                 cap,
-                regenPerMinute,
+                regenPerTick,
+                regenIntervalMillis,
                 millisUntilNextIncrease,
                 millisUntilFull
         ));

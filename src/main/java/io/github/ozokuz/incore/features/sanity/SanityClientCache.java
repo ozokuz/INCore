@@ -1,11 +1,10 @@
 package io.github.ozokuz.incore.features.sanity;
 
 public final class SanityClientCache {
-    private static final long MILLIS_PER_MINUTE = 60_000L;
-
     private static int current;
     private static int cap;
-    private static int regenPerMinute;
+    private static int regenPerTick;
+    private static long regenIntervalMillis;
     private static long millisUntilNextIncrease;
     private static long millisUntilFull;
     private static long receivedAtMs;
@@ -16,13 +15,15 @@ public final class SanityClientCache {
     public static synchronized void update(
             int nextCurrent,
             int nextCap,
-            int nextRegenPerMinute,
+            int nextRegenPerTick,
+            long nextRegenIntervalMillis,
             long nextMillisUntilNextIncrease,
             long nextMillisUntilFull
     ) {
         current = Math.max(0, nextCurrent);
         cap = Math.max(0, nextCap);
-        regenPerMinute = Math.max(0, nextRegenPerMinute);
+        regenPerTick = Math.max(0, nextRegenPerTick);
+        regenIntervalMillis = Math.max(1L, nextRegenIntervalMillis);
         millisUntilNextIncrease = nextMillisUntilNextIncrease;
         millisUntilFull = nextMillisUntilFull;
         receivedAtMs = System.currentTimeMillis();
@@ -33,12 +34,12 @@ public final class SanityClientCache {
             return 0;
         }
 
-        if (regenPerMinute <= 0 || current >= cap) {
+        if (regenPerTick <= 0 || current >= cap) {
             return Math.min(current, cap);
         }
 
-        long elapsedMinutes = Math.max(0L, (System.currentTimeMillis() - receivedAtMs) / MILLIS_PER_MINUTE);
-        long estimated = (long) current + elapsedMinutes * regenPerMinute;
+        long elapsedTicks = Math.max(0L, (System.currentTimeMillis() - receivedAtMs) / regenIntervalMillis);
+        long estimated = (long) current + elapsedTicks * regenPerTick;
         return (int) Math.min(cap, estimated);
     }
 

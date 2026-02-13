@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 public class PlayerStatusScreen extends Screen {
-    private static final ResourceLocation XP_BAR_BACKGROUND = ResourceLocation.parse("minecraft:hud/experience_bar_background");
+    private static final ResourceLocation XP_BAR_BACKGROUND = ResourceLocation.parse("incore:hud/experience_bar_background_white");
     private static final ResourceLocation XP_BAR_PROGRESS = ResourceLocation.parse("incore:hud/experience_bar_progress_white");
     private static final int XP_BAR_WIDTH = 182;
     private static final int XP_BAR_HEIGHT = 5;
@@ -42,7 +42,7 @@ public class PlayerStatusScreen extends Screen {
         }
 
         Component valueText = Component.literal(sanity + " / " + cap);
-        guiGraphics.drawCenteredString(this.font, valueText, this.width / 2, meterY + 10, 0x80FF20);
+        guiGraphics.drawCenteredString(this.font, valueText, this.width / 2, meterY + 10, 0xFFFFFF);
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.translatable(
@@ -51,7 +51,7 @@ public class PlayerStatusScreen extends Screen {
                 ),
                 this.width / 2,
                 meterY + 24,
-                0xFFE0E0E0
+                0xFFFFFF
         );
         guiGraphics.drawCenteredString(
                 this.font,
@@ -61,7 +61,7 @@ public class PlayerStatusScreen extends Screen {
                 ),
                 this.width / 2,
                 meterY + 36,
-                0xFFE0E0E0
+                0xFFFFFF
         );
 
         guiGraphics.drawCenteredString(

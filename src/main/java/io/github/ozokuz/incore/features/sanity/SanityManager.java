@@ -8,7 +8,6 @@ public final class SanityManager {
     private static final String KEY_CURRENT = "incore:sanity_current";
     private static final String KEY_CAP_BONUS = "incore:sanity_cap_bonus";
     private static final String KEY_LAST_UPDATE_MS = "incore:sanity_last_update_ms";
-    private static final long MILLIS_PER_MINUTE = 60_000L;
 
     private SanityManager() {
     }
@@ -29,13 +28,14 @@ public final class SanityManager {
         int cap = getSanityCap(player);
         int current = data.getInt(KEY_CURRENT);
         long lastUpdate = data.getLong(KEY_LAST_UPDATE_MS);
+        long regenIntervalMillis = getRegenIntervalMillis();
 
         long elapsed = Math.max(0L, now - lastUpdate);
-        long elapsedMinutes = elapsed / MILLIS_PER_MINUTE;
-        int regenPerMinute = Config.SANITY_REGEN_PER_MINUTE.get();
+        long elapsedTicks = elapsed / regenIntervalMillis;
+        int regenPerTick = Config.SANITY_REGEN_PER_MINUTE.get();
 
-        if (elapsedMinutes > 0 && regenPerMinute > 0 && current < cap) {
-            long totalRegen = elapsedMinutes * regenPerMinute;
+        if (elapsedTicks > 0 && regenPerTick > 0 && current < cap) {
+            long totalRegen = elapsedTicks * regenPerTick;
             current = (int) Math.min(cap, current + totalRegen);
             data.putInt(KEY_CURRENT, current);
         }
@@ -44,8 +44,8 @@ public final class SanityManager {
             data.putInt(KEY_CURRENT, cap);
         }
 
-        if (elapsedMinutes > 0) {
-            data.putLong(KEY_LAST_UPDATE_MS, lastUpdate + elapsedMinutes * MILLIS_PER_MINUTE);
+        if (elapsedTicks > 0) {
+            data.putLong(KEY_LAST_UPDATE_MS, lastUpdate + elapsedTicks * regenIntervalMillis);
         }
     }
 
@@ -135,27 +135,7 @@ public final class SanityManager {
         update(player);
 
         CompoundTag data = player.getPersistentData();
-        int regenPerMinute = Config.SANITY_REGEN_PER_MINUTE.get();
-        int current = data.getInt(KEY_CURRENT);
-        int cap = getSanityCap(player);
-
-        if (regenPerMinute <= 0 || current >= cap) {
-            return -1L;
-        }
-
-        long now = System.currentTimeMillis();
-        long lastUpdate = data.getLong(KEY_LAST_UPDATE_MS);
-        long elapsed = Math.max(0L, now - lastUpdate);
-        long remainder = elapsed % MILLIS_PER_MINUTE;
-
-        return remainder == 0L ? MILLIS_PER_MINUTE : MILLIS_PER_MINUTE - remainder;
-    }
-
-    public static long getMillisUntilFull(ServerPlayer player) {
-        update(player);
-
-        CompoundTag data = player.getPersistentData();
-        int regenPerMinute = Config.SANITY_REGEN_PER_MINUTE.get();
+        int regenPerTick = Config.SANITY_REGEN_PER_MINUTE.get();
         int current = data.getInt(KEY_CURRENT);
         int cap = getSanityCap(player);
 
@@ -163,13 +143,47 @@ public final class SanityManager {
             return 0L;
         }
 
-        if (regenPerMinute <= 0) {
+        if (regenPerTick <= 0) {
+            return -1L;
+        }
+
+        long now = System.currentTimeMillis();
+        long lastUpdate = data.getLong(KEY_LAST_UPDATE_MS);
+        long regenIntervalMillis = getRegenIntervalMillis();
+        long elapsed = Math.max(0L, now - lastUpdate);
+        long remainder = elapsed % regenIntervalMillis;
+
+        return remainder == 0L ? regenIntervalMillis : regenIntervalMillis - remainder;
+    }
+
+    public static long getMillisUntilFull(ServerPlayer player) {
+        update(player);
+
+        CompoundTag data = player.getPersistentData();
+        int regenPerTick = Config.SANITY_REGEN_PER_MINUTE.get();
+        int current = data.getInt(KEY_CURRENT);
+        int cap = getSanityCap(player);
+
+        if (current >= cap) {
+            return 0L;
+        }
+
+        if (regenPerTick <= 0) {
             return -1L;
         }
 
         int missing = cap - current;
-        long ticksToFull = (missing + (long) regenPerMinute - 1L) / regenPerMinute;
-        return getMillisUntilNextIncrease(player) + Math.max(0L, ticksToFull - 1L) * MILLIS_PER_MINUTE;
+        long ticksToFull = (missing + (long) regenPerTick - 1L) / regenPerTick;
+        long nextIncrease = getMillisUntilNextIncrease(player);
+        if (nextIncrease < 0L) {
+            return -1L;
+        }
+
+        return nextIncrease + Math.max(0L, ticksToFull - 1L) * getRegenIntervalMillis();
+    }
+
+    public static long getRegenIntervalMillis() {
+        return Math.max(1L, Config.SANITY_REGEN_INTERVAL_SECONDS.get()) * 1000L;
     }
 
     public static void clampToCap(ServerPlayer player) {

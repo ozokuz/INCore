@@ -11,7 +11,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public record SanitySyncPayload(
         int current,
         int cap,
-        int regenPerMinute,
+        int regenPerTick,
+        long regenIntervalMillis,
         long millisUntilNextIncrease,
         long millisUntilFull
 ) implements CustomPacketPayload {
@@ -22,7 +23,9 @@ public record SanitySyncPayload(
             ByteBufCodecs.VAR_INT,
             SanitySyncPayload::cap,
             ByteBufCodecs.VAR_INT,
-            SanitySyncPayload::regenPerMinute,
+            SanitySyncPayload::regenPerTick,
+            ByteBufCodecs.VAR_LONG,
+            SanitySyncPayload::regenIntervalMillis,
             ByteBufCodecs.VAR_LONG,
             SanitySyncPayload::millisUntilNextIncrease,
             ByteBufCodecs.VAR_LONG,
@@ -39,7 +42,8 @@ public record SanitySyncPayload(
         context.enqueueWork(() -> SanityClientCache.update(
                 payload.current(),
                 payload.cap(),
-                payload.regenPerMinute(),
+                payload.regenPerTick(),
+                payload.regenIntervalMillis(),
                 payload.millisUntilNextIncrease(),
                 payload.millisUntilFull()
         ));

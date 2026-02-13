@@ -54,15 +54,17 @@ public final class SanityCommands {
         int current = SanityManager.getCurrentSanity(player);
         int cap = SanityManager.getSanityCap(player);
         int bonus = SanityManager.getSanityCapBonus(player);
+        long intervalSeconds = SanityManager.getRegenIntervalMillis() / 1000L;
         long next = SanityManager.getMillisUntilNextIncrease(player);
         long full = SanityManager.getMillisUntilFull(player);
 
         source.sendSuccess(() -> Component.literal(String.format(
-                "%s sanity: %d/%d (cap bonus: %d, next increase: %s, full in: %s)",
+                "%s sanity: %d/%d (cap bonus: %d, regen every: %ss, next increase: %s, full in: %s)",
                 player.getGameProfile().getName(),
                 current,
                 cap,
                 bonus,
+                intervalSeconds,
                 formatDuration(next),
                 formatDuration(full)
         )), false);

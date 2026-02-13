@@ -6,8 +6,12 @@ public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     public static final ModConfigSpec.IntValue SANITY_REGEN_PER_MINUTE = BUILDER
-            .comment("How much sanity players regain every real-world minute.")
+            .comment("How much sanity players regain on each regen tick.")
             .defineInRange("sanityRegenPerMinute", 1, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue SANITY_REGEN_INTERVAL_SECONDS = BUILDER
+            .comment("How often a sanity regen tick happens, in real-world seconds.")
+            .defineInRange("sanityRegenIntervalSeconds", 60, 1, Integer.MAX_VALUE);
 
     public static final ModConfigSpec.IntValue SANITY_BASE_CAP = BUILDER
             .comment("Default sanity cap before any bonus cap extensions are applied.")

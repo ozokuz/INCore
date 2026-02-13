@@ -2,7 +2,6 @@ package io.github.ozokuz.incore.features.sanity;
 
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -17,10 +16,7 @@ public class SanityEvents {
             return;
         }
 
-        int sanity = SanityManager.getCurrentSanity(player);
-        int cap = SanityManager.getSanityCap(player);
-
-        player.sendSystemMessage(Component.translatable("incore.sanity.status", sanity, cap));
+        SanityManager.getCurrentSanity(player);
         SanityNetworking.syncToPlayer(player);
     }
 
