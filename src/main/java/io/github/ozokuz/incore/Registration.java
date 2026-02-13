@@ -3,6 +3,8 @@ package io.github.ozokuz.incore;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBlock;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterWandItem;
+import io.github.ozokuz.incore.features.sanity.SanityCrateItem;
+import io.github.ozokuz.incore.features.sanity.SanityVesselItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.food.FoodProperties;
@@ -40,6 +42,8 @@ public class Registration {
     public static final DeferredItem<BlockItem> ENCOUNTER_SPAWNER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("encounter_spawner", ENCOUNTER_SPAWNER_BLOCK);
 
     public static final DeferredItem<Item> ENCOUNTER_WAND_ITEM = ITEMS.registerItem("encounter_wand", EncounterWandItem::new);
+    public static final DeferredItem<Item> SANITY_CRATE_ITEM = ITEMS.registerItem("sanity_crate", SanityCrateItem::new);
+    public static final DeferredItem<Item> SANITY_VESSEL_ITEM = ITEMS.registerItem("sanity_vessel", SanityVesselItem::new);
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.incore"))
@@ -48,5 +52,7 @@ public class Registration {
             .displayItems((parameters, output) -> {
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
                 output.accept(ENCOUNTER_WAND_ITEM.get());
+                output.accept(SANITY_CRATE_ITEM.get());
+                output.accept(SANITY_VESSEL_ITEM.get());
             }).build());
 }

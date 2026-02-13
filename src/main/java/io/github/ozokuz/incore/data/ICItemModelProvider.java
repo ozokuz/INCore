@@ -14,5 +14,7 @@ public class ICItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         basicItem(Registration.ENCOUNTER_WAND_ITEM.get());
+        basicItem(Registration.SANITY_CRATE_ITEM.get());
+        basicItem(Registration.SANITY_VESSEL_ITEM.get());
     }
 }

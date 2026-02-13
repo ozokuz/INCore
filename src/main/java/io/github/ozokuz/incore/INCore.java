@@ -3,6 +3,8 @@ package io.github.ozokuz.incore;
 import io.github.ozokuz.incore.data.ICBlockStateProvider;
 import io.github.ozokuz.incore.data.ICItemModelProvider;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
+import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
+import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -47,8 +49,10 @@ public class INCore {
     public INCore(IEventBus modEventBus, ModContainer modContainer) {
         Registration.register(modEventBus);
         modEventBus.register(this);
+        modEventBus.addListener(SanityNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
+        NeoForge.EVENT_BUS.addListener(SanityCommands::register);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

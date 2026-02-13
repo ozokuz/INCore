@@ -34,6 +34,22 @@ public class Config {
             .comment("A list of items to log on common setup.")
             .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), () -> "", Config::validateItemName);
 
+    public static final ModConfigSpec.IntValue SANITY_REGEN_PER_MINUTE = BUILDER
+            .comment("How much sanity players regain every real-world minute.")
+            .defineInRange("sanityRegenPerMinute", 1, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue SANITY_BASE_CAP = BUILDER
+            .comment("Default sanity cap before any bonus cap extensions are applied.")
+            .defineInRange("sanityBaseCap", 120, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue SANITY_CRATE_COST = BUILDER
+            .comment("Sanity cost to open one sanity crate.")
+            .defineInRange("sanityCrateCost", 60, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue SANITY_CAP_UPGRADE_AMOUNT = BUILDER
+            .comment("How much max sanity a single sanity vessel upgrades.")
+            .defineInRange("sanityCapUpgradeAmount", 20, 1, Integer.MAX_VALUE);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     private static boolean validateItemName(final Object obj) {
