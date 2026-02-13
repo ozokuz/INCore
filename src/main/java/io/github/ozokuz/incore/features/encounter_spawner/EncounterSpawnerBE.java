@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.encounter_spawner;
 
+import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,7 +22,6 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 public class EncounterSpawnerBE extends BlockEntity {
-    private static final int TRIGGER_RADIUS = 8;
     private State state = State.IDLE;
     private EncounterData encounterData;
     private String encounterId;
@@ -77,7 +77,8 @@ public class EncounterSpawnerBE extends BlockEntity {
         if (be.state == State.SPAWN || level == null || level.isClientSide) return;
 
         if (be.state == State.IDLE) {
-            var players = level.getNearbyPlayers(TargetingConditions.DEFAULT, null, new AABB(pos).inflate(TRIGGER_RADIUS));
+            int triggerRadius = Config.ENCOUNTER_TRIGGER_RADIUS.get();
+            var players = level.getNearbyPlayers(TargetingConditions.DEFAULT, null, new AABB(pos).inflate(triggerRadius));
 
             if (players.isEmpty()) return;
             if (players.stream().allMatch(Player::isCreative)) return;
