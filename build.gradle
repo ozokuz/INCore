@@ -32,6 +32,17 @@ repositories {
             includeGroup "com.github.rtyley"
         }
     }
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                url "https://cursemaven.com"
+            }
+        }
+        filter {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
 base {
@@ -101,6 +112,9 @@ configurations {
 }
 
 dependencies {
+    api("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
+    interfaceInjectionData("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
+    implementation("curse.maven:paragliders-289240:6739615")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
