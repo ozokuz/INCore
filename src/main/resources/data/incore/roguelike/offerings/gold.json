@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:gold_ingot",
+  "base_cost": 5,
+  "ramp_every": 2,
+  "weight": 3
+}

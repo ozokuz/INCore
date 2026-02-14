@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "incore:block/roguelike_portal_ns"
+    },
+    "axis=z": {
+      "model": "incore:block/roguelike_portal_ew"
+    }
+  }
+}
