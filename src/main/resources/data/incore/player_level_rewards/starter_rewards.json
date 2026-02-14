@@ -1,0 +1,10 @@
+{
+  "level": 1,
+  "rewards": [
+    {
+      "type": "item",
+      "item": "minecraft:bread",
+      "count": 4
+    }
+  ]
+}

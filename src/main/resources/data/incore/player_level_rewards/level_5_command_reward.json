@@ -1,0 +1,10 @@
+{
+  "level": 5,
+  "rewards": [
+    {
+      "type": "command",
+      "command": "tellraw %player% {\"text\":\"You reached level 5!\",\"color\":\"gold\"}",
+      "preview": "Celebration message"
+    }
+  ]
+}

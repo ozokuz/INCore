@@ -4,6 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.ozokuz.incore.features.playerlevel.command.PlayerLevelCommands;
 import io.github.ozokuz.incore.features.sanity.SanityManager;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import net.minecraft.commands.CommandSourceStack;
@@ -47,6 +48,7 @@ public final class SanityCommands {
                                         .then(Commands.argument("targets", EntityArgument.players())
                                                 .then(Commands.argument("amount", IntegerArgumentType.integer())
                                                         .executes(SanityCommands::addCapBonus)))))
+                        .then(PlayerLevelCommands.build())
         );
     }
 

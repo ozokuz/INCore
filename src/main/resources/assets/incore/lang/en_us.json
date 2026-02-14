@@ -23,6 +23,8 @@
   "incore.configuration.sanityBaseCap": "Sanity Base Cap",
   "incore.configuration.sanityCrateCost": "Sanity Crate Cost",
   "incore.configuration.sanityCapUpgradeAmount": "Sanity Cap Upgrade Amount",
+  "incore.configuration.playerLevelBaseXpCost": "Player Level Base XP Cost",
+  "incore.configuration.playerLevelXpCostIncrease": "Player Level XP Cost Increase",
   "incore.configuration.encounterTriggerRadius": "Encounter Trigger Radius",
   "incore.encounter_wand.messages.not_named": "You need to rename the wand to the encounter resource id to set the data for the spawner.",
   "incore.encounter_wand.messages.no_location": "You need to click elsewhere with this wand first to set the position for the spawner.",
@@ -54,6 +56,10 @@
   "screen.incore.player_status.sanity": "Sanity",
   "screen.incore.player_status.next_gain": "Next increase in: %s",
   "screen.incore.player_status.full_in": "Full in: %s",
+  "screen.incore.player_status.section_level": "Player Level",
+  "screen.incore.player_status.level": "Level: %s",
+  "screen.incore.player_status.level_progress": "Level XP: %s/%s",
+  "screen.incore.player_status.open_rewards": "View Level Rewards",
   "screen.incore.player_status.timer.paused": "Paused",
   "screen.incore.player_status.timer.full": "Full",
   "screen.incore.player_status.hint": "More status modules will appear here later.",
@@ -80,4 +86,11 @@
   "screen.incore.gacha_banners.type.basic": "Basic Banner",
   "screen.incore.gacha_banners.type.event": "Event Banner",
   "screen.incore.gacha_info.title": "%s Odds"
+  "screen.incore.player_status.hint": "Custom progression overview",
+  "screen.incore.player_level_rewards.title": "Level Rewards",
+  "screen.incore.player_level_rewards.current_level": "Current level: %s",
+  "screen.incore.player_level_rewards.current_progress": "Current XP: %s/%s",
+  "screen.incore.player_level_rewards.none": "No level entries available.",
+  "screen.incore.player_level_rewards.level_row": "Level %s - Required XP: %s",
+  "screen.incore.player_level_rewards.level_empty": " - No rewards"
 }

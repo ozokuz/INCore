@@ -25,6 +25,14 @@ public class Config {
             .comment("How much max sanity a single sanity vessel upgrades.")
             .defineInRange("sanityCapUpgradeAmount", 20, 1, Integer.MAX_VALUE);
 
+    public static final ModConfigSpec.IntValue PLAYER_LEVEL_BASE_XP_COST = BUILDER
+            .comment("Base custom experience needed for the first player level up.")
+            .defineInRange("playerLevelBaseXpCost", 100, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue PLAYER_LEVEL_XP_COST_INCREASE = BUILDER
+            .comment("How much extra custom experience each next level requires.")
+            .defineInRange("playerLevelXpCostIncrease", 20, 0, Integer.MAX_VALUE);
+
     public static final ModConfigSpec.IntValue ENCOUNTER_TRIGGER_RADIUS = BUILDER
             .comment("How close players must be to trigger an encounter spawner.")
             .defineInRange("encounterTriggerRadius", 8, 1, Integer.MAX_VALUE);

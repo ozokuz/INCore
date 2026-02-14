@@ -7,6 +7,8 @@ import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
 import io.github.ozokuz.incore.features.gacha.GachaEventCategoryManager;
 import io.github.ozokuz.incore.features.gacha.command.GachaCommands;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
+import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
+import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import net.minecraft.data.DataGenerator;
@@ -36,6 +38,7 @@ public class INCore {
         modEventBus.register(this);
         modEventBus.addListener(SanityNetworking::registerPayloads);
         modEventBus.addListener(GachaNetworking::registerPayloads);
+        modEventBus.addListener(PlayerLevelNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -62,5 +65,6 @@ public class INCore {
         event.addListener(new EncounterManager());
         event.addListener(new GachaBannerManager());
         event.addListener(new GachaEventCategoryManager());
+        event.addListener(new PlayerLevelRewardManager());
     }
 }

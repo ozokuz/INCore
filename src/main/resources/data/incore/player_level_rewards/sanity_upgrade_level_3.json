@@ -1,0 +1,9 @@
+{
+  "level": 3,
+  "rewards": [
+    {
+      "type": "sanity_cap_bonus",
+      "amount": 10
+    }
+  ]
+}
