@@ -12,11 +12,20 @@ import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
 import io.github.ozokuz.incore.features.research.LabBlock;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabMenu;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonCompletionCrateItem;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalItem;
+import io.github.ozokuz.incore.features.roguelike.content.EmptyDungeonCrystalItem;
+import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlock;
+import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlock;
+import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
 import io.github.ozokuz.incore.features.sanity.SanityBoosterItem;
 import io.github.ozokuz.incore.features.sanity.SanityCrateItem;
 import io.github.ozokuz.incore.features.sanity.SanityVesselItem;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -39,6 +48,7 @@ import java.util.function.Supplier;
 public class Registration {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(INCore.MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(INCore.MODID);
+    public static final DeferredRegister.DataComponents DATA_COMPONENT_TYPES = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, INCore.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, INCore.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE,  INCore.MODID);
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(Registries.MENU, INCore.MODID);
@@ -46,6 +56,7 @@ public class Registration {
     public static void register(IEventBus bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
+        DATA_COMPONENT_TYPES.register(bus);
         CREATIVE_MODE_TABS.register(bus);
         BLOCK_ENTITY_TYPES.register(bus);
         MENU_TYPES.register(bus);
@@ -62,7 +73,17 @@ public class Registration {
     public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
     public static final DeferredItem<BlockItem> RESEARCH_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_lab", RESEARCH_LAB_BLOCK);
 
+    public static final DeferredBlock<Block> ROGUELIKE_ALTAR_BLOCK = BLOCKS.register("roguelike_altar", RoguelikeAltarBlock::new);
+    public static final Supplier<BlockEntityType<RoguelikeAltarBlockEntity>> ROGUELIKE_ALTAR_BE = BLOCK_ENTITY_TYPES.register("roguelike_altar", () -> BlockEntityType.Builder.of(RoguelikeAltarBlockEntity::new, ROGUELIKE_ALTAR_BLOCK.get()).build(null));
+    public static final DeferredItem<BlockItem> ROGUELIKE_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("roguelike_altar", ROGUELIKE_ALTAR_BLOCK);
+    public static final DeferredBlock<Block> ROGUELIKE_PORTAL_BLOCK = BLOCKS.register("roguelike_portal", RoguelikePortalBlock::new);
+    public static final Supplier<BlockEntityType<RoguelikePortalBlockEntity>> ROGUELIKE_PORTAL_BE = BLOCK_ENTITY_TYPES.register("roguelike_portal", () -> BlockEntityType.Builder.of(RoguelikePortalBlockEntity::new, ROGUELIKE_PORTAL_BLOCK.get()).build(null));
+    public static final DeferredItem<BlockItem> ROGUELIKE_PORTAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("roguelike_portal", ROGUELIKE_PORTAL_BLOCK);
+
     public static final DeferredItem<Item> ENCOUNTER_WAND_ITEM = ITEMS.registerItem("encounter_wand", EncounterWandItem::new);
+    public static final DeferredItem<Item> EMPTY_DUNGEON_CRYSTAL_ITEM = ITEMS.registerItem("empty_dungeon_crystal", EmptyDungeonCrystalItem::new);
+    public static final DeferredItem<Item> DUNGEON_CRYSTAL_ITEM = ITEMS.registerItem("dungeon_crystal", DungeonCrystalItem::new);
+    public static final DeferredItem<Item> DUNGEON_COMPLETION_CRATE_ITEM = ITEMS.registerItem("dungeon_completion_crate", DungeonCompletionCrateItem::new);
     public static final DeferredItem<Item> SANITY_CRATE_ITEM = ITEMS.registerItem("sanity_crate", SanityCrateItem::new);
     public static final DeferredItem<Item> SANITY_BOOSTER_SMALL_ITEM = ITEMS.registerItem("sanity_booster_small", properties -> new SanityBoosterItem(properties, 50));
     public static final DeferredItem<Item> SANITY_BOOSTER_LARGE_ITEM = ITEMS.registerItem("sanity_booster_large", properties -> new SanityBoosterItem(properties, 100));
@@ -79,11 +100,27 @@ public class Registration {
     public static final DeferredItem<Item> CHARTERED_BANNER_PERMIT_ITEM = ITEMS.registerItem("chartered_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.CHARTERED));
     public static final DeferredItem<Item> BANNER_PERMIT_ITEM = ITEMS.registerItem("banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> DUNGEON_CRYSTAL_THEME =
+            DATA_COMPONENT_TYPES.registerComponentType(
+                    "dungeon_crystal_theme",
+                    builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC)
+            );
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> DUNGEON_CRYSTAL_OBJECTIVE =
+            DATA_COMPONENT_TYPES.registerComponentType(
+                    "dungeon_crystal_objective",
+                    builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC)
+            );
+
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.incore"))
             .withTabsBefore(CreativeModeTabs.COMBAT)
             .icon(() -> ENCOUNTER_WAND_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
+                output.accept(ROGUELIKE_ALTAR_BLOCK_ITEM.get());
+                output.accept(ROGUELIKE_PORTAL_BLOCK_ITEM.get());
+                output.accept(EMPTY_DUNGEON_CRYSTAL_ITEM.get());
+                output.accept(DUNGEON_CRYSTAL_ITEM.get());
+                output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
                 output.accept(GACHA_CRATE_BLOCK_ITEM.get());
                 output.accept(RESEARCH_LAB_BLOCK_ITEM.get());

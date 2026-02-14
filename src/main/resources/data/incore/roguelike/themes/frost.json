@@ -1,0 +1,6 @@
+{
+  "floor": "minecraft:packed_ice",
+  "wall": "minecraft:blue_ice",
+  "ceiling": "minecraft:ice",
+  "weight": 2
+}

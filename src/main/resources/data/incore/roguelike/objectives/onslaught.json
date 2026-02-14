@@ -1,0 +1,6 @@
+{
+  "type": "kill_mobs",
+  "target": 30,
+  "reward_crates": 4,
+  "weight": 1
+}

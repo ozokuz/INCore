@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:redstone",
+  "base_cost": 8,
+  "ramp_every": 3,
+  "weight": 4
+}

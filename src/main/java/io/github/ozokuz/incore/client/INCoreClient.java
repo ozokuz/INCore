@@ -1,6 +1,9 @@
 package io.github.ozokuz.incore.client;
 
 import io.github.ozokuz.incore.INCore;
+import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.client.features.roguelike.RoguelikeAltarRenderer;
+import io.github.ozokuz.incore.client.features.roguelike.RoguelikePortalRenderer;
 import io.github.ozokuz.incore.client.features.sanity.SanityBarHudFeature;
 import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import io.github.ozokuz.incore.client.status.BattlePassScreen;
@@ -17,6 +20,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
@@ -32,6 +36,7 @@ public class INCoreClient {
         modEventBus.addListener(this::onRegisterKeyMappings);
         modEventBus.addListener(this::onRegisterScreens);
         modEventBus.addListener(this::onRegisterClientReloadListeners);
+        modEventBus.addListener(this::onRegisterRenderers);
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
         StaminaBarHudFeature.register();
         SanityBarHudFeature.register();
@@ -52,6 +57,11 @@ public class INCoreClient {
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
         event.registerReloadListener(new ResearchEntryManager());
         event.registerReloadListener(new ManualResearchTaskManager());
+    }
+
+    private void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(Registration.ROGUELIKE_ALTAR_BE.get(), RoguelikeAltarRenderer::new);
+        event.registerBlockEntityRenderer(Registration.ROGUELIKE_PORTAL_BE.get(), RoguelikePortalRenderer::new);
     }
 
     private void onClientTick(ClientTickEvent.Post event) {
