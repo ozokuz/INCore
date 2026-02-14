@@ -37,12 +37,25 @@ public class SanityBoosterItem extends Item {
             return InteractionResultHolder.fail(stack);
         }
 
-        SanityManager.addSanity(serverPlayer, restoreAmount);
+        boolean bulkUse = serverPlayer.isShiftKeyDown();
+        int boostersToConsume = 1;
+        if (bulkUse) {
+            int missing = cap - before;
+            int maxFullBoostersByCap = missing / restoreAmount;
+            boostersToConsume = Math.min(stack.getCount(), maxFullBoostersByCap);
+            if (boostersToConsume <= 0) {
+                serverPlayer.sendSystemMessage(Component.translatable("incore.sanity.booster.bulk.no_full_fit", restoreAmount, before, cap));
+                return InteractionResultHolder.fail(stack);
+            }
+        }
+
+        int requestedRestore = restoreAmount * boostersToConsume;
+        SanityManager.addSanity(serverPlayer, requestedRestore);
         int current = SanityManager.getCurrentSanity(serverPlayer);
         int restored = current - before;
 
         if (!serverPlayer.isCreative()) {
-            stack.shrink(1);
+            stack.shrink(boostersToConsume);
         }
 
         SanityNetworking.sendBoosterGainAnimation(serverPlayer, before, current, cap, restored);

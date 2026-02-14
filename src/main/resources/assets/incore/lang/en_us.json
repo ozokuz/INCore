@@ -27,6 +27,7 @@
   "incore.sanity.crate.opened": "Opened crate for %s sanity. Remaining sanity: %s/%s",
   "incore.sanity.booster.used": "Restored %s sanity. Sanity: %s/%s",
   "incore.sanity.booster.full": "Sanity is already full: %s/%s",
+  "incore.sanity.booster.bulk.no_full_fit": "Sneak-use requires room for a full %s sanity restore. Current sanity: %s/%s",
   "incore.sanity.vessel.used": "Max sanity increased by %s. Sanity: %s/%s",
   "key.categories.incore": "INCore",
   "key.incore.open_player_status": "Open Player Status",
