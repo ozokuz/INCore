@@ -1,0 +1,20 @@
+{
+  "name": "Chartered: Volcanic Forge",
+  "type": "event",
+  "pity_group": "chartered_rotation_a",
+  "featured_items": [
+    "minecraft:netherite_upgrade_smithing_template",
+    "minecraft:nether_star",
+    "minecraft:totem_of_undying"
+  ],
+  "rewards": [
+    { "item": "minecraft:blaze_rod", "weight": 2400, "rarity": 2, "min_count": 2, "max_count": 6 },
+    { "item": "minecraft:magma_cream", "weight": 2100, "rarity": 2, "min_count": 2, "max_count": 5 },
+    { "item": "minecraft:ghast_tear", "weight": 1700, "rarity": 3, "min_count": 1, "max_count": 3 },
+    { "item": "minecraft:quartz", "weight": 1400, "rarity": 3, "min_count": 4, "max_count": 12 },
+    { "item": "minecraft:golden_carrot", "weight": 1000, "rarity": 4, "min_count": 2, "max_count": 4 },
+    { "item": "minecraft:totem_of_undying", "weight": 430, "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:nether_star", "weight": 170, "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_upgrade_smithing_template", "weight": 30, "rarity": 6, "min_count": 1, "max_count": 1 }
+  ]
+}

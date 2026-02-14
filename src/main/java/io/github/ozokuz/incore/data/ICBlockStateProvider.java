@@ -18,5 +18,10 @@ public class ICBlockStateProvider extends BlockStateProvider {
                     .renderType("cutout");
         simpleBlock(Registration.ENCOUNTER_SPAWNER_BLOCK.get(), spawnerModel);
         simpleBlockItem(Registration.ENCOUNTER_SPAWNER_BLOCK.get(), spawnerModel);
+
+        var gachaCrateModel = models().withExistingParent("gacha_crate", mcLoc("block/cube_all"))
+                .texture("all", modLoc("item/sanity_crate"));
+        simpleBlock(Registration.GACHA_CRATE_BLOCK.get(), gachaCrateModel);
+        simpleBlockItem(Registration.GACHA_CRATE_BLOCK.get(), gachaCrateModel);
     }
 }

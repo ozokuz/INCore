@@ -4,6 +4,7 @@ import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.client.features.sanity.SanityBarHudFeature;
 import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import io.github.ozokuz.incore.client.status.PlayerStatusScreen;
+import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -27,6 +28,7 @@ public class INCoreClient {
 
     private void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(INCoreKeyMappings.OPEN_PLAYER_STATUS);
+        event.register(INCoreKeyMappings.OPEN_GACHA_BANNERS);
     }
 
     private void onClientTick(ClientTickEvent.Post event) {
@@ -37,6 +39,10 @@ public class INCoreClient {
 
         while (INCoreKeyMappings.OPEN_PLAYER_STATUS.consumeClick()) {
             minecraft.setScreen(new PlayerStatusScreen());
+        }
+
+        while (INCoreKeyMappings.OPEN_GACHA_BANNERS.consumeClick()) {
+            GachaNetworking.requestOpenBannerScreen();
         }
     }
 }

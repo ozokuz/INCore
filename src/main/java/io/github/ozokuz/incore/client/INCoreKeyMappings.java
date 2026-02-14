@@ -11,6 +11,12 @@ public final class INCoreKeyMappings {
             GLFW.GLFW_KEY_O,
             "key.categories.incore"
     );
+    public static final KeyMapping OPEN_GACHA_BANNERS = new KeyMapping(
+            "key.incore.open_gacha_banners",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_P,
+            "key.categories.incore"
+    );
 
     private INCoreKeyMappings() {
     }

@@ -3,6 +3,8 @@ package io.github.ozokuz.incore;
 import io.github.ozokuz.incore.data.ICBlockStateProvider;
 import io.github.ozokuz.incore.data.ICItemModelProvider;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
+import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
+import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import net.minecraft.data.DataGenerator;
@@ -31,6 +33,7 @@ public class INCore {
         Registration.register(modEventBus);
         modEventBus.register(this);
         modEventBus.addListener(SanityNetworking::registerPayloads);
+        modEventBus.addListener(GachaNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -54,5 +57,6 @@ public class INCore {
 
     public void onReloadListener(AddReloadListenerEvent event) {
         event.addListener(new EncounterManager());
+        event.addListener(new GachaBannerManager());
     }
 }
