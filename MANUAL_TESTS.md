@@ -142,3 +142,6 @@ Manual gameplay verification checklist for testers.
 - [ ] Given player inventory contains 8 paper, when clicking the "Field Notes Submission" task button, then 8 paper are consumed and research points increase by 10.
 - [ ] Given player inventory contains 16 slime balls, when clicking "Specimen Delivery" task multiple times, then each submission consumes 16 slime balls and grants repeatable research points.
 - [ ] Given the player has enough research points and completed prerequisites, when clicking an unlockable tech entry button, then points are spent and the entry is marked unlocked.
+
+## Research Lab Build Compatibility
+- [ ] Given a clean checkout on CI or local dev machine with required network access, when running `./gradlew compileJava`, then `LabBlock` codec registration compiles without constructor-reference errors.
