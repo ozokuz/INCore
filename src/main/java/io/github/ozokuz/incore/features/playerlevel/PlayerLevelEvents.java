@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.playerlevel;
 
 import io.github.ozokuz.incore.INCore;
+import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,6 +22,7 @@ public class PlayerLevelEvents {
         PlayerLevelManager.grantPendingRewards(player);
         PlayerLevelNetworking.syncToPlayer(player);
         SanityNetworking.syncToPlayer(player);
+        BattlePassNetworking.syncToPlayer(player);
     }
 
     @SubscribeEvent
@@ -35,6 +37,7 @@ public class PlayerLevelEvents {
 
         PlayerLevelManager.copyData(oldPlayer, newPlayer);
         PlayerLevelNetworking.syncToPlayer(newPlayer);
+        BattlePassNetworking.syncToPlayer(newPlayer);
     }
 
     @SubscribeEvent
@@ -48,5 +51,6 @@ public class PlayerLevelEvents {
         }
 
         PlayerLevelNetworking.syncToPlayer(player);
+        BattlePassNetworking.syncToPlayer(player);
     }
 }

@@ -5,6 +5,7 @@ import io.github.ozokuz.incore.data.ICItemModelProvider;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.command.BattlePassCommands;
+import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
 import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
 import io.github.ozokuz.incore.features.gacha.GachaEventCategoryManager;
 import io.github.ozokuz.incore.features.gacha.command.GachaCommands;
@@ -45,6 +46,7 @@ public class INCore {
         modEventBus.addListener(GachaNetworking::registerPayloads);
         modEventBus.addListener(PlayerLevelNetworking::registerPayloads);
         modEventBus.addListener(TaskNetworking::registerPayloads);
+        modEventBus.addListener(BattlePassNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);

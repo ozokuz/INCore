@@ -21,6 +21,10 @@ public final class INCoreKeyMappings {
             "key.incore.open_task_overview",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_K,
+    public static final KeyMapping OPEN_BATTLE_PASS = new KeyMapping(
+            "key.incore.open_battle_pass",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_B,
             "key.categories.incore"
     );
 
