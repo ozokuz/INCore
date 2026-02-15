@@ -63,3 +63,4 @@ Manual gameplay verification checklist for testers.
 - [ ] Given a world date within `season_alpha` and two permanent tasks already completed, when completing a third permanent task, then the command fails with a permanent completion cap reached message (only half of permanent tasks completable).
 - [ ] Given the world date advanced to `2026-01-01T00:00:00Z` or later, when running `/incore battlepass status <player>`, then the active battle pass set changes from `incore:season_alpha` to `incore:season_bravo` without server restart.
 - [ ] Given enough completed tasks to cross at least one level threshold, when checking inventory and command output, then the player receives the reward(s) defined in the active battle pass datapack level rewards.
+- [ ] Given a battle pass level reward configured as `{"type":"sanity_cap_bonus","amount":5}`, when earning that level, then the player's maximum sanity increases by 5 and persists after relog.
