@@ -23,6 +23,12 @@ public final class INCoreKeyMappings {
             GLFW.GLFW_KEY_K,
             "key.categories.incore"
     );
+    public static final KeyMapping OPEN_RESEARCH_TREE = new KeyMapping(
+            "key.incore.open_research_tree",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_U,
+            "key.categories.incore"
+    );
     public static final KeyMapping OPEN_BATTLE_PASS = new KeyMapping(
             "key.incore.open_battle_pass",
             InputConstants.Type.KEYSYM,

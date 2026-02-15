@@ -168,5 +168,12 @@
   "screen.incore.battle_pass.track_locked": "%s (Locked)",
   "screen.incore.battle_pass.locked_short": "Locked",
   "battlepass_set.incore.season_alpha": "Season Alpha",
-  "battlepass_set.incore.season_bravo": "Season Bravo"
+  "battlepass_set.incore.season_bravo": "Season Bravo",
+  "block.incore.research_lab": "Research Lab",
+  "key.incore.open_research_tree": "Open Research Tree",
+  "screen.incore.research.title": "Research & Tech Tree",
+  "screen.incore.research.points": "Research Points: %s",
+  "screen.incore.research.entries": "Tech Tree",
+  "screen.incore.research.tasks": "Manual Tasks",
+  "screen.incore.research_lab.progress": "Progress: %s/%s"
 }

@@ -12,6 +12,10 @@ import io.github.ozokuz.incore.features.gacha.command.GachaCommands;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
+import io.github.ozokuz.incore.features.research.LabProcessManager;
+import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
+import io.github.ozokuz.incore.features.research.ResearchEntryManager;
+import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import io.github.ozokuz.incore.features.tasks.TaskDataManager;
@@ -47,6 +51,7 @@ public class INCore {
         modEventBus.addListener(PlayerLevelNetworking::registerPayloads);
         modEventBus.addListener(TaskNetworking::registerPayloads);
         modEventBus.addListener(BattlePassNetworking::registerPayloads);
+        modEventBus.addListener(ResearchNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -78,5 +83,8 @@ public class INCore {
         event.addListener(new PlayerLevelRewardManager());
         event.addListener(new TaskDataManager());
         event.addListener(new BattlePassManager());
+        event.addListener(new ResearchEntryManager());
+        event.addListener(new ManualResearchTaskManager());
+        event.addListener(new LabProcessManager());
     }
 }
