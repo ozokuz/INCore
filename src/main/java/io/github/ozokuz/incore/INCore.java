@@ -3,6 +3,8 @@ package io.github.ozokuz.incore;
 import io.github.ozokuz.incore.data.ICBlockStateProvider;
 import io.github.ozokuz.incore.data.ICItemModelProvider;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
+import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
+import io.github.ozokuz.incore.features.battlepass.command.BattlePassCommands;
 import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
 import io.github.ozokuz.incore.features.gacha.GachaEventCategoryManager;
 import io.github.ozokuz.incore.features.gacha.command.GachaCommands;
@@ -48,6 +50,7 @@ public class INCore {
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
         NeoForge.EVENT_BUS.addListener(GachaCommands::register);
         NeoForge.EVENT_BUS.addListener(TaskCommands::register);
+        NeoForge.EVENT_BUS.addListener(BattlePassCommands::register);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -72,5 +75,6 @@ public class INCore {
         event.addListener(new GachaEventCategoryManager());
         event.addListener(new PlayerLevelRewardManager());
         event.addListener(new TaskDataManager());
+        event.addListener(new BattlePassManager());
     }
 }

@@ -1,0 +1,35 @@
+{
+  "starts_at": "2026-01-01T00:00:00Z",
+  "ends_at": "2027-01-01T00:00:00Z",
+  "xp_per_level": 700,
+  "tier_xp": {
+    "bronze": 120,
+    "silver": 200,
+    "gold": 300,
+    "platinum": 450
+  },
+  "tasks": [
+    { "id": "bravo_week1_supply", "type": "weekly", "week": 1, "tier": "bronze", "description": "Gather 20 supplies" },
+    { "id": "bravo_week1_boss", "type": "weekly", "week": 1, "tier": "platinum", "description": "Defeat 1 boss encounter" },
+    { "id": "bravo_week2_banner", "type": "weekly", "week": 2, "tier": "silver", "description": "Perform 15 banner pulls" },
+    { "id": "bravo_week2_patrol", "type": "weekly", "week": 2, "tier": "gold", "description": "Clear 5 patrol encounters" },
+    { "id": "bravo_permanent_daily", "type": "permanent", "tier": "bronze", "description": "Claim 7 daily rewards" },
+    { "id": "bravo_permanent_streak", "type": "permanent", "tier": "silver", "description": "Maintain a 3-day streak" },
+    { "id": "bravo_permanent_elite", "type": "permanent", "tier": "gold", "description": "Defeat 8 elite mobs" },
+    { "id": "bravo_permanent_expedition", "type": "permanent", "tier": "platinum", "description": "Complete 3 expeditions" }
+  ],
+  "level_rewards": [
+    {
+      "level": 1,
+      "rewards": [
+        { "type": "item", "item": "minecraft:gold_ingot", "count": 6 }
+      ]
+    },
+    {
+      "level": 2,
+      "rewards": [
+        { "type": "command", "command": "say ${player} entered Bravo pass level 2", "preview": "Broadcast Bravo level 2" }
+      ]
+    }
+  ]
+}
