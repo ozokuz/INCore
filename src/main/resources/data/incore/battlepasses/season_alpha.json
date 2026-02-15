@@ -1,0 +1,43 @@
+{
+  "starts_at": "2025-01-01T00:00:00Z",
+  "ends_at": "2026-01-01T00:00:00Z",
+  "xp_per_level": 600,
+  "tier_xp": {
+    "bronze": 100,
+    "silver": 175,
+    "gold": 275,
+    "platinum": 400
+  },
+  "tasks": [
+    { "id": "alpha_week1_patrol", "type": "weekly", "week": 1, "tier": "bronze", "description": "Complete 2 patrol encounters" },
+    { "id": "alpha_week1_relic", "type": "weekly", "week": 1, "tier": "silver", "description": "Open 1 expedition relic crate" },
+    { "id": "alpha_week1_command", "type": "weekly", "week": 1, "tier": "gold", "description": "Finish 1 mission command objective" },
+    { "id": "alpha_week2_supply", "type": "weekly", "week": 2, "tier": "bronze", "description": "Collect 16 supply drops" },
+    { "id": "alpha_week2_elite", "type": "weekly", "week": 2, "tier": "platinum", "description": "Defeat 1 elite encounter" },
+    { "id": "alpha_permanent_login", "type": "permanent", "tier": "bronze", "description": "Login 3 different days" },
+    { "id": "alpha_permanent_banner", "type": "permanent", "tier": "silver", "description": "Use 10 banner permits" },
+    { "id": "alpha_permanent_sanity", "type": "permanent", "tier": "gold", "description": "Recover 50 sanity" },
+    { "id": "alpha_permanent_crates", "type": "permanent", "tier": "platinum", "description": "Open 5 gacha crates" }
+  ],
+  "level_rewards": [
+    {
+      "level": 1,
+      "rewards": [
+        { "type": "item", "item": "minecraft:iron_ingot", "count": 8 }
+      ]
+    },
+    {
+      "level": 2,
+      "rewards": [
+        { "type": "item", "item": "minecraft:emerald", "count": 4 },
+        { "type": "command", "command": "say ${player} reached battle pass level 2", "preview": "Broadcast level 2" }
+      ]
+    },
+    {
+      "level": 3,
+      "rewards": [
+        { "type": "sanity_cap_bonus", "amount": 5 }
+      ]
+    }
+  ]
+}
