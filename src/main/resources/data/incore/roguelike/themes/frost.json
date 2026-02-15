@@ -1,6 +1,17 @@
 {
-  "floor": "minecraft:packed_ice",
-  "wall": "minecraft:blue_ice",
-  "ceiling": "minecraft:ice",
+  "starting_room": "incore:roguelike/frost/starting_room",
+  "hallway_ns": "incore:roguelike/frost/hallway_ns",
+  "hallway_ew": "incore:roguelike/frost/hallway_ew",
+  "rooms": [
+    {
+      "id": "incore:roguelike/frost/room_big",
+      "floor_y_from_bottom": 12,
+      "weight": 3
+    },
+    {
+      "id": "incore:roguelike/frost/room_small",
+      "weight": 2
+    }
+  ],
   "weight": 2
 }

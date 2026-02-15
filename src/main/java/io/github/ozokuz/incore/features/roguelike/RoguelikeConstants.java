@@ -11,7 +11,7 @@ public final class RoguelikeConstants {
     public static final ResourceKey<Level> ROGUELIKE_DIMENSION = ResourceKey.create(Registries.DIMENSION, ROGUELIKE_ID);
     public static final int DUNGEON_ROOM_SIZE = 33;
     public static final int DUNGEON_ROOM_HEIGHT = 9;
-    public static final int DUNGEON_SPACING = 128;
+    public static final int DUNGEON_SPACING = 512;
     public static final int DUNGEON_BASE_Y = 64;
     public static final int DUNGEON_TIME_LIMIT_TICKS = 20 * 60 * 15;
 
