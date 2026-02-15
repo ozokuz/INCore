@@ -62,7 +62,6 @@
   "screen.incore.player_status.open_rewards": "View Level Rewards",
   "screen.incore.player_status.timer.paused": "Paused",
   "screen.incore.player_status.timer.full": "Full",
-  "screen.incore.player_status.hint": "More status modules will appear here later.",
   "screen.incore.gacha_banners.title": "Crate Banners",
   "screen.incore.gacha_banners.select": "Buy",
   "screen.incore.gacha_banners.pull_x10": "Pull x10",
@@ -85,7 +84,7 @@
   "screen.incore.gacha_banners.showcase.five": "5★ Pullable",
   "screen.incore.gacha_banners.type.basic": "Basic Banner",
   "screen.incore.gacha_banners.type.event": "Event Banner",
-  "screen.incore.gacha_info.title": "%s Odds"
+  "screen.incore.gacha_info.title": "%s Odds",
   "screen.incore.player_status.hint": "Custom progression overview",
   "screen.incore.player_level_rewards.title": "Level Rewards",
   "screen.incore.player_level_rewards.current_level": "Current level: %s",
