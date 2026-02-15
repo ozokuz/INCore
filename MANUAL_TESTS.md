@@ -131,3 +131,14 @@ Manual gameplay verification checklist for testers.
 - [ ] Given Battle Pass rewards tab is open and a reward level card is clicked, when selecting any level, then the footer shows `XP to reach` and `XP for level` values for the selected level.
 - [ ] Given a lane is locked for the player, when viewing the rewards tab, then that lane row appears as locked (greyed/locked label) and unlocked lanes remain claimable.
 - [ ] Given `season_alpha` and `season_bravo` datapacks define rewards only under `rewards_by_lane` (with no `level_rewards` key), when the server reloads datapacks and players open Battle Pass rewards, then all configured reward levels and lane previews still load correctly without parse errors.
+
+## Research Lab Automatic Processing
+- [ ] Given a player places a Research Lab and opens it, when inserting 2 iron ingots and waiting 10 seconds, then the lab progress bar fills to completion and the owner gains 5 research points.
+- [ ] Given a non-owner opens a placed Research Lab with valid input, when processing completes, then research points are granted to the player who originally placed the lab.
+- [ ] Given a Research Lab has an input stack below any configured process threshold, when waiting 10 seconds, then progress remains at zero and no research points are granted.
+
+## Research Tree and Manual Task Submissions
+- [ ] Given the player is in-game, when pressing the Research Tree keybind (`K` default), then the Research & Tech Tree screen opens populated from datapack-defined entries and tasks.
+- [ ] Given player inventory contains 8 paper, when clicking the "Field Notes Submission" task button, then 8 paper are consumed and research points increase by 10.
+- [ ] Given player inventory contains 16 slime balls, when clicking "Specimen Delivery" task multiple times, then each submission consumes 16 slime balls and grants repeatable research points.
+- [ ] Given the player has enough research points and completed prerequisites, when clicking an unlockable tech entry button, then points are spent and the entry is marked unlocked.

@@ -9,12 +9,16 @@ import io.github.ozokuz.incore.features.gacha.GachaCrateBlock;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockEntity;
 import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
+import io.github.ozokuz.incore.features.research.LabBlock;
+import io.github.ozokuz.incore.features.research.LabBlockEntity;
+import io.github.ozokuz.incore.features.research.LabMenu;
 import io.github.ozokuz.incore.features.sanity.SanityBoosterItem;
 import io.github.ozokuz.incore.features.sanity.SanityCrateItem;
 import io.github.ozokuz.incore.features.sanity.SanityVesselItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -28,6 +32,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 
 import java.util.function.Supplier;
 
@@ -36,12 +41,14 @@ public class Registration {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(INCore.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, INCore.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE,  INCore.MODID);
+    public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(Registries.MENU, INCore.MODID);
 
     public static void register(IEventBus bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
         CREATIVE_MODE_TABS.register(bus);
         BLOCK_ENTITY_TYPES.register(bus);
+        MENU_TYPES.register(bus);
     }
 
     public static final DeferredBlock<Block> ENCOUNTER_SPAWNER_BLOCK = BLOCKS.register("encounter_spawner", EncounterSpawnerBlock::new);
@@ -50,6 +57,10 @@ public class Registration {
     public static final DeferredBlock<Block> GACHA_CRATE_BLOCK = BLOCKS.register("gacha_crate", GachaCrateBlock::new);
     public static final Supplier<BlockEntityType<GachaCrateBlockEntity>> GACHA_CRATE_BE = BLOCK_ENTITY_TYPES.register("gacha_crate", () -> BlockEntityType.Builder.of(GachaCrateBlockEntity::new, GACHA_CRATE_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> GACHA_CRATE_BLOCK_ITEM = ITEMS.registerItem("gacha_crate", properties -> new GachaCrateBlockItem(GACHA_CRATE_BLOCK.get(), properties));
+    public static final DeferredBlock<Block> RESEARCH_LAB_BLOCK = BLOCKS.register("research_lab", LabBlock::new);
+    public static final Supplier<BlockEntityType<LabBlockEntity>> RESEARCH_LAB_BE = BLOCK_ENTITY_TYPES.register("research_lab", () -> BlockEntityType.Builder.of(LabBlockEntity::new, RESEARCH_LAB_BLOCK.get()).build(null));
+    public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
+    public static final DeferredItem<BlockItem> RESEARCH_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_lab", RESEARCH_LAB_BLOCK);
 
     public static final DeferredItem<Item> ENCOUNTER_WAND_ITEM = ITEMS.registerItem("encounter_wand", EncounterWandItem::new);
     public static final DeferredItem<Item> SANITY_CRATE_ITEM = ITEMS.registerItem("sanity_crate", SanityCrateItem::new);
@@ -75,6 +86,7 @@ public class Registration {
             .displayItems((parameters, output) -> {
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
                 output.accept(GACHA_CRATE_BLOCK_ITEM.get());
+                output.accept(RESEARCH_LAB_BLOCK_ITEM.get());
                 output.accept(ENCOUNTER_WAND_ITEM.get());
                 output.accept(SANITY_CRATE_ITEM.get());
                 output.accept(SANITY_BOOSTER_SMALL_ITEM.get());

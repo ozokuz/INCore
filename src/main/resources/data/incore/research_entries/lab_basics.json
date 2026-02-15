@@ -1,0 +1,7 @@
+{
+  "title": "Lab Basics",
+  "description": "Foundational lab safety and throughput optimizations.",
+  "cost": 20,
+  "prerequisites": [],
+  "required_tasks": ["incore:field_notes"]
+}
