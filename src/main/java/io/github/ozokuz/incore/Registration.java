@@ -3,6 +3,8 @@ package io.github.ozokuz.incore;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBlock;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterWandItem;
+import io.github.ozokuz.incore.features.battlepass.BattlePassLane;
+import io.github.ozokuz.incore.features.battlepass.BattlePassLaneUnlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlock;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockEntity;
@@ -54,6 +56,14 @@ public class Registration {
     public static final DeferredItem<Item> SANITY_BOOSTER_SMALL_ITEM = ITEMS.registerItem("sanity_booster_small", properties -> new SanityBoosterItem(properties, 50));
     public static final DeferredItem<Item> SANITY_BOOSTER_LARGE_ITEM = ITEMS.registerItem("sanity_booster_large", properties -> new SanityBoosterItem(properties, 100));
     public static final DeferredItem<Item> SANITY_VESSEL_ITEM = ITEMS.registerItem("sanity_vessel", SanityVesselItem::new);
+    public static final DeferredItem<Item> ORIGINIUM_SUPPLY_UNLOCK_ITEM = ITEMS.registerItem(
+            "originium_supply_unlock",
+            properties -> new BattlePassLaneUnlockItem(properties, BattlePassLane.ORIGINIUM)
+    );
+    public static final DeferredItem<Item> PROTOCOL_CUSTOMIZED_UNLOCK_ITEM = ITEMS.registerItem(
+            "protocol_customized_unlock",
+            properties -> new BattlePassLaneUnlockItem(properties, BattlePassLane.PROTOCOL)
+    );
     public static final DeferredItem<Item> BASIC_BANNER_PERMIT_ITEM = ITEMS.registerItem("basic_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.BASIC));
     public static final DeferredItem<Item> CHARTERED_BANNER_PERMIT_ITEM = ITEMS.registerItem("chartered_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.CHARTERED));
     public static final DeferredItem<Item> BANNER_PERMIT_ITEM = ITEMS.registerItem("banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
@@ -70,6 +80,8 @@ public class Registration {
                 output.accept(SANITY_BOOSTER_SMALL_ITEM.get());
                 output.accept(SANITY_BOOSTER_LARGE_ITEM.get());
                 output.accept(SANITY_VESSEL_ITEM.get());
+                output.accept(ORIGINIUM_SUPPLY_UNLOCK_ITEM.get());
+                output.accept(PROTOCOL_CUSTOMIZED_UNLOCK_ITEM.get());
                 output.accept(BASIC_BANNER_PERMIT_ITEM.get());
                 output.accept(CHARTERED_BANNER_PERMIT_ITEM.get());
                 output.accept(BANNER_PERMIT_ITEM.get());

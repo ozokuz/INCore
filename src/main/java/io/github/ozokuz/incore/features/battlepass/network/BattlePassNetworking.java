@@ -1,8 +1,8 @@
 package io.github.ozokuz.incore.features.battlepass.network;
 
 import io.github.ozokuz.incore.features.battlepass.BattlePassDefinition;
-import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassProgressManager;
+import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassReward;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,19 +32,29 @@ public final class BattlePassNetworking {
         Instant now = Instant.now();
         BattlePassProgressManager.ScreenSnapshot snapshot = BattlePassProgressManager.getScreenSnapshot(player, now);
 
+        List<BattlePassSyncPayload.LaneEntry> lanes = snapshot.lanes().stream()
+                .map(lane -> new BattlePassSyncPayload.LaneEntry(
+                        lane.id(),
+                        lane.unlocked(),
+                        lane.highestClaimedLevel()
+                ))
+                .toList();
+
         List<BattlePassSyncPayload.RewardLevelEntry> rewardLevels = List.of();
         Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
         if (activeOptional.isPresent()) {
             BattlePassDefinition active = activeOptional.get();
-            rewardLevels = active.rewardsByLevel().entrySet().stream()
-                    .sorted(Comparator.comparingInt(java.util.Map.Entry::getKey))
-                    .map(entry -> {
-                        int level = entry.getKey();
+            rewardLevels = active.allConfiguredRewardLevels().stream()
+                    .sorted(Comparator.naturalOrder())
+                    .map(level -> {
                         int requiredXp = level * active.xpPerLevel();
-                        List<BattlePassSyncPayload.RewardEntry> rewards = entry.getValue().stream()
-                                .map(BattlePassNetworking::toRewardEntry)
-                                .toList();
-                        return new BattlePassSyncPayload.RewardLevelEntry(level, requiredXp, rewards);
+                        int xpForLevel = level <= 0 ? 0 : active.xpPerLevel();
+                        List<BattlePassSyncPayload.RewardEntry> rewards = new ArrayList<>();
+                        for (BattlePassSyncPayload.LaneEntry lane : lanes) {
+                            List<BattlePassReward> laneRewards = active.rewardsForLevel(lane.id(), level);
+                            rewards.add(toPreviewRewardEntry(laneRewards));
+                        }
+                        return new BattlePassSyncPayload.RewardLevelEntry(level, requiredXp, xpForLevel, rewards);
                     })
                     .toList();
         }
@@ -81,6 +91,7 @@ public final class BattlePassNetworking {
                 snapshot.permanentCompleted(),
                 snapshot.permanentCap(),
                 snapshot.unclaimedRewardLevels(),
+                lanes,
                 tasks,
                 rewardLevels
         ));
@@ -97,6 +108,19 @@ public final class BattlePassNetworking {
         }
         syncToPlayer(player);
         return result;
+    }
+
+    private static BattlePassSyncPayload.RewardEntry toPreviewRewardEntry(List<BattlePassReward> rewards) {
+        if (rewards == null || rewards.isEmpty()) {
+            return new BattlePassSyncPayload.RewardEntry(
+                    BattlePassSyncPayload.REWARD_KIND_NONE,
+                    "minecraft:air",
+                    0,
+                    ""
+            );
+        }
+
+        return toRewardEntry(rewards.getFirst());
     }
 
     private static BattlePassSyncPayload.RewardEntry toRewardEntry(BattlePassReward reward) {

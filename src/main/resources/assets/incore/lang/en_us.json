@@ -7,6 +7,8 @@
   "item.incore.sanity_booster_small": "Small Sanity Booster",
   "item.incore.sanity_booster_large": "Large Sanity Booster",
   "item.incore.sanity_vessel": "Sanity Vessel",
+  "item.incore.originium_supply_unlock": "Originium Supply Access",
+  "item.incore.protocol_customized_unlock": "Protocol Customized Access",
   "item.incore.basic_banner_permit": "Basic Banner Permit",
   "item.incore.chartered_banner_permit": "Chartered Banner Permit",
   "item.incore.banner_permit": "Banner Permit",
@@ -155,10 +157,16 @@
   "screen.incore.battle_pass.rewards_title": "Level Rewards",
   "screen.incore.battle_pass.rewards_empty": "No rewards configured.",
   "screen.incore.battle_pass.rewards_selected": "Selected level: %s",
+  "screen.incore.battle_pass.selected_xp_to_reach": "XP to reach: %s",
+  "screen.incore.battle_pass.selected_xp_for_level": "XP for level: %s",
   "screen.incore.battle_pass.unclaimed": "Unclaimed Levels: %s",
   "screen.incore.battle_pass.claim_all": "Claim All Rewards",
   "screen.incore.battle_pass.claim_all_count": "Claim All Rewards (%s)",
   "screen.incore.battle_pass.track_basic": "Basic Supply",
   "screen.incore.battle_pass.track_premium": "Originium Supply",
-  "screen.incore.battle_pass.track_elite": "Protocol Customized"
+  "screen.incore.battle_pass.track_elite": "Protocol Customized",
+  "screen.incore.battle_pass.track_locked": "%s (Locked)",
+  "screen.incore.battle_pass.locked_short": "Locked",
+  "battlepass_set.incore.season_alpha": "Season Alpha",
+  "battlepass_set.incore.season_bravo": "Season Bravo"
 }

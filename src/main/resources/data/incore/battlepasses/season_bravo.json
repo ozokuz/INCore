@@ -1,5 +1,11 @@
 {
   "starts_at": "2026-02-15T00:00:00Z",
+  "length_weeks": 2,
+  "lanes": [
+    "basic",
+    "originium",
+    "protocol"
+  ],
   "ends_at": "2026-03-01T00:00:00Z",
   "xp_per_level": 700,
   "tier_xp": {
@@ -79,817 +85,1128 @@
       "description": "Complete 3 expeditions"
     }
   ],
-  "level_rewards": [
-    {
-      "level": 0,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:cooked_beef",
-          "count": 10
-        },
-        {
-          "type": "command",
-          "command": "say ${player} entered Bravo pass",
-          "preview": "Bravo starter broadcast"
-        }
-      ]
-    },
-    {
-      "level": 1,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 7
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 3
-        }
-      ]
-    },
-    {
-      "level": 2,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 9
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 3,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 2
-        }
-      ]
-    },
-    {
-      "level": 4,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 5
-        },
-        {
-          "type": "item",
-          "item": "minecraft:blaze_rod",
-          "count": 3
-        }
-      ]
-    },
-    {
-      "level": 5,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 7
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 4
-        },
-        {
-          "type": "item",
-          "item": "minecraft:diamond",
-          "count": 2
-        }
-      ]
-    },
-    {
-      "level": 6,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 9
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 2
-        }
-      ]
-    },
-    {
-      "level": 7,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 3
-        }
-      ]
-    },
-    {
-      "level": 8,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 5
-        },
-        {
-          "type": "item",
-          "item": "minecraft:blaze_rod",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 9,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 7
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 2
-        }
-      ]
-    },
-    {
-      "level": 10,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 3
-        },
-        {
-          "type": "sanity_cap_bonus",
-          "amount": 7
-        }
-      ]
-    },
-    {
-      "level": 11,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 12,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 7
-        },
-        {
-          "type": "command",
-          "command": "say ${player} reached Bravo battle pass level 12",
-          "preview": "Bravo level 12 broadcast"
-        }
-      ]
-    },
-    {
-      "level": 13,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 9
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 14,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "level": 15,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 3
-        },
-        {
-          "type": "item",
-          "item": "minecraft:diamond",
-          "count": 2
-        }
-      ]
-    },
-    {
-      "level": 16,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 7
-        },
-        {
-          "type": "item",
-          "item": "minecraft:blaze_rod",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 17,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 9
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "level": 18,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 3
-        }
-      ]
-    },
-    {
-      "level": 19,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 20,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 9
-        },
-        {
-          "type": "item",
-          "item": "minecraft:blaze_rod",
-          "count": 5
-        },
-        {
-          "type": "sanity_cap_bonus",
-          "amount": 8
-        }
-      ]
-    },
-    {
-      "level": 21,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 3
-        }
-      ]
-    },
-    {
-      "level": 22,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 23,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 15
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "level": 24,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 9
-        },
-        {
-          "type": "command",
-          "command": "say ${player} reached Bravo battle pass level 24",
-          "preview": "Bravo level 24 broadcast"
-        }
-      ]
-    },
-    {
-      "level": 25,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 5
-        },
-        {
-          "type": "item",
-          "item": "minecraft:diamond",
-          "count": 3
-        }
-      ]
-    },
-    {
-      "level": 26,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 6
-        }
-      ]
-    },
-    {
-      "level": 27,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 15
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 28,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 9
-        },
-        {
-          "type": "item",
-          "item": "minecraft:blaze_rod",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "level": 29,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 6
-        }
-      ]
-    },
-    {
-      "level": 30,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 15
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 4
-        },
-        {
-          "type": "sanity_cap_bonus",
-          "amount": 9
-        }
-      ]
-    },
-    {
-      "level": 31,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 17
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "level": 32,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 11
-        },
-        {
-          "type": "item",
-          "item": "minecraft:blaze_rod",
-          "count": 6
-        }
-      ]
-    },
-    {
-      "level": 33,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 34,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 15
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "level": 35,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 17
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 6
-        },
-        {
-          "type": "item",
-          "item": "minecraft:diamond",
-          "count": 3
-        }
-      ]
-    },
-    {
-      "level": 36,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 11
-        },
-        {
-          "type": "command",
-          "command": "say ${player} reached Bravo battle pass level 36",
-          "preview": "Bravo level 36 broadcast"
-        }
-      ]
-    },
-    {
-      "level": 37,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 6
-        }
-      ]
-    },
-    {
-      "level": 38,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 15
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 7
-        }
-      ]
-    },
-    {
-      "level": 39,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 17
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "level": 40,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:blaze_rod",
-          "count": 6
-        },
-        {
-          "type": "sanity_cap_bonus",
-          "amount": 10
-        }
-      ]
-    },
-    {
-      "level": 41,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 15
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 7
-        }
-      ]
-    },
-    {
-      "level": 42,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 17
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "level": 43,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 19
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 6
-        }
-      ]
-    },
-    {
-      "level": 44,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 13
-        },
-        {
-          "type": "item",
-          "item": "minecraft:blaze_rod",
-          "count": 7
-        }
-      ]
-    },
-    {
-      "level": 45,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 15
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 5
-        },
-        {
-          "type": "item",
-          "item": "minecraft:diamond",
-          "count": 4
-        }
-      ]
-    },
-    {
-      "level": 46,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:gold_ingot",
-          "count": 17
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 6
-        }
-      ]
-    },
-    {
-      "level": 47,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:emerald",
-          "count": 19
-        },
-        {
-          "type": "item",
-          "item": "minecraft:obsidian",
-          "count": 7
-        }
-      ]
-    },
-    {
-      "level": 48,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:amethyst_shard",
-          "count": 13
-        },
-        {
-          "type": "command",
-          "command": "say ${player} reached Bravo battle pass level 48",
-          "preview": "Bravo level 48 broadcast"
-        }
-      ]
-    },
-    {
-      "level": 49,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:prismarine_crystals",
-          "count": 15
-        },
-        {
-          "type": "item",
-          "item": "minecraft:ender_eye",
-          "count": 7
-        }
-      ]
-    },
-    {
-      "level": 50,
-      "rewards": [
-        {
-          "type": "item",
-          "item": "minecraft:quartz",
-          "count": 19
-        },
-        {
-          "type": "item",
-          "item": "minecraft:experience_bottle",
-          "count": 8
-        },
-        {
-          "type": "item",
-          "item": "minecraft:netherite_upgrade_smithing_template",
-          "count": 1
-        }
-      ]
-    }
-  ]
+  "rewards_by_lane": {
+    "basic": [
+      {
+        "level": 0,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:cooked_beef",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 9
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 9
+          }
+        ]
+      },
+      {
+        "level": 7,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 8,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 9,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 10,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 11,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 12,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 13,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 9
+          }
+        ]
+      },
+      {
+        "level": 14,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 15,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 16,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 17,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 9
+          }
+        ]
+      },
+      {
+        "level": 18,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 19,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 20,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 9
+          }
+        ]
+      },
+      {
+        "level": 21,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 22,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 23,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "level": 24,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 9
+          }
+        ]
+      },
+      {
+        "level": 25,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 26,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 27,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "level": 28,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 9
+          }
+        ]
+      },
+      {
+        "level": 29,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 30,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "level": 31,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 17
+          }
+        ]
+      },
+      {
+        "level": 32,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 33,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 34,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "level": 35,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 17
+          }
+        ]
+      },
+      {
+        "level": 36,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "level": 37,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 38,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "level": 39,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 17
+          }
+        ]
+      },
+      {
+        "level": 40,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 41,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "level": 42,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 17
+          }
+        ]
+      },
+      {
+        "level": 43,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 19
+          }
+        ]
+      },
+      {
+        "level": 44,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 45,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "level": 46,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:gold_ingot",
+            "count": 17
+          }
+        ]
+      },
+      {
+        "level": 47,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:emerald",
+            "count": 19
+          }
+        ]
+      },
+      {
+        "level": 48,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:amethyst_shard",
+            "count": 13
+          }
+        ]
+      },
+      {
+        "level": 49,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:prismarine_crystals",
+            "count": 15
+          }
+        ]
+      },
+      {
+        "level": 50,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:quartz",
+            "count": 19
+          }
+        ]
+      }
+    ],
+    "originium": [
+      {
+        "level": 0,
+        "rewards": [
+          {
+            "type": "command",
+            "command": "say ${player} entered Bravo pass",
+            "preview": "Bravo starter broadcast"
+          }
+        ]
+      },
+      {
+        "level": 1,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:blaze_rod",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "level": 7,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 8,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:blaze_rod",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 9,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "level": 10,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 11,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 12,
+        "rewards": [
+          {
+            "type": "command",
+            "command": "say ${player} reached Bravo battle pass level 12",
+            "preview": "Bravo level 12 broadcast"
+          }
+        ]
+      },
+      {
+        "level": 13,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 14,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 15,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 16,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:blaze_rod",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 17,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 18,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 19,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 20,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:blaze_rod",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 21,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 22,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 23,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 24,
+        "rewards": [
+          {
+            "type": "command",
+            "command": "say ${player} reached Bravo battle pass level 24",
+            "preview": "Bravo level 24 broadcast"
+          }
+        ]
+      },
+      {
+        "level": 25,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 26,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 6
+          }
+        ]
+      },
+      {
+        "level": 27,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 28,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:blaze_rod",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 29,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 6
+          }
+        ]
+      },
+      {
+        "level": 30,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 31,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 32,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:blaze_rod",
+            "count": 6
+          }
+        ]
+      },
+      {
+        "level": 33,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 34,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 35,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 6
+          }
+        ]
+      },
+      {
+        "level": 36,
+        "rewards": [
+          {
+            "type": "command",
+            "command": "say ${player} reached Bravo battle pass level 36",
+            "preview": "Bravo level 36 broadcast"
+          }
+        ]
+      },
+      {
+        "level": 37,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 6
+          }
+        ]
+      },
+      {
+        "level": 38,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 39,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 40,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:blaze_rod",
+            "count": 6
+          }
+        ]
+      },
+      {
+        "level": 41,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 42,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 43,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 6
+          }
+        ]
+      },
+      {
+        "level": 44,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:blaze_rod",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 45,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "level": 46,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 6
+          }
+        ]
+      },
+      {
+        "level": 47,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:obsidian",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 48,
+        "rewards": [
+          {
+            "type": "command",
+            "command": "say ${player} reached Bravo battle pass level 48",
+            "preview": "Bravo level 48 broadcast"
+          }
+        ]
+      },
+      {
+        "level": 49,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:ender_eye",
+            "count": 7
+          }
+        ]
+      },
+      {
+        "level": 50,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:experience_bottle",
+            "count": 8
+          }
+        ]
+      }
+    ],
+    "protocol": [
+      {
+        "level": 5,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:diamond",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "level": 10,
+        "rewards": [
+          {
+            "type": "sanity_cap_bonus",
+            "amount": 7
+          }
+        ]
+      },
+      {
+        "level": 15,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:diamond",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "level": 20,
+        "rewards": [
+          {
+            "type": "sanity_cap_bonus",
+            "amount": 8
+          }
+        ]
+      },
+      {
+        "level": 25,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:diamond",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 30,
+        "rewards": [
+          {
+            "type": "sanity_cap_bonus",
+            "amount": 9
+          }
+        ]
+      },
+      {
+        "level": 35,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:diamond",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "level": 40,
+        "rewards": [
+          {
+            "type": "sanity_cap_bonus",
+            "amount": 10
+          }
+        ]
+      },
+      {
+        "level": 45,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:diamond",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "level": 50,
+        "rewards": [
+          {
+            "type": "item",
+            "item": "minecraft:netherite_upgrade_smithing_template",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  }
 }

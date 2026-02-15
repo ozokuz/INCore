@@ -18,5 +18,7 @@ public class ICItemModelProvider extends ItemModelProvider {
         basicItem(Registration.SANITY_BOOSTER_SMALL_ITEM.get());
         basicItem(Registration.SANITY_BOOSTER_LARGE_ITEM.get());
         basicItem(Registration.SANITY_VESSEL_ITEM.get());
+        basicItem(Registration.ORIGINIUM_SUPPLY_UNLOCK_ITEM.get());
+        basicItem(Registration.PROTOCOL_CUSTOMIZED_UNLOCK_ITEM.get());
     }
 }

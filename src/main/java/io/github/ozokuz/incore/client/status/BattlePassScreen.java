@@ -2,7 +2,9 @@ package io.github.ozokuz.incore.client.status;
 
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassClientCache;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
+import io.github.ozokuz.incore.features.battlepass.network.BattlePassSyncPayload;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -168,7 +170,7 @@ public class BattlePassScreen extends Screen {
         int xpIntoLevel = BattlePassClientCache.getXpIntoCurrentLevel();
         int xpTotal = BattlePassClientCache.getXp();
 
-        String setDisplay = simplifySetId(BattlePassClientCache.getSetId());
+        Component setDisplay = localizeSetId(BattlePassClientCache.getSetId());
         guiGraphics.fill(headerX + 8, headerY + 8, headerX + 145, headerY + HEADER_HEIGHT - 8, 0x882D313A);
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.set", setDisplay), headerX + 14, headerY + 14, 0xFFF2F2F2);
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.week", BattlePassClientCache.getCurrentWeek(), BattlePassClientCache.getTotalWeeks()), headerX + 14, headerY + 28, 0xFFC8CED9);
@@ -219,14 +221,15 @@ public class BattlePassScreen extends Screen {
         List<BattlePassClientCache.RewardLevelEntry> levels = BattlePassClientCache.getRewardLevels().stream()
                 .sorted(Comparator.comparingInt(BattlePassClientCache.RewardLevelEntry::level))
                 .toList();
+        List<BattlePassClientCache.LaneEntry> lanes = rewardLanes();
 
         if (levels.isEmpty()) {
             guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.rewards_empty"), x + width / 2, y + height / 2 - 4, 0xC9CED7);
             return;
         }
+        int highestConfiguredLevel = levels.get(levels.size() - 1).level();
 
-        int maxTrackCount = levels.stream().mapToInt(entry -> entry.rewards().size()).max().orElse(1);
-        int trackCount = Math.max(1, Math.min(3, maxTrackCount));
+        int trackCount = Math.max(1, Math.min(3, lanes.size()));
 
         int trackLabelWidth = 126;
         int cardsX = x + trackLabelWidth + 8;
@@ -252,21 +255,46 @@ public class BattlePassScreen extends Screen {
         HoveredReward hovered = null;
         for (int track = 0; track < trackCount; track++) {
             int rowY = gridY + track * (REWARD_CARD_HEIGHT + 8);
-            drawTrackLabel(guiGraphics, x + 6, rowY, trackLabelWidth - 10, REWARD_CARD_HEIGHT, track);
+            BattlePassClientCache.LaneEntry lane = lanes.get(track);
+            drawTrackLabel(guiGraphics, x + 6, rowY, trackLabelWidth - 10, REWARD_CARD_HEIGHT, lane);
 
             for (int col = 0; col < visibleLevelIndices.size(); col++) {
                 int levelIndex = visibleLevelIndices.get(col);
                 BattlePassClientCache.RewardLevelEntry levelEntry = levels.get(levelIndex);
                 int cardX = cardsX + col * (REWARD_CARD_WIDTH + REWARD_CARD_GAP);
-                boolean unlocked = levelEntry.level() <= BattlePassClientCache.getLevel();
-                boolean selected = levelEntry.level() == this.selectedRewardLevel && track == this.selectedRewardTrack;
+                int rewardLevel = levelEntry.level();
+                boolean laneUnlocked = lane.unlocked();
+                boolean levelUnlocked = rewardLevel <= BattlePassClientCache.getLevel();
+                boolean claimed = laneUnlocked && rewardLevel <= lane.highestClaimedLevel();
+                boolean unclaimed = laneUnlocked && !claimed && levelUnlocked;
+                boolean unlocked = laneUnlocked && levelUnlocked;
+                boolean selected = rewardLevel == this.selectedRewardLevel && track == this.selectedRewardTrack;
+                boolean highestLevel = rewardLevel == highestConfiguredLevel;
 
                 int bg = unlocked ? 0xCC20262E : 0xBB141820;
-                int border = selected ? 0xFFFFD31A : (unlocked ? 0xFF8C929F : 0xFF4B515D);
+                int border;
+                if (selected && highestLevel) {
+                    border = 0xFF72D8FF;
+                } else if (selected) {
+                    border = 0xFFFFD31A;
+                } else if (highestLevel) {
+                    border = 0xFF34C7FF;
+                } else if (claimed) {
+                    border = 0xFF62D48A;
+                } else if (unclaimed) {
+                    border = 0xFFFFB347;
+                } else if (laneUnlocked) {
+                    border = 0xFF4B515D;
+                } else {
+                    border = 0xFF733239;
+                }
                 guiGraphics.fill(cardX, rowY, cardX + REWARD_CARD_WIDTH, rowY + REWARD_CARD_HEIGHT, bg);
                 drawBoxBorder(guiGraphics, cardX, rowY, REWARD_CARD_WIDTH, REWARD_CARD_HEIGHT, border);
 
                 BattlePassClientCache.RewardEntry reward = track < levelEntry.rewards().size() ? levelEntry.rewards().get(track) : null;
+                if (reward != null && reward.kind() == BattlePassSyncPayload.REWARD_KIND_NONE) {
+                    reward = null;
+                }
                 if (reward == null) {
                     guiGraphics.drawCenteredString(this.font, Component.literal("-"), cardX + REWARD_CARD_WIDTH / 2, rowY + 16, 0xFF717887);
                     continue;
@@ -285,9 +313,12 @@ public class BattlePassScreen extends Screen {
                     guiGraphics.drawString(this.font, quantity, quantityX, quantityY, 0xFFE9EDF5, false);
                 }
 
-                if (!unlocked) {
+                if (!laneUnlocked) {
+                    guiGraphics.fill(cardX, rowY, cardX + REWARD_CARD_WIDTH, rowY + REWARD_CARD_HEIGHT, 0xA01A070F);
+                    drawBoxBorder(guiGraphics, cardX, rowY, REWARD_CARD_WIDTH, REWARD_CARD_HEIGHT, border);
+                } else if (!levelUnlocked) {
                     guiGraphics.fill(cardX, rowY, cardX + REWARD_CARD_WIDTH, rowY + REWARD_CARD_HEIGHT, 0x7405070C);
-                    drawBoxBorder(guiGraphics, cardX, rowY, REWARD_CARD_WIDTH, REWARD_CARD_HEIGHT, selected ? 0xFFFFD31A : 0xFF626B7A);
+                    drawBoxBorder(guiGraphics, cardX, rowY, REWARD_CARD_WIDTH, REWARD_CARD_HEIGHT, border);
                 }
 
                 boolean isHovered = mouseX >= cardX && mouseX < cardX + REWARD_CARD_WIDTH && mouseY >= rowY && mouseY < rowY + REWARD_CARD_HEIGHT;
@@ -306,23 +337,36 @@ public class BattlePassScreen extends Screen {
         }
 
         if (this.selectedRewardLevel >= 0) {
-            String selectedText = Component.translatable("screen.incore.battle_pass.rewards_selected", this.selectedRewardLevel).getString();
-            guiGraphics.drawString(this.font, Component.literal(selectedText), x + 8, y + height - 12, 0xFFD4D9E3);
+            BattlePassClientCache.RewardLevelEntry selectedLevel = levels.stream()
+                    .filter(entry -> entry.level() == this.selectedRewardLevel)
+                    .findFirst()
+                    .orElse(null);
+            if (selectedLevel != null) {
+                int infoY = y + height - 34;
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.rewards_selected", selectedLevel.level()), x + 8, infoY, 0xFFD4D9E3);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.selected_xp_to_reach", selectedLevel.requiredXp()), x + 8, infoY + 10, 0xFFC8CED9);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.selected_xp_for_level", selectedLevel.xpForLevel()), x + 8, infoY + 20, 0xFFC8CED9, false);
+            }
         }
     }
 
-    private void drawTrackLabel(GuiGraphics guiGraphics, int x, int y, int width, int height, int track) {
+    private void drawTrackLabel(GuiGraphics guiGraphics, int x, int y, int width, int height, BattlePassClientCache.LaneEntry lane) {
+        String laneId = lane.id();
         int color;
         Component text;
-        if (track == 0) {
+        if ("basic".equals(laneId)) {
             color = 0xCC242A35;
             text = Component.translatable("screen.incore.battle_pass.track_basic");
-        } else if (track == 1) {
+        } else if ("originium".equals(laneId)) {
             color = 0xCC8A6D14;
             text = Component.translatable("screen.incore.battle_pass.track_premium");
         } else {
             color = 0xCC8E2323;
             text = Component.translatable("screen.incore.battle_pass.track_elite");
+        }
+        if (!lane.unlocked()) {
+            color = 0xCC4B1D25;
+            text = Component.literal("\uD83D\uDD12 ").append(text);
         }
 
         guiGraphics.fill(x, y, x + width, y + height, color);
@@ -502,9 +546,9 @@ public class BattlePassScreen extends Screen {
                 List<BattlePassClientCache.RewardLevelEntry> levels = BattlePassClientCache.getRewardLevels().stream()
                         .sorted(Comparator.comparingInt(BattlePassClientCache.RewardLevelEntry::level))
                         .toList();
+                List<BattlePassClientCache.LaneEntry> lanes = rewardLanes();
                 if (!levels.isEmpty()) {
-                    int maxTrackCount = levels.stream().mapToInt(entry -> entry.rewards().size()).max().orElse(1);
-                    int trackCount = Math.max(1, Math.min(3, maxTrackCount));
+                    int trackCount = Math.max(1, Math.min(3, lanes.size()));
                     int trackLabelWidth = 126;
                     int cardsX = contentX + trackLabelWidth + 8;
                     int cardsWidth = contentWidth - trackLabelWidth - 14;
@@ -890,6 +934,20 @@ public class BattlePassScreen extends Screen {
         return separator >= 0 && separator + 1 < setId.length() ? setId.substring(separator + 1) : setId;
     }
 
+    private static Component localizeSetId(String setId) {
+        ResourceLocation id = ResourceLocation.tryParse(setId);
+        if (id == null) {
+            return Component.literal(simplifySetId(setId));
+        }
+
+        String translationKey = "battlepass_set." + id.getNamespace() + "." + id.getPath().replace('/', '.');
+        if (I18n.exists(translationKey)) {
+            return Component.translatable(translationKey);
+        }
+
+        return Component.literal(simplifySetId(setId));
+    }
+
     private static String formatDate(long epochMillis) {
         return DATE_FORMATTER.format(Instant.ofEpochMilli(epochMillis));
     }
@@ -918,6 +976,19 @@ public class BattlePassScreen extends Screen {
 
         ItemStack stack = new ItemStack(item, 1);
         return stack;
+    }
+
+    private static List<BattlePassClientCache.LaneEntry> rewardLanes() {
+        List<BattlePassClientCache.LaneEntry> lanes = BattlePassClientCache.getLanes();
+        if (!lanes.isEmpty()) {
+            return lanes;
+        }
+
+        return List.of(
+                new BattlePassClientCache.LaneEntry("basic", true, -1),
+                new BattlePassClientCache.LaneEntry("originium", true, -1),
+                new BattlePassClientCache.LaneEntry("protocol", true, -1)
+        );
     }
 
     private record HoveredReward(BattlePassClientCache.RewardEntry reward, ItemStack icon) {
