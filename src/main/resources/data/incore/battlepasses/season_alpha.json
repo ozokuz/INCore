@@ -1,42 +1,902 @@
 {
-  "starts_at": "2025-01-01T00:00:00Z",
-  "ends_at": "2026-01-01T00:00:00Z",
+  "starts_at": "2026-02-01T00:00:00Z",
+  "ends_at": "2026-02-15T00:00:00Z",
   "xp_per_level": 600,
   "tier_xp": {
     "bronze": 100,
     "silver": 175,
     "gold": 275,
-    "platinum": 400
+    "platinum": 400,
+    "diamond": 550
   },
   "tasks": [
-    { "id": "alpha_week1_patrol", "type": "weekly", "week": 1, "tier": "bronze", "description": "Complete 2 patrol encounters" },
-    { "id": "alpha_week1_relic", "type": "weekly", "week": 1, "tier": "silver", "description": "Open 1 expedition relic crate" },
-    { "id": "alpha_week1_command", "type": "weekly", "week": 1, "tier": "gold", "description": "Finish 1 mission command objective" },
-    { "id": "alpha_week2_supply", "type": "weekly", "week": 2, "tier": "bronze", "description": "Collect 16 supply drops" },
-    { "id": "alpha_week2_elite", "type": "weekly", "week": 2, "tier": "platinum", "description": "Defeat 1 elite encounter" },
-    { "id": "alpha_permanent_login", "type": "permanent", "tier": "bronze", "description": "Login 3 different days" },
-    { "id": "alpha_permanent_banner", "type": "permanent", "tier": "silver", "description": "Use 10 banner permits" },
-    { "id": "alpha_permanent_sanity", "type": "permanent", "tier": "gold", "description": "Recover 50 sanity" },
-    { "id": "alpha_permanent_crates", "type": "permanent", "tier": "platinum", "description": "Open 5 gacha crates" }
+    {
+      "id": "alpha_week1_patrol",
+      "type": "weekly",
+      "week": 1,
+      "tier": "bronze",
+      "goal": 2,
+      "description": "Complete 2 patrol encounters"
+    },
+    {
+      "id": "alpha_week1_relic",
+      "type": "weekly",
+      "week": 1,
+      "tier": "silver",
+      "goal": 1,
+      "description": "Open 1 expedition relic crate"
+    },
+    {
+      "id": "alpha_week1_command",
+      "type": "weekly",
+      "week": 1,
+      "tier": "gold",
+      "goal": 1,
+      "description": "Finish 1 mission command objective"
+    },
+    {
+      "id": "alpha_week2_supply",
+      "type": "weekly",
+      "week": 2,
+      "tier": "bronze",
+      "goal": 16,
+      "description": "Collect 16 supply drops"
+    },
+    {
+      "id": "alpha_week2_elite",
+      "type": "weekly",
+      "week": 2,
+      "tier": "platinum",
+      "goal": 1,
+      "description": "Defeat 1 elite encounter"
+    },
+    {
+      "id": "alpha_week2_overdrive",
+      "type": "weekly",
+      "week": 2,
+      "tier": "diamond",
+      "goal": 3,
+      "description": "Clear 3 elite patrol chains"
+    },
+    {
+      "id": "alpha_permanent_login",
+      "type": "permanent",
+      "tier": "bronze",
+      "goal": 3,
+      "description": "Login 3 different days"
+    },
+    {
+      "id": "alpha_permanent_banner",
+      "type": "permanent",
+      "tier": "silver",
+      "goal": 10,
+      "description": "Use 10 banner permits"
+    },
+    {
+      "id": "alpha_permanent_sanity",
+      "type": "permanent",
+      "tier": "gold",
+      "goal": 50,
+      "description": "Recover 50 sanity"
+    },
+    {
+      "id": "alpha_permanent_crates",
+      "type": "permanent",
+      "tier": "platinum",
+      "goal": 5,
+      "description": "Open 5 gacha crates"
+    }
   ],
   "level_rewards": [
     {
+      "level": 0,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:bread",
+          "count": 12
+        },
+        {
+          "type": "command",
+          "command": "say ${player} activated Alpha pass starter rewards",
+          "preview": "Alpha starter broadcast"
+        }
+      ]
+    },
+    {
       "level": 1,
       "rewards": [
-        { "type": "item", "item": "minecraft:iron_ingot", "count": 8 }
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 6
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 3
+        }
       ]
     },
     {
       "level": 2,
       "rewards": [
-        { "type": "item", "item": "minecraft:emerald", "count": 4 },
-        { "type": "command", "command": "say ${player} reached battle pass level 2", "preview": "Broadcast level 2" }
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 8
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 4
+        }
       ]
     },
     {
       "level": 3,
       "rewards": [
-        { "type": "sanity_cap_bonus", "amount": 5 }
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 4
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 6
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 4
+        },
+        {
+          "type": "item",
+          "item": "minecraft:diamond",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 8
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "level": 7,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "level": 8,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 4
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 9,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 6
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "level": 10,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 3
+        },
+        {
+          "type": "sanity_cap_bonus",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "level": 11,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 12,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 6
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "level": 13,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 8
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 14,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 15,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 12
+        },
+        {
+          "type": "command",
+          "command": "say ${player} reached Alpha battle pass level 15",
+          "preview": "Alpha level 15 broadcast"
+        },
+        {
+          "type": "item",
+          "item": "minecraft:diamond",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "level": 16,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 6
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 17,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 8
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 18,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "level": 19,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 20,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 8
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 5
+        },
+        {
+          "type": "sanity_cap_bonus",
+          "amount": 7
+        }
+      ]
+    },
+    {
+      "level": 21,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "level": 22,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 23,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 14
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 24,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 8
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 25,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 5
+        },
+        {
+          "type": "item",
+          "item": "minecraft:diamond",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "level": 26,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "level": 27,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 14
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 28,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 8
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 29,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "level": 30,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 14
+        },
+        {
+          "type": "command",
+          "command": "say ${player} reached Alpha battle pass level 30",
+          "preview": "Alpha level 30 broadcast"
+        },
+        {
+          "type": "sanity_cap_bonus",
+          "amount": 8
+        }
+      ]
+    },
+    {
+      "level": 31,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 16
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 32,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "level": 33,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "level": 34,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 14
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 35,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 16
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 6
+        },
+        {
+          "type": "item",
+          "item": "minecraft:diamond",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "level": 36,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 10
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 37,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "level": 38,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 14
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "level": 39,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 16
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 40,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 6
+        },
+        {
+          "type": "sanity_cap_bonus",
+          "amount": 9
+        }
+      ]
+    },
+    {
+      "level": 41,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 14
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "level": 42,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 16
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "level": 43,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 18
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "level": 44,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "level": 45,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 14
+        },
+        {
+          "type": "command",
+          "command": "say ${player} reached Alpha battle pass level 45",
+          "preview": "Alpha level 45 broadcast"
+        },
+        {
+          "type": "item",
+          "item": "minecraft:diamond",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "level": 46,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:iron_ingot",
+          "count": 16
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "level": 47,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:redstone",
+          "count": 18
+        },
+        {
+          "type": "item",
+          "item": "minecraft:glow_berries",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "level": 48,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:lapis_lazuli",
+          "count": 12
+        },
+        {
+          "type": "item",
+          "item": "minecraft:gold_ingot",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "level": 49,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:emerald",
+          "count": 14
+        },
+        {
+          "type": "item",
+          "item": "minecraft:amethyst_shard",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "level": 50,
+      "rewards": [
+        {
+          "type": "item",
+          "item": "minecraft:experience_bottle",
+          "count": 18
+        },
+        {
+          "type": "item",
+          "item": "minecraft:ender_pearl",
+          "count": 8
+        },
+        {
+          "type": "item",
+          "item": "minecraft:netherite_ingot",
+          "count": 1
+        }
       ]
     }
   ]

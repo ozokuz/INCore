@@ -3,6 +3,7 @@ package io.github.ozokuz.incore.client;
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.client.features.sanity.SanityBarHudFeature;
 import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
+import io.github.ozokuz.incore.client.status.BattlePassScreen;
 import io.github.ozokuz.incore.client.status.PlayerStatusScreen;
 import io.github.ozokuz.incore.client.tasks.TaskOverviewScreen;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
@@ -31,6 +32,7 @@ public class INCoreClient {
         event.register(INCoreKeyMappings.OPEN_PLAYER_STATUS);
         event.register(INCoreKeyMappings.OPEN_GACHA_BANNERS);
         event.register(INCoreKeyMappings.OPEN_TASK_OVERVIEW);
+        event.register(INCoreKeyMappings.OPEN_BATTLE_PASS);
     }
 
     private void onClientTick(ClientTickEvent.Post event) {
@@ -49,6 +51,10 @@ public class INCoreClient {
 
         while (INCoreKeyMappings.OPEN_TASK_OVERVIEW.consumeClick()) {
             minecraft.setScreen(new TaskOverviewScreen());
+        }
+
+        while (INCoreKeyMappings.OPEN_BATTLE_PASS.consumeClick()) {
+            minecraft.setScreen(new BattlePassScreen(null));
         }
     }
 }

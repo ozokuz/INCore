@@ -41,12 +41,18 @@ public class PlayerStatusScreen extends Screen {
 
         int buttonWidth = Math.max(120, Math.min(170, sectionWidth - 16));
         int buttonX = levelSectionX + (sectionWidth - buttonWidth) / 2;
-        int buttonY = insideBottom - 20;
+        int rewardsButtonY = insideBottom - 44;
+        int battlePassButtonY = insideBottom - 20;
 
         this.addRenderableWidget(Button.builder(
                         Component.translatable("screen.incore.player_status.open_rewards"),
                         button -> this.minecraft.setScreen(new PlayerLevelRewardsScreen(this))
-                ).bounds(buttonX, buttonY, buttonWidth, 20)
+                ).bounds(buttonX, rewardsButtonY, buttonWidth, 20)
+                .build());
+        this.addRenderableWidget(Button.builder(
+                        Component.translatable("screen.incore.player_status.open_battle_pass"),
+                        button -> this.minecraft.setScreen(new BattlePassScreen(this))
+                ).bounds(buttonX, battlePassButtonY, buttonWidth, 20)
                 .build());
     }
 

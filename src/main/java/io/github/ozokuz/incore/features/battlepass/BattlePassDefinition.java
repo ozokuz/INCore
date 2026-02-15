@@ -37,7 +37,7 @@ public record BattlePassDefinition(
         return Math.max(1L, (long) Math.ceil(seconds / (7d * 24d * 60d * 60d)));
     }
 
-    public record BattlePassTask(String id, TaskType type, int week, String tier, int xpReward, String description) {
+    public record BattlePassTask(String id, TaskType type, int week, String tier, int xpReward, int progressGoal, String description) {
     }
 
     public enum TaskType {
