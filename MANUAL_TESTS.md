@@ -9,9 +9,9 @@ Manual gameplay verification checklist for testers.
 
 ## Template For New Changes
 ```md
-## <Feature or Scenario Name>
-- [ ] Given <precondition>, when <action>, then <expected result>.
-- [ ] Given <precondition>, when <action>, then <expected result>.
+  ## <Feature or Scenario Name>
+  - [ ] Given <precondition>, when <action>, then <expected result>.
+  - [ ] Given <precondition>, when <action>, then <expected result>.
 ```
 
 ## Current Test Cases
@@ -225,7 +225,10 @@ Manual gameplay verification checklist for testers.
 - [ ] Given `incore:dungeon_return_portal` is placed manually in a normal world (outside structure replacement), when a player interacts with it, then it behaves only as a normal placeholder block and does not teleport the player.
 
 ## Structure Size And Floor Alignment
-- [ ] Given frost theme uses `starting_room` 16x13x16, `hallway_ns`/`hallway_ew` 16x11x10, and `room_small` 16x13x16, when a dungeon is generated, then each hallway touches the connected room opening without visible horizontal gaps.
-- [ ] Given frost theme includes `room_big` 48x36x48 with `"floor_y_from_bottom": 12`, when a dungeon is generated with at least one big room, then hallway floor height matches the big room connection floor.
-- [ ] Given a generated big room is connected, when inspecting all connected sides, then hallway connections are centered on the big room sides and not attached at corner offsets.
-- [ ] Given a player enters a newly generated frost dungeon, when the teleport completes, then the player spawns at the starting room center floor level and not above or below the playable floor.
+- [ ] Given frost starting room, when generating 10 dungeons, then the start-room should get placed in correct position.
+- [ ] Given frost starting room is generated with randomized rotation, when generating 10 dungeons, then every start-room return portal placeholder is replaced by an active roguelike portal block.
+- [ ] Given frost starting room has one built exit in template space, when generating 10 dungeons, then exactly one hallway connects directly to the starting room in each dungeon (no extra start-room branches).
+- [ ] Given frost starting room has one built exit in template space, when generating 10 dungeons, then the start-room exit world direction is not always south.
+- [ ] Given hallway templates where one horizontal axis is shorter than the other (for example `16x11x10`), when generating dungeons, then hallways auto-rotate to use the longer axis for travel and touch both connected room openings without gaps.
+- [ ] Given a generated dungeon layout, when tracing room connections from the starting room through hallways in each of 10 runs, then every generated room is reachable from the start.
+- [ ] Given a dungeon slot is recycled for a new run, when the next dungeon is generated in that slot, then blocks from the previous dungeon are cleared across the full slot build volume before new rooms and hallways are placed.
