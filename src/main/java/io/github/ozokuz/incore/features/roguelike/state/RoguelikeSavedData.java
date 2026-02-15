@@ -586,9 +586,9 @@ public class RoguelikeSavedData extends SavedData {
     public static BlockPos slotOrigin(int slotIndex) {
         int gridX = slotIndex % 64;
         int gridZ = slotIndex / 64;
-        int x = gridX * RoguelikeConstants.DUNGEON_SPACING;
+        int x = (gridX * RoguelikeConstants.DUNGEON_SPACING) + 8;
         int y = RoguelikeConstants.DUNGEON_BASE_Y;
-        int z = gridZ * RoguelikeConstants.DUNGEON_SPACING;
+        int z = (gridZ * RoguelikeConstants.DUNGEON_SPACING) + 8;
         return new BlockPos(x, y, z);
     }
 }
