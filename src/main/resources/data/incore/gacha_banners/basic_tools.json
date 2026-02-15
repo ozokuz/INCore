@@ -1,0 +1,43 @@
+{
+  "name": "Basic Banner: Tools Cache",
+  "type": "basic",
+  "pity_group": "basic",
+  "sidebar_color": "#6FA8DC",
+  "main_item": "minecraft:diamond_pickaxe",
+  "rarity_weights": {
+    "2": 2850,
+    "3": 1720,
+    "4": 900,
+    "5": 230,
+    "6": 12
+  },
+  "featured_items": [
+    "minecraft:diamond_pickaxe",
+    "minecraft:netherite_axe",
+    "minecraft:netherite_pickaxe"
+  ],
+  "rewards": [
+    { "item": "minecraft:iron_pickaxe", "rarity": 2, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:iron_axe", "rarity": 2, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:golden_pickaxe", "rarity": 3, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:enchanted_book", "rarity": 3, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:diamond_pickaxe", "rarity": 4, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:diamond_pickaxe", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:diamond_axe", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:diamond_shovel", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:diamond_hoe", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:diamond_sword", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:enchanted_book", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_scrap", "rarity": 5, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:ancient_debris", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:experience_bottle", "rarity": 5, "min_count": 4, "max_count": 10 },
+    { "item": "minecraft:golden_apple", "rarity": 5, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:totem_of_undying", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_upgrade_smithing_template", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_pickaxe", "rarity": 6, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_axe", "rarity": 6, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_shovel", "rarity": 6, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_hoe", "rarity": 6, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_sword", "rarity": 6, "min_count": 1, "max_count": 1 }
+  ]
+}

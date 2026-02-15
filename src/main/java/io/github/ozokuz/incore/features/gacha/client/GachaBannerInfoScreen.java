@@ -9,8 +9,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -86,6 +88,7 @@ public class GachaBannerInfoScreen extends Screen {
         int rowHeight = 16;
         int left = this.width / 2 - 140;
         int right = this.width / 2 + 140;
+        List<Component> hoveredTooltip = null;
 
         for (int i = start; i < end; i++) {
             GachaService.RewardView reward = rewards.get(i);
@@ -95,9 +98,10 @@ public class GachaBannerInfoScreen extends Screen {
 
             ResourceLocation itemId = ResourceLocation.tryParse(reward.itemId());
             Item item = itemId == null ? Items.AIR : BuiltInRegistries.ITEM.get(itemId);
+            ItemStack displayStack = item == Items.AIR ? ItemStack.EMPTY : item.getDefaultInstance();
             if (item != Items.AIR) {
-                guiGraphics.renderItem(item.getDefaultInstance(), left + 2, y - 2);
-                Component itemName = item.getName(item.getDefaultInstance());
+                guiGraphics.renderItem(displayStack, left + 2, y - 2);
+                Component itemName = item.getName(displayStack);
                 guiGraphics.drawString(this.font, itemName, left + 22, y + 2, 0xEFEFEF);
             } else {
                 guiGraphics.drawString(this.font, reward.itemId(), left + 22, y + 2, 0xE86E6E);
@@ -112,6 +116,22 @@ public class GachaBannerInfoScreen extends Screen {
                     y + 2,
                     0xEDEDED
             );
+
+            if (mouseX >= left && mouseX < right && mouseY >= y - 1 && mouseY < y + 13) {
+                List<Component> tooltip = new ArrayList<>();
+                if (!displayStack.isEmpty()) {
+                    tooltip.addAll(Screen.getTooltipFromItem(this.minecraft, displayStack));
+                } else {
+                    tooltip.add(Component.literal(reward.itemId()));
+                }
+                tooltip.add(Component.literal(reward.rarity() + "★").withColor(rarity.rgb()));
+                tooltip.add(Component.literal(String.format(Locale.ROOT, "%.2f%%", reward.chancePercent())).withColor(0xCFCFCF));
+                hoveredTooltip = tooltip;
+            }
+        }
+
+        if (hoveredTooltip != null) {
+            guiGraphics.renderComponentTooltip(this.font, hoveredTooltip, mouseX, mouseY);
         }
     }
 

@@ -48,6 +48,10 @@ public class GachaBannerManager extends SimpleJsonResourceReloadListener {
         return banners.values().stream().toList();
     }
 
+    public static List<GachaBannerData> visible() {
+        return GachaEventRotation.visibleBanners();
+    }
+
     @Nullable
     public static GachaBannerData get(ResourceLocation id) {
         return banners.get(id);
@@ -55,14 +59,15 @@ public class GachaBannerManager extends SimpleJsonResourceReloadListener {
 
     @Nullable
     public static ResourceLocation getDefaultBannerId() {
-        if (banners.isEmpty()) {
+        List<GachaBannerData> visible = visible();
+        if (visible.isEmpty()) {
             return null;
         }
 
-        if (banners.containsKey(ResourceLocation.parse("incore:basic"))) {
+        if (visible.stream().anyMatch(banner -> banner.id().equals(ResourceLocation.parse("incore:basic")))) {
             return ResourceLocation.parse("incore:basic");
         }
 
-        return banners.keySet().iterator().next();
+        return visible.getFirst().id();
     }
 }

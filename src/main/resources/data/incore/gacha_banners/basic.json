@@ -2,20 +2,43 @@
   "name": "Basic Banner",
   "type": "basic",
   "pity_group": "basic",
+  "sidebar_color": "#4A90FF",
+  "main_item": "minecraft:diamond",
+  "rarity_weights": {
+    "2": 2800,
+    "3": 1700,
+    "4": 900,
+    "5": 260,
+    "6": 20
+  },
   "featured_items": [
     "minecraft:diamond",
     "minecraft:enchanted_golden_apple",
     "minecraft:netherite_ingot"
   ],
   "rewards": [
-    { "item": "minecraft:iron_ingot", "weight": 2800, "rarity": 2, "min_count": 2, "max_count": 6 },
-    { "item": "minecraft:coal", "weight": 2300, "rarity": 2, "min_count": 4, "max_count": 12 },
-    { "item": "minecraft:lapis_lazuli", "weight": 1700, "rarity": 3, "min_count": 3, "max_count": 8 },
-    { "item": "minecraft:redstone", "weight": 1500, "rarity": 3, "min_count": 3, "max_count": 8 },
-    { "item": "minecraft:gold_ingot", "weight": 900, "rarity": 4, "min_count": 2, "max_count": 5 },
-    { "item": "minecraft:ender_pearl", "weight": 450, "rarity": 4, "min_count": 1, "max_count": 3 },
-    { "item": "minecraft:diamond", "weight": 260, "rarity": 5, "min_count": 1, "max_count": 2 },
-    { "item": "minecraft:enchanted_golden_apple", "weight": 70, "rarity": 5, "min_count": 1, "max_count": 1 },
-    { "item": "minecraft:netherite_ingot", "weight": 20, "rarity": 6, "min_count": 1, "max_count": 1 }
+    { "item": "minecraft:iron_ingot", "rarity": 2, "min_count": 2, "max_count": 6 },
+    { "item": "minecraft:coal", "rarity": 2, "min_count": 4, "max_count": 12 },
+    { "item": "minecraft:lapis_lazuli", "rarity": 3, "min_count": 3, "max_count": 8 },
+    { "item": "minecraft:redstone", "rarity": 3, "min_count": 3, "max_count": 8 },
+    { "item": "minecraft:gold_ingot", "rarity": 4, "min_count": 2, "max_count": 5 },
+    { "item": "minecraft:ender_pearl", "rarity": 4, "min_count": 1, "max_count": 3 },
+    { "item": "minecraft:diamond", "rarity": 5, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:enchanted_golden_apple", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_scrap", "rarity": 5, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:ancient_debris", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:totem_of_undying", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:heart_of_the_sea", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:shulker_shell", "rarity": 5, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:end_crystal", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:trident", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:heavy_core", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:breeze_rod", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:dragon_breath", "rarity": 5, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:netherite_ingot", "rarity": 6, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:nether_star", "rarity": 6, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:elytra", "rarity": 6, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:mace", "rarity": 6, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:netherite_upgrade_smithing_template", "rarity": 6, "min_count": 1, "max_count": 1 }
   ]
 }

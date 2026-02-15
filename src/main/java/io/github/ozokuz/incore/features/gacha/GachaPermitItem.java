@@ -14,6 +14,7 @@ import java.util.List;
 
 public class GachaPermitItem extends Item {
     private static final String KEY_BANNER = "incore:banner";
+    private static final String KEY_BANNER_NAME = "incore:banner_name";
 
     private final PermitMode permitMode;
 
@@ -27,9 +28,17 @@ public class GachaPermitItem extends Item {
     }
 
     public static ItemStack createBannerPermit(Item item, ResourceLocation bannerId, int count) {
+        return createBannerPermit(item, bannerId, null, count);
+    }
+
+    public static ItemStack createBannerPermit(Item item, ResourceLocation bannerId, String bannerName, int count) {
         ItemStack stack = new ItemStack(item, count);
         CompoundTag tag = new CompoundTag();
         tag.putString(KEY_BANNER, bannerId.toString());
+        if (bannerName != null && !bannerName.isBlank()) {
+            tag.putString(KEY_BANNER_NAME, bannerName);
+            stack.set(DataComponents.CUSTOM_NAME, Component.translatable("item.incore.banner_permit.named", bannerName));
+        }
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return stack;
     }
@@ -53,10 +62,29 @@ public class GachaPermitItem extends Item {
         return fromPermit != null && fromPermit.equals(bannerId);
     }
 
+    public static String readBannerName(ItemStack stack) {
+        CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+        if (data == null) {
+            return null;
+        }
+
+        CompoundTag tag = data.copyTag();
+        if (!tag.contains(KEY_BANNER_NAME, Tag.TAG_STRING)) {
+            return null;
+        }
+        return tag.getString(KEY_BANNER_NAME);
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
         if (permitMode != PermitMode.SPECIFIC) {
+            return;
+        }
+
+        String bannerName = readBannerName(stack);
+        if (bannerName != null && !bannerName.isBlank()) {
+            tooltipComponents.add(Component.translatable("item.incore.banner_permit.tooltip.banner_name", bannerName));
             return;
         }
 

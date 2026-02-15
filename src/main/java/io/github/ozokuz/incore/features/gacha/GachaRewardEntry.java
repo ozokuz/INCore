@@ -12,14 +12,13 @@ import org.jetbrains.annotations.Nullable;
 
 public record GachaRewardEntry(
         ResourceLocation itemId,
-        int weight,
         int rarity,
         int minCount,
         int maxCount
 ) {
     @Nullable
     public static GachaRewardEntry fromJson(JsonObject json) {
-        if (!json.has("item") || !json.has("weight") || !json.has("rarity")) {
+        if (!json.has("item") || !json.has("rarity")) {
             return null;
         }
 
@@ -28,7 +27,6 @@ public record GachaRewardEntry(
             return null;
         }
 
-        int weight = Math.max(0, json.get("weight").getAsInt());
         int rarity = Math.clamp(json.get("rarity").getAsInt(), 2, 6);
         int minCount = json.has("min_count") ? Math.max(1, json.get("min_count").getAsInt()) : 1;
         int maxCount = json.has("max_count") ? Math.max(1, json.get("max_count").getAsInt()) : minCount;
@@ -36,11 +34,7 @@ public record GachaRewardEntry(
             maxCount = minCount;
         }
 
-        if (weight <= 0) {
-            return null;
-        }
-
-        return new GachaRewardEntry(itemId, weight, rarity, minCount, maxCount);
+        return new GachaRewardEntry(itemId, rarity, minCount, maxCount);
     }
 
     public ItemStack createStack(RandomSource random) {

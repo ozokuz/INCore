@@ -8,12 +8,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record SelectGachaBannerPayload(String bannerId) implements CustomPacketPayload {
-    public static final Type<SelectGachaBannerPayload> TYPE = new Type<>(ResourceLocation.parse("incore:gacha_select_banner"));
-    public static final StreamCodec<ByteBuf, SelectGachaBannerPayload> STREAM_CODEC = StreamCodec.composite(
+public record BuyGachaBannerPayload(String bannerId) implements CustomPacketPayload {
+    public static final Type<BuyGachaBannerPayload> TYPE = new Type<>(ResourceLocation.parse("incore:gacha_buy_banner"));
+    public static final StreamCodec<ByteBuf, BuyGachaBannerPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8,
-            SelectGachaBannerPayload::bannerId,
-            SelectGachaBannerPayload::new
+            BuyGachaBannerPayload::bannerId,
+            BuyGachaBannerPayload::new
     );
 
     @Override
@@ -21,7 +21,7 @@ public record SelectGachaBannerPayload(String bannerId) implements CustomPacketP
         return TYPE;
     }
 
-    public static void handle(SelectGachaBannerPayload payload, IPayloadContext context) {
+    public static void handle(BuyGachaBannerPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
@@ -32,7 +32,7 @@ public record SelectGachaBannerPayload(String bannerId) implements CustomPacketP
                 return;
             }
 
-            GachaNetworking.applyBannerSelection(player, bannerId);
+            GachaNetworking.applyBannerPurchase(player, bannerId);
         });
     }
 }

@@ -77,14 +77,14 @@ public final class GachaEvents {
             return;
         }
 
-        ResourceLocation selected = GachaPityManager.getSelectedBanner(player);
+        ResourceLocation selected = GachaPityManager.getLastBanner(player);
         if (selected != null && GachaBannerManager.get(selected) != null) {
             return;
         }
 
         ResourceLocation defaultBanner = GachaBannerManager.getDefaultBannerId();
         if (defaultBanner != null) {
-            GachaPityManager.setSelectedBanner(player, defaultBanner);
+            GachaPityManager.setLastBanner(player, defaultBanner);
         }
     }
 

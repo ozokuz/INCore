@@ -1,0 +1,29 @@
+{
+  "name": "Chartered: Tidal Crown",
+  "type": "event",
+  "pity_group": "chartered_rotation_a",
+  "sidebar_color": "#3CB7FF",
+  "main_item": "minecraft:trident",
+  "rarity_weights": {
+    "2": 2550,
+    "3": 1700,
+    "4": 920,
+    "5": 255,
+    "6": 22
+  },
+  "featured_items": [
+    "minecraft:trident",
+    "minecraft:heart_of_the_sea",
+    "minecraft:conduit"
+  ],
+  "rewards": [
+    { "item": "minecraft:kelp", "rarity": 2, "min_count": 8, "max_count": 18 },
+    { "item": "minecraft:prismarine_shard", "rarity": 2, "min_count": 4, "max_count": 10 },
+    { "item": "minecraft:prismarine_crystals", "rarity": 3, "min_count": 2, "max_count": 6 },
+    { "item": "minecraft:nautilus_shell", "rarity": 3, "min_count": 1, "max_count": 3 },
+    { "item": "minecraft:turtle_scute", "rarity": 4, "min_count": 1, "max_count": 3 },
+    { "item": "minecraft:heart_of_the_sea", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:conduit", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:trident", "rarity": 6, "min_count": 1, "max_count": 1 }
+  ]
+}

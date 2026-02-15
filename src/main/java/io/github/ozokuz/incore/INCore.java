@@ -4,6 +4,8 @@ import io.github.ozokuz.incore.data.ICBlockStateProvider;
 import io.github.ozokuz.incore.data.ICItemModelProvider;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
 import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
+import io.github.ozokuz.incore.features.gacha.GachaEventCategoryManager;
+import io.github.ozokuz.incore.features.gacha.command.GachaCommands;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
@@ -37,6 +39,7 @@ public class INCore {
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
+        NeoForge.EVENT_BUS.addListener(GachaCommands::register);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -58,5 +61,6 @@ public class INCore {
     public void onReloadListener(AddReloadListenerEvent event) {
         event.addListener(new EncounterManager());
         event.addListener(new GachaBannerManager());
+        event.addListener(new GachaEventCategoryManager());
     }
 }

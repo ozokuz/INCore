@@ -8,7 +8,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class GachaPityManager {
     private static final String ROOT_GACHA = "incore:gacha";
-    private static final String KEY_SELECTED_BANNER = "selected_banner";
+    private static final String KEY_LAST_BANNER = "last_banner";
+    private static final String KEY_SELECTED_BANNER_LEGACY = "selected_banner";
     private static final String KEY_PITY = "pity";
     private static final String KEY_PITY_FIVE = "five_star_miss";
     private static final String KEY_PITY_SIX = "six_star_miss";
@@ -16,17 +17,26 @@ public final class GachaPityManager {
     private GachaPityManager() {
     }
 
-    public static @Nullable ResourceLocation getSelectedBanner(ServerPlayer player) {
+    public static @Nullable ResourceLocation getLastBanner(ServerPlayer player) {
         CompoundTag root = getRoot(player, false);
-        if (root == null || !root.contains(KEY_SELECTED_BANNER, Tag.TAG_STRING)) {
+        if (root == null) {
             return null;
         }
-        return ResourceLocation.tryParse(root.getString(KEY_SELECTED_BANNER));
+
+        if (root.contains(KEY_LAST_BANNER, Tag.TAG_STRING)) {
+            return ResourceLocation.tryParse(root.getString(KEY_LAST_BANNER));
+        }
+
+        if (root.contains(KEY_SELECTED_BANNER_LEGACY, Tag.TAG_STRING)) {
+            return ResourceLocation.tryParse(root.getString(KEY_SELECTED_BANNER_LEGACY));
+        }
+
+        return null;
     }
 
-    public static void setSelectedBanner(ServerPlayer player, ResourceLocation bannerId) {
+    public static void setLastBanner(ServerPlayer player, ResourceLocation bannerId) {
         CompoundTag root = getRoot(player, true);
-        root.putString(KEY_SELECTED_BANNER, bannerId.toString());
+        root.putString(KEY_LAST_BANNER, bannerId.toString());
     }
 
     public static PityState getPity(ServerPlayer player, GachaBannerData banner) {

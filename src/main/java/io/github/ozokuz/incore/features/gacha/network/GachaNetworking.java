@@ -15,15 +15,15 @@ public final class GachaNetworking {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToClient(OpenGachaBannersPayload.TYPE, OpenGachaBannersPayload.STREAM_CODEC, OpenGachaBannersPayload::handle);
         registrar.playToServer(RequestOpenGachaBannersPayload.TYPE, RequestOpenGachaBannersPayload.STREAM_CODEC, RequestOpenGachaBannersPayload::handle);
-        registrar.playToServer(SelectGachaBannerPayload.TYPE, SelectGachaBannerPayload.STREAM_CODEC, SelectGachaBannerPayload::handle);
+        registrar.playToServer(BuyGachaBannerPayload.TYPE, BuyGachaBannerPayload.STREAM_CODEC, BuyGachaBannerPayload::handle);
     }
 
     public static void openBannerScreen(ServerPlayer player, String json) {
         PacketDistributor.sendToPlayer(player, new OpenGachaBannersPayload(json));
     }
 
-    public static void sendBannerSelection(ResourceLocation bannerId) {
-        PacketDistributor.sendToServer(new SelectGachaBannerPayload(bannerId.toString()));
+    public static void sendBannerPurchase(ResourceLocation bannerId) {
+        PacketDistributor.sendToServer(new BuyGachaBannerPayload(bannerId.toString()));
     }
 
     public static void requestOpenBannerScreen() {
@@ -34,7 +34,7 @@ public final class GachaNetworking {
         GachaService.openBannerScreen(player);
     }
 
-    public static void applyBannerSelection(ServerPlayer player, ResourceLocation bannerId) {
+    public static void applyBannerPurchase(ServerPlayer player, ResourceLocation bannerId) {
         GachaService.acquireCrateForBanner(player, bannerId);
     }
 }

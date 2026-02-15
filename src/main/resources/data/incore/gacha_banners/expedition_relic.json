@@ -1,0 +1,29 @@
+{
+  "name": "Expedition: Relic Hunt",
+  "type": "event",
+  "pity_group": "expedition_rotation_a",
+  "sidebar_color": "#F7C65F",
+  "main_item": "minecraft:mace",
+  "rarity_weights": {
+    "2": 2550,
+    "3": 1680,
+    "4": 930,
+    "5": 255,
+    "6": 18
+  },
+  "featured_items": [
+    "minecraft:mace",
+    "minecraft:heavy_core",
+    "minecraft:wind_charge"
+  ],
+  "rewards": [
+    { "item": "minecraft:tuff", "rarity": 2, "min_count": 8, "max_count": 20 },
+    { "item": "minecraft:arrow", "rarity": 2, "min_count": 8, "max_count": 20 },
+    { "item": "minecraft:wind_charge", "rarity": 3, "min_count": 1, "max_count": 3 },
+    { "item": "minecraft:emerald", "rarity": 3, "min_count": 2, "max_count": 5 },
+    { "item": "minecraft:ominous_bottle", "rarity": 4, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:breeze_rod", "rarity": 5, "min_count": 1, "max_count": 2 },
+    { "item": "minecraft:heavy_core", "rarity": 5, "min_count": 1, "max_count": 1 },
+    { "item": "minecraft:mace", "rarity": 6, "min_count": 1, "max_count": 1 }
+  ]
+}

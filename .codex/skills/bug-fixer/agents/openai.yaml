@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bug Fixer"
+  short_description: "Fix unchecked manual gameplay test cases"
+  default_prompt: "Use $bug-fixer to resolve unchecked MANUAL_TESTS.md cases by implementing fixes and updating tests."

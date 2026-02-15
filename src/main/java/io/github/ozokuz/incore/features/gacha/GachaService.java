@@ -26,14 +26,14 @@ public final class GachaService {
     }
 
     public static void openBannerScreen(ServerPlayer player) {
-        GachaBannerData selected = resolveSelectedBanner(player, true);
+        GachaBannerData selected = resolveLastBanner(player, true);
         if (selected == null) {
             player.sendSystemMessage(Component.translatable("incore.gacha.banner.none_configured"));
             return;
         }
 
         ScreenData screenData = new ScreenData(
-                GachaBannerManager.all().stream()
+                GachaBannerManager.visible().stream()
                         .sorted(
                                 Comparator.comparingInt((GachaBannerData banner) -> banner.bannerType() == BannerType.EVENT ? 0 : 1)
                                         .thenComparing(GachaBannerData::name)
@@ -45,21 +45,14 @@ public final class GachaService {
         GachaNetworking.openBannerScreen(player, GSON.toJson(screenData));
     }
 
-    public static void setSelectedBanner(ServerPlayer player, ResourceLocation bannerId) {
+    public static void acquireCrateForBanner(ServerPlayer player, ResourceLocation bannerId) {
         GachaBannerData banner = GachaBannerManager.get(bannerId);
         if (banner == null) {
             player.sendSystemMessage(Component.translatable("incore.gacha.banner.invalid", bannerId.toString()));
             return;
         }
-
-        GachaPityManager.setSelectedBanner(player, banner.id());
-        player.sendSystemMessage(Component.translatable("incore.gacha.banner.selected", banner.name()));
-    }
-
-    public static void acquireCrateForBanner(ServerPlayer player, ResourceLocation bannerId) {
-        GachaBannerData banner = GachaBannerManager.get(bannerId);
-        if (banner == null) {
-            player.sendSystemMessage(Component.translatable("incore.gacha.banner.invalid", bannerId.toString()));
+        if (!GachaEventRotation.isCurrentlyVisible(banner)) {
+            player.sendSystemMessage(Component.translatable("incore.gacha.banner.not_active", banner.name()));
             return;
         }
 
@@ -79,7 +72,7 @@ public final class GachaService {
             player.drop(crate, false);
         }
 
-        GachaPityManager.setSelectedBanner(player, banner.id());
+        GachaPityManager.setLastBanner(player, banner.id());
         player.sendSystemMessage(Component.translatable("incore.gacha.purchase.success", banner.name(), PULLS_PER_CRATE));
     }
 
@@ -91,22 +84,18 @@ public final class GachaService {
         }
 
         PullOutcome outcome = doPull(player, banner);
-        for (ItemStack reward : outcome.rewards()) {
-            if (!player.addItem(reward)) {
-                player.drop(reward, false);
-            }
-        }
-
-        GachaAnimationManager.start(player.serverLevel(), x, y, z, outcome.rarities(), outcome.bestRarity());
-        player.sendSystemMessage(Component.translatable(
-                "incore.gacha.pull.opened",
-                banner.name(),
+        GachaAnimationManager.start(
+                player.serverLevel(),
+                x,
+                y,
+                z,
+                outcome.rarities(),
                 outcome.bestRarity(),
-                outcome.pityFive(),
-                FIVE_STAR_PITY_THRESHOLD,
-                outcome.pitySix(),
-                SIX_STAR_PITY_THRESHOLD
-        ));
+                outcome.rewards(),
+                outcome.highRarityRewards(),
+                player.getGameProfile().getName(),
+                banner.name()
+        );
         return true;
     }
 
@@ -117,6 +106,7 @@ public final class GachaService {
 
         List<ItemStack> rewards = new ArrayList<>();
         List<Integer> rarities = new ArrayList<>();
+        List<HighRarityReward> highRarityRewards = new ArrayList<>();
         int bestRarity = 2;
 
         for (int i = 0; i < PULLS_PER_CRATE; i++) {
@@ -129,11 +119,14 @@ public final class GachaService {
 
             GachaRewardEntry entry = banner.roll(player.getRandom(), minimumRarity);
             ItemStack rolled = entry.createStack(player.getRandom());
+            int rarity = entry.rarity();
             if (!rolled.isEmpty()) {
                 rewards.add(rolled);
+                if (rarity >= 5) {
+                    highRarityRewards.add(new HighRarityReward(rolled.copy(), rarity));
+                }
             }
 
-            int rarity = entry.rarity();
             rarities.add(rarity);
             bestRarity = Math.max(bestRarity, rarity);
 
@@ -151,7 +144,7 @@ public final class GachaService {
         }
 
         GachaPityManager.setPity(player, banner, pity5, pity6);
-        return new PullOutcome(rewards, rarities, bestRarity, pity5, pity6);
+        return new PullOutcome(rewards, rarities, highRarityRewards, bestRarity, pity5, pity6);
     }
 
     private static boolean consumePermits(ServerPlayer player, GachaBannerData banner) {
@@ -166,7 +159,11 @@ public final class GachaService {
 
         int remaining = PULLS_PER_CRATE;
         if (banner.bannerType() == BannerType.BASIC) {
-            remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.BASIC_BANNER_PERMIT_ITEM.get());
+            remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.BANNER_PERMIT_ITEM.get()
+                    && GachaPermitItem.matchesBanner(stack, banner.id()));
+            if (remaining > 0) {
+                remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.BASIC_BANNER_PERMIT_ITEM.get());
+            }
         } else {
             remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.BANNER_PERMIT_ITEM.get()
                     && GachaPermitItem.matchesBanner(stack, banner.id()));
@@ -186,7 +183,10 @@ public final class GachaService {
         }
 
         if (banner.bannerType() == BannerType.BASIC) {
-            return countMatching(player, stack -> stack.getItem() == Registration.BASIC_BANNER_PERMIT_ITEM.get());
+            int specific = countMatching(player, stack -> stack.getItem() == Registration.BANNER_PERMIT_ITEM.get()
+                    && GachaPermitItem.matchesBanner(stack, banner.id()));
+            int basic = countMatching(player, stack -> stack.getItem() == Registration.BASIC_BANNER_PERMIT_ITEM.get());
+            return specific + basic;
         }
 
         int specific = countMatching(player, stack -> stack.getItem() == Registration.BANNER_PERMIT_ITEM.get()
@@ -224,15 +224,15 @@ public final class GachaService {
         return remaining;
     }
 
-    private static GachaBannerData resolveSelectedBanner(ServerPlayer player, boolean writeBackIfMissing) {
-        List<GachaBannerData> all = GachaBannerManager.all();
+    private static GachaBannerData resolveLastBanner(ServerPlayer player, boolean writeBackIfMissing) {
+        List<GachaBannerData> all = GachaBannerManager.visible();
         if (all.isEmpty()) {
             return null;
         }
 
-        ResourceLocation selectedId = GachaPityManager.getSelectedBanner(player);
+        ResourceLocation selectedId = GachaPityManager.getLastBanner(player);
         GachaBannerData selected = selectedId == null ? null : GachaBannerManager.get(selectedId);
-        if (selected != null) {
+        if (selected != null && GachaEventRotation.isCurrentlyVisible(selected)) {
             return selected;
         }
 
@@ -242,29 +242,27 @@ public final class GachaService {
         }
 
         selected = GachaBannerManager.get(defaultId);
-        if (selected == null) {
+        if (selected == null || !GachaEventRotation.isCurrentlyVisible(selected)) {
             return null;
         }
 
         if (writeBackIfMissing) {
-            GachaPityManager.setSelectedBanner(player, selected.id());
+            GachaPityManager.setLastBanner(player, selected.id());
         }
         return selected;
     }
 
     private static BannerView toBannerView(ServerPlayer player, GachaBannerData banner) {
         GachaPityManager.PityState pityState = GachaPityManager.getPity(player, banner);
-        int totalWeight = banner.rewards().stream().mapToInt(GachaRewardEntry::weight).sum();
-        double safeTotal = Math.max(1.0D, totalWeight);
         List<RewardView> rewards = banner.rewards().stream()
                 .sorted(
                         Comparator.comparingInt(GachaRewardEntry::rarity).reversed()
-                                .thenComparing(Comparator.comparingInt(GachaRewardEntry::weight).reversed())
+                                .thenComparing(entry -> entry.itemId().toString())
                 )
                 .map(entry -> new RewardView(
                         entry.itemId().toString(),
                         entry.rarity(),
-                        (entry.weight() * 100.0D) / safeTotal
+                        banner.chanceForReward(entry)
                 ))
                 .toList();
 
@@ -272,6 +270,9 @@ public final class GachaService {
                 banner.id().toString(),
                 banner.name(),
                 banner.bannerType() == BannerType.BASIC ? "basic" : "event",
+                banner.sidebarColor(),
+                banner.resolvedMainItem() == null ? "" : banner.resolvedMainItem().toString(),
+                GachaEventRotation.getRemainingMillisForBanner(banner.id()),
                 pityState.fiveStarMisses(),
                 pityState.sixStarMisses(),
                 banner.resolvedFeaturedItems().stream().map(ResourceLocation::toString).toList(),
@@ -281,16 +282,24 @@ public final class GachaService {
 
     public static ItemStack createSpecificPermit(ResourceLocation bannerId, int count) {
         Item permitItem = Registration.BANNER_PERMIT_ITEM.get();
-        return GachaPermitItem.createBannerPermit(permitItem, bannerId, count);
+        GachaBannerData banner = GachaBannerManager.get(bannerId);
+        if (banner == null) {
+            return GachaPermitItem.createBannerPermit(permitItem, bannerId, count);
+        }
+        return GachaPermitItem.createBannerPermit(permitItem, banner.id(), banner.name(), count);
     }
 
     public record PullOutcome(
             List<ItemStack> rewards,
             List<Integer> rarities,
+            List<HighRarityReward> highRarityRewards,
             int bestRarity,
             int pityFive,
             int pitySix
     ) {
+    }
+
+    public record HighRarityReward(ItemStack stack, int rarity) {
     }
 
     public record ScreenData(List<BannerView> banners) {
@@ -300,6 +309,9 @@ public final class GachaService {
             String id,
             String name,
             String type,
+            int sidebarColor,
+            String mainItemId,
+            long remainingMillis,
             int pityFive,
             int pitySix,
             List<String> featuredItems,
