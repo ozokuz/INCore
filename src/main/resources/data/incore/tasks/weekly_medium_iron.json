@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "item_collection",
+  "target": "minecraft:iron_ingot",
+  "goal": 32,
+  "difficulty": "medium",
+  "title": "Iron Stockpile",
+  "description": "Carry 32 iron ingots."
+}

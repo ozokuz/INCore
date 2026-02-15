@@ -1,0 +1,8 @@
+{
+  "period": "daily",
+  "task_type": "item_collection",
+  "target": "minecraft:cobblestone",
+  "goal": 64,
+  "title": "Stone Worker",
+  "description": "Carry 64 cobblestone blocks."
+}

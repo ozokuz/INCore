@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "mob_kill",
+  "target": "minecraft:spider",
+  "goal": 15,
+  "difficulty": "medium",
+  "title": "Spider Exterminator",
+  "description": "Defeat 15 spiders."
+}

@@ -11,6 +11,8 @@ import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
+import io.github.ozokuz.incore.features.tasks.TaskDataManager;
+import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -39,6 +41,7 @@ public class INCore {
         modEventBus.addListener(SanityNetworking::registerPayloads);
         modEventBus.addListener(GachaNetworking::registerPayloads);
         modEventBus.addListener(PlayerLevelNetworking::registerPayloads);
+        modEventBus.addListener(TaskNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -66,5 +69,6 @@ public class INCore {
         event.addListener(new GachaBannerManager());
         event.addListener(new GachaEventCategoryManager());
         event.addListener(new PlayerLevelRewardManager());
+        event.addListener(new TaskDataManager());
     }
 }

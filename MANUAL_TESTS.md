@@ -31,3 +31,12 @@ Manual gameplay verification checklist for testers.
 - [x] Given a basic banner and inventory containing only matching banner-specific permits for that banner, when pressing `Pull x10`, then purchase succeeds and consumes those specific permits.
 - [x] Given a basic banner and inventory containing mixed matching banner-specific permits and basic permits, when pressing `Pull x10`, then the purchase succeeds using both currencies up to 10 total.
 - [x] Given an event banner and inventory containing mixed matching banner-specific permits and chartered permits, when pressing `Pull x10`, then the purchase succeeds using both currencies up to 10 total.
+
+## Daily & Weekly Datapack Tasks
+- [ ] Given at least three valid daily task datapack entries exist, when joining the world and pressing the Daily/Weekly task keybind (`K` by default), then a task overview screen opens and displays exactly three daily task options.
+- [ ] Given one displayed daily task is an item collection task, when obtaining enough target items to meet its goal, then the daily status changes to complete and the configured `daily_completion` reward is granted once.
+- [ ] Given one displayed daily task is a mob kill task, when defeating the target mob type up to the configured goal, then task progress updates and completing any one daily task completes the daily track.
+- [ ] Given weekly tasks include mixed easy/medium/hard definitions in datapacks, when viewing the weekly list, then each weekly entry shows its difficulty and matching point value (easy=1, medium=2, hard=5).
+- [ ] Given weekly tasks are completed to reach 2, 4, 6, 8, and 10 points, when each threshold is reached, then weekly tier pools `weekly_tier_1` through `weekly_tier_5` are each rewarded exactly once.
+- [ ] Given a new UTC day begins, when rejoining or waiting for sync, then daily options/progress reset and a fresh set of up to three daily tasks is selected from datapack definitions.
+- [ ] Given a new UTC week begins, when rejoining or waiting for sync, then weekly options/progress/points reset and weekly tiers become unclaimed for the new week.

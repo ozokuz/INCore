@@ -1,0 +1,8 @@
+{
+  "period": "daily",
+  "task_type": "mob_kill",
+  "target": "minecraft:zombie",
+  "goal": 6,
+  "title": "Cull Zombies",
+  "description": "Defeat 6 zombies."
+}

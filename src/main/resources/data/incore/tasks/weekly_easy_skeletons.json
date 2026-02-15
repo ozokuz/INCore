@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "mob_kill",
+  "target": "minecraft:skeleton",
+  "goal": 10,
+  "difficulty": "easy",
+  "title": "Skeleton Cleanup",
+  "description": "Defeat 10 skeletons."
+}

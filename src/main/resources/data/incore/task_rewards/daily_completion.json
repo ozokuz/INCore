@@ -1,0 +1,10 @@
+{
+  "pool": "daily_completion",
+  "rewards": [
+    {
+      "type": "item",
+      "item": "minecraft:emerald",
+      "count": 4
+    }
+  ]
+}

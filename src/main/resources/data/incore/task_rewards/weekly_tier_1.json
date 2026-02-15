@@ -1,0 +1,14 @@
+{
+  "pool": "weekly_tier_1",
+  "rewards": [
+    {
+      "type": "item",
+      "item": "minecraft:experience_bottle",
+      "count": 2
+    },
+    {
+      "type": "command",
+      "command": "tellraw {player} {\"text\":\"Weekly tier 1 reward claimed!\",\"color\":\"gold\"}"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "mob_kill",
+  "target": "minecraft:creeper",
+  "goal": 25,
+  "difficulty": "hard",
+  "title": "Creeper Control",
+  "description": "Defeat 25 creepers."
+}

@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "item_collection",
+  "target": "minecraft:birch_log",
+  "goal": 32,
+  "difficulty": "easy",
+  "title": "Birch Lumber",
+  "description": "Carry 32 birch logs."
+}

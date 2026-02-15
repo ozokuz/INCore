@@ -17,6 +17,12 @@ public final class INCoreKeyMappings {
             GLFW.GLFW_KEY_P,
             "key.categories.incore"
     );
+    public static final KeyMapping OPEN_TASK_OVERVIEW = new KeyMapping(
+            "key.incore.open_task_overview",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_K,
+            "key.categories.incore"
+    );
 
     private INCoreKeyMappings() {
     }

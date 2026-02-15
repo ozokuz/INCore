@@ -1,0 +1,8 @@
+{
+  "period": "daily",
+  "task_type": "item_collection",
+  "target": "minecraft:oak_log",
+  "goal": 16,
+  "title": "Gather Oak Logs",
+  "description": "Have 16 oak logs in your inventory."
+}
