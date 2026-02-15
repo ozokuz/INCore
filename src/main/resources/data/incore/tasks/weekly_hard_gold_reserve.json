@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "item_collection",
+  "target": "minecraft:gold_ingot",
+  "goal": 64,
+  "difficulty": "hard",
+  "title": "Gold Reserve",
+  "description": "Carry 64 gold ingots."
+}

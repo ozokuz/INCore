@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "item_collection",
+  "target": "minecraft:copper_ingot",
+  "goal": 48,
+  "difficulty": "medium",
+  "title": "Copper Stockpile",
+  "description": "Carry 48 copper ingots."
+}

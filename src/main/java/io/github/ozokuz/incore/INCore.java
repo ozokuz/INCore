@@ -12,6 +12,7 @@ import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworkin
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import io.github.ozokuz.incore.features.tasks.TaskDataManager;
+import io.github.ozokuz.incore.features.tasks.command.TaskCommands;
 import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -46,6 +47,7 @@ public class INCore {
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
         NeoForge.EVENT_BUS.addListener(GachaCommands::register);
+        NeoForge.EVENT_BUS.addListener(TaskCommands::register);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

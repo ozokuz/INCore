@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "mob_kill",
+  "target": "minecraft:zombie",
+  "goal": 20,
+  "difficulty": "easy",
+  "title": "Zombie Patrol",
+  "description": "Defeat 20 zombies."
+}

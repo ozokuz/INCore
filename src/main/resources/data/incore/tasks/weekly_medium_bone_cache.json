@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "item_collection",
+  "target": "minecraft:bone",
+  "goal": 40,
+  "difficulty": "medium",
+  "title": "Bone Cache",
+  "description": "Carry 40 bones."
+}

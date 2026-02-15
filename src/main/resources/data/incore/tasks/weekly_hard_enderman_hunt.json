@@ -1,0 +1,9 @@
+{
+  "period": "weekly",
+  "task_type": "mob_kill",
+  "target": "minecraft:enderman",
+  "goal": 18,
+  "difficulty": "hard",
+  "title": "Enderman Hunt",
+  "description": "Defeat 18 endermen."
+}
