@@ -41,6 +41,20 @@ public final class TaskService {
     private static final String KEY_DAILY_REWARD_CLAIMED = "incore:tasks_daily_reward_claimed";
     private static final String KEY_WEEKLY_POINTS = "incore:tasks_weekly_points";
     private static final String KEY_WEEKLY_TIER_CLAIMS = "incore:tasks_weekly_tier_claims";
+    private static final List<String> PERSISTED_KEYS = List.of(
+            KEY_DAY_INDEX,
+            KEY_WEEK_INDEX,
+            KEY_DAILY_IDS,
+            KEY_WEEKLY_IDS,
+            KEY_DAILY_PROGRESS,
+            KEY_WEEKLY_PROGRESS,
+            KEY_DAILY_ITEM_BASELINES,
+            KEY_WEEKLY_ITEM_BASELINES,
+            KEY_DAILY_COMPLETED,
+            KEY_DAILY_REWARD_CLAIMED,
+            KEY_WEEKLY_POINTS,
+            KEY_WEEKLY_TIER_CLAIMS
+    );
 
     private TaskService() {
     }
@@ -55,6 +69,19 @@ public final class TaskService {
         ensurePeriods(player);
         incrementMobKillProgress(player, victim.getType());
         resolveCompletionsAndRewards(player);
+    }
+
+    public static void copyData(ServerPlayer from, ServerPlayer to) {
+        CompoundTag fromData = from.getPersistentData();
+        CompoundTag toData = to.getPersistentData();
+
+        for (String key : PERSISTED_KEYS) {
+            if (fromData.contains(key)) {
+                toData.put(key, fromData.get(key).copy());
+            } else {
+                toData.remove(key);
+            }
+        }
     }
 
     public static String buildSyncJson(ServerPlayer player) {

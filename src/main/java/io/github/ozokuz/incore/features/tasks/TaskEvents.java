@@ -21,10 +21,17 @@ public class TaskEvents {
 
     @SubscribeEvent
     public static void onPlayerClone(PlayerEvent.Clone event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
-            TaskService.tick(player);
-            TaskNetworking.syncToPlayer(player);
+        if (!(event.getEntity() instanceof ServerPlayer newPlayer)) {
+            return;
         }
+
+        if (!(event.getOriginal() instanceof ServerPlayer oldPlayer)) {
+            return;
+        }
+
+        TaskService.copyData(oldPlayer, newPlayer);
+        TaskService.tick(newPlayer);
+        TaskNetworking.syncToPlayer(newPlayer);
     }
 
     @SubscribeEvent
