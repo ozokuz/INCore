@@ -3,7 +3,6 @@ package io.github.ozokuz.incore.features.research;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -29,7 +28,11 @@ public class LabBlock extends BaseEntityBlock {
     public static final MapCodec<LabBlock> CODEC = simpleCodec(LabBlock::new);
 
     public LabBlock() {
-        super(Properties.of().mapColor(MapColor.METAL).strength(3.0F).sound(SoundType.METAL));
+        this(Properties.of().mapColor(MapColor.METAL).strength(3.0F).sound(SoundType.METAL));
+    }
+
+    public LabBlock(Properties properties) {
+        super(properties);
     }
 
     @Override
