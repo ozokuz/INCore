@@ -128,7 +128,8 @@ public final class BattlePassProgressManager {
         }
 
         int currentProgress = Math.max(0, progress.taskProgress().getOrDefault(task.id(), 0));
-        int updatedProgress = Math.min(goal, currentProgress + amount);
+        long rawProgress = (long) currentProgress + amount;
+        int updatedProgress = (int) Math.min(goal, Math.max(0L, rawProgress));
         progress.taskProgress().put(task.id(), updatedProgress);
 
         int xpGained = 0;
