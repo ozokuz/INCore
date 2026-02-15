@@ -25,12 +25,14 @@ public record BattlePassSyncPayload(
         int permanentCompleted,
         int permanentCap,
         int unclaimedRewardLevels,
+        List<LaneEntry> lanes,
         List<TaskEntry> tasks,
         List<RewardLevelEntry> rewardLevels
 ) implements CustomPacketPayload {
     public static final int REWARD_KIND_ITEM = 0;
     public static final int REWARD_KIND_SANITY_CAP = 1;
     public static final int REWARD_KIND_COMMAND = 2;
+    public static final int REWARD_KIND_NONE = 3;
 
     public static final Type<BattlePassSyncPayload> TYPE = new Type<>(ResourceLocation.parse("incore:battle_pass_sync"));
     public static final StreamCodec<ByteBuf, BattlePassSyncPayload> STREAM_CODEC = new StreamCodec<>() {
@@ -51,6 +53,16 @@ public record BattlePassSyncPayload(
             int permanentCompleted = buf.readVarInt();
             int permanentCap = buf.readVarInt();
             int unclaimedRewardLevels = buf.readVarInt();
+
+            int laneCount = buf.readVarInt();
+            List<LaneEntry> lanes = new ArrayList<>(laneCount);
+            for (int i = 0; i < laneCount; i++) {
+                lanes.add(new LaneEntry(
+                        buf.readUtf(64),
+                        buf.readBoolean(),
+                        buf.readVarInt()
+                ));
+            }
 
             int taskCount = buf.readVarInt();
             List<TaskEntry> tasks = new ArrayList<>(taskCount);
@@ -75,6 +87,7 @@ public record BattlePassSyncPayload(
             for (int i = 0; i < rewardLevelCount; i++) {
                 int previewLevel = buf.readVarInt();
                 int requiredXp = buf.readVarInt();
+                int xpForLevel = buf.readVarInt();
                 int rewardCount = buf.readVarInt();
                 List<RewardEntry> rewards = new ArrayList<>(rewardCount);
                 for (int j = 0; j < rewardCount; j++) {
@@ -85,7 +98,7 @@ public record BattlePassSyncPayload(
                             buf.readUtf(1024)
                     ));
                 }
-                rewardLevels.add(new RewardLevelEntry(previewLevel, requiredXp, rewards));
+                rewardLevels.add(new RewardLevelEntry(previewLevel, requiredXp, xpForLevel, rewards));
             }
 
             return new BattlePassSyncPayload(
@@ -103,6 +116,7 @@ public record BattlePassSyncPayload(
                     permanentCompleted,
                     permanentCap,
                     unclaimedRewardLevels,
+                    lanes,
                     tasks,
                     rewardLevels
             );
@@ -126,6 +140,13 @@ public record BattlePassSyncPayload(
             buf.writeVarInt(payload.permanentCap());
             buf.writeVarInt(payload.unclaimedRewardLevels());
 
+            buf.writeVarInt(payload.lanes().size());
+            for (LaneEntry lane : payload.lanes()) {
+                buf.writeUtf(lane.id(), 64);
+                buf.writeBoolean(lane.unlocked());
+                buf.writeVarInt(lane.highestClaimedLevel());
+            }
+
             buf.writeVarInt(payload.tasks().size());
             for (TaskEntry task : payload.tasks()) {
                 buf.writeUtf(task.id(), 256);
@@ -145,6 +166,7 @@ public record BattlePassSyncPayload(
             for (RewardLevelEntry rewardLevel : payload.rewardLevels()) {
                 buf.writeVarInt(rewardLevel.level());
                 buf.writeVarInt(rewardLevel.requiredXp());
+                buf.writeVarInt(rewardLevel.xpForLevel());
                 buf.writeVarInt(rewardLevel.rewards().size());
                 for (RewardEntry reward : rewardLevel.rewards()) {
                     buf.writeVarInt(reward.kind());
@@ -177,6 +199,13 @@ public record BattlePassSyncPayload(
                 payload.permanentCompleted(),
                 payload.permanentCap(),
                 payload.unclaimedRewardLevels(),
+                payload.lanes().stream()
+                        .map(lane -> new BattlePassClientCache.LaneEntry(
+                                lane.id(),
+                                lane.unlocked(),
+                                lane.highestClaimedLevel()
+                        ))
+                        .toList(),
                 payload.tasks().stream()
                         .map(task -> new BattlePassClientCache.TaskEntry(
                                 task.id(),
@@ -196,6 +225,7 @@ public record BattlePassSyncPayload(
                         .map(levelEntry -> new BattlePassClientCache.RewardLevelEntry(
                                 levelEntry.level(),
                                 levelEntry.requiredXp(),
+                                levelEntry.xpForLevel(),
                                 levelEntry.rewards().stream()
                                         .map(reward -> new BattlePassClientCache.RewardEntry(
                                                 reward.kind(),
@@ -207,6 +237,9 @@ public record BattlePassSyncPayload(
                         ))
                         .toList()
         ));
+    }
+
+    public record LaneEntry(String id, boolean unlocked, int highestClaimedLevel) {
     }
 
     public record TaskEntry(
@@ -224,7 +257,7 @@ public record BattlePassSyncPayload(
     ) {
     }
 
-    public record RewardLevelEntry(int level, int requiredXp, List<RewardEntry> rewards) {
+    public record RewardLevelEntry(int level, int requiredXp, int xpForLevel, List<RewardEntry> rewards) {
     }
 
     public record RewardEntry(int kind, String iconItemId, int amount, String text) {

@@ -18,6 +18,7 @@ public final class BattlePassClientCache {
     private static int permanentCompleted;
     private static int permanentCap;
     private static int unclaimedRewardLevels;
+    private static List<LaneEntry> lanes = List.of();
     private static List<TaskEntry> tasks = List.of();
     private static List<RewardLevelEntry> rewardLevels = List.of();
 
@@ -39,6 +40,7 @@ public final class BattlePassClientCache {
             int nextPermanentCompleted,
             int nextPermanentCap,
             int nextUnclaimedRewardLevels,
+            List<LaneEntry> nextLanes,
             List<TaskEntry> nextTasks,
             List<RewardLevelEntry> nextRewardLevels
     ) {
@@ -56,6 +58,15 @@ public final class BattlePassClientCache {
         permanentCompleted = Math.max(0, nextPermanentCompleted);
         permanentCap = Math.max(0, nextPermanentCap);
         unclaimedRewardLevels = Math.max(0, nextUnclaimedRewardLevels);
+
+        lanes = nextLanes.stream()
+                .map(lane -> new LaneEntry(
+                        lane.id(),
+                        lane.unlocked(),
+                        lane.highestClaimedLevel()
+                ))
+                .toList();
+
         tasks = nextTasks.stream()
                 .map(task -> new TaskEntry(
                         task.id(),
@@ -71,15 +82,17 @@ public final class BattlePassClientCache {
                         task.status()
                 ))
                 .toList();
+
         rewardLevels = nextRewardLevels.stream()
                 .map(levelEntry -> new RewardLevelEntry(
                         Math.max(0, levelEntry.level()),
                         Math.max(0, levelEntry.requiredXp()),
+                        Math.max(0, levelEntry.xpForLevel()),
                         levelEntry.rewards().stream()
                                 .map(reward -> new RewardEntry(
                                         reward.kind(),
                                         reward.iconItemId(),
-                                        Math.max(1, reward.amount()),
+                                        Math.max(0, reward.amount()),
                                         reward.text()
                                 ))
                                 .toList()
@@ -147,12 +160,19 @@ public final class BattlePassClientCache {
         return unclaimedRewardLevels;
     }
 
+    public static synchronized List<LaneEntry> getLanes() {
+        return new ArrayList<>(lanes);
+    }
+
     public static synchronized List<TaskEntry> getTasks() {
         return new ArrayList<>(tasks);
     }
 
     public static synchronized List<RewardLevelEntry> getRewardLevels() {
         return new ArrayList<>(rewardLevels);
+    }
+
+    public record LaneEntry(String id, boolean unlocked, int highestClaimedLevel) {
     }
 
     public record TaskEntry(
@@ -170,7 +190,7 @@ public final class BattlePassClientCache {
     ) {
     }
 
-    public record RewardLevelEntry(int level, int requiredXp, List<RewardEntry> rewards) {
+    public record RewardLevelEntry(int level, int requiredXp, int xpForLevel, List<RewardEntry> rewards) {
     }
 
     public record RewardEntry(int kind, String iconItemId, int amount, String text) {

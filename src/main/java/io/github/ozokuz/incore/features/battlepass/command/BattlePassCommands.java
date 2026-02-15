@@ -3,19 +3,23 @@ package io.github.ozokuz.incore.features.battlepass.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.github.ozokuz.incore.features.battlepass.BattlePassDefinition;
+import io.github.ozokuz.incore.features.battlepass.BattlePassLane;
 import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassProgressManager;
+import io.github.ozokuz.incore.features.battlepass.BattlePassWeekTime;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,6 +27,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
 
 public final class BattlePassCommands {
@@ -39,7 +44,7 @@ public final class BattlePassCommands {
                                         .then(Commands.argument("target", EntityArgument.player())
                                                 .executes(ctx -> status(ctx.getSource(), EntityArgument.getPlayer(ctx, "target")))))
                                 .then(Commands.literal("set")
-                                        .then(Commands.argument("set_id", StringArgumentType.word())
+                                        .then(Commands.argument("set_id", ResourceLocationArgument.id())
                                                 .suggests(BattlePassCommands::suggestSetIds)
                                                 .executes(BattlePassCommands::setBattlePass)))
                                 .then(Commands.literal("next")
@@ -63,15 +68,22 @@ public final class BattlePassCommands {
                                                 .then(Commands.argument("targets", EntityArgument.players())
                                                         .then(Commands.argument("amount", IntegerArgumentType.integer())
                                                                 .executes(ctx -> addXp(ctx, IntegerArgumentType.getInteger(ctx, "amount")))))))
-                                .then(Commands.literal("tier")
-                                        .then(Commands.literal("set")
+                                .then(levelCommandLiteral("level"))
+                                .then(levelCommandLiteral("tier"))
+                                .then(Commands.literal("lane")
+                                        .then(Commands.literal("unlock")
                                                 .then(Commands.argument("targets", EntityArgument.players())
-                                                        .then(Commands.argument("amount", IntegerArgumentType.integer(0))
-                                                                .executes(ctx -> setTier(ctx, IntegerArgumentType.getInteger(ctx, "amount"))))))
-                                        .then(Commands.literal("add")
+                                                        .then(Commands.argument("lane", StringArgumentType.word())
+                                                                .suggests(BattlePassCommands::suggestLaneIds)
+                                                                .executes(BattlePassCommands::unlockLane))))
+                                        .then(Commands.literal("lock")
                                                 .then(Commands.argument("targets", EntityArgument.players())
-                                                        .then(Commands.argument("amount", IntegerArgumentType.integer())
-                                                                .executes(ctx -> addTier(ctx, IntegerArgumentType.getInteger(ctx, "amount")))))))
+                                                        .then(Commands.argument("lane", StringArgumentType.word())
+                                                                .suggests(BattlePassCommands::suggestLaneIds)
+                                                                .executes(BattlePassCommands::lockLane))))
+                                        .then(Commands.literal("list")
+                                                .then(Commands.argument("target", EntityArgument.player())
+                                                        .executes(BattlePassCommands::listLanes))))
                                 .then(Commands.literal("reset")
                                         .then(Commands.literal("task")
                                                 .then(Commands.argument("targets", EntityArgument.players())
@@ -99,8 +111,20 @@ public final class BattlePassCommands {
         );
     }
 
+    private static LiteralArgumentBuilder<CommandSourceStack> levelCommandLiteral(String literalName) {
+        return Commands.literal(literalName)
+                .then(Commands.literal("set")
+                        .then(Commands.argument("targets", EntityArgument.players())
+                                .then(Commands.argument("amount", IntegerArgumentType.integer(0))
+                                        .executes(ctx -> setLevel(ctx, IntegerArgumentType.getInteger(ctx, "amount"))))))
+                .then(Commands.literal("add")
+                        .then(Commands.argument("targets", EntityArgument.players())
+                                .then(Commands.argument("amount", IntegerArgumentType.integer())
+                                        .executes(ctx -> addLevel(ctx, IntegerArgumentType.getInteger(ctx, "amount"))))));
+    }
+
     private static CompletableFuture<Suggestions> suggestActiveTaskIds(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
-        return BattlePassManager.getActiveSet(Instant.now())
+        return BattlePassManager.getActiveSet(now(context.getSource()))
                 .map(BattlePassDefinition::tasks)
                 .map(tasks -> tasks.stream().map(BattlePassDefinition.BattlePassTask::id).distinct())
                 .map(taskIds -> SharedSuggestionProvider.suggest(taskIds, builder))
@@ -111,8 +135,12 @@ public final class BattlePassCommands {
         return SharedSuggestionProvider.suggest(BattlePassManager.getKnownSetIds(), builder);
     }
 
+    private static CompletableFuture<Suggestions> suggestLaneIds(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
+        return SharedSuggestionProvider.suggest(BattlePassLane.defaultOrder(), builder);
+    }
+
     private static int status(CommandSourceStack source, ServerPlayer player) {
-        BattlePassProgressManager.StatusResult result = BattlePassProgressManager.getStatus(player, Instant.now());
+        BattlePassProgressManager.StatusResult result = BattlePassProgressManager.getStatus(player, now(source));
         if ("none".equals(result.setId())) {
             source.sendFailure(Component.literal("No active battle pass."));
             return 0;
@@ -133,10 +161,11 @@ public final class BattlePassCommands {
     private static int completeTask(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         String taskId = StringArgumentType.getString(context, "task_id");
+        Instant now = now(context.getSource());
         int successCount = 0;
 
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.CompletionResult result = BattlePassProgressManager.completeTask(target, taskId, Instant.now());
+            BattlePassProgressManager.CompletionResult result = BattlePassProgressManager.completeTask(target, taskId, now);
             if (result.success()) {
                 successCount++;
             }
@@ -163,10 +192,11 @@ public final class BattlePassCommands {
     private static int progressTask(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         String taskId = StringArgumentType.getString(context, "task_id");
+        Instant now = now(context.getSource());
         int successCount = 0;
 
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.ProgressResult result = BattlePassProgressManager.addTaskProgress(target, taskId, amount, Instant.now());
+            BattlePassProgressManager.ProgressResult result = BattlePassProgressManager.addTaskProgress(target, taskId, amount, now);
             if (result.success()) {
                 successCount++;
             }
@@ -197,9 +227,10 @@ public final class BattlePassCommands {
 
     private static int setXp(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        Instant now = now(context.getSource());
         int successCount = 0;
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.setXp(target, amount, Instant.now());
+            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.setXp(target, amount, now);
             successCount += reportManagementResult(context.getSource(), target, result);
         }
         return successCount;
@@ -207,40 +238,104 @@ public final class BattlePassCommands {
 
     private static int addXp(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        Instant now = now(context.getSource());
         int successCount = 0;
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.addXp(target, amount, Instant.now());
+            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.addXp(target, amount, now);
             successCount += reportManagementResult(context.getSource(), target, result);
         }
         return successCount;
     }
 
-    private static int setTier(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException {
+    private static int setLevel(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        Instant now = now(context.getSource());
         int successCount = 0;
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.setLevel(target, amount, Instant.now());
+            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.setLevel(target, amount, now);
             successCount += reportManagementResult(context.getSource(), target, result);
         }
         return successCount;
     }
 
-    private static int addTier(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException {
+    private static int addLevel(CommandContext<CommandSourceStack> context, int amount) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        Instant now = now(context.getSource());
         int successCount = 0;
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.addLevel(target, amount, Instant.now());
+            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.addLevel(target, amount, now);
             successCount += reportManagementResult(context.getSource(), target, result);
         }
         return successCount;
+    }
+
+    private static int unlockLane(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        String lane = StringArgumentType.getString(context, "lane");
+        Instant now = now(context.getSource());
+
+        int successCount = 0;
+        for (ServerPlayer target : targets) {
+            BattlePassProgressManager.LaneManagementResult result = BattlePassProgressManager.unlockLane(target, lane, now);
+            String message = target.getGameProfile().getName() + ": " + result.message();
+            if (result.success()) {
+                successCount++;
+                String successMessage = message;
+                context.getSource().sendSuccess(() -> Component.literal(successMessage), true);
+            } else {
+                context.getSource().sendFailure(Component.literal(message));
+            }
+            BattlePassNetworking.syncToPlayer(target);
+        }
+
+        return successCount;
+    }
+
+    private static int lockLane(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        String lane = StringArgumentType.getString(context, "lane");
+        Instant now = now(context.getSource());
+
+        int successCount = 0;
+        for (ServerPlayer target : targets) {
+            BattlePassProgressManager.LaneManagementResult result = BattlePassProgressManager.lockLane(target, lane, now);
+            String message = target.getGameProfile().getName() + ": " + result.message();
+            if (result.success()) {
+                successCount++;
+                String successMessage = message;
+                context.getSource().sendSuccess(() -> Component.literal(successMessage), true);
+            } else {
+                context.getSource().sendFailure(Component.literal(message));
+            }
+            BattlePassNetworking.syncToPlayer(target);
+        }
+
+        return successCount;
+    }
+
+    private static int listLanes(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer target = EntityArgument.getPlayer(context, "target");
+        BattlePassProgressManager.LaneStatusResult result = BattlePassProgressManager.laneStatus(target, now(context.getSource()));
+        if (!result.success()) {
+            context.getSource().sendFailure(Component.literal(result.message()));
+            return 0;
+        }
+
+        String laneLine = result.lanes().stream()
+                .map(lane -> lane.id() + "=" + (lane.unlocked() ? "unlocked" : "locked"))
+                .collect(Collectors.joining(", "));
+        context.getSource().sendSuccess(() -> Component.literal(target.getGameProfile().getName() + " lanes (" + result.setId() + "): " + laneLine), false);
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int resetSingleTask(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         String taskId = StringArgumentType.getString(context, "task_id");
+        Instant now = now(context.getSource());
+
         int successCount = 0;
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.resetTask(target, taskId, Instant.now());
+            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.resetTask(target, taskId, now);
             successCount += reportManagementResult(context.getSource(), target, result);
         }
         return successCount;
@@ -248,9 +343,11 @@ public final class BattlePassCommands {
 
     private static int resetAllTasks(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        Instant now = now(context.getSource());
+
         int successCount = 0;
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.resetAllTasks(target, Instant.now());
+            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.resetAllTasks(target, now);
             successCount += reportManagementResult(context.getSource(), target, result);
         }
         return successCount;
@@ -258,44 +355,41 @@ public final class BattlePassCommands {
 
     private static int resetAllProgress(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        Instant now = now(context.getSource());
+
         int successCount = 0;
         for (ServerPlayer target : targets) {
-            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.resetAllProgress(target, Instant.now());
+            BattlePassProgressManager.ManagementResult result = BattlePassProgressManager.resetAllProgress(target, now);
             successCount += reportManagementResult(context.getSource(), target, result);
         }
         return successCount;
     }
 
     private static int setBattlePass(CommandContext<CommandSourceStack> context) {
-        String rawSetId = StringArgumentType.getString(context, "set_id");
-        ResourceLocation setId = ResourceLocation.tryParse(rawSetId);
-        if (setId == null) {
-            context.getSource().sendFailure(Component.literal("Invalid battle pass id: " + rawSetId));
-            return 0;
-        }
+        ResourceLocation setId = ResourceLocationArgument.getId(context, "set_id");
 
-        return BattlePassManager.setForcedSet(setId)
+        return BattlePassManager.setForcedSet(setId, now(context.getSource()))
                 .map(definition -> {
                     syncAllPlayers(context.getSource());
                     context.getSource().sendSuccess(
-                            () -> Component.literal("Forced active battle pass set to " + definition.id()),
+                            () -> Component.literal("Forced active battle pass set to " + definition.id() + " starting at current week start."),
                             true
                     );
                     return Command.SINGLE_SUCCESS;
                 })
                 .orElseGet(() -> {
-                    context.getSource().sendFailure(Component.literal("Unknown battle pass set: " + setId));
+                    context.getSource().sendFailure(Component.literal("Unknown battle pass: " + setId));
                     return 0;
                 });
     }
 
     private static int rotateBattlePass(CommandSourceStack source, int direction) {
-        return BattlePassManager.rotateForcedSet(direction, Instant.now())
+        return BattlePassManager.rotateForcedSet(direction, now(source))
                 .map(definition -> {
                     syncAllPlayers(source);
                     String action = direction >= 0 ? "next" : "previous";
                     source.sendSuccess(
-                            () -> Component.literal("Rotated to " + action + " battle pass set: " + definition.id()),
+                            () -> Component.literal("Rotated to " + action + " battle pass set: " + definition.id() + " (start aligned to current week start)."),
                             true
                     );
                     return Command.SINGLE_SUCCESS;
@@ -307,7 +401,7 @@ public final class BattlePassCommands {
     }
 
     private static int setWeek(CommandSourceStack source, int week) {
-        Instant now = Instant.now();
+        Instant now = now(source);
         return BattlePassManager.getActiveSet(now)
                 .map(definition -> {
                     int totalWeeks = Math.max(1, (int) definition.durationWeeks());
@@ -331,7 +425,7 @@ public final class BattlePassCommands {
     }
 
     private static int rotateWeek(CommandSourceStack source, int direction) {
-        Instant now = Instant.now();
+        Instant now = now(source);
         return BattlePassManager.getActiveSet(now)
                 .map(definition -> {
                     int totalWeeks = Math.max(1, (int) definition.durationWeeks());
@@ -353,6 +447,10 @@ public final class BattlePassCommands {
                     source.sendFailure(Component.literal("No active battle pass set."));
                     return 0;
                 });
+    }
+
+    private static Instant now(CommandSourceStack source) {
+        return BattlePassWeekTime.now(source.getServer()).toInstant();
     }
 
     private static void syncAllPlayers(CommandSourceStack source) {

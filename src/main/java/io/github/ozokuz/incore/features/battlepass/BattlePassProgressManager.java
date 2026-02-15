@@ -7,6 +7,8 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,9 +23,10 @@ public final class BattlePassProgressManager {
     private static final String KEY_PROGRESS_BY_SET = "sets";
     private static final String KEY_XP = "xp";
     private static final String KEY_LEVEL = "level";
-    private static final String KEY_HIGHEST_REWARDED_LEVEL = "highest_rewarded";
     private static final String KEY_COMPLETED_TASKS = "completed_tasks";
     private static final String KEY_TASK_PROGRESS = "task_progress";
+    private static final String KEY_UNLOCKED_LANES = "unlocked_lanes";
+    private static final String KEY_HIGHEST_REWARDED_BY_LANE = "highest_rewarded_by_lane";
 
     private BattlePassProgressManager() {
     }
@@ -45,25 +48,45 @@ public final class BattlePassProgressManager {
 
         BattlePassDefinition active = activeOptional.get();
         PlayerSetProgress progress = getProgress(player, active);
-        int fromLevel = Math.max(0, progress.highestRewardedLevel + 1);
-        int toLevel = progress.level;
-        if (toLevel < fromLevel) {
+        int cappedLevel = Math.max(0, progress.level);
+
+        Set<Integer> claimedLevels = new HashSet<>();
+        int rewardCount = 0;
+
+        for (String lane : active.lanes()) {
+            if (!progress.unlockedLanes().contains(lane)) {
+                continue;
+            }
+
+            int highestClaimed = progress.highestRewardedByLane().getOrDefault(lane, -1);
+            int fromLevel = Math.max(0, highestClaimed + 1);
+            if (cappedLevel < fromLevel) {
+                continue;
+            }
+
+            for (int level = fromLevel; level <= cappedLevel; level++) {
+                List<BattlePassReward> rewards = active.rewardsForLevel(lane, level);
+                for (BattlePassReward reward : rewards) {
+                    reward.grant(player);
+                    rewardCount++;
+                }
+                progress.highestRewardedByLane().put(lane, level);
+                claimedLevels.add(level);
+            }
+        }
+
+        if (claimedLevels.isEmpty()) {
             return ClaimResult.failed("No unclaimed battle pass rewards.");
         }
 
-        int rewardCount = 0;
-        for (int level = fromLevel; level <= toLevel; level++) {
-            List<BattlePassReward> rewards = active.rewardsByLevel().getOrDefault(level, java.util.List.of());
-            for (BattlePassReward reward : rewards) {
-                reward.grant(player);
-                rewardCount++;
-            }
-            progress.highestRewardedLevel = level;
-        }
-
         saveProgress(player, active, progress);
-        int claimedLevels = toLevel - fromLevel + 1;
-        return ClaimResult.success("Claimed " + claimedLevels + " level reward(s).", claimedLevels, rewardCount, progress.highestRewardedLevel);
+        int highestClaimedLevel = claimedLevels.stream().mapToInt(Integer::intValue).max().orElse(0);
+        return ClaimResult.success(
+                "Claimed " + claimedLevels.size() + " level reward(s).",
+                claimedLevels.size(),
+                rewardCount,
+                highestClaimedLevel
+        );
     }
 
     public static ProgressResult addTaskProgress(ServerPlayer player, String taskId, int amount, Instant now) {
@@ -141,7 +164,7 @@ public final class BattlePassProgressManager {
         int clampedXp = Math.max(0, xp);
         progress.xp = clampedXp;
         progress.level = Math.max(0, clampedXp / active.xpPerLevel());
-        progress.highestRewardedLevel = Math.min(progress.highestRewardedLevel, progress.level);
+        clampClaimedRewardsToCurrentLevel(progress);
         saveProgress(player, active, progress);
         return ManagementResult.success("XP set to " + progress.xp + " (level " + progress.level + ").", progress.xp, progress.level);
     }
@@ -158,7 +181,7 @@ public final class BattlePassProgressManager {
         int clampedXp = (int) Math.max(0L, Math.min(Integer.MAX_VALUE, updated));
         progress.xp = clampedXp;
         progress.level = Math.max(0, clampedXp / active.xpPerLevel());
-        progress.highestRewardedLevel = Math.min(progress.highestRewardedLevel, progress.level);
+        clampClaimedRewardsToCurrentLevel(progress);
         saveProgress(player, active, progress);
         return ManagementResult.success("XP is now " + progress.xp + " (level " + progress.level + ").", progress.xp, progress.level);
     }
@@ -176,9 +199,9 @@ public final class BattlePassProgressManager {
         long xpForLevel = (long) clampedLevel * active.xpPerLevel();
         progress.level = clampedLevel;
         progress.xp = (int) xpForLevel;
-        progress.highestRewardedLevel = Math.min(progress.highestRewardedLevel, progress.level);
+        clampClaimedRewardsToCurrentLevel(progress);
         saveProgress(player, active, progress);
-        return ManagementResult.success("Tier set to " + progress.level + " (" + progress.xp + " XP).", progress.xp, progress.level);
+        return ManagementResult.success("Level set to " + progress.level + " (" + progress.xp + " XP).", progress.xp, progress.level);
     }
 
     public static ManagementResult addLevel(ServerPlayer player, int amount, Instant now) {
@@ -195,9 +218,9 @@ public final class BattlePassProgressManager {
         progress.level = clampedLevel;
         long xpForLevel = (long) clampedLevel * active.xpPerLevel();
         progress.xp = (int) xpForLevel;
-        progress.highestRewardedLevel = Math.min(progress.highestRewardedLevel, progress.level);
+        clampClaimedRewardsToCurrentLevel(progress);
         saveProgress(player, active, progress);
-        return ManagementResult.success("Tier is now " + progress.level + " (" + progress.xp + " XP).", progress.xp, progress.level);
+        return ManagementResult.success("Level is now " + progress.level + " (" + progress.xp + " XP).", progress.xp, progress.level);
     }
 
     public static ManagementResult resetAllProgress(ServerPlayer player, Instant now) {
@@ -210,7 +233,7 @@ public final class BattlePassProgressManager {
         PlayerSetProgress progress = getProgress(player, active);
         progress.xp = 0;
         progress.level = 0;
-        progress.highestRewardedLevel = -1;
+        progress.highestRewardedByLane().replaceAll((lane, ignored) -> -1);
         progress.completedTasks().clear();
         progress.taskProgress().clear();
         saveProgress(player, active, progress);
@@ -254,6 +277,78 @@ public final class BattlePassProgressManager {
         return ManagementResult.success("Reset task progress for " + taskId + ".", progress.xp, progress.level);
     }
 
+    public static LaneManagementResult unlockLane(ServerPlayer player, String laneId, Instant now) {
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        if (activeOptional.isEmpty()) {
+            return LaneManagementResult.failed("No active battle pass set.");
+        }
+
+        BattlePassDefinition active = activeOptional.get();
+        String lane = BattlePassLane.normalize(laneId);
+        if (!BattlePassLane.isValid(lane)) {
+            return LaneManagementResult.failed("Unknown lane: " + laneId + ".");
+        }
+        if (!active.lanes().contains(lane)) {
+            return LaneManagementResult.failed("Lane is not configured for the active battle pass: " + lane + ".");
+        }
+        if (BattlePassLane.BASIC.equals(lane)) {
+            return LaneManagementResult.failed("Basic lane is always unlocked.");
+        }
+
+        PlayerSetProgress progress = getProgress(player, active);
+        if (!progress.unlockedLanes().add(lane)) {
+            return LaneManagementResult.failed(BattlePassLane.displayName(lane) + " is already unlocked.");
+        }
+
+        saveProgress(player, active, progress);
+        return LaneManagementResult.success("Unlocked " + BattlePassLane.displayName(lane) + ".");
+    }
+
+    public static LaneManagementResult lockLane(ServerPlayer player, String laneId, Instant now) {
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        if (activeOptional.isEmpty()) {
+            return LaneManagementResult.failed("No active battle pass set.");
+        }
+
+        BattlePassDefinition active = activeOptional.get();
+        String lane = BattlePassLane.normalize(laneId);
+        if (!BattlePassLane.isValid(lane)) {
+            return LaneManagementResult.failed("Unknown lane: " + laneId + ".");
+        }
+        if (!active.lanes().contains(lane)) {
+            return LaneManagementResult.failed("Lane is not configured for the active battle pass: " + lane + ".");
+        }
+        if (BattlePassLane.BASIC.equals(lane)) {
+            return LaneManagementResult.failed("Basic lane cannot be locked.");
+        }
+
+        PlayerSetProgress progress = getProgress(player, active);
+        if (!progress.unlockedLanes().remove(lane)) {
+            return LaneManagementResult.failed(BattlePassLane.displayName(lane) + " is already locked.");
+        }
+
+        saveProgress(player, active, progress);
+        return LaneManagementResult.success("Locked " + BattlePassLane.displayName(lane) + ".");
+    }
+
+    public static LaneStatusResult laneStatus(ServerPlayer player, Instant now) {
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        if (activeOptional.isEmpty()) {
+            return LaneStatusResult.failed("No active battle pass set.");
+        }
+
+        BattlePassDefinition active = activeOptional.get();
+        PlayerSetProgress progress = getProgress(player, active);
+        List<LaneSnapshot> lanes = active.lanes().stream()
+                .map(lane -> new LaneSnapshot(
+                        lane,
+                        progress.unlockedLanes().contains(lane),
+                        progress.highestRewardedByLane().getOrDefault(lane, -1)
+                ))
+                .toList();
+        return LaneStatusResult.success(active.id().toString(), lanes);
+    }
+
     public static StatusResult getStatus(ServerPlayer player, Instant now) {
         Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
         if (activeOptional.isEmpty()) {
@@ -275,12 +370,24 @@ public final class BattlePassProgressManager {
         BattlePassDefinition active = activeOptional.get();
         PlayerSetProgress progress = getProgress(player, active);
         int currentWeek = getActiveWeek(active, now);
+
         Map<String, Integer> availableByCategory = availableTaskCountsByCategory(active, currentWeek);
         Map<String, Integer> completedByCategory = completedAvailableTaskCountsByCategory(active, progress.completedTasks(), currentWeek);
         int totalAvailableTaskCount = availableByCategory.values().stream().mapToInt(Integer::intValue).sum();
         int totalTaskCompletionCap = availableByCategory.values().stream().mapToInt(BattlePassProgressManager::completionCapFromAvailable).sum();
         int totalTaskCompletionCount = completedByCategory.values().stream().mapToInt(Integer::intValue).sum();
-        int unclaimedRewardLevels = Math.max(0, progress.level - progress.highestRewardedLevel);
+
+        Set<Integer> unclaimedLevels = new HashSet<>();
+        for (String lane : active.lanes()) {
+            if (!progress.unlockedLanes().contains(lane)) {
+                continue;
+            }
+
+            int highest = progress.highestRewardedByLane().getOrDefault(lane, -1);
+            for (int level = Math.max(0, highest + 1); level <= progress.level; level++) {
+                unclaimedLevels.add(level);
+            }
+        }
 
         List<TaskSnapshot> tasks = new ArrayList<>();
         for (BattlePassDefinition.BattlePassTask task : active.tasks()) {
@@ -332,6 +439,14 @@ public final class BattlePassProgressManager {
                 .thenComparingInt(TaskSnapshot::week)
                 .thenComparing(TaskSnapshot::id));
 
+        List<LaneSnapshot> laneSnapshots = active.lanes().stream()
+                .map(lane -> new LaneSnapshot(
+                        lane,
+                        progress.unlockedLanes().contains(lane),
+                        progress.highestRewardedByLane().getOrDefault(lane, -1)
+                ))
+                .toList();
+
         return new ScreenSnapshot(
                 true,
                 active.id().toString(),
@@ -346,7 +461,8 @@ public final class BattlePassProgressManager {
                 totalTaskCompletionCap,
                 totalAvailableTaskCount,
                 availableByCategory.size(),
-                unclaimedRewardLevels,
+                unclaimedLevels.size(),
+                laneSnapshots,
                 tasks
         );
     }
@@ -356,12 +472,10 @@ public final class BattlePassProgressManager {
     }
 
     private static PlayerSetProgress getProgress(ServerPlayer player, BattlePassDefinition definition) {
-        CompoundTag setTag = getOrCreateSetTag(player, definition.id().toString());
+        CompoundTag setTag = getOrCreateSetTag(player, progressSetKey(definition));
+
         int xp = Math.max(0, setTag.getInt(KEY_XP));
         int level = Math.max(0, setTag.getInt(KEY_LEVEL));
-        int highestRewarded = setTag.contains(KEY_HIGHEST_REWARDED_LEVEL, Tag.TAG_INT)
-                ? Math.max(-1, setTag.getInt(KEY_HIGHEST_REWARDED_LEVEL))
-                : -1;
 
         Set<String> completedTasks = new HashSet<>();
         ListTag completedTag = setTag.getList(KEY_COMPLETED_TASKS, Tag.TAG_STRING);
@@ -375,14 +489,35 @@ public final class BattlePassProgressManager {
             taskProgress.put(key, Math.max(0, progressTag.getInt(key)));
         }
 
-        return new PlayerSetProgress(xp, level, highestRewarded, completedTasks, taskProgress);
+        Set<String> unlockedLanes = new HashSet<>();
+        ListTag unlockedTag = setTag.getList(KEY_UNLOCKED_LANES, Tag.TAG_STRING);
+        for (int i = 0; i < unlockedTag.size(); i++) {
+            String lane = BattlePassLane.normalize(unlockedTag.getString(i));
+            if (BattlePassLane.isValid(lane)) {
+                unlockedLanes.add(lane);
+            }
+        }
+        unlockedLanes.retainAll(definition.lanes());
+        if (definition.lanes().contains(BattlePassLane.BASIC)) {
+            unlockedLanes.add(BattlePassLane.BASIC);
+        }
+
+        Map<String, Integer> highestRewardedByLane = new HashMap<>();
+        CompoundTag highestByLaneTag = setTag.getCompound(KEY_HIGHEST_REWARDED_BY_LANE);
+        for (String lane : definition.lanes()) {
+            int highest = highestByLaneTag.contains(lane, Tag.TAG_INT)
+                    ? Math.max(-1, highestByLaneTag.getInt(lane))
+                    : -1;
+            highestRewardedByLane.put(lane, highest);
+        }
+
+        return new PlayerSetProgress(xp, level, completedTasks, taskProgress, unlockedLanes, highestRewardedByLane);
     }
 
     private static void saveProgress(ServerPlayer player, BattlePassDefinition definition, PlayerSetProgress progress) {
-        CompoundTag setTag = getOrCreateSetTag(player, definition.id().toString());
+        CompoundTag setTag = getOrCreateSetTag(player, progressSetKey(definition));
         setTag.putInt(KEY_XP, Math.max(0, progress.xp));
         setTag.putInt(KEY_LEVEL, Math.max(0, progress.level));
-        setTag.putInt(KEY_HIGHEST_REWARDED_LEVEL, Math.max(-1, progress.highestRewardedLevel));
 
         ListTag completed = new ListTag();
         progress.completedTasks.stream().sorted().map(StringTag::valueOf).forEach(completed::add);
@@ -395,20 +530,14 @@ public final class BattlePassProgressManager {
             }
         });
         setTag.put(KEY_TASK_PROGRESS, progressTag);
-    }
 
-    private static void grantRewards(ServerPlayer player, BattlePassDefinition definition, PlayerSetProgress progress, int fromInclusive, int toInclusive) {
-        if (toInclusive < fromInclusive) {
-            return;
-        }
+        ListTag unlockedTag = new ListTag();
+        progress.unlockedLanes.stream().sorted().map(StringTag::valueOf).forEach(unlockedTag::add);
+        setTag.put(KEY_UNLOCKED_LANES, unlockedTag);
 
-        int start = Math.max(fromInclusive, progress.highestRewardedLevel + 1);
-        for (int level = start; level <= toInclusive; level++) {
-            for (BattlePassReward reward : definition.rewardsByLevel().getOrDefault(level, java.util.List.of())) {
-                reward.grant(player);
-            }
-            progress.highestRewardedLevel = level;
-        }
+        CompoundTag highestByLaneTag = new CompoundTag();
+        progress.highestRewardedByLane.forEach((lane, highestLevel) -> highestByLaneTag.putInt(lane, Math.max(-1, highestLevel)));
+        setTag.put(KEY_HIGHEST_REWARDED_BY_LANE, highestByLaneTag);
     }
 
     private static CompoundTag getOrCreateSetTag(ServerPlayer player, String setId) {
@@ -420,6 +549,16 @@ public final class BattlePassProgressManager {
         root.put(KEY_PROGRESS_BY_SET, sets);
         player.getPersistentData().put(KEY_ROOT, root);
         return setTag;
+    }
+
+    private static String progressSetKey(BattlePassDefinition definition) {
+        ZonedDateTime startsAt = ZonedDateTime.ofInstant(definition.startsAt(), ZoneId.systemDefault());
+        long weekKey = BattlePassWeekTime.weekKey(startsAt);
+        return definition.id() + "#" + weekKey;
+    }
+
+    private static void clampClaimedRewardsToCurrentLevel(PlayerSetProgress progress) {
+        progress.highestRewardedByLane.replaceAll((lane, highest) -> Math.min(Math.max(-1, highest), progress.level));
     }
 
     private static boolean isTaskAvailable(BattlePassDefinition.BattlePassTask task, int activeWeek) {
@@ -465,16 +604,25 @@ public final class BattlePassProgressManager {
     private static class PlayerSetProgress {
         private int xp;
         private int level;
-        private int highestRewardedLevel;
         private final Set<String> completedTasks;
         private final Map<String, Integer> taskProgress;
+        private final Set<String> unlockedLanes;
+        private final Map<String, Integer> highestRewardedByLane;
 
-        private PlayerSetProgress(int xp, int level, int highestRewardedLevel, Set<String> completedTasks, Map<String, Integer> taskProgress) {
+        private PlayerSetProgress(
+                int xp,
+                int level,
+                Set<String> completedTasks,
+                Map<String, Integer> taskProgress,
+                Set<String> unlockedLanes,
+                Map<String, Integer> highestRewardedByLane
+        ) {
             this.xp = xp;
             this.level = level;
-            this.highestRewardedLevel = highestRewardedLevel;
             this.completedTasks = completedTasks;
             this.taskProgress = taskProgress;
+            this.unlockedLanes = unlockedLanes;
+            this.highestRewardedByLane = highestRewardedByLane;
         }
 
         public Set<String> completedTasks() {
@@ -483,6 +631,14 @@ public final class BattlePassProgressManager {
 
         public Map<String, Integer> taskProgress() {
             return taskProgress;
+        }
+
+        public Set<String> unlockedLanes() {
+            return unlockedLanes;
+        }
+
+        public Map<String, Integer> highestRewardedByLane() {
+            return highestRewardedByLane;
         }
     }
 
@@ -535,7 +691,30 @@ public final class BattlePassProgressManager {
         }
     }
 
+    public record LaneManagementResult(boolean success, String message) {
+        static LaneManagementResult failed(String message) {
+            return new LaneManagementResult(false, message);
+        }
+
+        static LaneManagementResult success(String message) {
+            return new LaneManagementResult(true, message);
+        }
+    }
+
+    public record LaneStatusResult(boolean success, String message, String setId, List<LaneSnapshot> lanes) {
+        static LaneStatusResult failed(String message) {
+            return new LaneStatusResult(false, message, "none", List.of());
+        }
+
+        static LaneStatusResult success(String setId, List<LaneSnapshot> lanes) {
+            return new LaneStatusResult(true, "ok", setId, lanes);
+        }
+    }
+
     public record StatusResult(String setId, int level, int xp, int xpPerLevel, int currentWeek) {
+    }
+
+    public record LaneSnapshot(String id, boolean unlocked, int highestClaimedLevel) {
     }
 
     public record TaskSnapshot(
@@ -568,6 +747,7 @@ public final class BattlePassProgressManager {
             int permanentCompleted,
             int permanentCap,
             int unclaimedRewardLevels,
+            List<LaneSnapshot> lanes,
             List<TaskSnapshot> tasks
     ) {
         static ScreenSnapshot none() {
@@ -586,6 +766,7 @@ public final class BattlePassProgressManager {
                     0,
                     0,
                     0,
+                    List.of(),
                     List.of()
             );
         }
