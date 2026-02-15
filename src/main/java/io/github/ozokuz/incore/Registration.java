@@ -14,6 +14,7 @@ import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabMenu;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCompletionCrateItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalItem;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonReturnPortalBlock;
 import io.github.ozokuz.incore.features.roguelike.content.EmptyDungeonCrystalItem;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
@@ -79,6 +80,8 @@ public class Registration {
     public static final DeferredBlock<Block> ROGUELIKE_PORTAL_BLOCK = BLOCKS.register("roguelike_portal", RoguelikePortalBlock::new);
     public static final Supplier<BlockEntityType<RoguelikePortalBlockEntity>> ROGUELIKE_PORTAL_BE = BLOCK_ENTITY_TYPES.register("roguelike_portal", () -> BlockEntityType.Builder.of(RoguelikePortalBlockEntity::new, ROGUELIKE_PORTAL_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> ROGUELIKE_PORTAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("roguelike_portal", ROGUELIKE_PORTAL_BLOCK);
+    public static final DeferredBlock<Block> DUNGEON_RETURN_PORTAL_BLOCK = BLOCKS.register("dungeon_return_portal", DungeonReturnPortalBlock::new);
+    public static final DeferredItem<BlockItem> DUNGEON_RETURN_PORTAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_return_portal", DUNGEON_RETURN_PORTAL_BLOCK);
 
     public static final DeferredItem<Item> ENCOUNTER_WAND_ITEM = ITEMS.registerItem("encounter_wand", EncounterWandItem::new);
     public static final DeferredItem<Item> EMPTY_DUNGEON_CRYSTAL_ITEM = ITEMS.registerItem("empty_dungeon_crystal", EmptyDungeonCrystalItem::new);
@@ -118,6 +121,7 @@ public class Registration {
             .displayItems((parameters, output) -> {
                 output.accept(ROGUELIKE_ALTAR_BLOCK_ITEM.get());
                 output.accept(ROGUELIKE_PORTAL_BLOCK_ITEM.get());
+                output.accept(DUNGEON_RETURN_PORTAL_BLOCK_ITEM.get());
                 output.accept(EMPTY_DUNGEON_CRYSTAL_ITEM.get());
                 output.accept(DUNGEON_CRYSTAL_ITEM.get());
                 output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());

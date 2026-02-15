@@ -37,6 +37,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayDeque;
@@ -56,6 +58,11 @@ public final class RoguelikeService {
     private static final int MAX_ALTAR_ITEM_VARIANTS = 5;
     private static final int ALTAR_VARIANT_GROWTH_STEP = 10;
     private static final double ALTAR_COLLECTION_RADIUS = 1.8D;
+    private static final int DUNGEON_LAYOUT_RADIUS_CELLS = 2;
+    private static final int MIN_DUNGEON_ROOM_COUNT = 4;
+    private static final int MAX_DUNGEON_ROOM_COUNT = 9;
+    private static final int DUNGEON_LAYOUT_ATTEMPTS = 128;
+    private static final Direction[] CARDINAL_DIRECTIONS = new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
     private static final Map<UUID, ServerBossEvent> OBJECTIVE_BARS = new HashMap<>();
 
     private static final List<EntityType<? extends Monster>> MOB_POOL = List.of(
@@ -297,6 +304,17 @@ public final class RoguelikeService {
         }
 
         UUID playerId = serverPlayer.getUUID();
+        Optional<RoguelikeSavedData.ActiveRun> activeRun = data.getRun(playerId);
+        if (serverPlayer.serverLevel().dimension().equals(RoguelikeConstants.ROGUELIKE_DIMENSION)) {
+            if (activeRun.isPresent() && activeRun.get().dungeonId() == dungeon.dungeonId()) {
+                return tryReturnFromDungeon(serverPlayer, data, dungeon, activeRun.get());
+            }
+
+            serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.return_portal.unbound"));
+            serverPlayer.setPortalCooldown();
+            return false;
+        }
+
         RoguelikeSavedData.PlayerProgress progress = dungeon.progressFor(playerId);
         if (progress.entered()) {
             serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.portal.already_entered"));
@@ -335,6 +353,32 @@ public final class RoguelikeService {
             ).withStyle(ChatFormatting.GOLD));
         }
 
+        return true;
+    }
+
+    private static boolean tryReturnFromDungeon(ServerPlayer player, RoguelikeSavedData data, RoguelikeSavedData.DungeonRecord dungeon, RoguelikeSavedData.ActiveRun run) {
+        if (player.getServer() == null) {
+            return false;
+        }
+
+        MinecraftServer server = player.getServer();
+        ServerLevel returnLevel = server.getLevel(run.returnDimensionKey());
+        if (returnLevel == null) {
+            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.dimension_missing"));
+            return false;
+        }
+
+        UUID playerId = player.getUUID();
+        RoguelikeSavedData.PlayerProgress progress = dungeon.progressFor(playerId).withEntered().withDeath();
+        dungeon = dungeon.upsertProgress(playerId, progress);
+        data.putDungeon(dungeon);
+
+        data.clearRun(playerId);
+        removeObjectiveBar(playerId);
+        failDungeonIfAllEntrantsFailed(server, data, run.dungeonId());
+
+        teleport(player, returnLevel, run.returnPos());
+        player.sendSystemMessage(Component.translatable("incore.roguelike.return_portal.used"));
         return true;
     }
 
@@ -534,6 +578,11 @@ public final class RoguelikeService {
         }
 
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        Optional<ResourceLocation> missingStructure = firstMissingStructureTemplate(roguelikeLevel, themePick.get().data());
+        if (missingStructure.isPresent()) {
+            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.missing_structure", missingStructure.get().toString()));
+            return false;
+        }
 
         int slotIndex;
         BlockPos origin;
@@ -546,7 +595,6 @@ public final class RoguelikeService {
         if (reusable != null) {
             slotIndex = reusable.slotIndex();
             origin = reusable.origin();
-            clearDungeonArea(roguelikeLevel, origin);
             deactivatePortal(server, reusable);
             data.removeDungeon(reusable.dungeonId());
         } else {
@@ -566,7 +614,10 @@ public final class RoguelikeService {
                 0L
         );
 
-        generateDungeon(roguelikeLevel, dungeon, themePick.get().data(), objectivePick.get().data());
+        if (!generateDungeon(roguelikeLevel, dungeon, themePick.get().data(), objectivePick.get().data())) {
+            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.generation_failed"));
+            return false;
+        }
         data.putDungeon(dungeon);
         portalShape.createPortalBlocks();
         portalShape.forEachPortalBlock(portalPos -> {
@@ -619,84 +670,361 @@ public final class RoguelikeService {
         return Optional.of(new DungeonObjectiveManager.PickedObjective(customObjectiveId, objectiveData));
     }
 
-    private static void generateDungeon(ServerLevel level, RoguelikeSavedData.DungeonRecord dungeon, DungeonThemeData theme, DungeonObjectiveData objective) {
-        BlockPos origin = dungeon.origin();
-        int size = RoguelikeConstants.DUNGEON_ROOM_SIZE;
-        int height = RoguelikeConstants.DUNGEON_ROOM_HEIGHT;
-        int maxX = origin.getX() + size - 1;
-        int maxY = origin.getY() + height - 1;
-        int maxZ = origin.getZ() + size - 1;
+    private static boolean generateDungeon(ServerLevel level, RoguelikeSavedData.DungeonRecord dungeon, DungeonThemeData theme, DungeonObjectiveData objective) {
+        BlockPos anchor = dungeon.origin();
+        clearDungeonArea(level, anchor);
 
-        Block floor = theme.floorBlock();
-        Block wall = theme.wallBlock();
-        Block ceiling = theme.ceilingBlock();
+        DungeonLayout layout = generateDungeonLayout(level.random, objective.target());
+        Map<GridCell, DungeonThemeData.StructureRef> roomStructures = new HashMap<>();
+        roomStructures.put(GridCell.START, theme.startingRoomStructure());
+        for (GridCell room : layout.rooms()) {
+            if (room.equals(GridCell.START)) {
+                continue;
+            }
+            roomStructures.put(room, theme.pickRandomRoom(level.random).structure());
+        }
 
-        for (int x = origin.getX(); x <= maxX; x++) {
-            for (int z = origin.getZ(); z <= maxZ; z++) {
-                for (int y = origin.getY(); y <= maxY; y++) {
-                    boolean boundary = x == origin.getX() || x == maxX || z == origin.getZ() || z == maxZ || y == origin.getY() || y == maxY;
-                    BlockPos pos = new BlockPos(x, y, z);
-                    if (!boundary) {
-                        level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-                        continue;
-                    }
+        Map<ResourceLocation, BlockPos> structureSizes = new HashMap<>();
+        for (DungeonThemeData.StructureRef ref : roomStructures.values()) {
+            BlockPos size = structureSize(level, ref.id());
+            if (size == null) {
+                return false;
+            }
+            structureSizes.put(ref.id(), size);
+        }
 
-                    if (y == origin.getY()) {
-                        level.setBlockAndUpdate(pos, floor.defaultBlockState());
-                    } else if (y == maxY) {
-                        level.setBlockAndUpdate(pos, ceiling.defaultBlockState());
-                    } else {
-                        level.setBlockAndUpdate(pos, wall.defaultBlockState());
-                    }
+        BlockPos hallwayNsSize = structureSize(level, theme.hallwayNorthSouthStructure().id());
+        if (hallwayNsSize == null) {
+            return false;
+        }
+        BlockPos hallwayEwSize = structureSize(level, theme.hallwayEastWestStructure().id());
+        if (hallwayEwSize == null) {
+            return false;
+        }
+        structureSizes.put(theme.hallwayNorthSouthStructure().id(), hallwayNsSize);
+        structureSizes.put(theme.hallwayEastWestStructure().id(), hallwayEwSize);
+
+        Map<GridCell, RoomPlacement> placedRooms = new HashMap<>();
+        List<HallPlacement> placedHallways = new ArrayList<>();
+
+        int baseFloorY = anchor.getY();
+        placedRooms.put(GridCell.START, new RoomPlacement(anchor.getX(), anchor.getZ(), roomStructures.get(GridCell.START), structureSizes.get(roomStructures.get(GridCell.START).id())));
+        ArrayDeque<GridCell> queue = new ArrayDeque<>();
+        queue.add(GridCell.START);
+
+        while (!queue.isEmpty()) {
+            GridCell current = queue.removeFirst();
+            RoomPlacement currentPlacement = placedRooms.get(current);
+            if (currentPlacement == null) {
+                continue;
+            }
+
+            for (Direction direction : CARDINAL_DIRECTIONS) {
+                GridCell hallwayCell = current.step(direction, 1);
+                GridCell nextRoomCell = current.step(direction, 2);
+                if (!layout.hallways().contains(hallwayCell) || !layout.rooms().contains(nextRoomCell)) {
+                    continue;
                 }
+                if (placedRooms.containsKey(nextRoomCell)) {
+                    continue;
+                }
+
+                DungeonThemeData.StructureRef nextRef = roomStructures.get(nextRoomCell);
+                if (nextRef == null) {
+                    return false;
+                }
+                BlockPos nextSize = structureSizes.get(nextRef.id());
+                if (nextSize == null) {
+                    return false;
+                }
+
+                DungeonThemeData.StructureRef hallwayRef = (direction == Direction.NORTH || direction == Direction.SOUTH)
+                        ? theme.hallwayNorthSouthStructure()
+                        : theme.hallwayEastWestStructure();
+                BlockPos hallwaySize = structureSizes.get(hallwayRef.id());
+                if (hallwaySize == null) {
+                    return false;
+                }
+
+                int currentHalf = halfAlongDirection(currentPlacement.size(), direction);
+                int hallwayHalf = halfAlongDirection(hallwaySize, direction);
+                int hallwayLength = lengthAlongDirection(hallwaySize, direction);
+                int nextHalf = halfAlongDirection(nextSize, direction);
+
+                int centerX = currentPlacement.centerX() + direction.getStepX() * (currentHalf + hallwayLength + nextHalf);
+                int centerZ = currentPlacement.centerZ() + direction.getStepZ() * (currentHalf + hallwayLength + nextHalf);
+                RoomPlacement nextPlacement = new RoomPlacement(centerX, centerZ, nextRef, nextSize);
+                placedRooms.put(nextRoomCell, nextPlacement);
+                queue.add(nextRoomCell);
+
+                int hallwayCenterX = currentPlacement.centerX() + direction.getStepX() * (currentHalf + hallwayHalf);
+                int hallwayCenterZ = currentPlacement.centerZ() + direction.getStepZ() * (currentHalf + hallwayHalf);
+                placedHallways.add(new HallPlacement(hallwayCenterX, hallwayCenterZ, hallwayRef, hallwaySize));
             }
         }
 
-        BlockPos entry = dungeonEntryPos(dungeon);
-        level.setBlockAndUpdate(entry.below(), floor.defaultBlockState());
-        level.setBlockAndUpdate(entry, Blocks.AIR.defaultBlockState());
+        if (placedRooms.size() != layout.rooms().size()) {
+            return false;
+        }
+
+        List<RoomArea> roomAreas = new ArrayList<>(placedRooms.size());
+        for (RoomPlacement room : placedRooms.values()) {
+            BlockPos roomOrigin = originFromCenter(room.centerX(), room.centerZ(), room.size(), baseFloorY - room.ref().floorYFromBottom());
+            if (!placeStructureTemplate(level, room.ref().id(), roomOrigin, dungeon.dungeonId())) {
+                return false;
+            }
+            roomAreas.add(new RoomArea(roomOrigin, room.size(), baseFloorY));
+        }
+
+        for (HallPlacement hall : placedHallways) {
+            BlockPos hallwayOrigin = originFromCenter(hall.centerX(), hall.centerZ(), hall.size(), baseFloorY - hall.ref().floorYFromBottom());
+            if (!placeStructureTemplate(level, hall.ref().id(), hallwayOrigin, dungeon.dungeonId())) {
+                return false;
+            }
+        }
+
+        BlockPos entry = new BlockPos(anchor.getX(), baseFloorY + 1, anchor.getZ());
+        clearEntrySpace(level, entry);
 
         int spawnCount = Math.min(256, Math.max(24, objective.target() + 8));
         for (int i = 0; i < spawnCount; i++) {
-            spawnDungeonMob(level, dungeon.dungeonId(), origin, size);
+            spawnDungeonMob(level, dungeon.dungeonId(), roomAreas);
         }
+
+        return true;
     }
 
-    private static void spawnDungeonMob(ServerLevel level, long dungeonId, BlockPos origin, int size) {
+    private static DungeonLayout generateDungeonLayout(RandomSource random, int objectiveTarget) {
+        int desiredRooms = Math.max(MIN_DUNGEON_ROOM_COUNT, Math.min(MAX_DUNGEON_ROOM_COUNT, 1 + (objectiveTarget / 6)));
+        Set<GridCell> rooms = new HashSet<>();
+        Set<GridCell> hallways = new HashSet<>();
+        List<GridCell> frontier = new ArrayList<>();
+
+        rooms.add(GridCell.START);
+        frontier.add(GridCell.START);
+
+        int attempts = 0;
+        while (rooms.size() < desiredRooms && attempts < DUNGEON_LAYOUT_ATTEMPTS) {
+            attempts++;
+
+            GridCell from = frontier.get(random.nextInt(frontier.size()));
+            Direction direction = CARDINAL_DIRECTIONS[random.nextInt(CARDINAL_DIRECTIONS.length)];
+            GridCell hallway = from.step(direction, 1);
+            GridCell nextRoom = from.step(direction, 2);
+            if (!isInsideLayout(nextRoom)) {
+                continue;
+            }
+
+            if (rooms.add(nextRoom)) {
+                hallways.add(hallway);
+                frontier.add(nextRoom);
+            }
+        }
+
+        if (hallways.isEmpty()) {
+            Direction direction = CARDINAL_DIRECTIONS[random.nextInt(CARDINAL_DIRECTIONS.length)];
+            GridCell hallway = GridCell.START.step(direction, 1);
+            GridCell nextRoom = GridCell.START.step(direction, 2);
+            if (isInsideLayout(nextRoom)) {
+                rooms.add(nextRoom);
+                hallways.add(hallway);
+            }
+        }
+
+        return new DungeonLayout(Set.copyOf(rooms), Set.copyOf(hallways));
+    }
+
+    private static boolean isInsideLayout(GridCell roomCell) {
+        return Math.abs(roomCell.x()) <= DUNGEON_LAYOUT_RADIUS_CELLS && Math.abs(roomCell.z()) <= DUNGEON_LAYOUT_RADIUS_CELLS;
+    }
+
+    private static int lengthAlongDirection(BlockPos size, Direction direction) {
+        return direction.getAxis() == Direction.Axis.X ? size.getX() : size.getZ();
+    }
+
+    private static int halfAlongDirection(BlockPos size, Direction direction) {
+        return lengthAlongDirection(size, direction) / 2;
+    }
+
+    private static BlockPos originFromCenter(int centerX, int centerZ, BlockPos size, int originY) {
+        int x = centerX - (size.getX() / 2);
+        int z = centerZ - (size.getZ() / 2);
+        return new BlockPos(x, originY, z);
+    }
+
+    private static BlockPos structureSize(ServerLevel level, ResourceLocation structureId) {
+        Optional<StructureTemplate> template = level.getStructureManager().get(structureId);
+        if (template.isEmpty()) {
+            return null;
+        }
+
+        return new BlockPos(template.get().getSize().getX(), template.get().getSize().getY(), template.get().getSize().getZ());
+    }
+
+    private static void spawnDungeonMob(ServerLevel level, long dungeonId, List<RoomArea> roomAreas) {
+        if (roomAreas.isEmpty()) {
+            return;
+        }
+
         EntityType<? extends Monster> type = MOB_POOL.get(level.random.nextInt(MOB_POOL.size()));
         Mob mob = type.create(level);
         if (mob == null) {
             return;
         }
 
-        int innerMinX = origin.getX() + 2;
-        int innerMaxX = origin.getX() + size - 3;
-        int innerMinZ = origin.getZ() + 2;
-        int innerMaxZ = origin.getZ() + size - 3;
+        for (int attempt = 0; attempt < 8; attempt++) {
+            RoomArea room = roomAreas.get(level.random.nextInt(roomAreas.size()));
+            BlockPos roomOrigin = room.origin();
+            BlockPos size = room.size();
+            int innerMinX = roomOrigin.getX() + 2;
+            int innerMaxX = roomOrigin.getX() + size.getX() - 3;
+            int innerMinZ = roomOrigin.getZ() + 2;
+            int innerMaxZ = roomOrigin.getZ() + size.getZ() - 3;
 
-        double x = innerMinX + level.random.nextDouble() * Math.max(1, innerMaxX - innerMinX);
-        double z = innerMinZ + level.random.nextDouble() * Math.max(1, innerMaxZ - innerMinZ);
-        double y = origin.getY() + 1;
+            double x = innerMinX + level.random.nextDouble() * Math.max(1, innerMaxX - innerMinX);
+            double z = innerMinZ + level.random.nextDouble() * Math.max(1, innerMaxZ - innerMinZ);
+            BlockPos spawnPos = new BlockPos((int) Math.floor(x), room.floorY() + 1, (int) Math.floor(z));
+            int topY = roomOrigin.getY() + size.getY() - 2;
+            while (spawnPos.getY() < topY && (!level.getBlockState(spawnPos).isAir() || !level.getBlockState(spawnPos.above()).isAir())) {
+                spawnPos = spawnPos.above();
+            }
 
-        mob.moveTo(x + 0.5D, y, z + 0.5D, level.random.nextFloat() * 360F, 0.0F);
+            if (!level.getBlockState(spawnPos).isAir() || !level.getBlockState(spawnPos.above()).isAir()) {
+                continue;
+            }
+
+            mob.moveTo(spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D, level.random.nextFloat() * 360F, 0.0F);
+            mob.getPersistentData().putLong(DUNGEON_ENTITY_TAG, dungeonId);
+            level.addFreshEntity(mob);
+            return;
+        }
+
+        RoomArea fallbackRoom = roomAreas.get(level.random.nextInt(roomAreas.size()));
+        mob.moveTo(
+                fallbackRoom.origin().getX() + (fallbackRoom.size().getX() / 2.0D),
+                fallbackRoom.floorY() + 1,
+                fallbackRoom.origin().getZ() + (fallbackRoom.size().getZ() / 2.0D),
+                level.random.nextFloat() * 360F,
+                0.0F
+        );
         mob.getPersistentData().putLong(DUNGEON_ENTITY_TAG, dungeonId);
-
         level.addFreshEntity(mob);
     }
 
-    private static void clearDungeonArea(ServerLevel level, BlockPos origin) {
-        int size = RoguelikeConstants.DUNGEON_ROOM_SIZE;
-        int height = RoguelikeConstants.DUNGEON_ROOM_HEIGHT;
-        int maxX = origin.getX() + size - 1;
-        int maxY = origin.getY() + height - 1;
-        int maxZ = origin.getZ() + size - 1;
+    private static boolean placeStructureTemplate(ServerLevel level, ResourceLocation templateId, BlockPos pos, long dungeonId) {
+        Optional<StructureTemplate> template = level.getStructureManager().get(templateId);
+        if (template.isEmpty()) {
+            return false;
+        }
 
-        for (int x = origin.getX() - 1; x <= maxX + 1; x++) {
-            for (int z = origin.getZ() - 1; z <= maxZ + 1; z++) {
-                for (int y = origin.getY() - 1; y <= maxY + 1; y++) {
+        StructurePlaceSettings settings = new StructurePlaceSettings().setIgnoreEntities(true);
+        StructureTemplate value = template.get();
+        if (!value.placeInWorld(level, pos, pos, settings, level.random, Block.UPDATE_ALL)) {
+            return false;
+        }
+
+        replaceReturnPortalPlaceholders(level, value, pos, dungeonId);
+        return true;
+    }
+
+    private static void replaceReturnPortalPlaceholders(ServerLevel level, StructureTemplate template, BlockPos origin, long dungeonId) {
+        BlockPos size = new BlockPos(template.getSize().getX(), template.getSize().getY(), template.getSize().getZ());
+        int maxX = origin.getX() + size.getX() - 1;
+        int maxY = origin.getY() + size.getY() - 1;
+        int maxZ = origin.getZ() + size.getZ() - 1;
+
+        for (int x = origin.getX(); x <= maxX; x++) {
+            for (int y = origin.getY(); y <= maxY; y++) {
+                for (int z = origin.getZ(); z <= maxZ; z++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    if (!level.getBlockState(pos).is(Registration.DUNGEON_RETURN_PORTAL_BLOCK.get())) {
+                        continue;
+                    }
+
+                    level.setBlockAndUpdate(pos, Registration.ROGUELIKE_PORTAL_BLOCK.get().defaultBlockState());
+                    BlockEntity blockEntity = level.getBlockEntity(pos);
+                    if (blockEntity instanceof RoguelikePortalBlockEntity portal) {
+                        portal.setDungeonId(dungeonId);
+                        portal.setChanged();
+                    }
+                }
+            }
+        }
+    }
+
+    private static Optional<ResourceLocation> firstMissingStructureTemplate(ServerLevel level, DungeonThemeData theme) {
+        if (level.getStructureManager().get(theme.startingRoomStructure().id()).isEmpty()) {
+            return Optional.of(theme.startingRoomStructure().id());
+        }
+        if (level.getStructureManager().get(theme.hallwayNorthSouthStructure().id()).isEmpty()) {
+            return Optional.of(theme.hallwayNorthSouthStructure().id());
+        }
+        if (level.getStructureManager().get(theme.hallwayEastWestStructure().id()).isEmpty()) {
+            return Optional.of(theme.hallwayEastWestStructure().id());
+        }
+
+        for (DungeonThemeData.RoomStructure room : theme.roomStructures()) {
+            if (level.getStructureManager().get(room.structure().id()).isEmpty()) {
+                return Optional.of(room.structure().id());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static void clearEntrySpace(ServerLevel level, BlockPos entry) {
+        level.setBlockAndUpdate(entry, Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(entry.above(), Blocks.AIR.defaultBlockState());
+        if (level.getBlockState(entry.below()).isAir()) {
+            level.setBlockAndUpdate(entry.below(), Blocks.STONE.defaultBlockState());
+        }
+    }
+
+    private static void clearDungeonArea(ServerLevel level, BlockPos origin) {
+        int radius = 224;
+        int minX = origin.getX() - radius;
+        int minZ = origin.getZ() - radius;
+        int maxX = origin.getX() + radius;
+        int maxZ = origin.getZ() + radius;
+        int minY = origin.getY() - 24;
+        int maxY = origin.getY() + 80;
+
+        for (int x = minX - 1; x <= maxX + 1; x++) {
+            for (int z = minZ - 1; z <= maxZ + 1; z++) {
+                for (int y = minY; y <= maxY; y++) {
                     level.setBlockAndUpdate(new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
                 }
             }
+        }
+    }
+
+    private record DungeonLayout(Set<GridCell> rooms, Set<GridCell> hallways) {
+    }
+
+    private record RoomPlacement(int centerX, int centerZ, DungeonThemeData.StructureRef ref, BlockPos size) {
+    }
+
+    private record HallPlacement(int centerX, int centerZ, DungeonThemeData.StructureRef ref, BlockPos size) {
+    }
+
+    private record RoomArea(BlockPos origin, BlockPos size, int floorY) {
+    }
+
+    private record GridCell(int x, int z) {
+        private static final GridCell START = new GridCell(0, 0);
+
+        private GridCell step(Direction direction, int amount) {
+            return switch (direction) {
+                case NORTH -> new GridCell(x, z - amount);
+                case SOUTH -> new GridCell(x, z + amount);
+                case WEST -> new GridCell(x - amount, z);
+                case EAST -> new GridCell(x + amount, z);
+                default -> this;
+            };
+        }
+
+        private boolean isEastWestHallway() {
+            return Math.abs(x) % 2 == 1;
         }
     }
 
@@ -1051,8 +1379,7 @@ public final class RoguelikeService {
     }
 
     private static BlockPos dungeonEntryPos(RoguelikeSavedData.DungeonRecord dungeon) {
-        int half = RoguelikeConstants.DUNGEON_ROOM_SIZE / 2;
-        return dungeon.origin().offset(half, 1, half);
+        return dungeon.origin().offset(0, 1, 0);
     }
 
     private static void teleport(ServerPlayer player, ServerLevel level, BlockPos pos) {

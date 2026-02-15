@@ -217,3 +217,15 @@ Manual gameplay verification checklist for testers.
 - [ ] Given operator permission level 2 and a target player with `incore:lab_basics` unlocked, when running `/incore research revoke <target> incore:lab_basics`, then `/incore research get <target>` shows one fewer unlocked research and the revoked entry is not active/queued.
 - [ ] Given operator permission level 2 and a target player, when running `/incore research complete_task <target> incore:field_notes` and `/incore research clear_queue <target>`, then required-task gates treat `field_notes` as complete and queue size returns to 0.
 - [ ] Given operator permission level 2 and a target player with any research progress, when running `/incore research reset_all <target>`, then `/incore research get <target>` reports queue=0, unlocked=0, completedTasks=0, and active=none.
+
+## Dungeon Return Portal Placeholder
+- [ ] Given a dungeon structure template contains `incore:dungeon_return_portal`, when a dungeon is generated in the roguelike dimension, then each placeholder block is replaced with an active `incore:roguelike_portal` block.
+- [ ] Given the replaced portal block inside the dungeon belongs to the player's active run, when the player right-clicks or walks into it, then the player is teleported back to the original world portal entry position and the run is ended for that player.
+- [ ] Given a player without a matching active run in that dungeon uses a replaced portal block, when they interact with it, then they are not teleported and receive the unbound return portal message.
+- [ ] Given `incore:dungeon_return_portal` is placed manually in a normal world (outside structure replacement), when a player interacts with it, then it behaves only as a normal placeholder block and does not teleport the player.
+
+## Structure Size And Floor Alignment
+- [ ] Given frost theme uses `starting_room` 16x13x16, `hallway_ns`/`hallway_ew` 16x11x10, and `room_small` 16x13x16, when a dungeon is generated, then each hallway touches the connected room opening without visible horizontal gaps.
+- [ ] Given frost theme includes `room_big` 48x36x48 with `"floor_y_from_bottom": 12`, when a dungeon is generated with at least one big room, then hallway floor height matches the big room connection floor.
+- [ ] Given a generated big room is connected, when inspecting all connected sides, then hallway connections are centered on the big room sides and not attached at corner offsets.
+- [ ] Given a player enters a newly generated frost dungeon, when the teleport completes, then the player spawns at the starting room center floor level and not above or below the playable floor.
