@@ -91,6 +91,18 @@
   "screen.incore.player_level_rewards.current_level": "Current level: %s",
   "screen.incore.player_level_rewards.current_progress": "Current XP: %s/%s",
   "screen.incore.player_level_rewards.none": "No level entries available.",
+  "screen.incore.player_level_rewards.sidebar_title": "Upcoming Levels",
+  "screen.incore.player_level_rewards.sidebar_level": "Lv %s",
+  "screen.incore.player_level_rewards.sidebar_xp": "XP %s",
+  "screen.incore.player_level_rewards.details_title": "Selected Level",
+  "screen.incore.player_level_rewards.details_level": "Level %s",
+  "screen.incore.player_level_rewards.details_required_xp": "Required XP: %s",
+  "screen.incore.player_level_rewards.details_rewards": "Rewards",
   "screen.incore.player_level_rewards.level_row": "Level %s - Required XP: %s",
-  "screen.incore.player_level_rewards.level_empty": " - No rewards"
+  "screen.incore.player_level_rewards.level_empty": "No rewards",
+  "screen.incore.player_level_rewards.tooltip_sanity_cap_title": "Sanity Cap Reward",
+  "screen.incore.player_level_rewards.tooltip_sanity_cap": "Increase max sanity by %s",
+  "screen.incore.player_level_rewards.tooltip_command_title": "Command Reward",
+  "screen.incore.player_level_rewards.tooltip_command": "%s",
+  "screen.incore.player_level_rewards.tooltip_other_title": "Reward"
 }

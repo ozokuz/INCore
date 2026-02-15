@@ -16,6 +16,10 @@ public record PlayerLevelSyncPayload(
         int experienceToNextLevel,
         List<RewardPreviewEntry> rewardPreviews
 ) implements CustomPacketPayload {
+    public static final int REWARD_KIND_ITEM = 0;
+    public static final int REWARD_KIND_SANITY_CAP = 1;
+    public static final int REWARD_KIND_COMMAND = 2;
+
     public static final Type<PlayerLevelSyncPayload> TYPE = new Type<>(ResourceLocation.parse("incore:player_level_sync"));
     public static final StreamCodec<ByteBuf, PlayerLevelSyncPayload> STREAM_CODEC = new StreamCodec<>() {
         @Override
@@ -30,12 +34,16 @@ public record PlayerLevelSyncPayload(
             for (int i = 0; i < previewCount; i++) {
                 int previewLevel = buf.readVarInt();
                 int requiredExperience = buf.readVarInt();
-                int lineCount = buf.readVarInt();
-                List<String> lines = new ArrayList<>(lineCount);
-                for (int j = 0; j < lineCount; j++) {
-                    lines.add(buf.readUtf(1024));
+                int rewardCount = buf.readVarInt();
+                List<RewardEntry> rewards = new ArrayList<>(rewardCount);
+                for (int j = 0; j < rewardCount; j++) {
+                    int kind = buf.readVarInt();
+                    String iconItemId = buf.readUtf(256);
+                    int amount = buf.readVarInt();
+                    String text = buf.readUtf(1024);
+                    rewards.add(new RewardEntry(kind, iconItemId, amount, text));
                 }
-                previews.add(new RewardPreviewEntry(previewLevel, requiredExperience, lines));
+                previews.add(new RewardPreviewEntry(previewLevel, requiredExperience, rewards));
             }
 
             return new PlayerLevelSyncPayload(level, currentExperience, experienceToNextLevel, previews);
@@ -53,8 +61,11 @@ public record PlayerLevelSyncPayload(
                 buf.writeVarInt(preview.level());
                 buf.writeVarInt(preview.requiredExperience());
                 buf.writeVarInt(preview.rewards().size());
-                for (String line : preview.rewards()) {
-                    buf.writeUtf(line, 1024);
+                for (RewardEntry reward : preview.rewards()) {
+                    buf.writeVarInt(reward.kind());
+                    buf.writeUtf(reward.iconItemId(), 256);
+                    buf.writeVarInt(reward.amount());
+                    buf.writeUtf(reward.text(), 1024);
                 }
             }
         }
@@ -71,11 +82,25 @@ public record PlayerLevelSyncPayload(
                 payload.currentExperience(),
                 payload.experienceToNextLevel(),
                 payload.rewardPreviews().stream()
-                        .map(preview -> new PlayerLevelClientCache.RewardPreview(preview.level(), preview.requiredExperience(), preview.rewards()))
+                        .map(preview -> new PlayerLevelClientCache.RewardPreview(
+                                preview.level(),
+                                preview.requiredExperience(),
+                                preview.rewards().stream()
+                                        .map(reward -> new PlayerLevelClientCache.RewardEntry(
+                                                reward.kind(),
+                                                reward.iconItemId(),
+                                                reward.amount(),
+                                                reward.text()
+                                        ))
+                                        .toList()
+                        ))
                         .toList()
         ));
     }
 
-    public record RewardPreviewEntry(int level, int requiredExperience, List<String> rewards) {
+    public record RewardPreviewEntry(int level, int requiredExperience, List<RewardEntry> rewards) {
+    }
+
+    public record RewardEntry(int kind, String iconItemId, int amount, String text) {
     }
 }

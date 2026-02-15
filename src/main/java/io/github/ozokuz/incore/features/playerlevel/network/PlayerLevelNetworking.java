@@ -3,6 +3,8 @@ package io.github.ozokuz.incore.features.playerlevel.network;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelManager;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelReward;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -32,10 +34,10 @@ public final class PlayerLevelNetworking {
         List<PlayerLevelSyncPayload.RewardPreviewEntry> rewardPreviews = new ArrayList<>();
         for (int previewLevel = level + 1; previewLevel <= lastPreviewLevel; previewLevel++) {
             int requiredExperience = PlayerLevelManager.getExperienceToNextLevel(previewLevel - 1);
-            List<String> rewardText = PlayerLevelRewardManager.getRewardsForLevel(previewLevel).stream()
-                    .map(PlayerLevelReward::previewText)
+            List<PlayerLevelSyncPayload.RewardEntry> rewards = PlayerLevelRewardManager.getRewardsForLevel(previewLevel).stream()
+                    .map(PlayerLevelNetworking::toRewardEntry)
                     .toList();
-            rewardPreviews.add(new PlayerLevelSyncPayload.RewardPreviewEntry(previewLevel, requiredExperience, rewardText));
+            rewardPreviews.add(new PlayerLevelSyncPayload.RewardPreviewEntry(previewLevel, requiredExperience, rewards));
         }
 
         PacketDistributor.sendToPlayer(player, new PlayerLevelSyncPayload(
@@ -44,5 +46,42 @@ public final class PlayerLevelNetworking {
                 experienceToNextLevel,
                 rewardPreviews
         ));
+    }
+
+    private static PlayerLevelSyncPayload.RewardEntry toRewardEntry(PlayerLevelReward reward) {
+        if (reward instanceof PlayerLevelReward.ItemReward itemReward) {
+            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(itemReward.item());
+            return new PlayerLevelSyncPayload.RewardEntry(
+                    PlayerLevelSyncPayload.REWARD_KIND_ITEM,
+                    itemId.toString(),
+                    itemReward.count(),
+                    itemReward.previewText()
+            );
+        }
+
+        if (reward instanceof PlayerLevelReward.SanityCapBonusReward sanityReward) {
+            return new PlayerLevelSyncPayload.RewardEntry(
+                    PlayerLevelSyncPayload.REWARD_KIND_SANITY_CAP,
+                    "incore:sanity_vessel",
+                    sanityReward.amount(),
+                    sanityReward.previewText()
+            );
+        }
+
+        if (reward instanceof PlayerLevelReward.CommandReward commandReward) {
+            return new PlayerLevelSyncPayload.RewardEntry(
+                    PlayerLevelSyncPayload.REWARD_KIND_COMMAND,
+                    "minecraft:command_block",
+                    1,
+                    commandReward.previewText()
+            );
+        }
+
+        return new PlayerLevelSyncPayload.RewardEntry(
+                PlayerLevelSyncPayload.REWARD_KIND_COMMAND,
+                "minecraft:barrier",
+                1,
+                reward.previewText()
+        );
     }
 }

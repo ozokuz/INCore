@@ -20,7 +20,14 @@ public final class PlayerLevelClientCache {
                 .map(preview -> new RewardPreview(
                         preview.level(),
                         Math.max(1, preview.requiredExperience()),
-                        List.copyOf(preview.rewards())
+                        preview.rewards().stream()
+                                .map(reward -> new RewardEntry(
+                                        reward.kind(),
+                                        reward.iconItemId(),
+                                        reward.amount(),
+                                        reward.text()
+                                ))
+                                .toList()
                 ))
                 .toList();
     }
@@ -41,6 +48,9 @@ public final class PlayerLevelClientCache {
         return new ArrayList<>(rewardPreviews);
     }
 
-    public record RewardPreview(int level, int requiredExperience, List<String> rewards) {
+    public record RewardPreview(int level, int requiredExperience, List<RewardEntry> rewards) {
+    }
+
+    public record RewardEntry(int kind, String iconItemId, int amount, String text) {
     }
 }
