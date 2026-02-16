@@ -1,0 +1,14 @@
+{
+  "title": "Automated Handling",
+  "description": "Programmable handling lines reduce manual transfer errors in active labs.",
+  "cost": 8,
+  "icon_item": "minecraft:hopper",
+  "run_duration_ticks": 160,
+  "unlocks": ["Auto Feeders", "Material Routing"],
+  "research_materials": [
+    { "item": "minecraft:hopper", "count": 1 },
+    { "item": "minecraft:redstone", "count": 6 }
+  ],
+  "prerequisites": ["incore:power_distribution", "incore:applied_materials"],
+  "required_tasks": ["incore:specimen_delivery"]
+}

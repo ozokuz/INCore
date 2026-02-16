@@ -1,7 +1,14 @@
 {
   "title": "Lab Basics",
   "description": "Foundational lab safety and throughput optimizations.",
-  "cost": 20,
+  "cost": 4,
+  "icon_item": "minecraft:paper",
+  "run_duration_ticks": 100,
+  "unlocks": ["Research Lab Handling", "Safety Protocols"],
+  "research_materials": [
+    { "item": "minecraft:paper", "count": 4 },
+    { "item": "minecraft:glass_bottle", "count": 1 }
+  ],
   "prerequisites": [],
   "required_tasks": ["incore:field_notes"]
 }

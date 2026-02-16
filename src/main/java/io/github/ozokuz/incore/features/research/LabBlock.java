@@ -85,8 +85,12 @@ public class LabBlock extends BaseEntityBlock {
     protected void onRemove(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof LabBlockEntity labBlockEntity && !labBlockEntity.getInput().isEmpty()) {
-                popResource(level, pos, labBlockEntity.getInput().copy());
+            if (blockEntity instanceof LabBlockEntity labBlockEntity) {
+                for (ItemStack input : labBlockEntity.getInputs()) {
+                    if (!input.isEmpty()) {
+                        popResource(level, pos, input.copy());
+                    }
+                }
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

@@ -1,0 +1,14 @@
+{
+  "title": "Sensor Array",
+  "description": "Integrated scanners improve environmental sampling and material diagnostics.",
+  "cost": 7,
+  "icon_item": "minecraft:amethyst_shard",
+  "run_duration_ticks": 130,
+  "unlocks": ["Advanced Sensors", "Environmental Scanner"],
+  "research_materials": [
+    { "item": "minecraft:amethyst_shard", "count": 3 },
+    { "item": "minecraft:quartz", "count": 2 }
+  ],
+  "prerequisites": ["incore:applied_materials"],
+  "required_tasks": ["incore:field_notes"]
+}

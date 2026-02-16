@@ -23,6 +23,13 @@ public record OpenResearchScreenPayload(String json) implements CustomPacketPayl
     }
 
     public static void handle(OpenResearchScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> Minecraft.getInstance().setScreen(new ResearchTechTreeScreen(payload.json())));
+        context.enqueueWork(() -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.screen instanceof ResearchTechTreeScreen screen) {
+                screen.updatePayload(payload.json());
+                return;
+            }
+            minecraft.setScreen(new ResearchTechTreeScreen(payload.json()));
+        });
     }
 }

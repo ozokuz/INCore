@@ -17,6 +17,8 @@ public final class ResearchNetworking {
         registrar.playToServer(RequestOpenResearchScreenPayload.TYPE, RequestOpenResearchScreenPayload.STREAM_CODEC, RequestOpenResearchScreenPayload::handle);
         registrar.playToServer(UnlockResearchEntryPayload.TYPE, UnlockResearchEntryPayload.STREAM_CODEC, UnlockResearchEntryPayload::handle);
         registrar.playToServer(SubmitResearchTaskPayload.TYPE, SubmitResearchTaskPayload.STREAM_CODEC, SubmitResearchTaskPayload::handle);
+        registrar.playToServer(MoveResearchQueuePayload.TYPE, MoveResearchQueuePayload.STREAM_CODEC, MoveResearchQueuePayload::handle);
+        registrar.playToServer(RemoveResearchQueueEntryPayload.TYPE, RemoveResearchQueueEntryPayload.STREAM_CODEC, RemoveResearchQueueEntryPayload::handle);
     }
 
     public static void requestOpen() {
@@ -31,6 +33,14 @@ public final class ResearchNetworking {
         PacketDistributor.sendToServer(new SubmitResearchTaskPayload(id.toString()));
     }
 
+    public static void requestMoveQueue(int fromIndex, int toIndex) {
+        PacketDistributor.sendToServer(new MoveResearchQueuePayload(fromIndex, toIndex));
+    }
+
+    public static void requestRemoveQueueEntry(ResourceLocation id) {
+        PacketDistributor.sendToServer(new RemoveResearchQueueEntryPayload(id.toString()));
+    }
+
     public static void openFor(ServerPlayer player) {
         PacketDistributor.sendToPlayer(player, new OpenResearchScreenPayload(ResearchSyncData.build(player)));
     }
@@ -43,6 +53,18 @@ public final class ResearchNetworking {
 
     public static void submitTask(ServerPlayer player, ResourceLocation id) {
         if (ResearchProgressService.submitTask(player, id)) {
+            openFor(player);
+        }
+    }
+
+    public static void moveQueue(ServerPlayer player, int fromIndex, int toIndex) {
+        if (ResearchProgressService.reorderQueue(player, fromIndex, toIndex)) {
+            openFor(player);
+        }
+    }
+
+    public static void removeQueueEntry(ServerPlayer player, ResourceLocation id) {
+        if (ResearchProgressService.dequeueResearch(player, id)) {
             openFor(player);
         }
     }

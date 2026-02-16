@@ -3,6 +3,5 @@
   "description": "Submit paper to archive initial findings.",
   "item": "minecraft:paper",
   "count": 8,
-  "reward_points": 10,
   "repeatable": false
 }

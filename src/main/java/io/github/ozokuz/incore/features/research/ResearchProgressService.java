@@ -10,14 +10,20 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public final class ResearchProgressService {
     private static final String KEY_ROOT = "incore_research";
-    private static final String KEY_POINTS = "points";
     private static final String KEY_UNLOCKED = "unlocked";
     private static final String KEY_TASKS = "tasks";
+    private static final String KEY_QUEUE = "queue";
+    private static final String KEY_ACTIVE_PROGRESS = "active_progress";
+    private static final String KEY_PROGRESS = "progress";
 
     private ResearchProgressService() {}
 
@@ -26,16 +32,20 @@ public final class ResearchProgressService {
         if (!persistent.contains(KEY_ROOT, Tag.TAG_COMPOUND)) {
             persistent.put(KEY_ROOT, new CompoundTag());
         }
-        return persistent.getCompound(KEY_ROOT);
+        CompoundTag root = persistent.getCompound(KEY_ROOT);
+        migrateLegacyActiveProgress(root);
+        return root;
     }
 
-    public static int getPoints(ServerPlayer player) {
-        return root(player).getInt(KEY_POINTS);
-    }
+    public static void copyData(ServerPlayer oldPlayer, ServerPlayer newPlayer) {
+        if (oldPlayer == null || newPlayer == null) {
+            return;
+        }
 
-    public static void addPoints(ServerPlayer player, int amount) {
-        CompoundTag root = root(player);
-        root.putInt(KEY_POINTS, Math.max(0, root.getInt(KEY_POINTS) + amount));
+        CompoundTag source = oldPlayer.getPersistentData().getCompound(KEY_ROOT);
+        if (!source.isEmpty()) {
+            newPlayer.getPersistentData().put(KEY_ROOT, source.copy());
+        }
     }
 
     public static Set<ResourceLocation> unlocked(ServerPlayer player) {
@@ -46,25 +56,188 @@ public final class ResearchProgressService {
         return readSet(root(player).getList(KEY_TASKS, Tag.TAG_STRING));
     }
 
+    public static List<ResourceLocation> queuedResearch(ServerPlayer player) {
+        return readList(root(player).getList(KEY_QUEUE, Tag.TAG_STRING));
+    }
+
+    public static int activeProgress(ServerPlayer player) {
+        ResourceLocation active = activeResearch(player);
+        return active == null ? 0 : getProgress(root(player), active);
+    }
+
+    public static ResourceLocation activeResearch(ServerPlayer player) {
+        List<ResourceLocation> queue = queuedResearch(player);
+        if (queue.isEmpty()) {
+            return null;
+        }
+
+        ResourceLocation id = queue.get(0);
+        ResearchEntryData entry = ResearchEntryManager.all().get(id);
+        if (entry == null || !canStartEntry(entry, unlocked(player), completedTasks(player))) {
+            return null;
+        }
+        return id;
+    }
+
+    public static int progressFor(ServerPlayer player, ResourceLocation id) {
+        if (id == null) {
+            return 0;
+        }
+        return getProgress(root(player), id);
+    }
+
+    public static Map<ResourceLocation, Integer> progressByEntry(ServerPlayer player) {
+        CompoundTag progressTag = progressTag(root(player));
+        Map<ResourceLocation, Integer> progress = new HashMap<>();
+        for (String key : progressTag.getAllKeys()) {
+            ResourceLocation id = ResourceLocation.tryParse(key);
+            if (id == null) {
+                continue;
+            }
+            int value = Math.max(0, progressTag.getInt(key));
+            if (value > 0) {
+                progress.put(id, value);
+            }
+        }
+        return progress;
+    }
+
     public static boolean unlock(ServerPlayer player, ResourceLocation id) {
+        return enqueueResearch(player, id);
+    }
+
+    public static boolean forceUnlockResearch(ServerPlayer player, ResourceLocation id) {
+        if (id == null || !ResearchEntryManager.all().containsKey(id)) {
+            return false;
+        }
+
+        CompoundTag root = root(player);
+        Set<ResourceLocation> unlocked = unlocked(player);
+        boolean unlockedChanged = unlocked.add(id);
+        if (unlockedChanged) {
+            writeSet(root, KEY_UNLOCKED, unlocked);
+        }
+
+        List<ResourceLocation> queue = queuedResearch(player);
+        boolean queueChanged = queue.removeIf(id::equals);
+        if (queueChanged) {
+            writeList(root, KEY_QUEUE, queue);
+        }
+        boolean progressChanged = clearProgress(root, id);
+
+        return unlockedChanged || queueChanged || progressChanged;
+    }
+
+    public static boolean revokeResearch(ServerPlayer player, ResourceLocation id) {
+        if (id == null || !ResearchEntryManager.all().containsKey(id)) {
+            return false;
+        }
+
+        CompoundTag root = root(player);
+        Set<ResourceLocation> unlocked = unlocked(player);
+        boolean unlockedChanged = unlocked.remove(id);
+        if (unlockedChanged) {
+            writeSet(root, KEY_UNLOCKED, unlocked);
+        }
+
+        List<ResourceLocation> queue = queuedResearch(player);
+        boolean queueChanged = queue.removeIf(id::equals);
+        if (queueChanged) {
+            writeList(root, KEY_QUEUE, queue);
+        }
+        boolean progressChanged = clearProgress(root, id);
+
+        return unlockedChanged || queueChanged || progressChanged;
+    }
+
+    public static boolean enqueueResearch(ServerPlayer player, ResourceLocation id) {
+        if (id == null) {
+            return false;
+        }
+
         Set<ResourceLocation> unlocked = unlocked(player);
         if (unlocked.contains(id)) {
             return false;
         }
 
+        List<ResourceLocation> queue = queuedResearch(player);
+        if (queue.contains(id)) {
+            return false;
+        }
+
         ResearchEntryData entry = ResearchEntryManager.all().get(id);
-        if (entry == null || getPoints(player) < entry.cost()) {
+        Set<ResourceLocation> completed = completedTasks(player);
+        Set<ResourceLocation> unlockedOrQueued = new HashSet<>(unlocked);
+        unlockedOrQueued.addAll(queue);
+        if (entry == null || !canQueueEntry(entry, unlockedOrQueued, completed)) {
             return false;
         }
 
-        if (!unlocked.containsAll(entry.prerequisites()) || !completedTasks(player).containsAll(entry.requiredTasks())) {
-            return false;
-        }
-
-        addPoints(player, -entry.cost());
-        unlocked.add(id);
-        writeSet(root(player), KEY_UNLOCKED, unlocked);
+        queue.add(id);
+        CompoundTag root = root(player);
+        writeList(root, KEY_QUEUE, queue);
         return true;
+    }
+
+    public static boolean completeTask(ServerPlayer player, ResourceLocation taskId) {
+        if (taskId == null || !ManualResearchTaskManager.all().containsKey(taskId)) {
+            return false;
+        }
+
+        Set<ResourceLocation> completed = completedTasks(player);
+        if (completed.add(taskId)) {
+            writeSet(root(player), KEY_TASKS, completed);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static boolean dequeueResearch(ServerPlayer player, ResourceLocation id) {
+        if (id == null) {
+            return false;
+        }
+        List<ResourceLocation> queue = queuedResearch(player);
+        boolean changed = queue.removeIf(id::equals);
+        if (!changed) {
+            return false;
+        }
+        writeList(root(player), KEY_QUEUE, queue);
+        return true;
+    }
+
+    public static void clearQueue(ServerPlayer player) {
+        CompoundTag root = root(player);
+        writeList(root, KEY_QUEUE, List.of());
+        root.remove(KEY_PROGRESS);
+    }
+
+    public static boolean reorderQueue(ServerPlayer player, int fromIndex, int toIndex) {
+        List<ResourceLocation> queue = queuedResearch(player);
+        int size = queue.size();
+        if (size < 2) {
+            return false;
+        }
+        if (fromIndex < 0 || fromIndex >= size || toIndex < 0 || toIndex >= size || fromIndex == toIndex) {
+            return false;
+        }
+
+        ResourceLocation moved = queue.remove(fromIndex);
+        queue.add(toIndex, moved);
+        if (!isValidQueueOrder(queue, unlocked(player))) {
+            return false;
+        }
+
+        CompoundTag root = root(player);
+        writeList(root, KEY_QUEUE, queue);
+        return true;
+    }
+
+    public static boolean resetAllResearch(ServerPlayer player) {
+        CompoundTag persistent = player.getPersistentData();
+        boolean hadResearch = persistent.contains(KEY_ROOT, Tag.TAG_COMPOUND);
+        persistent.remove(KEY_ROOT);
+        return hadResearch;
     }
 
     public static boolean submitTask(ServerPlayer player, ResourceLocation taskId) {
@@ -87,12 +260,199 @@ public final class ResearchProgressService {
             return false;
         }
 
-        addPoints(player, task.rewardPoints());
-        if (!task.repeatable()) {
-            completed.add(taskId);
+        if (completed.add(taskId)) {
             writeSet(root(player), KEY_TASKS, completed);
         }
         return true;
+    }
+
+    public static boolean addResearchProgress(ServerPlayer player, ResourceLocation id, int amount) {
+        if (id == null || amount <= 0) {
+            return false;
+        }
+        CompoundTag root = root(player);
+        Set<ResourceLocation> unlocked = unlocked(player);
+        Set<ResourceLocation> completedTasks = completedTasks(player);
+        List<ResourceLocation> queue = queuedResearch(player);
+        boolean changed = false;
+
+        changed = normalizeQueue(root, queue, unlocked) || changed;
+
+        if (queue.isEmpty()) {
+            if (changed) {
+                writeList(root, KEY_QUEUE, queue);
+            }
+            return changed;
+        }
+
+        ResourceLocation activeId = queue.get(0);
+        if (!activeId.equals(id)) {
+            if (changed) {
+                writeList(root, KEY_QUEUE, queue);
+            }
+            return changed;
+        }
+
+        ResearchEntryData activeEntry = ResearchEntryManager.all().get(activeId);
+        if (activeEntry == null) {
+            queue.remove(0);
+            clearProgress(root, activeId);
+            writeList(root, KEY_QUEUE, queue);
+            return true;
+        }
+        if (!canStartEntry(activeEntry, unlocked, completedTasks)) {
+            if (changed) {
+                writeList(root, KEY_QUEUE, queue);
+            }
+            return changed;
+        }
+
+        int progress = getProgress(root, activeEntry.id()) + amount;
+        setProgress(root, activeEntry.id(), progress);
+        changed = true;
+
+        changed = unlockReadyHead(root, queue, unlocked) || changed;
+
+        if (changed) {
+            writeList(root, KEY_QUEUE, queue);
+        }
+        return changed;
+    }
+
+    public static boolean tickResearch(ServerPlayer player) {
+        CompoundTag root = root(player);
+        Set<ResourceLocation> unlocked = unlocked(player);
+        List<ResourceLocation> queue = queuedResearch(player);
+        boolean changed = normalizeQueue(root, queue, unlocked);
+        changed = unlockReadyHead(root, queue, unlocked) || changed;
+        if (changed) {
+            writeList(root, KEY_QUEUE, queue);
+        }
+        return changed;
+    }
+
+    private static boolean canStartEntry(ResearchEntryData entry, Set<ResourceLocation> unlocked, Set<ResourceLocation> completedTasks) {
+        if (entry == null) {
+            return false;
+        }
+        return !entry.researchMaterials().isEmpty()
+                && unlocked.containsAll(entry.prerequisites())
+                && completedTasks.containsAll(entry.requiredTasks());
+    }
+
+    private static boolean canQueueEntry(ResearchEntryData entry, Set<ResourceLocation> unlockedOrQueued, Set<ResourceLocation> completedTasks) {
+        if (entry == null) {
+            return false;
+        }
+        return !entry.researchMaterials().isEmpty()
+                && unlockedOrQueued.containsAll(entry.prerequisites())
+                && completedTasks.containsAll(entry.requiredTasks());
+    }
+
+    private static boolean isValidQueueOrder(List<ResourceLocation> queue, Set<ResourceLocation> unlocked) {
+        for (int i = 0; i < queue.size(); i++) {
+            ResourceLocation id = queue.get(i);
+            ResearchEntryData entry = ResearchEntryManager.all().get(id);
+            if (entry == null) {
+                return false;
+            }
+
+            for (ResourceLocation prereq : entry.prerequisites()) {
+                if (unlocked.contains(prereq)) {
+                    continue;
+                }
+                int prereqIndex = queue.indexOf(prereq);
+                if (prereqIndex < 0 || prereqIndex >= i) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean normalizeQueue(CompoundTag root, List<ResourceLocation> queue, Set<ResourceLocation> unlocked) {
+        boolean changed = false;
+        while (!queue.isEmpty() && unlocked.contains(queue.get(0))) {
+            ResourceLocation removed = queue.remove(0);
+            clearProgress(root, removed);
+            changed = true;
+        }
+        return changed;
+    }
+
+    private static boolean unlockReadyHead(CompoundTag root, List<ResourceLocation> queue, Set<ResourceLocation> unlocked) {
+        if (queue.isEmpty()) {
+            return false;
+        }
+
+        ResourceLocation activeId = queue.get(0);
+        ResearchEntryData activeEntry = ResearchEntryManager.all().get(activeId);
+        if (activeEntry == null) {
+            queue.remove(0);
+            clearProgress(root, activeId);
+            return true;
+        }
+
+        if (getProgress(root, activeId) < activeEntry.cost()) {
+            return false;
+        }
+
+        unlocked.add(activeId);
+        writeSet(root, KEY_UNLOCKED, unlocked);
+        queue.remove(0);
+        clearProgress(root, activeId);
+        return true;
+    }
+
+    private static void migrateLegacyActiveProgress(CompoundTag root) {
+        if (!root.contains(KEY_ACTIVE_PROGRESS, Tag.TAG_INT)) {
+            return;
+        }
+
+        int legacyActiveProgress = Math.max(0, root.getInt(KEY_ACTIVE_PROGRESS));
+        if (legacyActiveProgress > 0) {
+            List<ResourceLocation> queue = readList(root.getList(KEY_QUEUE, Tag.TAG_STRING));
+            if (!queue.isEmpty()) {
+                ResourceLocation activeEntry = queue.get(0);
+                if (getProgress(root, activeEntry) <= 0) {
+                    setProgress(root, activeEntry, legacyActiveProgress);
+                }
+            }
+        }
+
+        root.remove(KEY_ACTIVE_PROGRESS);
+    }
+
+    private static int getProgress(CompoundTag root, ResourceLocation id) {
+        return Math.max(0, progressTag(root).getInt(id.toString()));
+    }
+
+    private static void setProgress(CompoundTag root, ResourceLocation id, int progress) {
+        CompoundTag progressTag = progressTag(root);
+        String key = id.toString();
+        int clamped = Math.max(0, progress);
+        if (clamped == 0) {
+            progressTag.remove(key);
+            return;
+        }
+        progressTag.putInt(key, clamped);
+    }
+
+    private static boolean clearProgress(CompoundTag root, ResourceLocation id) {
+        CompoundTag progressTag = progressTag(root);
+        String key = id.toString();
+        if (!progressTag.contains(key, Tag.TAG_INT)) {
+            return false;
+        }
+        progressTag.remove(key);
+        return true;
+    }
+
+    private static CompoundTag progressTag(CompoundTag root) {
+        if (!root.contains(KEY_PROGRESS, Tag.TAG_COMPOUND)) {
+            root.put(KEY_PROGRESS, new CompoundTag());
+        }
+        return root.getCompound(KEY_PROGRESS);
     }
 
     private static boolean removeItems(Inventory inventory, Item item, int count) {
@@ -120,7 +480,24 @@ public final class ResearchProgressService {
         return result;
     }
 
+    private static List<ResourceLocation> readList(ListTag listTag) {
+        List<ResourceLocation> result = new ArrayList<>();
+        for (Tag tag : listTag) {
+            ResourceLocation id = ResourceLocation.tryParse(tag.getAsString());
+            if (id != null) {
+                result.add(id);
+            }
+        }
+        return result;
+    }
+
     private static void writeSet(CompoundTag root, String key, Set<ResourceLocation> values) {
+        ListTag listTag = new ListTag();
+        values.stream().sorted().forEach(id -> listTag.add(StringTag.valueOf(id.toString())));
+        root.put(key, listTag);
+    }
+
+    private static void writeList(CompoundTag root, String key, List<ResourceLocation> values) {
         ListTag listTag = new ListTag();
         values.forEach(id -> listTag.add(StringTag.valueOf(id.toString())));
         root.put(key, listTag);
