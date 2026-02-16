@@ -3,6 +3,5 @@
   "description": "Submit slime samples for tissue study.",
   "item": "minecraft:slime_ball",
   "count": 16,
-  "reward_points": 25,
   "repeatable": true
 }

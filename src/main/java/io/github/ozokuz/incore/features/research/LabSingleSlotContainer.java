@@ -12,36 +12,33 @@ public class LabSingleSlotContainer implements Container {
     }
 
     @Override
-    public int getContainerSize() { return 1; }
+    public int getContainerSize() {
+        return blockEntity.inputSlotCount();
+    }
 
     @Override
-    public boolean isEmpty() { return blockEntity.getInput().isEmpty(); }
+    public boolean isEmpty() {
+        return blockEntity.isInputEmpty();
+    }
 
     @Override
-    public ItemStack getItem(int slot) { return slot == 0 ? blockEntity.getInput() : ItemStack.EMPTY; }
+    public ItemStack getItem(int slot) {
+        return blockEntity.getInput(slot);
+    }
 
     @Override
     public ItemStack removeItem(int slot, int amount) {
-        if (slot != 0) return ItemStack.EMPTY;
-        ItemStack current = blockEntity.getInput();
-        ItemStack removed = current.split(amount);
-        blockEntity.setInput(current);
-        return removed;
+        return blockEntity.removeInput(slot, amount);
     }
 
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
-        if (slot != 0) return ItemStack.EMPTY;
-        ItemStack stack = blockEntity.getInput();
-        blockEntity.setInput(ItemStack.EMPTY);
-        return stack;
+        return blockEntity.removeInputNoUpdate(slot);
     }
 
     @Override
     public void setItem(int slot, ItemStack stack) {
-        if (slot == 0) {
-            blockEntity.setInput(stack);
-        }
+        blockEntity.setInput(slot, stack);
     }
 
     @Override
@@ -51,5 +48,9 @@ public class LabSingleSlotContainer implements Container {
     public boolean stillValid(Player player) { return true; }
 
     @Override
-    public void clearContent() { blockEntity.setInput(ItemStack.EMPTY); }
+    public void clearContent() {
+        for (int slot = 0; slot < blockEntity.inputSlotCount(); slot++) {
+            blockEntity.setInput(slot, ItemStack.EMPTY);
+        }
+    }
 }

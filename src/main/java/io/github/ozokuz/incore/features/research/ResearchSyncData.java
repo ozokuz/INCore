@@ -6,13 +6,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Comparator;
+import java.util.Map;
 
 public final class ResearchSyncData {
     private ResearchSyncData() {}
 
     public static String build(ServerPlayer player) {
         JsonObject root = new JsonObject();
-        root.addProperty("points", ResearchProgressService.getPoints(player));
+        ResourceLocation activeResearch = ResearchProgressService.activeResearch(player);
+        root.addProperty("active_research", activeResearch == null ? "" : activeResearch.toString());
+        root.addProperty("active_progress", ResearchProgressService.activeProgress(player));
 
         JsonArray unlocked = new JsonArray();
         ResearchProgressService.unlocked(player).stream().map(ResourceLocation::toString).sorted().forEach(unlocked::add);
@@ -22,6 +25,16 @@ public final class ResearchSyncData {
         ResearchProgressService.completedTasks(player).stream().map(ResourceLocation::toString).sorted().forEach(completedTasks::add);
         root.add("completed_tasks", completedTasks);
 
+        JsonArray queue = new JsonArray();
+        ResearchProgressService.queuedResearch(player).stream().map(ResourceLocation::toString).forEach(queue::add);
+        root.add("queue", queue);
+
+        JsonObject progress = new JsonObject();
+        ResearchProgressService.progressByEntry(player).entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> progress.addProperty(entry.getKey().toString(), entry.getValue()));
+        root.add("progress", progress);
+
         JsonArray entries = new JsonArray();
         ResearchEntryManager.all().values().stream().sorted(Comparator.comparing(d -> d.id().toString())).forEach(entry -> {
             JsonObject json = new JsonObject();
@@ -29,6 +42,21 @@ public final class ResearchSyncData {
             json.addProperty("title", entry.title());
             json.addProperty("description", entry.description());
             json.addProperty("cost", entry.cost());
+            json.addProperty("icon_item", entry.iconItem() == null ? "" : entry.iconItem().toString());
+            json.addProperty("run_duration_ticks", entry.runDurationTicks());
+
+            JsonArray unlocks = new JsonArray();
+            entry.unlocks().forEach(unlocks::add);
+            json.add("unlocks", unlocks);
+
+            JsonArray materials = new JsonArray();
+            entry.researchMaterials().forEach(material -> {
+                JsonObject materialJson = new JsonObject();
+                materialJson.addProperty("item", material.itemId() == null ? "" : material.itemId().toString());
+                materialJson.addProperty("count", material.itemCount());
+                materials.add(materialJson);
+            });
+            json.add("research_materials", materials);
 
             JsonArray prereq = new JsonArray();
             entry.prerequisites().stream().map(ResourceLocation::toString).sorted().forEach(prereq::add);
@@ -49,7 +77,6 @@ public final class ResearchSyncData {
             json.addProperty("description", task.description());
             json.addProperty("item", task.itemId() == null ? "" : task.itemId().toString());
             json.addProperty("count", task.itemCount());
-            json.addProperty("reward_points", task.rewardPoints());
             json.addProperty("repeatable", task.repeatable());
             tasks.add(json);
         });

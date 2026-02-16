@@ -1,0 +1,14 @@
+{
+  "title": "Lab Networking",
+  "description": "Shared data channels synchronize diagnostics and process control between stations.",
+  "cost": 9,
+  "icon_item": "minecraft:comparator",
+  "run_duration_ticks": 170,
+  "unlocks": ["Networked Console", "Remote Monitoring"],
+  "research_materials": [
+    { "item": "minecraft:comparator", "count": 2 },
+    { "item": "minecraft:quartz", "count": 4 }
+  ],
+  "prerequisites": ["incore:power_distribution", "incore:sensor_array"],
+  "required_tasks": ["incore:field_notes"]
+}

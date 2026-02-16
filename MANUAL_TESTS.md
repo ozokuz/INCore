@@ -133,15 +133,87 @@ Manual gameplay verification checklist for testers.
 - [ ] Given `season_alpha` and `season_bravo` datapacks define rewards only under `rewards_by_lane` (with no `level_rewards` key), when the server reloads datapacks and players open Battle Pass rewards, then all configured reward levels and lane previews still load correctly without parse errors.
 
 ## Research Lab Automatic Processing
-- [ ] Given a player places a Research Lab and opens it, when inserting 2 iron ingots and waiting 10 seconds, then the lab progress bar fills to completion and the owner gains 5 research points.
-- [ ] Given a non-owner opens a placed Research Lab with valid input, when processing completes, then research points are granted to the player who originally placed the lab.
-- [ ] Given a Research Lab has an input stack below any configured process threshold, when waiting 10 seconds, then progress remains at zero and no research points are granted.
+- [ ] Given a player has `Lab Basics` first in queue, when inserting that run's required material set in a Research Lab and waiting one full run duration, then the lab progress bar fills once and `Lab Basics` progress increases by 1 run.
+- [ ] Given a player has `Lab Basics` first in queue and no matching material in lab slots, when waiting 10 seconds, then lab progress stays at zero and queued research progress does not change.
+- [ ] Given `Applied Materials` is first in queue (requires slime balls), when inserting only paper in lab slots and waiting 10 seconds, then lab progress remains at zero until slime balls are inserted.
+- [ ] Given a queued technology requires a multi-item material set for each run, when all required items for one run are inserted together and one run completes, then exactly one run worth of progress is added and all required set items are consumed.
+- [ ] Given a queued technology reaches full progress from lab material processing, when the last required material cycle completes, then the technology unlocks automatically and the next queue entry becomes active.
+- [ ] Given a player has the Research screen open while lab runs complete for the active queued technology, when each run completes in any owned lab, then the current research id and progress update on the screen within the next sync tick.
+
+## Research Lab UI Layout
+- [x] Given a player opens a placed Research Lab, when the menu appears, then a 3x3 material input grid is shown in the top panel and the full player inventory (27 slots + hotbar) is shown below it.
+- [ ] Given a player opens the Research Lab screen after the wider layout update, when viewing overall panel bounds, then the screen width is larger than before and all three top columns have visible horizontal breathing room.
+- [ ] Given a queued active technology exists but required materials are missing, when viewing the left `Status` column in the widened layout, then the full `Not enough materials` state text is visible without clipping.
+- [ ] Given a player opens the Research Lab screen, when viewing the divider between top columns and bottom inventory panel, then the `Inventory` label is fully inside the lower panel and does not overlap any border line.
+- [ ] Given a player has active queued research with non-zero max progress, when viewing the status column, then the `Progress: <current>/<max>` label is readable without truncating into `...` for typical run values.
+- [x] Given no valid process item is in any lab input slot, when the menu is open, then the progress label reads `Progress: 0/0` and the progress bar remains empty.
+- [x] Given valid process inputs are placed in any of the 3x3 lab slots, when waiting for processing, then the progress bar fills left-to-right and resets after reward payout.
+- [ ] Given a player opens the Research Lab screen, when viewing the top section, then information is split into three columns with lab status on the left, current research in the middle, and material slots on the right.
+- [ ] Given a player has an active queued technology (with or without currently matching lab materials), when opening the Research Lab screen, then the status area shows that queued active technology title under the status line.
+- [ ] Given a queued active technology exists for the player, when viewing the middle `Current` column, then the icon shown is the current research icon (or its material fallback) rather than the lab block icon.
+- [ ] Given a player opens a placed Research Lab with no queued active technology, when viewing the left status column, then status reads `No research selected` with a red indicator.
+- [ ] Given a queued active technology exists but required materials are missing from lab slots, when viewing the left status column, then status reads `Not enough materials` with a warning-colored indicator.
+- [ ] Given a queued active technology exists and required materials are present in lab slots, when viewing the left status column, then status reads `Working` with a green indicator.
+- [ ] Given an active queued technology can run multiple times from available materials, when one run completes and the next run starts, then the Research Lab progress label keeps a non-zero max value and never shows `Progress: <n>/0` while status remains active.
+- [ ] Given a lab can execute at least two consecutive runs without closing the UI, when the first run completes and the second run starts, then the on-screen progress value continues updating live during the second run without requiring the screen to be reopened.
+- [ ] Given a lab run completes while the UI remains open and another run can continue, when the next run starts, then `Current` remains populated with the active technology and progress text does not show both values rising together as `x/x`.
+- [ ] Given a lab run completion consumes one or more material slots while the UI is open, when the slot contents sync to client after payout, then `Status`, `Current`, and progress max values remain populated from the active queue entry instead of clearing until the screen is reopened.
+- [ ] Given a queued technology is active and partially completed, when viewing the center `Current` column, then a second progress bar and `Overall: <progress>/<cost>` text are shown and reflect the technology's queue progress rather than per-run lab cycle progress.
 
 ## Research Tree and Manual Task Submissions
-- [ ] Given the player is in-game, when pressing the Research Tree keybind (`K` default), then the Research & Tech Tree screen opens populated from datapack-defined entries and tasks.
-- [ ] Given player inventory contains 8 paper, when clicking the "Field Notes Submission" task button, then 8 paper are consumed and research points increase by 10.
-- [ ] Given player inventory contains 16 slime balls, when clicking "Specimen Delivery" task multiple times, then each submission consumes 16 slime balls and grants repeatable research points.
-- [ ] Given the player has enough research points and completed prerequisites, when clicking an unlockable tech entry button, then points are spent and the entry is marked unlocked.
+- [x] Given the player is in-game, when pressing the Research Tree keybind (`K` default), then the Research & Tech Tree screen opens populated from datapack-defined entries and tasks.
+- [ ] Given player inventory contains 8 paper, when clicking the "Field Notes Submission" task button, then 8 paper are consumed and the task is marked completed (without granting research points).
+- [ ] Given player inventory contains 16 slime balls, when clicking "Specimen Delivery" task multiple times, then each submission consumes 16 slime balls and the task remains valid as a prerequisite gate for required technologies.
+- [ ] Given the player has completed all prerequisites and required manual tasks for a technology, when clicking `Start Research`, then that technology is added to the research queue instead of unlocking instantly.
+- [ ] Given a queued technology is first in queue and matching research materials are processed in the lab, when one full lab run completes, then active progress increases by exactly 1 run.
+- [ ] Given "Lab Basics" is queued first and enough required materials are processed to reach its cost, when progress reaches full, then "Lab Basics" unlocks automatically and the next queued technology becomes active.
+- [ ] Given "Lab Basics" is unlocked and "Specimen Delivery" has been submitted at least once, when queuing "Applied Materials" and letting progress reach its full cost, then "Applied Materials" unlocks without additional manual clicks.
+- [ ] Given a technology is missing prerequisite techs or required manual tasks, when selecting it in the tree, then `Start Research` is disabled and unmet requirements are shown in the details panel.
+- [ ] Given `Lab Basics` is in the queue but not unlocked and required manual tasks are completed, when selecting `Applied Materials`, then `Start Research` is enabled and adds it behind `Lab Basics` in the queue.
+- [ ] Given two queued technologies where the first has partial progress, when dragging that first technology behind the second and waiting for a refresh, then the moved technology keeps its previously accumulated progress value.
 
-## Research Lab Build Compatibility
-- [ ] Given a clean checkout on CI or local dev machine with required network access, when running `./gradlew compileJava`, then `LabBlock` codec registration compiles without constructor-reference errors.
+## Research Tree UI Layout
+- [ ] Given the Research screen is open, when viewing the layout, then the left side shows queue/details/list panels and the right side shows a node-based technology tree with connector lines.
+- [ ] Given the Research screen is open at default GUI scale, when comparing panel sizes to the previous compact layout, then both the left detail area and right tree viewport provide visibly larger usable space for text/icons.
+- [ ] Given default datapack content is loaded, when opening the Research screen, then at least 16 technology entries appear across the tree/list, including disconnected branches such as `Wildlife Survey`, `Acoustic Mapping`, and `Artifact Restoration`.
+- [ ] Given technologies are in different states (locked, available, queued, active, unlocked), when rendered on the tree, then node colors change by state and the selected node has a visible white outline.
+- [ ] Given technologies in `locked`, `available`, `active`, and `unlocked` states, when rendered in both the tree and left technology list, then colors match: locked=`red`, available=`yellow`, active=`blue`, unlocked=`green`.
+- [ ] Given the Research screen is open on the Tech Tree tab with at least one queued technology, when viewing the top-left section, then queue cards render below the tab controls with visible spacing and do not overlap the selected-technology panel.
+- [ ] Given the Research screen is open on the Tech Tree tab with one or more queued technologies, when viewing the queue panel title area, then the `Research Queue` text remains fully visible above cards and is not covered by queue entries.
+- [ ] Given the Research screen is open on the Tech Tree tab, when viewing the left column, then the technology search box is positioned directly below the `Research Queue` panel and above the selected-technology detail panel.
+- [ ] Given the queue contains at least two entries plus separate `available`, `locked`, and `unlocked` entries, when viewing the left side, then queued entries appear only in the top `Research Queue` row while the lower technology list excludes queued entries and orders remaining entries as available, locked, unlocked.
+- [ ] Given at least one queued technology is present, when viewing the `Research Queue` row, then queue cards use the same card dimensions/icon layout/selection marker style as cards in the lower technology list.
+- [ ] Given at least two queued technologies are visible in the `Research Queue` row, when dragging one queue card onto another, then queue order updates immediately and remains in the new order after the next server sync.
+- [ ] Given at least three queued technologies are visible in the `Research Queue` row, when left-dragging the first card horizontally across neighboring card centers, then the dragged card visually follows the cursor and the queue order snaps as each center is crossed.
+- [ ] Given at least three queued technologies are visible in the `Research Queue` row, when dragging across card boundaries while keeping the cursor in the queue row, then reorder snapping continues without canceling or resetting the drag state.
+- [ ] Given the queue has prerequisite order `Lab Basics -> Applied Materials`, when dragging `Applied Materials` ahead of `Lab Basics`, then the reorder is rejected and queue order stays unchanged.
+- [ ] Given the queue has three technologies where the middle and last are independent of each other, when dragging the last onto the middle card, then the reorder is accepted and persists after the next server sync.
+- [ ] Given queued technologies are visible in the `Research Queue` row, when hovering the small `x` button on a queue card, then that button background turns red and clicking it removes only that technology from the queue.
+- [ ] Given a technology is selected from queue/list/tree, when viewing cards and nodes, then the selected technology renders with a single white outline and non-selected entries have no selection outline.
+- [ ] Given multiple technologies have partial stored progress (greater than 0 and less than cost), when viewing queue/list/tree cards, then each partially researched technology shows a compact green progress bar under its card.
+- [ ] Given a technology has a configured icon item in datapack, when viewing it in the right-side tree, then that item icon is rendered inside the node card.
+- [ ] Given a player has one or more queued researches before opening the Research screen, when the screen opens, then selected technology defaults to the current/queued research instead of the first alphabetical list entry.
+- [ ] Given the Research screen is on the Tech Tree tab, when typing in the search box, then technologies are filtered by technology title and by configured `unlocks` text values.
+- [ ] Given the Research screen is open and the search box is focused, when waiting at least one server sync cycle (about 1 second), then the search box keeps its focused visual state and typing continues without needing to re-click.
+- [ ] Given the Research screen is on the Tech Tree tab, when typing quickly into the search box, then typing remains responsive and filtering applies shortly after a brief pause instead of re-filtering every keystroke.
+- [ ] Given the Research screen is on the Tech Tree tab with non-empty search text, when right-clicking inside the search box, then the search text clears immediately and full technology results are restored.
+- [ ] Given the Tech Tree tab is open, when comparing node placement before and after recent update, then horizontal and vertical spacing between nodes is visibly increased with less overlap/crowding.
+- [ ] Given the Tech Tree tab is open with technologies spanning first/last columns and rows, when viewing the tree viewport, then each node remains inset from the viewport border with visible padding on all sides.
+- [ ] Given the Research screen is open on the Tech Tree tab, when left-dragging inside the right technology-tree panel, then the tree nodes/connectors pan with the cursor and remain selectable at their dragged positions.
+- [ ] Given the tree is panned in any direction, when viewing the right panel edges, then nodes and connector lines are clipped to the panel bounds and never render outside the tree viewport.
+- [ ] Given menu background blur is enabled in client video settings, when opening the Research screen, then the world behind the screen remains sharp (no blur) and blur settings are restored after closing the screen.
+- [ ] Given the Research screen is open with a selected technology, when viewing the Tech Tree tab left panel, then the queue row shows large slot cells, the selected technology card shows icon/cost/effects rows with a `Start Research` control, and the bottom technology list renders as an icon grid rather than text rows.
+- [ ] Given the Research screen is open, when switching between `Tech Tree` and `Manual Research` tabs, then tech queue/tree controls stay in the Tech Tree tab and manual task submission controls appear only in the Manual Research tab.
+- [ ] Given the Research screen is open with a long selected technology description, when viewing the left details card, then title/cost/effects/progress/description text stays within the panel and does not overlap the `Start Research` button.
+- [ ] Given a selected technology has required manual tasks, when viewing the left details card `Effects` row, then each task icon remains fully inside that row and does not bleed into the progress bar.
+- [ ] Given a selected technology has several required materials and manual tasks, when viewing the left details card requirement row, then additional requirement icon/count content fits inside the row without clipping at the panel edge.
+- [ ] Given the Research screen is on the `Manual Research` tab with at least two tasks, when viewing the left column, then the manual title text stays above the task buttons with visible spacing and no overlap.
+- [ ] Given the `Manual Research` tab is open with one task selected, when viewing the right panel, then status/item/count/repeatable info appears inside a summary card, description text stays inside a dedicated lower card, and the `Submit tasks` button remains visible at the bottom.
+
+## Research Admin Commands
+- [ ] Given operator permission level 2 and a target player, when running `/incore research get <target>`, then chat output shows active progress, queue size, unlocked count, completed task count, and active queue entry id.
+- [ ] Given operator permission level 2 and a target player with unmet prerequisites, when running `/incore research enqueue <target> incore:applied_materials`, then the command reports 0 successful queues and the entry is not added to the queue.
+- [ ] Given operator permission level 2 and a target player, when running `/incore research force_unlock <target> incore:lab_basics`, then `/incore research get <target>` reflects updated unlocked counts and the forced tech is removed from queue if it was queued.
+- [ ] Given operator permission level 2 and a target player with `incore:lab_basics` unlocked, when running `/incore research revoke <target> incore:lab_basics`, then `/incore research get <target>` shows one fewer unlocked research and the revoked entry is not active/queued.
+- [ ] Given operator permission level 2 and a target player, when running `/incore research complete_task <target> incore:field_notes` and `/incore research clear_queue <target>`, then required-task gates treat `field_notes` as complete and queue size returns to 0.
+- [ ] Given operator permission level 2 and a target player with any research progress, when running `/incore research reset_all <target>`, then `/incore research get <target>` reports queue=0, unlocked=0, completedTasks=0, and active=none.
