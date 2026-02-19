@@ -27,11 +27,87 @@ repositories {
     }
 
     maven {
-        url 'https://jitpack.io'
+        url "https://jitpack.io"
         content {
             includeGroup "com.github.rtyley"
         }
     }
+
+    maven {
+        url "https://maven.ftb.dev/releases"
+        content {
+            includeGroup "dev.ftb.mods"
+        }
+    }
+
+    maven {
+        // Shadows
+        url "https://maven.shadowsoffire.dev/releases"
+        content {
+            includeGroup "dev.shadowsoffire"
+            includeGroup "snownee.jade"
+        }
+    }
+
+    maven {
+        // Curios
+        url "https://maven.theillusivec4.top"
+        content {
+            includeGroupByRegex "top\\.theillusivec4.*"
+        }
+    }
+
+    maven {
+        // Patchouli
+        url "https://maven.blamejared.com"
+        content {
+            includeGroup "vazkii.patchouli"
+            includeGroupByRegex "net\\.darkhax.*"
+            includeGroupByRegex "com\\.blamejared.*"
+            includeGroup "org.openzen.zencode"
+            includeGroup "mezz.jei"
+        }
+    }
+
+    repositories {
+        maven {
+            name = "TerraformersMC"
+            url = "https://maven.terraformersmc.com/"
+        }
+    }
+
+    repositories {
+        maven {
+            url = uri("https://maven.puffish.net")
+        }
+    }
+
+    maven {
+        url "https://chocolateminecraft.com/maven"
+        name "Xaero's Maven"
+    }
+
+    maven {
+        url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        content {
+            includeGroup("software.bernie.geckolib")
+        }
+    }
+
+    maven {
+        name "KosmX's maven"
+        url 'https://maven.kosmx.dev/'
+    }
+
+    maven {
+        name = "Iron's Maven - Release"
+        url = "https://code.redspace.io/releases"
+    }
+
+    maven { url = "https://maven.architectury.dev" }
+    maven { url = "https://maven.createmod.net" }
+    maven { url = "https://maven.ithundxr.dev/snapshots" }
+    //maven { url 'https://maven.wispforest.io/releases' }
 
     exclusiveContent {
         forRepository {
@@ -118,6 +194,69 @@ dependencies {
     interfaceInjectionData("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
     implementation("curse.maven:paragliders-289240:6739615")
     implementation("curse.maven:walljumptxf-909143:6584352")
+
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+
+    implementation "curse.maven:numismatics-889722:7168396"
+
+    implementation "snownee.jade:Jade-NeoForge:${minecraft_version}-${jadeVersion}"
+
+    compileOnly("dev.emi:emi-neoforge:${emi_version}:api")
+    runtimeOnly("dev.emi:emi-neoforge:${emi_version}")
+
+    implementation "top.theillusivec4.curios:curios-neoforge:${curiosVersion}"
+    //implementation("io.wispforest:accessories-neoforge:${accessories_version}")
+    //implementation "curse.maven:accessories-compat-layer-1315611:7585673"
+
+    implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    implementation "dev.kosmx.player-anim:player-animation-lib-forge:${player_animator_version}"
+
+    implementation "dev.shadowsoffire:Placebo:${minecraft_version}-${placeboVersion}"
+    implementation "dev.shadowsoffire:GatewaysToEternity:${minecraft_version}-${gatewaysVersion}"
+    implementation "dev.shadowsoffire:Apotheosis:${minecraft_version}-${apotheosisVersion}"
+    implementation "vazkii.patchouli:Patchouli:${patchouliVersion}"
+
+    compileOnly "io.redspace:atlas_api:${minecraft_version}-${atlas_api_version}:api"
+    localRuntime "io.redspace:atlas_api:${minecraft_version}-${atlas_api_version}"
+
+    implementation "io.redspace:irons_spellbooks:${minecraft_version}-${irons_spells_version}"
+    implementation "io.redspace:irons_jewelry:${minecraft_version}-${irons_jewelry_version}"
+
+    implementation("net.puffish:attributesmod:${pufferfishsAttributesVersion}:neoforge")
+    implementation("net.puffish:skillsmod:${pufferfishsSkillsVersion}:neoforge")
+
+    implementation "curse.maven:pufferfishs-unofficial-additions-935166:7389968"
+    implementation "curse.maven:additional-attributes-986624:6388896"
+
+    implementation "curse.maven:silent-lib-242998:6565251"
+    implementation "curse.maven:silent-gear-297039:7634317"
+    implementation "curse.maven:silents-gems-220311:7512691"
+
+    implementation "curse.maven:octo-lib-916747:6932487"
+    implementation "curse.maven:artifacts-312353:7468997"
+    implementation "curse.maven:relics-mod-445274:7586568"
+    implementation "curse.maven:rar-compat-1100379:6879980"
+
+    implementation "xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaeroMinimapVersion}"
+    implementation "xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaeroWorldMapVersion}"
+
+    runtimeOnly("dev.architectury:architectury-neoforge:13.0.8")
+
+    compileOnly("dev.ftb.mods:ftb-ultimine:${ftb_ultimine_version}")
+    runtimeOnly("dev.ftb.mods:ftb-ultimine-neoforge:${ftb_ultimine_version}")
+
+    compileOnly("dev.ftb.mods:ftb-teams:${ftb_teams_version}")
+    runtimeOnly("dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}")
+
+    compileOnly("dev.ftb.mods:ftb-quests:${ftb_quests_version}")
+    runtimeOnly("dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}")
+
+    implementation "curse.maven:ftb-teams-forge-404468:7369021"
+    implementation "curse.maven:ftb-quests-forge-289412:7429016"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
