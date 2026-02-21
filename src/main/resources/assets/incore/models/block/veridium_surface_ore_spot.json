@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "incore:block/surface_ore_spot/veridium"
+  }
+}

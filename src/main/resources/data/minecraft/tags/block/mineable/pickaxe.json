@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "incore:crimsite_surface_ore_spot",
+    "incore:veridium_surface_ore_spot",
+    "incore:asurine_surface_ore_spot",
+    "incore:ochrum_surface_ore_spot",
+    "incore:cinnabar_surface_ore_spot",
+    "incore:mixed_metals_surface_ore_spot",
+    "incore:gem_clusters_surface_ore_spot",
+    "incore:cinnabar_ore_stone",
+    "incore:mixed_metals_ore_stone",
+    "incore:gem_clusters_ore_stone",
+    "incore:cinnabar_ore_stone_slab",
+    "incore:mixed_metals_ore_stone_slab",
+    "incore:gem_clusters_ore_stone_slab"
+  ]
+}

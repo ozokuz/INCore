@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/veridium_surface_ore_spot"
+    }
+  }
+}

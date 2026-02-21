@@ -30,6 +30,34 @@ Manual gameplay verification checklist for testers.
 - [ ] Given event category `incore:chartered` is loaded, when running `/incore gacha rotate incore:chartered next`, then the active chartered banner changes immediately and the command reports the new active banner id.
 - [ ] Given op permissions and an active category already force-rotated once, when waiting until the current category window expires without additional commands, then visible event banners resume normal time-based rotation order automatically.
 
+## Overworld Surface Ore Patches
+- [ ] Given the server has unexplored overworld terrain, when traveling into newly generated chunks, then chunk selection for surface ore patches is deterministic and averages to 1 selected chunk in 50 by world seed/chunk hash.
+- [ ] Given any generated surface ore patch, when counting all spots in that one patch cluster, then the patch contains 2 to 6 spots.
+- [ ] Given any generated patch, when mining each spot once and observing the remaining/max counter message, then each spot in that patch starts with the same max mine count and that max remains between 400 and 1200.
+- [ ] Given generated patches near world spawn and generated patches far from world spawn, when comparing their max mine counts across multiple samples, then farther patches trend richer with higher max mine counts.
+- [ ] Given newly generated patches in multiple chunks, when identifying ore spot block types, then each patch uses exactly one ore type chosen from: Crimsite, Veridium, Asurine, Ochrum, Cinnabar, Mixed Metals, Gem Clusters.
+- [ ] Given a surface ore spot with more than one mine remaining, when breaking it once normally, then the block remains in place and drops one item of that ore type's original ore stone block.
+- [ ] Given a surface ore spot with one mine remaining, when breaking it once normally, then the block is removed and drops one item of that ore type's original ore stone block.
+- [ ] Given a player in creative mode, when sneaking and breaking a surface ore spot, then the spot is destroyed immediately and the position becomes air.
+- [ ] Given a player in survival mode, when sneaking and breaking a surface ore spot once, then the break is canceled and a warning is shown; when sneaking and breaking that same spot again within 4 seconds, then the spot is destroyed.
+- [ ] Given any generated patch, when checking distance between each pair of spots in that patch on the XZ plane, then all spots are spaced by at least 3 blocks.
+- [ ] Given a generated patch, when inspecting the patch footprint around spots, then the surface area forms an oval/spherical-looking footprint (not a rectangle) and is fully covered with no intentional empty gaps.
+- [ ] Given a generated patch footprint, when inspecting covered cells, then light smoothing includes some regular stone slabs and ore-stone slabs mixed among full blocks.
+- [ ] Given trees/rocks/structure-like solid blocks in candidate terrain, when generating new patches nearby, then patches do not overwrite those solid feature blocks.
+- [ ] Given plants (grass/flowers/etc.) in candidate patch terrain, when a patch generates there, then those plants may be cleared by patch coverage while solid feature blocks remain untouched.
+- [ ] Given short/tall grass, ferns, dead bushes, or flowers above patch cells, when a patch generates, then those soft vegetation blocks are cleared up to 2 blocks above the patch surface and above spot blocks.
+- [ ] Given a generated patch on uneven terrain (small ledges/slopes), when inspecting exposed patch edges, then patch material extends two blocks below the surface layer so underlying original ground is not visibly bleeding through.
+- [ ] Given a generated patch, when checking every ore spot, then each spot remains exposed on top and no generated coverage block is placed above any ore spot.
+- [ ] Given a dev environment and a player with the Surface Ore Debug Compass, when right-clicking the compass in the overworld, then it targets the nearest unfound saved ore patch location and points there.
+- [ ] Given a Surface Ore Debug Compass already locked to a patch, when holding the compass and rotating around in the same dimension, then the compass needle points toward the locked patch instead of staying static north.
+- [ ] Given a Surface Ore Debug Compass lock is set to a patch that has no lodestone block at the target, when waiting at least 10 seconds and moving around, then the compass stays locked to that patch target and keeps pointing correctly.
+- [ ] Given repeated right-clicks with the Surface Ore Debug Compass in a dev environment, when multiple saved patches exist, then each lock consumes one unfound patch from that player's persistent found list and progresses to the next nearest unfound patch.
+- [ ] Given a player has already marked patches with the Surface Ore Debug Compass, when leaving and rejoining, then right-clicking the compass continues from remaining unfound patches (found patch chunk ids persist in player data).
+- [ ] Given a generated patch with soft vegetation above covered cells, when generation completes, then grass/ferns/dead bushes/flowers up to 2 blocks above patch cells are removed while trees/leaves stay intact.
+- [ ] Given any surface ore spot variant, when observing its model, then it uses a single baked texture (no overlay geometry), matching the ore stone base with a visible center marking on faces.
+- [ ] Given a partially mined surface ore spot, when leaving the area (or restarting server) and returning, then its remaining mine count persists and continues from the previous value.
+- [ ] Given fake-player or machine-style block breaking that uses normal break flow, when it mines a surface ore spot, then the spot mine count decreases by one and the spot behavior matches player mining.
+
 ## Daily & Weekly Datapack Tasks
 - [ ] Given a weekly tier has become unlocked but `Claim Weekly Rewards` has not been clicked, when checking inventory/chat reward outputs, then no weekly tier reward is granted automatically until the claim button is used.
 - [ ] Given daily and weekly reward pools contain item and non-item rewards, when opening the Daily/Weekly screen, then reward item icons are visible with padding in the daily reward section and on each weekly tier slot (without crossing panel/tier borders) and hovering each icon shows a tooltip describing that reward.

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "type=bottom": { "model": "incore:block/gem_clusters_ore_stone_slab" },
+    "type=double": { "model": "incore:block/gem_clusters_ore_stone" },
+    "type=top": { "model": "incore:block/gem_clusters_ore_stone_slab_top" }
+  }
+}
