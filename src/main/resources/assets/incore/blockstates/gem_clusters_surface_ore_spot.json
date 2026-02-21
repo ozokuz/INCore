@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/gem_clusters_surface_ore_spot"
+    }
+  }
+}

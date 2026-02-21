@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/mixed_metals_ore_stone"
+    }
+  }
+}

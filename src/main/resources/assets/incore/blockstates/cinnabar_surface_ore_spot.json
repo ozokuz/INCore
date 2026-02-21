@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/cinnabar_surface_ore_spot"
+    }
+  }
+}
