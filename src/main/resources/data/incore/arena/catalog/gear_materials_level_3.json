@@ -1,0 +1,17 @@
+{
+  "category_id": "gear_materials",
+  "category_name": "Gear Materials",
+  "difficulty_id": "level_3",
+  "difficulty_name": "Level 3",
+  "gateway_id": "incore:arena_tier_3",
+  "sort_order": 30,
+  "reward_summary": "Advanced gear progression resources.",
+  "reward": {
+    "sanity_cost": 45,
+    "items": [
+      { "item": "minecraft:gold_ingot", "count": 24 },
+      { "item": "minecraft:diamond", "count": 4 },
+      { "item": "minecraft:lapis_lazuli", "count": 32 }
+    ]
+  }
+}

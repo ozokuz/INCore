@@ -1,0 +1,16 @@
+{
+  "category_id": "gear_materials",
+  "category_name": "Gear Materials",
+  "difficulty_id": "level_1",
+  "difficulty_name": "Level 1",
+  "gateway_id": "incore:arena_tier_1",
+  "sort_order": 10,
+  "reward_summary": "Starter upgrade bundle.",
+  "reward": {
+    "sanity_cost": 20,
+    "items": [
+      { "item": "minecraft:iron_ingot", "count": 16 },
+      { "item": "minecraft:coal", "count": 24 }
+    ]
+  }
+}

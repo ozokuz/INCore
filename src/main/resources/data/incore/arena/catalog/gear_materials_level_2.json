@@ -1,0 +1,17 @@
+{
+  "category_id": "gear_materials",
+  "category_name": "Gear Materials",
+  "difficulty_id": "level_2",
+  "difficulty_name": "Level 2",
+  "gateway_id": "incore:arena_tier_2",
+  "sort_order": 20,
+  "reward_summary": "Core smithing resources.",
+  "reward": {
+    "sanity_cost": 30,
+    "items": [
+      { "item": "minecraft:iron_ingot", "count": 32 },
+      { "item": "minecraft:gold_ingot", "count": 12 },
+      { "item": "minecraft:redstone", "count": 24 }
+    ]
+  }
+}

@@ -1,5 +1,9 @@
 package io.github.ozokuz.incore;
 
+import io.github.ozokuz.incore.features.arena.content.ArenaOrbBlock;
+import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateBlock;
+import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateBlockEntity;
+import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateBlockItem;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBlock;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterWandItem;
@@ -69,6 +73,13 @@ public class Registration {
     public static final DeferredBlock<Block> GACHA_CRATE_BLOCK = BLOCKS.register("gacha_crate", GachaCrateBlock::new);
     public static final Supplier<BlockEntityType<GachaCrateBlockEntity>> GACHA_CRATE_BE = BLOCK_ENTITY_TYPES.register("gacha_crate", () -> BlockEntityType.Builder.of(GachaCrateBlockEntity::new, GACHA_CRATE_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> GACHA_CRATE_BLOCK_ITEM = ITEMS.registerItem("gacha_crate", properties -> new GachaCrateBlockItem(GACHA_CRATE_BLOCK.get(), properties));
+    public static final DeferredBlock<Block> ARENA_ORB_BLOCK = BLOCKS.register("arena_orb", ArenaOrbBlock::new);
+    public static final DeferredItem<BlockItem> ARENA_ORB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("arena_orb", ARENA_ORB_BLOCK);
+    public static final DeferredBlock<Block> ARENA_REWARD_CRATE_BLOCK = BLOCKS.register("arena_reward_crate", ArenaRewardCrateBlock::new);
+    public static final Supplier<BlockEntityType<ArenaRewardCrateBlockEntity>> ARENA_REWARD_CRATE_BE =
+            BLOCK_ENTITY_TYPES.register("arena_reward_crate", () -> BlockEntityType.Builder.of(ArenaRewardCrateBlockEntity::new, ARENA_REWARD_CRATE_BLOCK.get()).build(null));
+    public static final DeferredItem<BlockItem> ARENA_REWARD_CRATE_BLOCK_ITEM =
+            ITEMS.registerItem("arena_reward_crate", properties -> new ArenaRewardCrateBlockItem(ARENA_REWARD_CRATE_BLOCK.get(), properties));
     public static final DeferredBlock<Block> RESEARCH_LAB_BLOCK = BLOCKS.register("research_lab", () -> new LabBlock());
     public static final Supplier<BlockEntityType<LabBlockEntity>> RESEARCH_LAB_BE = BLOCK_ENTITY_TYPES.register("research_lab", () -> BlockEntityType.Builder.of(LabBlockEntity::new, RESEARCH_LAB_BLOCK.get()).build(null));
     public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
@@ -113,7 +124,6 @@ public class Registration {
                     "dungeon_crystal_objective",
                     builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC)
             );
-
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.incore"))
             .withTabsBefore(CreativeModeTabs.COMBAT)
@@ -127,6 +137,8 @@ public class Registration {
                 output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
                 output.accept(GACHA_CRATE_BLOCK_ITEM.get());
+                output.accept(ARENA_ORB_BLOCK_ITEM.get());
+                output.accept(ARENA_REWARD_CRATE_BLOCK_ITEM.get());
                 output.accept(RESEARCH_LAB_BLOCK_ITEM.get());
                 output.accept(ENCOUNTER_WAND_ITEM.get());
                 output.accept(SANITY_CRATE_ITEM.get());

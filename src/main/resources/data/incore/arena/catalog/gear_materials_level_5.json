@@ -1,0 +1,17 @@
+{
+  "category_id": "gear_materials",
+  "category_name": "Gear Materials",
+  "difficulty_id": "level_5",
+  "difficulty_name": "Level 5",
+  "gateway_id": "incore:arena_tier_5",
+  "sort_order": 50,
+  "reward_summary": "Top-tier endgame materials.",
+  "reward": {
+    "sanity_cost": 80,
+    "items": [
+      { "item": "minecraft:netherite_scrap", "count": 3 },
+      { "item": "minecraft:diamond", "count": 24 },
+      { "item": "minecraft:emerald", "count": 20 }
+    ]
+  }
+}

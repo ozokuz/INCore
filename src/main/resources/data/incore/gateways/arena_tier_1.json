@@ -1,0 +1,29 @@
+{
+  "type": "gateways:normal",
+  "size": "small",
+  "color": "#64B876",
+  "waves": [
+    {
+      "max_wave_time": 900,
+      "setup_time": 80,
+      "entities": [
+        { "type": "gateways:standard", "count": 5, "entity": "minecraft:zombie" }
+      ]
+    },
+    {
+      "max_wave_time": 900,
+      "setup_time": 0,
+      "entities": [
+        { "type": "gateways:standard", "count": 3, "entity": "minecraft:skeleton" }
+      ]
+    }
+  ],
+  "rules": {
+    "spawn_range": 6,
+    "leash_range": 40,
+    "requires_nearby_player": true,
+    "remove_mobs_on_failure": true,
+    "fail_on_out_of_bounds": true,
+    "lives": 1
+  }
+}

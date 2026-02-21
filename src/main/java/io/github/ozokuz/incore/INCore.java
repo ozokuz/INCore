@@ -2,6 +2,8 @@ package io.github.ozokuz.incore;
 
 import io.github.ozokuz.incore.data.ICBlockStateProvider;
 import io.github.ozokuz.incore.data.ICItemModelProvider;
+import io.github.ozokuz.incore.features.arena.data.ArenaCatalogManager;
+import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.command.BattlePassCommands;
@@ -56,6 +58,7 @@ public class INCore {
         modEventBus.addListener(TaskNetworking::registerPayloads);
         modEventBus.addListener(BattlePassNetworking::registerPayloads);
         modEventBus.addListener(ResearchNetworking::registerPayloads);
+        modEventBus.addListener(ArenaNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -94,5 +97,6 @@ public class INCore {
         event.addListener(new AltarOfferingManager());
         event.addListener(new DungeonThemeManager());
         event.addListener(new DungeonObjectiveManager());
+        event.addListener(new ArenaCatalogManager());
     }
 }
