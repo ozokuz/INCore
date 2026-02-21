@@ -1,0 +1,38 @@
+{
+  "type": "gateways:normal",
+  "size": "medium",
+  "color": "#8E74CC",
+  "waves": [
+    {
+      "max_wave_time": 1200,
+      "setup_time": 120,
+      "entities": [
+        { "type": "gateways:standard", "count": 6, "entity": "minecraft:pillager" },
+        { "type": "gateways:standard", "count": 3, "entity": "minecraft:spider" }
+      ],
+      "modifiers": [
+        {
+          "type": "gateways:attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_multiplied_total",
+          "value": 0.2
+        }
+      ]
+    },
+    {
+      "max_wave_time": 1200,
+      "setup_time": 0,
+      "entities": [
+        { "type": "gateways:standard", "count": 2, "entity": "minecraft:enderman" }
+      ]
+    }
+  ],
+  "rules": {
+    "spawn_range": 7,
+    "leash_range": 44,
+    "requires_nearby_player": true,
+    "remove_mobs_on_failure": true,
+    "fail_on_out_of_bounds": true,
+    "lives": 1
+  }
+}

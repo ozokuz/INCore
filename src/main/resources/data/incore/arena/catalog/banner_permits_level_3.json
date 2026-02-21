@@ -1,0 +1,16 @@
+{
+  "category_id": "banner_permits",
+  "category_name": "Banner Permits",
+  "difficulty_id": "level_3",
+  "difficulty_name": "Level 3",
+  "gateway_id": "incore:arena_tier_3",
+  "sort_order": 130,
+  "reward_summary": "Mixed permit rewards.",
+  "reward": {
+    "sanity_cost": 45,
+    "items": [
+      { "item": "incore:basic_banner_permit", "count": 6 },
+      { "item": "incore:chartered_banner_permit", "count": 1 }
+    ]
+  }
+}

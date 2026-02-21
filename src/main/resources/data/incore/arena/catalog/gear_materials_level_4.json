@@ -1,0 +1,17 @@
+{
+  "category_id": "gear_materials",
+  "category_name": "Gear Materials",
+  "difficulty_id": "level_4",
+  "difficulty_name": "Level 4",
+  "gateway_id": "incore:arena_tier_4",
+  "sort_order": 40,
+  "reward_summary": "High-end forge materials.",
+  "reward": {
+    "sanity_cost": 60,
+    "items": [
+      { "item": "minecraft:diamond", "count": 10 },
+      { "item": "minecraft:emerald", "count": 10 },
+      { "item": "minecraft:netherite_scrap", "count": 1 }
+    ]
+  }
+}

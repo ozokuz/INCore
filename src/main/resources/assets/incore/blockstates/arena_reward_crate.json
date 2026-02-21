@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/arena_reward_crate"
+    }
+  }
+}

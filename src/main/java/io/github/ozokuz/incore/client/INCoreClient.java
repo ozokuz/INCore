@@ -9,12 +9,12 @@ import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import io.github.ozokuz.incore.client.status.BattlePassScreen;
 import io.github.ozokuz.incore.client.status.PlayerStatusScreen;
 import io.github.ozokuz.incore.client.tasks.TaskOverviewScreen;
+import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
 import io.github.ozokuz.incore.features.research.client.LabScreen;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
-import io.github.ozokuz.incore.Registration;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -48,6 +48,7 @@ public class INCoreClient {
         event.register(INCoreKeyMappings.OPEN_TASK_OVERVIEW);
         event.register(INCoreKeyMappings.OPEN_BATTLE_PASS);
         event.register(INCoreKeyMappings.OPEN_RESEARCH_TREE);
+        event.register(INCoreKeyMappings.OPEN_COMBAT_CATALOG);
     }
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
@@ -88,6 +89,10 @@ public class INCoreClient {
 
         while (INCoreKeyMappings.OPEN_RESEARCH_TREE.consumeClick()) {
             ResearchNetworking.requestOpen();
+        }
+
+        while (INCoreKeyMappings.OPEN_COMBAT_CATALOG.consumeClick()) {
+            ArenaNetworking.requestOpenCatalog();
         }
     }
 }

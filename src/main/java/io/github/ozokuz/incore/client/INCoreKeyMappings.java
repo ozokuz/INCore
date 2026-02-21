@@ -35,6 +35,12 @@ public final class INCoreKeyMappings {
             GLFW.GLFW_KEY_B,
             "key.categories.incore"
     );
+    public static final KeyMapping OPEN_COMBAT_CATALOG = new KeyMapping(
+            "key.incore.open_combat_catalog",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_V,
+            "key.categories.incore"
+    );
 
     private INCoreKeyMappings() {
     }

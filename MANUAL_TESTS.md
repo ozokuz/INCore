@@ -157,3 +157,35 @@ Manual gameplay verification checklist for testers.
 - [ ] Given hallway templates where one horizontal axis is shorter than the other (for example `16x11x10`), when generating dungeons, then hallways auto-rotate to use the longer axis for travel and touch both connected room openings without gaps.
 - [ ] Given a generated dungeon layout, when tracing room connections from the starting room through hallways in each of 10 runs, then every generated room is reachable from the start.
 - [ ] Given a dungeon slot is recycled for a new run, when the next dungeon is generated in that slot, then blocks from the previous dungeon are cleared across the full slot build volume before new rooms and hallways are placed.
+
+## Arena Combat Catalog
+- [ ] Given at least one arena catalog datapack entry exists, when pressing the Combat Catalog keybind (`V` default), then the `Combat Catalog` screen opens and shows reward categories and difficulties.
+- [ ] Given the Combat Catalog is open with at least one category selected, when selecting a different category button, then the difficulty list updates to entries from that category only.
+- [ ] Given default arena datapack content is loaded, when opening Combat Catalog, then categories include `Gear Materials` and `Banner Permits`, each with difficulties `Level 1` through `Level 5`.
+- [ ] Given a difficulty entry is selected in the Combat Catalog, when reading the right-side details, then gateway id and sanity cost match that datapack entry and reward previews render as item icons with count labels.
+- [ ] Given a category+difficulty entry is selected, when pressing `Deploy to Arena`, then the player is teleported into the `incore:arena` dimension at their arena slot and receives the run prepared message.
+- [ ] Given a player has already received an arena slot from a previous run, when deploying again from the catalog, then the player is teleported to the same slot origin (per-player fixed slot behavior).
+- [ ] Given the player is inside a prepared arena, when attempting to move upward through the top boundary (for example with creative flight or vertical movement tools), then an invisible barrier ceiling blocks movement out of the arena.
+
+## Arena Orb And Gateway Flow
+- [ ] Given the player is in their prepared arena run, when right-clicking the center `Arena Orb`, then the configured Gateways gateway starts and the player receives the gateway started message.
+- [ ] Given a gateway configured by arena catalog is missing from datapacks, when trying to start from the orb, then the orb interaction fails with a missing gateway message and no fight starts.
+- [ ] Given an active arena gateway run is completed, when the gateway finishes successfully, then the run state ends as success and the player receives one `Arena Reward Crate`.
+- [ ] Given an active arena gateway run fails, when the gateway emits a failure, then the run state ends as failed, no reward crate is granted, and the orb displays return-ready behavior.
+- [ ] Given an arena wave entity dies during an arena run, when checking drops at death position, then default mob drops are not present.
+
+## Arena Reward Crate Sanity Spend
+- [ ] Given the player receives an `Arena Reward Crate` block item, when hovering it in inventory, then tooltip shows source category+difficulty, sanity cost, and deterministic reward entries with counts.
+- [ ] Given the player receives an `Arena Reward Crate` block item, when reading its display name, then the name format is `<Category Name> <Difficulty Name> Sanity Reward Crate` (for example `Gear Materials Level 5 Sanity Reward Crate`).
+- [ ] Given the player places an `Arena Reward Crate` block and right-clicks without sneaking, then the crate does not open.
+- [ ] Given the player sneak-right-clicks an `Arena Reward Crate` block while either hand is not empty, then the crate does not open and shows the empty-hands required message.
+- [ ] Given the player sneak-right-clicks an `Arena Reward Crate` block with empty hands and sanity below configured cost, then the crate does not open, sanity is not consumed, and not-enough-sanity message appears.
+- [ ] Given the player sneak-right-clicks an `Arena Reward Crate` block with empty hands and sanity at or above configured cost, then the crate block is consumed, sanity is reduced by exactly configured amount, and deterministic catalog rewards are granted.
+
+## Arena Return Safety
+- [ ] Given an arena run has ended (success or fail), when interacting with the arena orb again, then the player is teleported back to the originally stored return dimension and position.
+- [ ] Given the player dies during an arena run, when the player respawns, then they are not stranded in the arena and their run state is cleared.
+- [ ] Given the player logs out while in the arena with an active run, when logging back in, then pending-return handling restores them from the arena context and prevents being stranded.
+
+## Arena Datapack Extensibility
+- [ ] Given a datapack adds a new `data/<namespace>/arena/catalog/*.json` entry referencing a valid `data/<namespace>/gateways/*.json` gateway, when datapacks are reloaded and the catalog is opened, then the new selectable encounter appears without code changes.

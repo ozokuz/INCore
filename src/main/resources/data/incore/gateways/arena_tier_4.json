@@ -1,0 +1,44 @@
+{
+  "type": "gateways:normal",
+  "size": "medium",
+  "color": "#C97A4A",
+  "waves": [
+    {
+      "max_wave_time": 1400,
+      "setup_time": 140,
+      "entities": [
+        { "type": "gateways:standard", "count": 5, "entity": "minecraft:evoker" },
+        { "type": "gateways:standard", "count": 5, "entity": "minecraft:vindicator" }
+      ],
+      "modifiers": [
+        {
+          "type": "gateways:attribute",
+          "attribute": "minecraft:generic.max_health",
+          "operation": "add_multiplied_total",
+          "value": 0.3
+        },
+        {
+          "type": "gateways:attribute",
+          "attribute": "minecraft:generic.attack_damage",
+          "operation": "add_multiplied_total",
+          "value": 0.2
+        }
+      ]
+    },
+    {
+      "max_wave_time": 1500,
+      "setup_time": 0,
+      "entities": [
+        { "type": "gateways:standard", "count": 3, "entity": "minecraft:ravager" }
+      ]
+    }
+  ],
+  "rules": {
+    "spawn_range": 7,
+    "leash_range": 46,
+    "requires_nearby_player": true,
+    "remove_mobs_on_failure": true,
+    "fail_on_out_of_bounds": true,
+    "lives": 1
+  }
+}
