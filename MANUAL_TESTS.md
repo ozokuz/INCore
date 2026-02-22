@@ -274,10 +274,14 @@ Manual gameplay verification checklist for testers.
 
 ## Market Keybind And Terminal Permissions
 - [ ] Given a player is in-world with no GUI open, when pressing the Market keybind (`M` default), then the Global Market screen opens in read-only mode and no buy/sell buttons are shown.
+- [ ] Given a brand-new world save with no prior market file, when joining and opening the Market screen for the first time, then the selection screen opens without packet/decode errors or client disconnect.
 - [ ] Given a player opens Market from keybind, when viewing the selection screen, then a scrollable item grid is shown with each tile rendering item icon, item name, current price, and 24h percentage change.
 - [ ] Given a selected market item has positive 24h change, when viewing its tile in market selection, then the percentage is shown in green with an `▲` arrow; when change is negative, then percentage is shown in red with a `▼` arrow.
 - [ ] Given market selection is open with many items, when scrolling mouse wheel and then clicking a tile, then item details open in a separate screen and back navigation returns to selection with previous scroll position preserved.
 - [ ] Given market item details screen is open, when viewing the selected item, then current price, base price, demand index, 24h change, intraday chart, and 30-day chart are visible.
+- [ ] Given market selection is open, when clicking an item tile, then details opens and chart data for that selected item appears after the snapshot refresh without reopening the screen.
+- [ ] Given Market Terminal details trade controls are set to `Stacks: 1` for a stackable item, when pressing Buy once, then exactly one full item stack is received and bank cost equals `current unit price * stack size`.
+- [ ] Given Market Terminal details trade controls are set to `Stacks: 1` for a stackable item and inventory has at least one full stack, when pressing Sell once, then exactly one full stack is removed and bank payout equals `current unit price * stack size`.
 - [ ] Given player A and player B are not on the same FTB Team (or owner has no team), when player B attempts to use player A's Market Terminal, Shipment Terminal, or Market Auto-Buyer, then access is denied with a not-allowed message.
 - [ ] Given player A and player B are on the same FTB Team, when player B uses player A's Market Terminal, Shipment Terminal, or Market Auto-Buyer, then access is allowed.
 - [ ] Given Market Terminal has no card inserted and player has no personal bank account available, when attempting to buy or sell from terminal details screen, then trade is blocked and no-account feedback is shown.
@@ -288,16 +292,22 @@ Manual gameplay verification checklist for testers.
 ## Market Demand And Daily Rebalance
 - [ ] Given a market item starts near its base price, when repeatedly buying enough units from a terminal, then demand index for that item increases and current price rises compared to its initial value.
 - [ ] Given a market item starts near its base price, when repeatedly selling enough units through market terminal or shipment terminal, then demand index decreases and current price drops compared to its initial value.
-- [ ] Given a market item has strongly positive or negative demand before local noon, when server time passes 12:00 local and the next market tick runs, then demand moves partway back toward zero and price shifts toward base price.
+- [ ] Given multiple tradeable market items and server local time crossing 12:00, when repeatedly forcing/observing noon updates over many days, then each item independently follows daily branch probabilities (about 10% small reversion, 75% normal move up/down, 15% radical spike/crash).
+- [ ] Given noon daily update lands in the normal-move branch for an item, when comparing pre-noon and post-noon prices, then absolute price change does not exceed 30%.
+- [ ] Given many observed noon updates in the non-radical 85% path, when comparing normal-branch outcomes over a large sample, then outcomes are lower-end heavy in magnitude (more small moves and fewer large moves within the configured max change).
+- [ ] Given noon daily update lands in the radical branch for an item, when comparing pre-noon and post-noon prices, then price shows a large spike or crash while still staying within configured global min/max multiplier clamps.
 - [ ] Given market data has run for over one in-game day with trades, when inspecting item chart history after each hourly rollover, then candle entries are stored hourly and older entries are retained up to the configured retention window.
+- [ ] Given an existing world save where a tradeable market item has no candle history/state yet, when server ticks once with market enabled, then synthetic hourly candle history is generated up to retention window length and the item renders a non-empty day-change history in market UI.
+- [ ] Given a newly generated world and a low-price market item (for example base price 2-4 spur), when opening that item's market details chart, then bootstrap history includes visible close-price movement (not a full straight-line close series).
 
 ## Shipment Terminal
-- [ ] Given a Shipment Terminal has a bound Numismatics card in card slot and a tradeable market item stack in input, when waiting one shipment interval, then exactly one full stack from the first valid input slot is sold and card balance increases by current market price times sold count.
+- [ ] Given a Shipment Terminal has a bound Numismatics card in card slot and a full tradeable market item stack in input, when waiting one shipment interval, then exactly one full stack from the first valid input slot is consumed and card balance increases by exactly one market stack-price unit (current market price x 1 stack, not x item count in stack).
+- [ ] Given a Shipment Terminal first input slot contains a tradeable but partial stack (less than max stack size), when waiting at least one shipment interval, then no sale happens and status indicates a full stack is required.
 - [ ] Given a Shipment Terminal card slot is empty, when waiting for at least one shipment interval, then shipment progress resets and status shows no-card.
 - [ ] Given a Shipment Terminal has a non-tradeable item in the first occupied input slot, when waiting for at least one shipment interval, then shipment does not execute and status shows invalid-item.
 
 ## Market Auto-Buyer
-- [ ] Given a Market Auto-Buyer has access permission, a bound Numismatics card, a valid target market item, and enough funds, when interval completes with output space available, then configured batch quantity is purchased, inserted into output slots, and market demand/price update upward.
+- [ ] Given a Market Auto-Buyer has access permission, a bound Numismatics card, a valid target market item, and enough funds, when interval completes with output space available, then configured stack quantity is purchased (`stacks * item max stack size` items), inserted into output slots, and market demand/price update upward.
 - [ ] Given a Market Auto-Buyer has target item configured and market price rises above configured cap, when interval ticks, then no purchase happens and status shows price-too-high.
 - [ ] Given a Market Auto-Buyer has valid target but insufficient funds on bound card, when interval ticks, then no purchase happens and status shows no-funds.
 - [ ] Given a Market Auto-Buyer output inventory is full for target item, when interval ticks, then no purchase happens and status shows output-full.

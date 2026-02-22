@@ -7,12 +7,15 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.Nullable;
 
-public record RequestOpenMarketScreenPayload(boolean request) implements CustomPacketPayload {
+public record RequestOpenMarketScreenPayload(boolean request, String detailItemId) implements CustomPacketPayload {
     public static final Type<RequestOpenMarketScreenPayload> TYPE = new Type<>(ResourceLocation.parse("incore:request_open_market_screen"));
     public static final StreamCodec<ByteBuf, RequestOpenMarketScreenPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL,
             RequestOpenMarketScreenPayload::request,
+            ByteBufCodecs.STRING_UTF8,
+            RequestOpenMarketScreenPayload::detailItemId,
             RequestOpenMarketScreenPayload::new
     );
 
@@ -26,7 +29,14 @@ public record RequestOpenMarketScreenPayload(boolean request) implements CustomP
             if (!payload.request() || !(context.player() instanceof ServerPlayer player)) {
                 return;
             }
-            MarketNetworking.openReadOnlyScreenFor(player);
+            MarketNetworking.openReadOnlyScreenFor(player, parseOptionalItemId(payload.detailItemId()));
         });
+    }
+
+    private static @Nullable ResourceLocation parseOptionalItemId(@Nullable String rawItemId) {
+        if (rawItemId == null || rawItemId.isBlank()) {
+            return null;
+        }
+        return ResourceLocation.tryParse(rawItemId);
     }
 }

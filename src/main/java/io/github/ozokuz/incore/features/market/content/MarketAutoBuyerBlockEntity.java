@@ -138,6 +138,21 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
             return;
         }
 
+        Item targetItem = BuiltInRegistries.ITEM.get(be.targetItemId);
+        if (targetItem == null || targetItem == net.minecraft.world.item.Items.AIR) {
+            be.progress = 0;
+            be.status = STATUS_NO_TARGET;
+            be.setChanged();
+            return;
+        }
+        int requestedItemCount = toItemCount(be.batchSize, targetItem);
+        if (requestedItemCount <= 0) {
+            be.progress = 0;
+            be.status = STATUS_NO_TARGET;
+            be.setChanged();
+            return;
+        }
+
         if (unitPrice > be.priceCapSpur) {
             be.progress = 0;
             be.status = STATUS_PRICE_TOO_HIGH;
@@ -145,7 +160,7 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
             return;
         }
 
-        if (!be.canInsertFully(be.targetItemId, be.batchSize)) {
+        if (!be.canInsertFully(be.targetItemId, requestedItemCount)) {
             be.progress = 0;
             be.status = STATUS_OUTPUT_FULL;
             be.setChanged();
@@ -160,7 +175,7 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
             return;
         }
 
-        long totalCostLong = (long) unitPrice * be.batchSize;
+        long totalCostLong = (long) unitPrice * requestedItemCount;
         int totalCost = (int) Math.min(Integer.MAX_VALUE, totalCostLong);
         if (MarketBanking.balanceSpur(account) < totalCost) {
             be.progress = 0;
@@ -184,8 +199,8 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
             return;
         }
 
-        be.insertOutput(be.targetItemId, be.batchSize);
-        MarketPricingService.applyBuy(level.getServer(), be.targetItemId, be.batchSize);
+        be.insertOutput(be.targetItemId, requestedItemCount);
+        MarketPricingService.applyBuy(level.getServer(), be.targetItemId, requestedItemCount);
         be.setChanged();
     }
 
@@ -259,6 +274,12 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
         }
 
         return remaining <= 0;
+    }
+
+    private static int toItemCount(int stackCount, Item item) {
+        int stackUnitSize = Math.max(1, item.getDefaultMaxStackSize());
+        long total = (long) Math.max(1, stackCount) * stackUnitSize;
+        return (int) Math.min(Integer.MAX_VALUE, total);
     }
 
     private void insertOutput(ResourceLocation itemId, int count) {

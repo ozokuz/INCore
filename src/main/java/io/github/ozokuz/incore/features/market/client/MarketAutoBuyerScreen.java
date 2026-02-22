@@ -68,14 +68,14 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
                     );
                 }).bounds(leftPos + 12, topPos + 108, 56, 20)
                 .build());
-        this.addRenderableWidget(Button.builder(Component.literal("Qty -"), b -> sendConfigUpdate(
+        this.addRenderableWidget(Button.builder(Component.literal("Stk -"), b -> sendConfigUpdate(
                         currentTargetIdString(),
                         menu.priceCap(),
                         Math.max(1, menu.batchSize() - 1),
                         menu.enabled()
                 )).bounds(leftPos + 74, topPos + 108, 38, 20)
                 .build());
-        this.addRenderableWidget(Button.builder(Component.literal("Qty +"), b -> sendConfigUpdate(
+        this.addRenderableWidget(Button.builder(Component.literal("Stk +"), b -> sendConfigUpdate(
                         currentTargetIdString(),
                         menu.priceCap(),
                         Math.min(64, menu.batchSize() + 1),
@@ -203,7 +203,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.autobuyer.target"), 12, 70, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.autobuyer.target_hint"), 94, 70, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Cap: " + menu.priceCap()), 158, 92, TEXT_COLOR, false);
-        guiGraphics.drawString(this.font, Component.literal("Qty: " + menu.batchSize()), 158, 114, TEXT_COLOR, false);
+        guiGraphics.drawString(this.font, Component.literal("Stacks: " + menu.batchSize()), 158, 114, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Card"), 12, 132, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Output"), 46, 132, TEXT_COLOR, false);
     }

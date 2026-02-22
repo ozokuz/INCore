@@ -67,7 +67,7 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
 
         int statusColor = switch (menu.status()) {
             case ShipmentTerminalBlockEntity.STATUS_NO_CARD, ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM -> 0xFFD17C7C;
-            case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS -> 0xFFE2C777;
+            case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS, ShipmentTerminalBlockEntity.STATUS_NEED_FULL_STACK -> 0xFFE2C777;
             default -> 0xFF7DD6A7;
         };
         guiGraphics.fill(x + 198, y + 31, x + 206, y + 39, statusColor);
@@ -83,6 +83,7 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
             case ShipmentTerminalBlockEntity.STATUS_NO_CARD -> Component.translatable("screen.incore.market.shipment.status.no_card");
             case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS -> Component.translatable("screen.incore.market.shipment.status.no_items");
             case ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM -> Component.translatable("screen.incore.market.shipment.status.invalid_item");
+            case ShipmentTerminalBlockEntity.STATUS_NEED_FULL_STACK -> Component.translatable("screen.incore.market.shipment.status.need_full_stack");
             default -> Component.translatable("screen.incore.market.shipment.status.ready");
         };
 

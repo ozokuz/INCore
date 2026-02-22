@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +25,14 @@ public final class MarketService {
     }
 
     public static void openReadOnlyScreen(ServerPlayer player) {
+        openReadOnlyScreen(player, null);
+    }
+
+    public static void openReadOnlyScreen(ServerPlayer player, @Nullable ResourceLocation detailItemId) {
         if (player.getServer() == null) {
             return;
         }
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), false, null));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), false, null, detailItemId));
     }
 
     public static void openTerminalScreen(ServerPlayer player, MarketTerminalBlockEntity terminal) {
@@ -36,17 +41,21 @@ public final class MarketService {
         }
         boolean canTrade = terminal.canTrade(player);
         BlockPos pos = terminal.getBlockPos();
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, pos));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, pos, null));
     }
 
     public static void requestRefresh(ServerPlayer player, BlockPos terminalPos) {
+        requestRefresh(player, terminalPos, null);
+    }
+
+    public static void requestRefresh(ServerPlayer player, BlockPos terminalPos, @Nullable ResourceLocation detailItemId) {
         if (player.getServer() == null) {
             return;
         }
 
         MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
         boolean canTrade = terminal != null && terminal.canTrade(player);
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, terminal == null ? null : terminalPos));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, terminal == null ? null : terminalPos, detailItemId));
     }
 
     public static boolean buyFromMarket(ServerPlayer player, BlockPos terminalPos, ResourceLocation itemId, int quantity) {
@@ -65,13 +74,23 @@ public final class MarketService {
             return false;
         }
 
-        int qty = Math.max(1, quantity);
+        int stackCount = Math.max(1, quantity);
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            return false;
+        }
+        int stackUnitSize = stackUnitSize(item);
+        int totalItems = toItemCount(stackCount, stackUnitSize);
+        if (totalItems <= 0) {
+            return false;
+        }
+
         int unitPrice = MarketPricingService.currentPrice(player.getServer(), itemId);
         if (unitPrice <= 0) {
             return false;
         }
 
-        long costLong = (long) unitPrice * qty;
+        long costLong = (long) unitPrice * totalItems;
         int cost = (int) Math.min(Integer.MAX_VALUE, costLong);
 
         ItemStack card = terminal.cardStack();
@@ -85,17 +104,9 @@ public final class MarketService {
             return false;
         }
 
-        Item item = BuiltInRegistries.ITEM.get(itemId);
-        if (item == null || item == net.minecraft.world.item.Items.AIR) {
-            return false;
-        }
+        giveItems(player, item, totalItems);
 
-        ItemStack stack = new ItemStack(item, qty);
-        if (!player.addItem(stack)) {
-            player.drop(stack, false);
-        }
-
-        MarketPricingService.applyBuy(player.getServer(), itemId, qty);
+        MarketPricingService.applyBuy(player.getServer(), itemId, totalItems);
         return true;
     }
 
@@ -115,14 +126,24 @@ public final class MarketService {
             return false;
         }
 
-        int qty = Math.max(1, quantity);
+        int stackCount = Math.max(1, quantity);
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            return false;
+        }
+        int stackUnitSize = stackUnitSize(item);
+        int requestedItems = toItemCount(stackCount, stackUnitSize);
+        if (requestedItems <= 0) {
+            return false;
+        }
+
         int available = countInInventory(player, itemId);
         if (available <= 0) {
             player.sendSystemMessage(Component.translatable("incore.market.no_items_to_sell"));
             return false;
         }
 
-        int selling = Math.min(available, qty);
+        int selling = Math.min(available, requestedItems);
         int unitPrice = MarketPricingService.currentPrice(player.getServer(), itemId);
         if (unitPrice <= 0) {
             return false;
@@ -144,6 +165,19 @@ public final class MarketService {
         MarketBanking.deposit(account, payout);
         MarketPricingService.applySell(player.getServer(), itemId, selling);
         return true;
+    }
+
+    private static void giveItems(ServerPlayer player, Item item, int totalItems) {
+        int remaining = totalItems;
+        int maxStack = stackUnitSize(item);
+        while (remaining > 0) {
+            int giving = Math.min(remaining, maxStack);
+            ItemStack stack = new ItemStack(item, giving);
+            if (!player.addItem(stack)) {
+                player.drop(stack, false);
+            }
+            remaining -= giving;
+        }
     }
 
     private static MarketTerminalBlockEntity terminalAt(ServerPlayer player, BlockPos pos) {
@@ -216,16 +250,32 @@ public final class MarketService {
         return remaining <= 0;
     }
 
+    private static int stackUnitSize(Item item) {
+        return Math.max(1, item.getDefaultMaxStackSize());
+    }
+
+    private static int toItemCount(int stackCount, int stackUnitSize) {
+        long total = (long) Math.max(1, stackCount) * Math.max(1, stackUnitSize);
+        return (int) Math.min(Integer.MAX_VALUE, total);
+    }
+
     public static ScreenData buildScreenData(MinecraftServer server, boolean canTrade, BlockPos terminalPos) {
+        return buildScreenData(server, canTrade, terminalPos, null);
+    }
+
+    public static ScreenData buildScreenData(MinecraftServer server, boolean canTrade, BlockPos terminalPos, @Nullable ResourceLocation detailItemId) {
         MarketPricingService.tick(server);
 
         List<ItemView> items = new ArrayList<>();
         for (MarketItemDefinition definition : MarketItemManager.all()) {
             int price = MarketPricingService.currentPrice(server, definition.itemId());
             List<MarketSavedData.PriceCandle> sourceCandles = MarketPricingService.candles(server, definition.itemId());
-            List<CandleView> candles = sourceCandles.stream()
-                    .map(c -> new CandleView(c.hourKey(), c.open(), c.high(), c.low(), c.close(), c.buyVolume(), c.sellVolume()))
-                    .toList();
+            List<CandleView> candles = List.of();
+            if (detailItemId != null && detailItemId.equals(definition.itemId())) {
+                candles = sourceCandles.stream()
+                        .map(c -> new CandleView(c.hourKey(), c.open(), c.high(), c.low(), c.close(), c.buyVolume(), c.sellVolume()))
+                        .toList();
+            }
             double dayChangePercent = dayChangePercent(sourceCandles, price);
 
             double demand = MarketSavedData.get(server)

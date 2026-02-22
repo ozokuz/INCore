@@ -129,6 +129,50 @@ public class Config {
             .comment("Daily noon reversion amount toward neutral demand (0-1).")
             .defineInRange("marketDailyMeanReversion", 0.12D, 0D, 1D);
 
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_SMALL_REVERSION_CHANCE = BUILDER
+            .comment("Chance each item applies small mean-reversion at noon (0-1).")
+            .defineInRange("marketDailySmallReversionChance", 0.10D, 0D, 1D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_NORMAL_MOVE_CHANCE = BUILDER
+            .comment("Chance each item applies normal random movement at noon (0-1).")
+            .defineInRange("marketDailyNormalMoveChance", 0.75D, 0D, 1D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_CHANCE = BUILDER
+            .comment("Chance each item applies radical spike/crash at noon (0-1).")
+            .defineInRange("marketDailyRadicalChance", 0.15D, 0D, 1D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_NORMAL_MAX_CHANGE_PCT = BUILDER
+            .comment("Maximum absolute percentage change for normal noon movement (e.g. 0.30 = 30%).")
+            .defineInRange("marketDailyNormalMaxChangePct", 0.30D, 0D, 10D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_SPIKE_MIN_PCT = BUILDER
+            .comment("Minimum positive percentage for radical noon spikes (e.g. 0.50 = +50%).")
+            .defineInRange("marketDailyRadicalSpikeMinPct", 0.50D, 0D, 20D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_SPIKE_MAX_PCT = BUILDER
+            .comment("Maximum positive percentage for radical noon spikes.")
+            .defineInRange("marketDailyRadicalSpikeMaxPct", 1.80D, 0D, 20D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_CRASH_MIN_PCT = BUILDER
+            .comment("Minimum percentage for radical noon crashes (e.g. 0.30 = -30%).")
+            .defineInRange("marketDailyRadicalCrashMinPct", 0.30D, 0D, 0.99D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_CRASH_MAX_PCT = BUILDER
+            .comment("Maximum percentage for radical noon crashes.")
+            .defineInRange("marketDailyRadicalCrashMaxPct", 0.65D, 0D, 0.99D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_CRASH_VS_SPIKE_BIAS = BUILDER
+            .comment("Probability radical event is a crash instead of spike (0-1).")
+            .defineInRange("marketDailyRadicalCrashVsSpikeBias", 0.50D, 0D, 1D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_BOOTSTRAP_HOURLY_NOISE_PCT = BUILDER
+            .comment("Hourly synthetic history movement magnitude for items with no market history.")
+            .defineInRange("marketBootstrapHourlyNoisePct", 0.025D, 0D, 1D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_BOOTSTRAP_WICK_NOISE_PCT = BUILDER
+            .comment("Synthetic history wick noise percentage for generated candles.")
+            .defineInRange("marketBootstrapWickNoisePct", 0.008D, 0D, 1D);
+
     public static final ModConfigSpec.IntValue MARKET_HISTORY_RETENTION_DAYS = BUILDER
             .comment("How many days of hourly market candles are retained.")
             .defineInRange("marketHistoryRetentionDays", 30, 1, 365);
