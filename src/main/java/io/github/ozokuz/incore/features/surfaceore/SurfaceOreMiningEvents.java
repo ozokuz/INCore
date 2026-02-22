@@ -3,9 +3,12 @@ package io.github.ozokuz.incore.features.surfaceore;
 import io.github.ozokuz.incore.INCore;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -35,12 +38,10 @@ public final class SurfaceOreMiningEvents {
             return;
         }
 
-        if (!(event.getState().getBlock() instanceof SurfaceOreSpotBlock spotBlock)) {
-            return;
-        }
-
-        BlockEntity blockEntity = level.getBlockEntity(event.getPos());
-        if (!(blockEntity instanceof SurfaceOreSpotBlockEntity spotBE)) {
+        Block eventBlock = event.getState().getBlock();
+        SurfaceOreSpotBlock oreSpotBlock = eventBlock instanceof SurfaceOreSpotBlock spot ? spot : null;
+        SurfaceStoneSpotBlock stoneSpotBlock = eventBlock instanceof SurfaceStoneSpotBlock spot ? spot : null;
+        if (oreSpotBlock == null && stoneSpotBlock == null) {
             return;
         }
 
@@ -67,6 +68,31 @@ public final class SurfaceOreMiningEvents {
         }
 
         clearDestroyConfirmation(player.getUUID(), level.dimension().location(), event.getPos().asLong());
+
+        if (stoneSpotBlock != null) {
+            event.setCanceled(true);
+            if (level instanceof ServerLevel serverLevel) {
+                for (ItemStack drop : stoneSpotBlock.stoneType().miningDrops(serverLevel, event.getPos(), player, player.getMainHandItem())) {
+                    Containers.dropItemStack(
+                            level,
+                            event.getPos().getX() + 0.5D,
+                            event.getPos().getY() + 0.5D,
+                            event.getPos().getZ() + 0.5D,
+                            drop
+                    );
+                }
+            }
+            player.displayClientMessage(
+                    Component.translatable("incore.surface_stone.mined_infinite", event.getState().getBlock().getName()),
+                    true
+            );
+            return;
+        }
+
+        BlockEntity blockEntity = level.getBlockEntity(event.getPos());
+        if (!(blockEntity instanceof SurfaceOreSpotBlockEntity spotBE)) {
+            return;
+        }
 
         if (spotBE.maxMines() <= 0 || spotBE.remainingMines() <= 0) {
             return;
@@ -95,7 +121,7 @@ public final class SurfaceOreMiningEvents {
                 event.getPos().getX() + 0.5D,
                 event.getPos().getY() + 0.5D,
                 event.getPos().getZ() + 0.5D,
-                spotBlock.oreType().oreDropStack()
+                oreSpotBlock.oreType().oreDropStack()
         );
         player.displayClientMessage(
                 Component.translatable("incore.surface_ore.mined", event.getState().getBlock().getName(), result.remainingMines(), result.maxMines()),
