@@ -3,6 +3,7 @@
   "package": "io.github.ozokuz.incore.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "research.MechanicalCrafterBlockEntityMixin",
     "walljump.MessageWallJumpMixin"
   ],
   "client": [
