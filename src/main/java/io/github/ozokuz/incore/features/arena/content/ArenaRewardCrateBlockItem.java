@@ -14,6 +14,11 @@ public class ArenaRewardCrateBlockItem extends BlockItem {
     }
 
     @Override
+    public Component getName(ItemStack stack) {
+        return ArenaRewardCrateData.nameForStack(stack);
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
         ArenaRewardCrateData.appendTooltip(stack, tooltipComponents);

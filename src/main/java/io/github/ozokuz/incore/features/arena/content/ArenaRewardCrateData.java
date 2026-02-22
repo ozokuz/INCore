@@ -57,7 +57,6 @@ public final class ArenaRewardCrateData {
         tag.put(KEY_REWARDS, rewardsTag);
 
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        stack.set(DataComponents.CUSTOM_NAME, buildDisplayName(contents));
     }
 
     @Nullable
@@ -133,6 +132,11 @@ public final class ArenaRewardCrateData {
         }
     }
 
+    public static Component nameForStack(ItemStack stack) {
+        CrateContents contents = read(stack);
+        return contents == null ? Component.translatable("block.incore.arena_reward_crate") : buildDisplayName(contents);
+    }
+
     public static boolean tryOpen(ServerPlayer player, CrateContents contents) {
         int currentSanity = SanityManager.getCurrentSanity(player);
         int cap = SanityManager.getSanityCap(player);
@@ -162,15 +166,6 @@ public final class ArenaRewardCrateData {
     private static Component buildDisplayName(CrateContents contents) {
         String source = contents.categoryName() + " " + contents.difficultyName();
         return Component.literal(source + " Sanity Reward Crate");
-    }
-
-    private static String itemName(ResourceLocation itemId) {
-        Item item = BuiltInRegistries.ITEM.get(itemId);
-        if (item == null || item == net.minecraft.world.item.Items.AIR) {
-            return itemId.toString();
-        }
-
-        return item.getDescription().getString();
     }
 
     public record CrateContents(
