@@ -136,8 +136,6 @@ public class Registration {
     public static final Supplier<BlockEntityType<VendorBlockEntity>> VENDOR_BE = BLOCK_ENTITY_TYPES.register("vendor", () -> BlockEntityType.Builder.of(VendorBlockEntity::new, VENDOR_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> VENDOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("vendor", VENDOR_BLOCK);
     public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
-    public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
-    public static final DeferredItem<BlockItem> RESEARCH_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_lab", RESEARCH_LAB_BLOCK);
     public static final DeferredBlock<Block> MARKET_TERMINAL_BLOCK = BLOCKS.register("market_terminal", () -> new MarketTerminalBlock());
     public static final Supplier<BlockEntityType<MarketTerminalBlockEntity>> MARKET_TERMINAL_BE = BLOCK_ENTITY_TYPES.register(
             "market_terminal",
