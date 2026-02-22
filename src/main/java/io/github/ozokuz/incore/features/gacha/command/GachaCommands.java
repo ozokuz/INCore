@@ -4,11 +4,16 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.gacha.GachaBannerData;
 import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
+import io.github.ozokuz.incore.features.gacha.GachaEventCategoryManager;
+import io.github.ozokuz.incore.features.gacha.GachaEventRotation;
 import io.github.ozokuz.incore.features.gacha.GachaService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
@@ -20,6 +25,17 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import java.util.Collection;
 
 public final class GachaCommands {
+    private static final SuggestionProvider<CommandSourceStack> BANNER_ID_SUGGESTIONS =
+            (context, builder) -> SharedSuggestionProvider.suggestResource(
+                    GachaBannerManager.all().stream().map(GachaBannerData::id).toList(),
+                    builder
+            );
+    private static final SuggestionProvider<CommandSourceStack> CATEGORY_ID_SUGGESTIONS =
+            (context, builder) -> SharedSuggestionProvider.suggestResource(
+                    GachaEventRotation.getKnownCategoryIds(),
+                    builder
+            );
+
     private GachaCommands() {
     }
 
@@ -34,6 +50,7 @@ public final class GachaCommands {
                                 .then(Commands.literal("buy_banner")
                                         .then(Commands.argument("targets", EntityArgument.players())
                                                 .then(Commands.argument("banner", ResourceLocationArgument.id())
+                                                        .suggests(BANNER_ID_SUGGESTIONS)
                                                         .executes(GachaCommands::buyBanner))))
                                 .then(Commands.literal("give_basic_permit")
                                         .then(Commands.argument("targets", EntityArgument.players())
@@ -46,8 +63,31 @@ public final class GachaCommands {
                                 .then(Commands.literal("give_banner_permit")
                                         .then(Commands.argument("targets", EntityArgument.players())
                                                 .then(Commands.argument("banner", ResourceLocationArgument.id())
+                                                        .suggests(BANNER_ID_SUGGESTIONS)
                                                         .then(Commands.argument("count", IntegerArgumentType.integer(1))
-                                                                .executes(GachaCommands::giveBannerPermit))))))
+                                                                .executes(GachaCommands::giveBannerPermit)))))
+                                .then(Commands.literal("pity")
+                                        .then(Commands.literal("set")
+                                                .then(Commands.argument("targets", EntityArgument.players())
+                                                        .then(Commands.argument("banner", ResourceLocationArgument.id())
+                                                                .suggests(BANNER_ID_SUGGESTIONS)
+                                                                .then(Commands.argument("pity_five", IntegerArgumentType.integer(0))
+                                                                        .then(Commands.argument("pity_six", IntegerArgumentType.integer(0))
+                                                                                .then(Commands.argument("featured_six", IntegerArgumentType.integer(0))
+                                                                                        .then(Commands.argument("basic_selected_six", IntegerArgumentType.integer(0))
+                                                                                                .executes(GachaCommands::setPity))))))))
+                                        .then(Commands.literal("status")
+                                                .then(Commands.argument("target", EntityArgument.player())
+                                                        .then(Commands.argument("banner", ResourceLocationArgument.id())
+                                                                .suggests(BANNER_ID_SUGGESTIONS)
+                                                                .executes(GachaCommands::statusPity)))))
+                                .then(Commands.literal("rotate")
+                                        .then(Commands.argument("category", ResourceLocationArgument.id())
+                                                .suggests(CATEGORY_ID_SUGGESTIONS)
+                                                .then(Commands.literal("next")
+                                                        .executes(context -> rotateCategory(context, 1)))
+                                                .then(Commands.literal("previous")
+                                                        .executes(context -> rotateCategory(context, -1))))))
         );
     }
 
@@ -123,6 +163,109 @@ public final class GachaCommands {
                 true
         );
         return targets.size();
+    }
+
+    private static int setPity(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        ResourceLocation bannerId = ResourceLocationArgument.getId(context, "banner");
+        if (bannerId == null || GachaBannerManager.get(bannerId) == null) {
+            context.getSource().sendFailure(Component.literal("Unknown banner id."));
+            return 0;
+        }
+
+        int pityFive = IntegerArgumentType.getInteger(context, "pity_five");
+        int pitySix = IntegerArgumentType.getInteger(context, "pity_six");
+        int featuredSix = IntegerArgumentType.getInteger(context, "featured_six");
+        int basicSelectedSix = IntegerArgumentType.getInteger(context, "basic_selected_six");
+
+        int updated = 0;
+        for (ServerPlayer target : targets) {
+            if (GachaService.setPityForBanner(target, bannerId, pityFive, pitySix, featuredSix, basicSelectedSix)) {
+                updated++;
+            }
+        }
+
+        if (updated <= 0) {
+            context.getSource().sendFailure(Component.literal("Failed to set pity values."));
+            return 0;
+        }
+
+        int finalUpdated = updated;
+        context.getSource().sendSuccess(
+                () -> Component.literal(
+                        "Set pity for " + bannerId
+                                + " on " + finalUpdated + " player(s): "
+                                + "5*=" + pityFive
+                                + ", 6*=" + pitySix
+                                + ", featured6=" + featuredSix
+                                + ", basic240=" + basicSelectedSix
+                ),
+                true
+        );
+        return finalUpdated;
+    }
+
+    private static int statusPity(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer target = EntityArgument.getPlayer(context, "target");
+        ResourceLocation bannerId = ResourceLocationArgument.getId(context, "banner");
+        if (bannerId == null || GachaBannerManager.get(bannerId) == null) {
+            context.getSource().sendFailure(Component.literal("Unknown banner id."));
+            return 0;
+        }
+
+        GachaService.PityView pity = GachaService.getPityForBanner(target, bannerId);
+        if (pity == null) {
+            context.getSource().sendFailure(Component.literal("No pity data available."));
+            return 0;
+        }
+
+        context.getSource().sendSuccess(
+                () -> Component.literal(
+                        target.getGameProfile().getName() + " pity for " + bannerId + ": "
+                                + "5*=" + pity.pityFive()
+                                + ", 6*=" + pity.pitySix()
+                                + ", featured6=" + pity.eventFeaturedPity()
+                                + ", basic240=" + pity.basicSelectedSixPity()
+                                + ", token=" + (pity.eventRotationToken() == null ? "none" : pity.eventRotationToken())
+                ),
+                false
+        );
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int rotateCategory(CommandContext<CommandSourceStack> context, int direction) {
+        CommandSourceStack source = context.getSource();
+        ResourceLocation categoryId = ResourceLocationArgument.getId(context, "category");
+        if (categoryId == null || GachaEventCategoryManager.get(categoryId) == null) {
+            source.sendFailure(Component.literal("Unknown gacha category id."));
+            return 0;
+        }
+
+        return GachaEventRotation.rotateCategory(categoryId, direction)
+                .map(result -> {
+                    String action = direction >= 0 ? "next" : "previous";
+                    String remaining = formatDuration(result.remainingMillis());
+                    source.sendSuccess(
+                            () -> Component.literal(
+                                    "Rotated " + categoryId + " to " + action + " banner: "
+                                            + result.bannerId() + " (time left this window: " + remaining + ")"
+                            ),
+                            true
+                    );
+                    return Command.SINGLE_SUCCESS;
+                })
+                .orElseGet(() -> {
+                    source.sendFailure(Component.literal("Category has no valid event banners."));
+                    return 0;
+                });
+    }
+
+    private static String formatDuration(long millis) {
+        long totalSeconds = Math.max(0L, millis / 1000L);
+        long hours = totalSeconds / 3600L;
+        long minutes = (totalSeconds % 3600L) / 60L;
+        long seconds = totalSeconds % 60L;
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 
     private static void giveOrDrop(ServerPlayer player, ItemStack stack) {

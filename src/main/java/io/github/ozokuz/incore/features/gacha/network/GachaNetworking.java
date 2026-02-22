@@ -16,6 +16,7 @@ public final class GachaNetworking {
         registrar.playToClient(OpenGachaBannersPayload.TYPE, OpenGachaBannersPayload.STREAM_CODEC, OpenGachaBannersPayload::handle);
         registrar.playToServer(RequestOpenGachaBannersPayload.TYPE, RequestOpenGachaBannersPayload.STREAM_CODEC, RequestOpenGachaBannersPayload::handle);
         registrar.playToServer(BuyGachaBannerPayload.TYPE, BuyGachaBannerPayload.STREAM_CODEC, BuyGachaBannerPayload::handle);
+        registrar.playToServer(ClaimBasicGuaranteedSixPayload.TYPE, ClaimBasicGuaranteedSixPayload.STREAM_CODEC, ClaimBasicGuaranteedSixPayload::handle);
     }
 
     public static void openBannerScreen(ServerPlayer player, String json) {
@@ -24,6 +25,10 @@ public final class GachaNetworking {
 
     public static void sendBannerPurchase(ResourceLocation bannerId) {
         PacketDistributor.sendToServer(new BuyGachaBannerPayload(bannerId.toString()));
+    }
+
+    public static void sendBasicGuaranteedSixClaim(ResourceLocation bannerId, ResourceLocation itemId) {
+        PacketDistributor.sendToServer(new ClaimBasicGuaranteedSixPayload(bannerId.toString(), itemId.toString()));
     }
 
     public static void requestOpenBannerScreen() {
@@ -36,5 +41,9 @@ public final class GachaNetworking {
 
     public static void applyBannerPurchase(ServerPlayer player, ResourceLocation bannerId) {
         GachaService.acquireCrateForBanner(player, bannerId);
+    }
+
+    public static void claimBasicGuaranteedSix(ServerPlayer player, ResourceLocation bannerId, ResourceLocation itemId) {
+        GachaService.claimBasicGuaranteedSix(player, bannerId, itemId);
     }
 }
