@@ -75,7 +75,7 @@ public final class CardEvents {
         }
 
         if (block == Registration.CARD_VENDOR_BLOCK.get()) {
-            CardVendorService.openVendorScreen(player);
+            CardVendorService.openVendorScreen(player, event.getPos());
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);
         }

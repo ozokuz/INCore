@@ -4,6 +4,7 @@
   "product_id": "incore:starter_case",
   "count": 1,
   "token_cost": 10,
-  "spur_cost": 4,
-  "weight": 5
+  "weight": 5,
+  "stock_min": 1,
+  "stock_max": 3
 }

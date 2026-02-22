@@ -12,8 +12,9 @@ public record CardVendorOfferData(
         ResourceLocation productId,
         int count,
         int tokenCost,
-        int spurCost,
-        int weight
+        int weight,
+        int stockMin,
+        int stockMax
 ) {
     public enum ProductType {
         BOOSTER,
@@ -35,6 +36,9 @@ public record CardVendorOfferData(
             return null;
         }
 
+        int stockMin = Math.max(0, GsonHelper.getAsInt(json, "stock_min", 5));
+        int stockMax = Math.max(stockMin, GsonHelper.getAsInt(json, "stock_max", 10));
+
         return new CardVendorOfferData(
                 id,
                 GsonHelper.getAsString(json, "name"),
@@ -42,8 +46,9 @@ public record CardVendorOfferData(
                 productId,
                 Math.max(1, GsonHelper.getAsInt(json, "count", 1)),
                 Math.max(0, GsonHelper.getAsInt(json, "token_cost", 0)),
-                Math.max(0, GsonHelper.getAsInt(json, "spur_cost", 0)),
-                Math.max(1, GsonHelper.getAsInt(json, "weight", 1))
+                Math.max(1, GsonHelper.getAsInt(json, "weight", 1)),
+                stockMin,
+                stockMax
         );
     }
 }
