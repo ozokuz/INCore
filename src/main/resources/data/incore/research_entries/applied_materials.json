@@ -5,9 +5,10 @@
   "icon_item": "minecraft:slime_ball",
   "run_duration_ticks": 120,
   "unlocks": ["Composite Material Handling", "Catalyst Processing"],
+  "recipe_lock_sets": ["incore:applied_materials_unlocks"],
   "research_materials": [
-    { "item": "minecraft:slime_ball", "count": 4 },
-    { "item": "minecraft:clay_ball", "count": 4 }
+    { "material": "incore:slime_ball", "count": 4 },
+    { "material": "incore:clay_ball", "count": 4 }
   ],
   "prerequisites": ["incore:lab_basics"],
   "required_tasks": ["incore:specimen_delivery"]

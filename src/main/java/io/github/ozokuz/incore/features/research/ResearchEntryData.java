@@ -17,6 +17,7 @@ public record ResearchEntryData(
         int runDurationTicks,
         List<String> unlocks,
         List<ResearchMaterialData> researchMaterials,
+        List<ResourceLocation> recipeLockSets,
         List<ResourceLocation> prerequisites,
         List<ResourceLocation> requiredTasks
 ) {
@@ -29,6 +30,7 @@ public record ResearchEntryData(
         List<String> unlocks = readStringList(json.getAsJsonArray("unlocks"));
 
         List<ResearchMaterialData> researchMaterials = readMaterialList(json.getAsJsonArray("research_materials"));
+        List<ResourceLocation> recipeLockSets = readIdList(json.getAsJsonArray("recipe_lock_sets"));
         List<ResourceLocation> prerequisites = readIdList(json.getAsJsonArray("prerequisites"));
         List<ResourceLocation> requiredTasks = readIdList(json.getAsJsonArray("required_tasks"));
         return new ResearchEntryData(
@@ -40,6 +42,7 @@ public record ResearchEntryData(
                 runDurationTicks,
                 List.copyOf(unlocks),
                 List.copyOf(researchMaterials),
+                List.copyOf(recipeLockSets),
                 List.copyOf(prerequisites),
                 List.copyOf(requiredTasks)
         );

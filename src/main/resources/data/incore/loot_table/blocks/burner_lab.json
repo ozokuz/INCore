@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "incore:research_lab"
+          "name": "incore:burner_lab"
         }
       ],
       "conditions": [

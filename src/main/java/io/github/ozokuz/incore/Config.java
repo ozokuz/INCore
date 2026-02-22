@@ -41,5 +41,49 @@ public class Config {
             .comment("Stamina cost consumed by each wall jump.")
             .defineInRange("wallJumpStaminaCost", 200, 0, Integer.MAX_VALUE);
 
+    public static final ModConfigSpec.DoubleValue BURNER_LAB_SPEED_MULTIPLIER = BUILDER
+            .comment("Burner lab processing speed multiplier.")
+            .defineInRange("burnerLabSpeedMultiplier", 0.75D, 0.05D, 16.0D);
+
+    public static final ModConfigSpec.DoubleValue MECHANICAL_LAB_SPEED_PER_32_RPM = BUILDER
+            .comment("Mechanical lab speed multiplier factor per 32 RPM.")
+            .defineInRange("mechanicalLabSpeedPer32Rpm", 1.0D, 0.01D, 64.0D);
+
+    public static final ModConfigSpec.IntValue MECHANICAL_LAB_STRESS_PER_RPM = BUILDER
+            .comment("Displayed mechanical lab stress demand per RPM.")
+            .defineInRange("mechanicalLabStressPerRpm", 2, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MODULAR_LAB_FE_CAPACITY = BUILDER
+            .comment("Modular lab FE capacity.")
+            .defineInRange("modularLabFeCapacity", 100000, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MODULAR_LAB_FE_MAX_RECEIVE = BUILDER
+            .comment("Modular lab FE max receive per tick.")
+            .defineInRange("modularLabFeMaxReceive", 1000, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MODULAR_LAB_FE_MAX_EXTRACT = BUILDER
+            .comment("Modular lab FE max extract per tick.")
+            .defineInRange("modularLabFeMaxExtract", 1000, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MODULAR_LAB_FE_PER_TICK = BUILDER
+            .comment("Base modular lab FE usage per tick while processing.")
+            .defineInRange("modularLabFePerTick", 40, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.DoubleValue MODULAR_LAB_SPEED_CARD_BONUS = BUILDER
+            .comment("Speed bonus per installed speed module card.")
+            .defineInRange("modularLabSpeedCardBonus", 0.25D, 0.0D, 16.0D);
+
+    public static final ModConfigSpec.DoubleValue MODULAR_LAB_MAX_SPEED_BONUS = BUILDER
+            .comment("Maximum total speed bonus from module cards.")
+            .defineInRange("modularLabMaxSpeedBonus", 2.0D, 0.0D, 64.0D);
+
+    public static final ModConfigSpec.DoubleValue MODULAR_LAB_PRODUCTIVITY_CARD_BONUS = BUILDER
+            .comment("Productivity chance bonus per installed productivity module card.")
+            .defineInRange("modularLabProductivityCardBonus", 0.10D, 0.0D, 1.0D);
+
+    public static final ModConfigSpec.DoubleValue MODULAR_LAB_MAX_PRODUCTIVITY_BONUS = BUILDER
+            .comment("Maximum productivity chance bonus from module cards.")
+            .defineInRange("modularLabMaxProductivityBonus", 0.50D, 0.0D, 1.0D);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }

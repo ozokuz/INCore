@@ -13,27 +13,31 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ResearchEntryManager extends SimpleJsonResourceReloadListener {
-    private static volatile Map<ResourceLocation, ResearchEntryData> entries = Map.of();
+public class ResearchRecipeLockManager extends SimpleJsonResourceReloadListener {
+    private static volatile Map<ResourceLocation, ResearchRecipeLockSetData> lockSets = Map.of();
 
-    public ResearchEntryManager() {
-        super(new Gson(), "research_entries");
+    public ResearchRecipeLockManager() {
+        super(new Gson(), "research_recipe_locks");
     }
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> jsons, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
-        Map<ResourceLocation, ResearchEntryData> next = new LinkedHashMap<>();
+        Map<ResourceLocation, ResearchRecipeLockSetData> next = new LinkedHashMap<>();
         jsons.forEach((id, json) -> {
             if (json.isJsonObject()) {
-                next.put(id, ResearchEntryData.fromJson(id, json.getAsJsonObject()));
+                next.put(id, ResearchRecipeLockSetData.fromJson(id, json.getAsJsonObject()));
             }
         });
-        entries = Map.copyOf(next);
+        lockSets = Map.copyOf(next);
         ResearchRecipeLockClientCache.markDataReloaded();
-        INCore.LOGGER.info("Loaded {} research entries.", entries.size());
+        INCore.LOGGER.info("Loaded {} research recipe lock sets.", lockSets.size());
     }
 
-    public static Map<ResourceLocation, ResearchEntryData> all() {
-        return entries;
+    public static Map<ResourceLocation, ResearchRecipeLockSetData> all() {
+        return lockSets;
+    }
+
+    public static ResearchRecipeLockSetData get(ResourceLocation id) {
+        return id == null ? null : lockSets.get(id);
     }
 }

@@ -24,15 +24,21 @@ import org.jetbrains.annotations.Nullable;
 
 import io.github.ozokuz.incore.Registration;
 
-public class LabBlock extends BaseEntityBlock {
-    public static final MapCodec<LabBlock> CODEC = simpleCodec(LabBlock::new);
+public class BurnerLabBlock extends BaseEntityBlock implements LabTierProvider {
+    public static final MapCodec<BurnerLabBlock> CODEC = simpleCodec(BurnerLabBlock::new);
+    private final LabTier tier;
 
-    public LabBlock() {
-        this(Properties.of().mapColor(MapColor.METAL).strength(3.0F).sound(SoundType.METAL));
+    public BurnerLabBlock() {
+        this(LabTier.BURNER, Properties.of().mapColor(MapColor.METAL).strength(3.0F).sound(SoundType.METAL));
     }
 
-    public LabBlock(Properties properties) {
+    public BurnerLabBlock(Properties properties) {
+        this(LabTier.BURNER, properties);
+    }
+
+    protected BurnerLabBlock(LabTier tier, Properties properties) {
         super(properties);
+        this.tier = tier;
     }
 
     @Override
@@ -77,7 +83,11 @@ public class LabBlock extends BaseEntityBlock {
 
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof LabBlockEntity labBlockEntity) {
-            labBlockEntity.setOwner(player.getUUID());
+            if (player instanceof ServerPlayer serverPlayer) {
+                labBlockEntity.setOwner(serverPlayer);
+            } else {
+                labBlockEntity.setOwner(player.getUUID());
+            }
         }
     }
 
@@ -86,9 +96,10 @@ public class LabBlock extends BaseEntityBlock {
         if (!state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof LabBlockEntity labBlockEntity) {
-                for (ItemStack input : labBlockEntity.getInputs()) {
-                    if (!input.isEmpty()) {
-                        popResource(level, pos, input.copy());
+                for (int slot = 0; slot < labBlockEntity.slotCount(); slot++) {
+                    ItemStack stack = labBlockEntity.getSlotItem(slot);
+                    if (!stack.isEmpty()) {
+                        popResource(level, pos, stack.copy());
                     }
                 }
             }
@@ -98,6 +109,11 @@ public class LabBlock extends BaseEntityBlock {
 
     @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, Registration.RESEARCH_LAB_BE.get(), LabBlockEntity::tick);
+        return createTickerHelper(blockEntityType, Registration.LAB_BLOCK_ENTITY.get(), LabBlockEntity::tick);
+    }
+
+    @Override
+    public LabTier incore$getLabTier() {
+        return tier;
     }
 }
