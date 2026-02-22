@@ -6,6 +6,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -52,6 +53,17 @@ public final class ResearchProgressService {
 
     public static Set<ResourceLocation> unlocked(ServerPlayer player) {
         return readSet(ownerState(player).root.getList(KEY_UNLOCKED, Tag.TAG_STRING));
+    }
+
+    public static Set<ResourceLocation> unlockedForOwnerKey(MinecraftServer server, String ownerKey) {
+        if (ownerKey == null || ownerKey.isBlank()) {
+            return Set.of();
+        }
+        CompoundTag root = ResearchProgressSavedData.get(server).getRoot(ownerKey);
+        if (root == null) {
+            return Set.of();
+        }
+        return readSet(root.getList(KEY_UNLOCKED, Tag.TAG_STRING));
     }
 
     public static Set<ResourceLocation> completedTasks(ServerPlayer player) {

@@ -98,10 +98,6 @@ public class Registration {
             BLOCK_ENTITY_TYPES.register("arena_reward_crate", () -> BlockEntityType.Builder.of(ArenaRewardCrateBlockEntity::new, ARENA_REWARD_CRATE_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> ARENA_REWARD_CRATE_BLOCK_ITEM =
             ITEMS.registerItem("arena_reward_crate", properties -> new ArenaRewardCrateBlockItem(ARENA_REWARD_CRATE_BLOCK.get(), properties));
-    public static final DeferredBlock<Block> RESEARCH_LAB_BLOCK = BLOCKS.register("research_lab", () -> new LabBlock());
-    public static final Supplier<BlockEntityType<LabBlockEntity>> RESEARCH_LAB_BE = BLOCK_ENTITY_TYPES.register("research_lab", () -> BlockEntityType.Builder.of(LabBlockEntity::new, RESEARCH_LAB_BLOCK.get()).build(null));
-    public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
-    public static final DeferredItem<BlockItem> RESEARCH_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_lab", RESEARCH_LAB_BLOCK);
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_BLOCK = BLOCKS.register("cinnabar_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
@@ -238,7 +234,6 @@ public class Registration {
                 output.accept(GACHA_CRATE_BLOCK_ITEM.get());
                 output.accept(ARENA_ORB_BLOCK_ITEM.get());
                 output.accept(ARENA_REWARD_CRATE_BLOCK_ITEM.get());
-                output.accept(RESEARCH_LAB_BLOCK_ITEM.get());
                 output.accept(CINNABAR_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(MIXED_METALS_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(GEM_CLUSTERS_ORE_STONE_BLOCK_ITEM.get());
