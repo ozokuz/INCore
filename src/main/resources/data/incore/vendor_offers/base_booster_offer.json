@@ -4,6 +4,7 @@
   "product_id": "incore:base_protocol",
   "count": 1,
   "token_cost": 2,
-  "spur_cost": 0,
-  "weight": 10
+  "weight": 10,
+  "stock_min": 4,
+  "stock_max": 9
 }

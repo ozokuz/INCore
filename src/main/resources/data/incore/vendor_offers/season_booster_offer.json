@@ -4,6 +4,7 @@
   "product_id": "incore:season_signal",
   "count": 1,
   "token_cost": 3,
-  "spur_cost": 1,
-  "weight": 8
+  "weight": 8,
+  "stock_min": 2,
+  "stock_max": 7
 }

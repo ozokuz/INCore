@@ -20,6 +20,7 @@ import io.github.ozokuz.incore.features.cards.CardModuleItem;
 import io.github.ozokuz.incore.features.cards.CardSleeveItem;
 import io.github.ozokuz.incore.features.cards.CardTokenItem;
 import io.github.ozokuz.incore.features.cards.CardVendorBlock;
+import io.github.ozokuz.incore.features.cards.CardVendorBlockEntity;
 import io.github.ozokuz.incore.features.cards.DeckBoxItem;
 import io.github.ozokuz.incore.features.cards.DeckCoreItem;
 import io.github.ozokuz.incore.features.cards.DeckItem;
@@ -118,7 +119,8 @@ public class Registration {
     public static final DeferredItem<BlockItem> DECK_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("deck_station", DECK_STATION_BLOCK);
     public static final DeferredBlock<Block> CARD_DECRYPTOR_BLOCK = BLOCKS.register("card_decryptor", DecryptorBlock::new);
     public static final DeferredItem<BlockItem> CARD_DECRYPTOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_decryptor", CARD_DECRYPTOR_BLOCK);
-    public static final DeferredBlock<Block> CARD_VENDOR_BLOCK = BLOCKS.register("card_vendor", CardVendorBlock::new);
+    public static final DeferredBlock<Block> CARD_VENDOR_BLOCK = BLOCKS.register("card_vendor", () -> new CardVendorBlock());
+    public static final Supplier<BlockEntityType<CardVendorBlockEntity>> CARD_VENDOR_BE = BLOCK_ENTITY_TYPES.register("card_vendor", () -> BlockEntityType.Builder.of(CardVendorBlockEntity::new, CARD_VENDOR_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> CARD_VENDOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_vendor", CARD_VENDOR_BLOCK);
     public static final DeferredBlock<Block> RESEARCH_LAB_BLOCK = BLOCKS.register("research_lab", () -> new LabBlock());
     public static final Supplier<BlockEntityType<LabBlockEntity>> RESEARCH_LAB_BE = BLOCK_ENTITY_TYPES.register("research_lab", () -> BlockEntityType.Builder.of(LabBlockEntity::new, RESEARCH_LAB_BLOCK.get()).build(null));

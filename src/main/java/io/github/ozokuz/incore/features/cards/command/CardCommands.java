@@ -325,7 +325,10 @@ public final class CardCommands {
 
     private static int openVendor(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer target = EntityArgument.getPlayer(context, "target");
-        CardVendorService.openVendorScreen(target);
+        if (!CardVendorService.openNearestVendorScreen(target, 8)) {
+            context.getSource().sendFailure(Component.translatable("incore.cards.vendor.no_nearby_vendor"));
+            return 0;
+        }
         context.getSource().sendSuccess(() -> Component.literal("Opened card vendor for " + target.getGameProfile().getName()), true);
         return Command.SINGLE_SUCCESS;
     }

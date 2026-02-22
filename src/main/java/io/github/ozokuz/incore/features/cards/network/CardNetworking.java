@@ -25,7 +25,7 @@ public final class CardNetworking {
         PacketDistributor.sendToPlayer(player, new OpenCardVendorPayload(json));
     }
 
-    public static void sendVendorPurchase(ResourceLocation offerId) {
-        PacketDistributor.sendToServer(new BuyCardVendorOfferPayload(offerId.toString()));
+    public static void sendVendorPurchase(ResourceLocation offerId, long vendorPosLong, int quantity, boolean allowSpurConversion) {
+        PacketDistributor.sendToServer(new BuyCardVendorOfferPayload(offerId.toString(), vendorPosLong, quantity, allowSpurConversion));
     }
 }
