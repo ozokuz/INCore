@@ -299,10 +299,13 @@ Manual gameplay verification checklist for testers.
 ## Market Machine UI Layout
 - [ ] Given Shipment Terminal UI is open, when viewing the header area, then the title is fully readable and the progress bar does not overlap title text.
 - [ ] Given Shipment Terminal UI is open under each status condition (ready/no card/no items/invalid item), when viewing status text, then text remains inside the status panel without clipping into machine slots.
-- [ ] Given Market Auto-Buyer UI is open, when viewing control widgets (target field, enable toggle, cap/qty buttons, apply target), then no widget overlaps any machine slot or player inventory slot.
+- [ ] Given Market Auto-Buyer UI is open, when viewing control widgets (target ghost slot, enable toggle, cap/qty buttons, clear), then no widget overlaps any machine slot or player inventory slot.
 - [ ] Given Market Auto-Buyer UI is open, when viewing card/output/player slot rows, then each slot row stays fully inside its intended panel (controls above, machine middle, inventory bottom) with no border intersections.
 - [ ] Given Market Auto-Buyer UI is open with long status messages, when viewing the status panel, then status text wraps/truncates cleanly and does not draw over progress bar or title.
-- [ ] Given Market Auto-Buyer UI is open, when clicking each control button and typing in the target field, then all controls are clickable/focusable and no hidden slot captures the interaction.
+- [ ] Given Market Auto-Buyer UI is open, when left-clicking the target ghost slot while carrying an item stack, then the ghost slot displays that item and the auto-buyer target is updated.
+- [ ] Given Market Auto-Buyer UI is open and a target ghost item is set, when closing and reopening the UI for the same block, then the same target item is still shown in the ghost slot.
+- [ ] Given Market Auto-Buyer UI is open with a target ghost item set, when right-clicking the ghost slot or pressing Clear, then ghost target is removed and machine status returns to no-target on next tick.
+- [ ] Given EMI is installed and Market Auto-Buyer UI is open, when dragging an EMI item entry onto the target ghost slot and releasing, then the ghost slot updates to that item and auto-buyer target is updated.
 - [ ] Given either market machine UI is open, when checking the player inventory and hotbar labels/slot frames, then labels are aligned to the inventory section and slots are fully visible within panel borders.
 
 ## Numismatics Bank Keybind
