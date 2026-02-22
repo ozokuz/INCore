@@ -41,6 +41,12 @@ public final class INCoreKeyMappings {
             GLFW.GLFW_KEY_V,
             "key.categories.incore"
     );
+    public static final KeyMapping OPEN_NUMISMATICS_BANK = new KeyMapping(
+            "key.incore.open_numismatics_bank",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_N,
+            "key.categories.incore"
+    );
 
     private INCoreKeyMappings() {
     }
