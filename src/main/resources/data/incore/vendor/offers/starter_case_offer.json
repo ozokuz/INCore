@@ -1,0 +1,17 @@
+{
+  "name": "Starter Case Deal",
+  "category": "incore:cards",
+  "product": {
+    "type": "incore:card_booster_box",
+    "box": "incore:starter_case",
+    "count": 1
+  },
+  "currency": {
+    "type": "incore:card_token",
+    "amount": 10,
+    "spur_conversion_rate": 8
+  },
+  "weight": 5,
+  "stock_min": 1,
+  "stock_max": 3
+}

@@ -85,5 +85,37 @@ public class Config {
             .comment("Maximum productivity chance bonus from module cards.")
             .defineInRange("modularLabMaxProductivityBonus", 0.50D, 0.0D, 1.0D);
 
+    static {
+        BUILDER.push("vendorDiscounts");
+    }
+
+    public static final ModConfigSpec.IntValue VENDOR_OFFER_DISCOUNT_CHANCE_PERCENT = BUILDER
+            .comment("Base chance for each normal vendor offer to roll a discount.")
+            .defineInRange("offerDiscountChancePercent", 12, 0, 100);
+
+    public static final ModConfigSpec.IntValue VENDOR_OFFER_DISCOUNT_MIN_PERCENT = BUILDER
+            .comment("Minimum discount percent applied when a normal vendor offer discount roll succeeds.")
+            .defineInRange("offerDiscountMinPercent", 10, 0, 100);
+
+    public static final ModConfigSpec.IntValue VENDOR_OFFER_DISCOUNT_MAX_PERCENT = BUILDER
+            .comment("Maximum discount percent applied when a normal vendor offer discount roll succeeds.")
+            .defineInRange("offerDiscountMaxPercent", 35, 0, 100);
+
+    public static final ModConfigSpec.IntValue VENDOR_OFFER_DISCOUNT_CHANCE_CAP_PERCENT = BUILDER
+            .comment("Hard cap for final per-offer discount chance after all bonuses are applied.")
+            .defineInRange("offerDiscountChanceCapPercent", 95, 0, 100);
+
+    public static final ModConfigSpec.IntValue VENDOR_DISCOUNT_CURIO_BONUS_CHANCE_PERCENT = BUILDER
+            .comment("Discount chance bonus granted when the vendor discount charm curio is equipped.")
+            .defineInRange("curioBonusChancePercent", 15, 0, 100);
+
+    public static final ModConfigSpec.IntValue VENDOR_DISCOUNT_CURIO_BONUS_AMOUNT_PERCENT = BUILDER
+            .comment("Discount amount bonus granted when the vendor discount charm curio is equipped.")
+            .defineInRange("curioBonusAmountPercent", 20, 0, 100);
+
+    static {
+        BUILDER.pop();
+    }
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }

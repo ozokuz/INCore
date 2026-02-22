@@ -15,7 +15,7 @@ import io.github.ozokuz.incore.features.cards.CardDeckCoreManager;
 import io.github.ozokuz.incore.features.cards.CardModuleManager;
 import io.github.ozokuz.incore.features.cards.CardSetManager;
 import io.github.ozokuz.incore.features.cards.CardSynergyManager;
-import io.github.ozokuz.incore.features.cards.CardVendorOfferManager;
+import io.github.ozokuz.incore.features.cards.CardVendorIntegration;
 import io.github.ozokuz.incore.features.cards.command.CardCommands;
 import io.github.ozokuz.incore.features.cards.network.CardNetworking;
 import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
@@ -41,6 +41,9 @@ import io.github.ozokuz.incore.features.tasks.TaskDataManager;
 import io.github.ozokuz.incore.features.tasks.command.TaskCommands;
 import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
 import com.simibubi.create.api.stress.BlockStressValues;
+import io.github.ozokuz.incore.features.vendor.VendorBootstrap;
+import io.github.ozokuz.incore.features.vendor.VendorOfferManager;
+import io.github.ozokuz.incore.features.vendor.network.VendorNetworking;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -77,6 +80,10 @@ public class INCore {
         modEventBus.addListener(ArenaNetworking::registerPayloads);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(CardNetworking::registerPayloads);
+        modEventBus.addListener(VendorNetworking::registerPayloads);
+
+        VendorBootstrap.initialize();
+        CardVendorIntegration.initialize();
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -144,6 +151,6 @@ public class INCore {
         event.addListener(new CardDeckCoreManager());
         event.addListener(new CardDeckBoxManager());
         event.addListener(new CardSynergyManager());
-        event.addListener(new CardVendorOfferManager());
+        event.addListener(new VendorOfferManager());
     }
 }

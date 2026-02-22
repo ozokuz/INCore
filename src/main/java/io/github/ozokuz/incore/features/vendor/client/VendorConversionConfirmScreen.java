@@ -1,8 +1,6 @@
-package io.github.ozokuz.incore.features.cards.client;
+package io.github.ozokuz.incore.features.vendor.client;
 
-import io.github.ozokuz.incore.Registration;
-import io.github.ozokuz.incore.features.cards.CardVendorService;
-import io.github.ozokuz.incore.features.cards.network.CardNetworking;
+import io.github.ozokuz.incore.features.vendor.network.VendorNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -13,8 +11,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class CardVendorSpurConversionConfirmScreen extends Screen {
-    private static final ResourceLocation SPUR_ID = ResourceLocation.parse("numismatics:spur");
+public class VendorConversionConfirmScreen extends Screen {
     private static final int PANEL_WIDTH = 420;
     private static final int PANEL_HEIGHT = 170;
 
@@ -23,30 +20,42 @@ public class CardVendorSpurConversionConfirmScreen extends Screen {
     private final String offerName;
     private final long vendorPosLong;
     private final int quantity;
-    private final int missingTokens;
-    private final int requiredSpur;
-    private final int availableSpur;
+    private final int missingPrimary;
+    private final int requiredConversion;
+    private final int availableConversion;
+    private final String primaryLabel;
+    private final String conversionLabel;
+    private final String primaryIconItemId;
+    private final String conversionIconItemId;
     private Integer previousMenuBlur;
 
-    public CardVendorSpurConversionConfirmScreen(
+    public VendorConversionConfirmScreen(
             Screen parent,
             ResourceLocation offerId,
             String offerName,
             long vendorPosLong,
             int quantity,
-            int missingTokens,
-            int requiredSpur,
-            int availableSpur
+            int missingPrimary,
+            int requiredConversion,
+            int availableConversion,
+            String primaryLabel,
+            String conversionLabel,
+            String primaryIconItemId,
+            String conversionIconItemId
     ) {
-        super(Component.translatable("screen.incore.cards.vendor.conversion.title"));
+        super(Component.translatable("screen.incore.vendor.conversion.title"));
         this.parent = parent;
         this.offerId = offerId;
         this.offerName = offerName;
         this.vendorPosLong = vendorPosLong;
         this.quantity = quantity;
-        this.missingTokens = missingTokens;
-        this.requiredSpur = requiredSpur;
-        this.availableSpur = availableSpur;
+        this.missingPrimary = missingPrimary;
+        this.requiredConversion = requiredConversion;
+        this.availableConversion = availableConversion;
+        this.primaryLabel = primaryLabel;
+        this.conversionLabel = conversionLabel;
+        this.primaryIconItemId = primaryIconItemId;
+        this.conversionIconItemId = conversionIconItemId;
     }
 
     @Override
@@ -64,9 +73,9 @@ public class CardVendorSpurConversionConfirmScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.translatable("gui.cancel"), button -> this.minecraft.setScreen(parent))
                 .bounds(left + 108, buttonY, 84, 20)
                 .build());
-        this.addRenderableWidget(Button.builder(Component.translatable("screen.incore.cards.vendor.conversion.confirm"), button -> {
+        this.addRenderableWidget(Button.builder(Component.translatable("screen.incore.vendor.conversion.confirm"), button -> {
                     this.minecraft.setScreen(parent);
-                    CardNetworking.sendVendorPurchase(offerId, vendorPosLong, quantity, true);
+                    VendorNetworking.sendVendorPurchase(offerId, vendorPosLong, quantity, true);
                 })
                 .bounds(left + 198, buttonY, 120, 20)
                 .build());
@@ -102,38 +111,26 @@ public class CardVendorSpurConversionConfirmScreen extends Screen {
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, 0xF1F3F8);
         guiGraphics.drawCenteredString(
                 this.font,
-                Component.translatable("screen.incore.cards.vendor.conversion.offer", offerName + " x" + quantity),
+                Component.translatable("screen.incore.vendor.conversion.offer", offerName + " x" + quantity),
                 this.width / 2,
                 top + 20,
                 0xC9CDD6
         );
 
-        guiGraphics.drawCenteredString(
-                this.font,
-                Component.translatable("screen.incore.cards.vendor.conversion.from"),
-                sourceCenterX,
-                top + 32,
-                0xD9DCE3
-        );
-        guiGraphics.drawCenteredString(
-                this.font,
-                Component.translatable("screen.incore.cards.vendor.conversion.to"),
-                targetCenterX,
-                top + 32,
-                0xD9DCE3
-        );
-        drawScaledCenteredString(guiGraphics, Integer.toString(requiredSpur), sourceCenterX, amountY, 2.0F, 0xFFFFFF);
-        drawScaledCenteredString(guiGraphics, Integer.toString(missingTokens), targetCenterX, amountY, 2.0F, 0xFFFFFF);
+        guiGraphics.drawCenteredString(this.font, Component.literal(conversionLabel), sourceCenterX, top + 32, 0xD9DCE3);
+        guiGraphics.drawCenteredString(this.font, Component.literal(primaryLabel), targetCenterX, top + 32, 0xD9DCE3);
+        drawScaledCenteredString(guiGraphics, Integer.toString(requiredConversion), sourceCenterX, amountY, 2.0F, 0xFFFFFF);
+        drawScaledCenteredString(guiGraphics, Integer.toString(missingPrimary), targetCenterX, amountY, 2.0F, 0xFFFFFF);
         guiGraphics.drawCenteredString(this.font, Component.literal(">>"), this.width / 2, top + 50, 0xF5F5F5);
 
-        guiGraphics.renderItem(spurIcon(), sourceCenterX + 26, amountY + 3);
-        guiGraphics.renderItem(new ItemStack(Registration.CARD_TOKEN_ITEM.get()), targetCenterX + 24, amountY + 3);
+        guiGraphics.renderItem(iconFromId(conversionIconItemId), sourceCenterX + 26, amountY + 3);
+        guiGraphics.renderItem(iconFromId(primaryIconItemId), targetCenterX + 24, amountY + 3);
 
-        drawChip(guiGraphics, sourceCenterX, top + 78, Component.translatable("screen.incore.cards.vendor.conversion.owned_spur", availableSpur), 0xDD1D2127, 0xE6EDF9);
-        drawChip(guiGraphics, targetCenterX, top + 78, Component.translatable("screen.incore.cards.vendor.conversion.receive_token", missingTokens), 0xDD1D2127, 0xE6EDF9);
+        drawChip(guiGraphics, sourceCenterX, top + 78, Component.translatable("screen.incore.vendor.conversion.owned", availableConversion), 0xDD1D2127, 0xE6EDF9);
+        drawChip(guiGraphics, targetCenterX, top + 78, Component.translatable("screen.incore.vendor.conversion.receive", missingPrimary), 0xDD1D2127, 0xE6EDF9);
         guiGraphics.drawCenteredString(
                 this.font,
-                Component.translatable("screen.incore.cards.vendor.conversion.rate", CardVendorService.SPUR_PER_TOKEN),
+                Component.translatable("screen.incore.vendor.conversion.rate", requiredConversion, missingPrimary),
                 this.width / 2,
                 exchangeBottom + 12,
                 0xAAB2BF
@@ -157,9 +154,13 @@ public class CardVendorSpurConversionConfirmScreen extends Screen {
         guiGraphics.drawCenteredString(this.font, text, centerX, y + 2, textColor);
     }
 
-    private ItemStack spurIcon() {
-        Item spurItem = BuiltInRegistries.ITEM.get(SPUR_ID);
-        return spurItem == Items.AIR ? ItemStack.EMPTY : spurItem.getDefaultInstance();
+    private ItemStack iconFromId(String itemIdString) {
+        ResourceLocation itemId = ResourceLocation.tryParse(itemIdString);
+        if (itemId == null) {
+            return ItemStack.EMPTY;
+        }
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        return item == Items.AIR ? ItemStack.EMPTY : item.getDefaultInstance();
     }
 
     @Override

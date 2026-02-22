@@ -1,6 +1,6 @@
-package io.github.ozokuz.incore.features.cards.network;
+package io.github.ozokuz.incore.features.vendor.network;
 
-import io.github.ozokuz.incore.features.cards.CardVendorService;
+import io.github.ozokuz.incore.features.vendor.VendorService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -10,23 +10,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record BuyCardVendorOfferPayload(
+public record BuyVendorOfferPayload(
         String offerId,
         long vendorPosLong,
         int quantity,
-        boolean allowSpurConversion
+        boolean allowConversion
 ) implements CustomPacketPayload {
-    public static final Type<BuyCardVendorOfferPayload> TYPE = new Type<>(ResourceLocation.parse("incore:cards_vendor_buy"));
-    public static final StreamCodec<ByteBuf, BuyCardVendorOfferPayload> STREAM_CODEC = StreamCodec.composite(
+    public static final Type<BuyVendorOfferPayload> TYPE = new Type<>(ResourceLocation.parse("incore:vendor_buy"));
+    public static final StreamCodec<ByteBuf, BuyVendorOfferPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8,
-            BuyCardVendorOfferPayload::offerId,
+            BuyVendorOfferPayload::offerId,
             ByteBufCodecs.VAR_LONG,
-            BuyCardVendorOfferPayload::vendorPosLong,
+            BuyVendorOfferPayload::vendorPosLong,
             ByteBufCodecs.VAR_INT,
-            BuyCardVendorOfferPayload::quantity,
+            BuyVendorOfferPayload::quantity,
             ByteBufCodecs.BOOL,
-            BuyCardVendorOfferPayload::allowSpurConversion,
-            BuyCardVendorOfferPayload::new
+            BuyVendorOfferPayload::allowConversion,
+            BuyVendorOfferPayload::new
     );
 
     @Override
@@ -34,7 +34,7 @@ public record BuyCardVendorOfferPayload(
         return TYPE;
     }
 
-    public static void handle(BuyCardVendorOfferPayload payload, IPayloadContext context) {
+    public static void handle(BuyVendorOfferPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
@@ -46,8 +46,8 @@ public record BuyCardVendorOfferPayload(
             }
 
             BlockPos vendorPos = BlockPos.of(payload.vendorPosLong());
-            if (CardVendorService.purchase(player, vendorPos, offerId, payload.quantity(), payload.allowSpurConversion())) {
-                CardVendorService.openVendorScreen(player, vendorPos);
+            if (VendorService.purchase(player, vendorPos, offerId, payload.quantity(), payload.allowConversion())) {
+                VendorService.openVendorScreen(player, vendorPos);
             }
         });
     }

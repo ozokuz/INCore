@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.cards.network;
+package io.github.ozokuz.incore.features.vendor.network;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -9,12 +9,12 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.lang.reflect.InvocationTargetException;
 
-public record OpenCardVendorPayload(String json) implements CustomPacketPayload {
-    public static final Type<OpenCardVendorPayload> TYPE = new Type<>(ResourceLocation.parse("incore:cards_open_vendor"));
-    public static final StreamCodec<ByteBuf, OpenCardVendorPayload> STREAM_CODEC = StreamCodec.composite(
+public record OpenVendorPayload(String json) implements CustomPacketPayload {
+    public static final Type<OpenVendorPayload> TYPE = new Type<>(ResourceLocation.parse("incore:vendor_open"));
+    public static final StreamCodec<ByteBuf, OpenVendorPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8,
-            OpenCardVendorPayload::json,
-            OpenCardVendorPayload::new
+            OpenVendorPayload::json,
+            OpenVendorPayload::new
     );
 
     @Override
@@ -22,13 +22,13 @@ public record OpenCardVendorPayload(String json) implements CustomPacketPayload 
         return TYPE;
     }
 
-    public static void handle(OpenCardVendorPayload payload, IPayloadContext context) {
+    public static void handle(OpenVendorPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> openClient(payload.json()));
     }
 
     private static void openClient(String json) {
         try {
-            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.cards.client.CardClientPayloadHandlers");
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.vendor.client.VendorClientPayloadHandlers");
             handler.getMethod("openVendorScreen", String.class).invoke(null, json);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
         }

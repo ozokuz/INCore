@@ -1,0 +1,17 @@
+{
+  "name": "Base Booster Deal",
+  "category": "incore:cards",
+  "product": {
+    "type": "incore:card_booster",
+    "set": "incore:base_protocol",
+    "count": 1
+  },
+  "currency": {
+    "type": "incore:card_token",
+    "amount": 2,
+    "spur_conversion_rate": 8
+  },
+  "weight": 10,
+  "stock_min": 4,
+  "stock_max": 9
+}

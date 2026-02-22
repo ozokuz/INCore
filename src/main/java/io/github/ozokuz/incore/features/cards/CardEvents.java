@@ -3,7 +3,6 @@ package io.github.ozokuz.incore.features.cards;
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.roguelike.RoguelikeConstants;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -51,33 +50,16 @@ public final class CardEvents {
         }
 
         var block = event.getLevel().getBlockState(event.getPos()).getBlock();
-        if (block != Registration.CARD_DECRYPTOR_BLOCK.get()
-                && block != Registration.CARD_VENDOR_BLOCK.get()) {
+        if (block != Registration.CARD_DECRYPTOR_BLOCK.get()) {
             return;
         }
 
-        if (block == Registration.CARD_DECRYPTOR_BLOCK.get()) {
-            if (player.isShiftKeyDown()) {
-                CardDecryptorService.decryptAll(player);
-            } else {
-                CardDecryptorService.decryptHeld(player, player.getMainHandItem());
-            }
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.SUCCESS);
-            return;
+        if (player.isShiftKeyDown()) {
+            CardDecryptorService.decryptAll(player);
+        } else {
+            CardDecryptorService.decryptHeld(player, player.getMainHandItem());
         }
-
-        if (!player.getMainHandItem().isEmpty() || !player.getOffhandItem().isEmpty()) {
-            player.sendSystemMessage(Component.translatable("incore.cards.station.empty_hand"));
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.FAIL);
-            return;
-        }
-
-        if (block == Registration.CARD_VENDOR_BLOCK.get()) {
-            CardVendorService.openVendorScreen(player, event.getPos());
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.SUCCESS);
-        }
+        event.setCanceled(true);
+        event.setCancellationResult(InteractionResult.SUCCESS);
     }
 }

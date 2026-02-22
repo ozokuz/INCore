@@ -19,8 +19,6 @@ import io.github.ozokuz.incore.features.cards.CardBoosterItem;
 import io.github.ozokuz.incore.features.cards.CardModuleItem;
 import io.github.ozokuz.incore.features.cards.CardSleeveItem;
 import io.github.ozokuz.incore.features.cards.CardTokenItem;
-import io.github.ozokuz.incore.features.cards.CardVendorBlock;
-import io.github.ozokuz.incore.features.cards.CardVendorBlockEntity;
 import io.github.ozokuz.incore.features.cards.DeckBoxItem;
 import io.github.ozokuz.incore.features.cards.DeckCoreItem;
 import io.github.ozokuz.incore.features.cards.DeckItem;
@@ -28,7 +26,9 @@ import io.github.ozokuz.incore.features.cards.DeckStationBlock;
 import io.github.ozokuz.incore.features.cards.DeckStationBlockEntity;
 import io.github.ozokuz.incore.features.cards.DeckStationMenu;
 import io.github.ozokuz.incore.features.cards.DecryptorBlock;
-import io.github.ozokuz.incore.features.research.LabBlock;
+import io.github.ozokuz.incore.features.vendor.VendorBlock;
+import io.github.ozokuz.incore.features.vendor.VendorBlockEntity;
+import io.github.ozokuz.incore.features.vendor.VendorDiscountCharmItem;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabMenu;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOrePatchFeature;
@@ -119,13 +119,10 @@ public class Registration {
     public static final DeferredItem<BlockItem> DECK_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("deck_station", DECK_STATION_BLOCK);
     public static final DeferredBlock<Block> CARD_DECRYPTOR_BLOCK = BLOCKS.register("card_decryptor", DecryptorBlock::new);
     public static final DeferredItem<BlockItem> CARD_DECRYPTOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_decryptor", CARD_DECRYPTOR_BLOCK);
-    public static final DeferredBlock<Block> CARD_VENDOR_BLOCK = BLOCKS.register("card_vendor", () -> new CardVendorBlock());
-    public static final Supplier<BlockEntityType<CardVendorBlockEntity>> CARD_VENDOR_BE = BLOCK_ENTITY_TYPES.register("card_vendor", () -> BlockEntityType.Builder.of(CardVendorBlockEntity::new, CARD_VENDOR_BLOCK.get()).build(null));
-    public static final DeferredItem<BlockItem> CARD_VENDOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_vendor", CARD_VENDOR_BLOCK);
-    public static final DeferredBlock<Block> RESEARCH_LAB_BLOCK = BLOCKS.register("research_lab", () -> new LabBlock());
-    public static final Supplier<BlockEntityType<LabBlockEntity>> RESEARCH_LAB_BE = BLOCK_ENTITY_TYPES.register("research_lab", () -> BlockEntityType.Builder.of(LabBlockEntity::new, RESEARCH_LAB_BLOCK.get()).build(null));
+    public static final DeferredBlock<Block> VENDOR_BLOCK = BLOCKS.register("vendor", () -> new VendorBlock());
+    public static final Supplier<BlockEntityType<VendorBlockEntity>> VENDOR_BE = BLOCK_ENTITY_TYPES.register("vendor", () -> BlockEntityType.Builder.of(VendorBlockEntity::new, VENDOR_BLOCK.get()).build(null));
+    public static final DeferredItem<BlockItem> VENDOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("vendor", VENDOR_BLOCK);
     public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
-    public static final DeferredItem<BlockItem> RESEARCH_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_lab", RESEARCH_LAB_BLOCK);
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_BLOCK = BLOCKS.register("cinnabar_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
@@ -240,6 +237,7 @@ public class Registration {
     public static final DeferredItem<Item> CARD_DECK_ITEM = ITEMS.registerItem("card_deck", DeckItem::new);
     public static final DeferredItem<Item> CARD_SLEEVE_ITEM = ITEMS.registerItem("card_sleeve", CardSleeveItem::new);
     public static final DeferredItem<Item> CARD_TOKEN_ITEM = ITEMS.registerItem("card_token", CardTokenItem::new);
+    public static final DeferredItem<Item> VENDOR_DISCOUNT_CHARM_ITEM = ITEMS.registerItem("vendor_discount_charm", VendorDiscountCharmItem::new);
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> DUNGEON_CRYSTAL_THEME =
             DATA_COMPONENT_TYPES.registerComponentType(
@@ -272,8 +270,7 @@ public class Registration {
                 output.accept(ARENA_REWARD_CRATE_BLOCK_ITEM.get());
                 output.accept(DECK_STATION_BLOCK_ITEM.get());
                 output.accept(CARD_DECRYPTOR_BLOCK_ITEM.get());
-                output.accept(CARD_VENDOR_BLOCK_ITEM.get());
-                output.accept(RESEARCH_LAB_BLOCK_ITEM.get());
+                output.accept(VENDOR_BLOCK_ITEM.get());
                 output.accept(CINNABAR_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(MIXED_METALS_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(GEM_CLUSTERS_ORE_STONE_BLOCK_ITEM.get());
@@ -303,5 +300,6 @@ public class Registration {
                 output.accept(CARD_DECK_ITEM.get());
                 output.accept(CARD_SLEEVE_ITEM.get());
                 output.accept(CARD_TOKEN_ITEM.get());
+                output.accept(VENDOR_DISCOUNT_CHARM_ITEM.get());
             }).build());
 }
