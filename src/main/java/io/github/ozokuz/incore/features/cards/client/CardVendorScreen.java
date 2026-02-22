@@ -12,6 +12,8 @@ import java.util.List;
 
 public class CardVendorScreen extends Screen {
     private final CardVendorService.VendorScreenData data;
+    private int page;
+    private static final int ROWS_PER_PAGE = 6;
 
     public CardVendorScreen(CardVendorService.VendorScreenData data) {
         super(Component.translatable("screen.incore.cards.vendor.title"));
@@ -20,23 +22,47 @@ public class CardVendorScreen extends Screen {
 
     @Override
     protected void init() {
+        rebuildVendorWidgets();
+    }
+
+    private void rebuildVendorWidgets() {
+        clearWidgets();
         int left = this.width / 2 - 160;
         int top = 34;
-        int maxRows = Math.min(8, data.offers().size());
+        List<CardVendorService.VendorOfferView> offers = data.offers();
+        int maxPages = Math.max(1, (int) Math.ceil(offers.size() / (double) ROWS_PER_PAGE));
+        page = Math.clamp(page, 0, maxPages - 1);
+        int start = page * ROWS_PER_PAGE;
+        int end = Math.min(offers.size(), start + ROWS_PER_PAGE);
 
-        for (int i = 0; i < maxRows; i++) {
-            CardVendorService.VendorOfferView offer = data.offers().get(i);
-            int y = top + i * 24;
-            this.addRenderableWidget(Button.builder(Component.translatable("screen.incore.cards.vendor.buy"), button -> {
+        for (int i = start; i < end; i++) {
+            CardVendorService.VendorOfferView offer = offers.get(i);
+            int row = i - start;
+            int y = top + row * 28;
+            boolean affordable = data.tokenCount() >= offer.tokenCost() && data.spurCount() >= offer.spurCost();
+            Button buyButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.incore.cards.vendor.buy"), button -> {
                         ResourceLocation offerId = ResourceLocation.tryParse(offer.id());
                         if (offerId != null) {
                             CardNetworking.sendVendorPurchase(offerId);
                         }
                     })
-                    .bounds(left + 240, y + 2, 70, 18)
+                    .bounds(left + 238, y + 4, 72, 18)
                     .build());
+            buyButton.active = affordable;
         }
 
+        this.addRenderableWidget(Button.builder(Component.literal("Prev"), button -> {
+                    page = Math.max(0, page - 1);
+                    rebuildVendorWidgets();
+                })
+                .bounds(left + 8, this.height - 52, 54, 18)
+                .build());
+        this.addRenderableWidget(Button.builder(Component.literal("Next"), button -> {
+                    page = Math.min(maxPages - 1, page + 1);
+                    rebuildVendorWidgets();
+                })
+                .bounds(left + 66, this.height - 52, 54, 18)
+                .build());
         this.addRenderableWidget(Button.builder(Component.translatable("gui.done"), button -> onClose())
                 .bounds(this.width / 2 - 40, this.height - 28, 80, 20)
                 .build());
@@ -49,7 +75,7 @@ public class CardVendorScreen extends Screen {
 
         int left = this.width / 2 - 160;
         int right = this.width / 2 + 160;
-        int top = 20;
+        int top = 18;
         int bottom = this.height - 40;
 
         guiGraphics.fill(left, top, right, bottom, 0xCC120E18);
@@ -66,16 +92,23 @@ public class CardVendorScreen extends Screen {
         );
 
         List<CardVendorService.VendorOfferView> offers = data.offers();
-        int rows = Math.min(8, offers.size());
-        int y = top + 34;
-        for (int i = 0; i < rows; i++) {
+        int maxPages = Math.max(1, (int) Math.ceil(offers.size() / (double) ROWS_PER_PAGE));
+        int start = page * ROWS_PER_PAGE;
+        int end = Math.min(offers.size(), start + ROWS_PER_PAGE);
+
+        guiGraphics.drawString(this.font, "Page " + (page + 1) + "/" + maxPages, right - 62, top + 20, 0xA9E8FF, false);
+        int y = top + 36;
+        for (int i = start; i < end; i++) {
             CardVendorService.VendorOfferView offer = offers.get(i);
-            guiGraphics.fill(left + 6, y, right - 6, y + 20, 0x661C2430);
-            String row = offer.name() + " x" + offer.count() + " [" + offer.productType() + "]";
+            boolean affordable = data.tokenCount() >= offer.tokenCost() && data.spurCount() >= offer.spurCost();
+            int panelColor = affordable ? 0x66233648 : 0x663A1D25;
+            guiGraphics.fill(left + 6, y, right - 6, y + 24, panelColor);
+            guiGraphics.fill(left + 6, y, right - 6, y + 1, affordable ? 0xFF66D9FF : 0xFFCE6D6D);
+            String row = offer.name() + "  x" + offer.count() + "  (" + offer.productType() + ")";
             String cost = "TOKEN " + offer.tokenCost() + " + SPUR " + offer.spurCost();
-            guiGraphics.drawString(this.font, row, left + 10, y + 3, 0xF0F0F0, false);
-            guiGraphics.drawString(this.font, cost, left + 10, y + 12, 0x9FD7FF, false);
-            y += 24;
+            guiGraphics.drawString(this.font, row, left + 12, y + 4, 0xF0F0F0, false);
+            guiGraphics.drawString(this.font, cost, left + 12, y + 14, affordable ? 0x89D6FF : 0xFF9F9F, false);
+            y += 28;
         }
     }
 

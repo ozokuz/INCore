@@ -44,14 +44,18 @@ public final class CardCollectionService {
         CompoundTag foils = root.getCompound(KEY_FOILS);
 
         Map<String, Integer> counts = new TreeMap<>();
+        Map<String, Integer> foilCounts = new TreeMap<>();
         List<String> keys = new ArrayList<>(totals.getAllKeys());
         for (String key : keys) {
             counts.put(key, Math.max(0, totals.getInt(key)));
         }
+        for (String key : foils.getAllKeys()) {
+            foilCounts.put(key, Math.max(0, foils.getInt(key)));
+        }
 
         int totalCards = counts.values().stream().mapToInt(Integer::intValue).sum();
-        int totalFoils = foils.getAllKeys().stream().mapToInt(key -> Math.max(0, foils.getInt(key))).sum();
-        return new CollectionSummary(totalCards, totalFoils, counts);
+        int totalFoils = foilCounts.values().stream().mapToInt(Integer::intValue).sum();
+        return new CollectionSummary(totalCards, totalFoils, counts, foilCounts);
     }
 
     public static void copyData(ServerPlayer from, ServerPlayer to) {
@@ -61,6 +65,11 @@ public final class CardCollectionService {
         }
     }
 
-    public record CollectionSummary(int totalCards, int totalFoils, Map<String, Integer> counts) {
+    public record CollectionSummary(
+            int totalCards,
+            int totalFoils,
+            Map<String, Integer> counts,
+            Map<String, Integer> foilCounts
+    ) {
     }
 }

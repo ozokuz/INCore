@@ -24,6 +24,8 @@ import io.github.ozokuz.incore.features.cards.DeckBoxItem;
 import io.github.ozokuz.incore.features.cards.DeckCoreItem;
 import io.github.ozokuz.incore.features.cards.DeckItem;
 import io.github.ozokuz.incore.features.cards.DeckStationBlock;
+import io.github.ozokuz.incore.features.cards.DeckStationBlockEntity;
+import io.github.ozokuz.incore.features.cards.DeckStationMenu;
 import io.github.ozokuz.incore.features.cards.DecryptorBlock;
 import io.github.ozokuz.incore.features.research.LabBlock;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
@@ -110,7 +112,9 @@ public class Registration {
             BLOCK_ENTITY_TYPES.register("arena_reward_crate", () -> BlockEntityType.Builder.of(ArenaRewardCrateBlockEntity::new, ARENA_REWARD_CRATE_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> ARENA_REWARD_CRATE_BLOCK_ITEM =
             ITEMS.registerItem("arena_reward_crate", properties -> new ArenaRewardCrateBlockItem(ARENA_REWARD_CRATE_BLOCK.get(), properties));
-    public static final DeferredBlock<Block> DECK_STATION_BLOCK = BLOCKS.register("deck_station", DeckStationBlock::new);
+    public static final DeferredBlock<Block> DECK_STATION_BLOCK = BLOCKS.register("deck_station", () -> new DeckStationBlock());
+    public static final Supplier<BlockEntityType<DeckStationBlockEntity>> DECK_STATION_BE = BLOCK_ENTITY_TYPES.register("deck_station", () -> BlockEntityType.Builder.of(DeckStationBlockEntity::new, DECK_STATION_BLOCK.get()).build(null));
+    public static final Supplier<MenuType<DeckStationMenu>> DECK_STATION_MENU = MENU_TYPES.register("deck_station", () -> IMenuTypeExtension.create((id, inv, data) -> new DeckStationMenu(id, inv, (DeckStationBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
     public static final DeferredItem<BlockItem> DECK_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("deck_station", DECK_STATION_BLOCK);
     public static final DeferredBlock<Block> CARD_DECRYPTOR_BLOCK = BLOCKS.register("card_decryptor", DecryptorBlock::new);
     public static final DeferredItem<BlockItem> CARD_DECRYPTOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_decryptor", CARD_DECRYPTOR_BLOCK);

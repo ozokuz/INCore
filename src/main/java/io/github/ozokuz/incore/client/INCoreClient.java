@@ -10,6 +10,7 @@ import io.github.ozokuz.incore.client.status.BattlePassScreen;
 import io.github.ozokuz.incore.client.status.PlayerStatusScreen;
 import io.github.ozokuz.incore.client.tasks.TaskOverviewScreen;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
+import io.github.ozokuz.incore.features.cards.client.CardDeckStationScreen;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
@@ -58,6 +59,8 @@ public class INCoreClient {
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(Registration.BURNER_LAB_MENU.get(), LabScreen::new);
+        event.register(Registration.DECK_STATION_MENU.get(), CardDeckStationScreen::new);
+        event.register(Registration.RESEARCH_LAB_MENU.get(), LabScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {

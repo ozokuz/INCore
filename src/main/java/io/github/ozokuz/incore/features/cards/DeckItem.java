@@ -5,6 +5,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
@@ -32,7 +33,9 @@ public class DeckItem extends Item implements ICurioItem {
 
     @Override
     public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
-        return CardDeckService.resolveDeckModifiers(stack, null);
+        ServerPlayer wearer = slotContext.entity() instanceof ServerPlayer serverPlayer ? serverPlayer : null;
+        boolean preview = CardItemData.readDeckPreview(stack);
+        return CardDeckService.resolveDeckModifiers(stack, wearer, preview);
     }
 
     @Override
@@ -45,6 +48,15 @@ public class DeckItem extends Item implements ICurioItem {
 
         tooltipComponents.add(Component.translatable("incore.cards.deck.tooltip.modules", deck.modules().size()).withStyle(ChatFormatting.GRAY));
         tooltipComponents.add(Component.translatable("incore.cards.deck.tooltip.integrity", deck.integrity(), deck.maxIntegrity()).withStyle(ChatFormatting.GRAY));
+        if (CardItemData.readDeckPreview(stack)) {
+            int undecryptedCryptics = CardDeckService.countUndecryptedCryptics(deck.modules());
+            if (undecryptedCryptics > 0) {
+                tooltipComponents.add(Component.translatable(
+                        "incore.cards.deck.tooltip.undecrypted_cryptics",
+                        undecryptedCryptics
+                ).withStyle(ChatFormatting.LIGHT_PURPLE));
+            }
+        }
         if (deck.bricked()) {
             tooltipComponents.add(Component.translatable("incore.cards.deck.tooltip.bricked").withStyle(ChatFormatting.DARK_RED));
         }
