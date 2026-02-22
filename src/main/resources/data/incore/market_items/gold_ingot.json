@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:gold_ingot",
+  "base_price_spur": 30,
+  "display_name": "Gold Ingot",
+  "sort_order": 53,
+  "enabled": true,
+  "volatility_weight": 1.3
+}

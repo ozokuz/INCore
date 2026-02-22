@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:jungle_log",
+  "base_price_spur": 8,
+  "display_name": "Jungle Log",
+  "sort_order": 33,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

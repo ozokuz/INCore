@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:egg",
+  "base_price_spur": 4,
+  "display_name": "Egg",
+  "sort_order": 95,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

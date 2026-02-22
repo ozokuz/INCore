@@ -12,6 +12,9 @@ import io.github.ozokuz.incore.client.tasks.TaskOverviewScreen;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.cards.client.CardDeckStationScreen;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
+import io.github.ozokuz.incore.features.market.client.MarketAutoBuyerScreen;
+import io.github.ozokuz.incore.features.market.client.ShipmentTerminalScreen;
+import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
@@ -57,12 +60,15 @@ public class INCoreClient {
         event.register(INCoreKeyMappings.OPEN_RESEARCH_TREE);
         event.register(INCoreKeyMappings.OPEN_COMBAT_CATALOG);
         event.register(INCoreKeyMappings.OPEN_NUMISMATICS_BANK);
+        event.register(INCoreKeyMappings.OPEN_MARKET);
     }
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(Registration.BURNER_LAB_MENU.get(), LabScreen::new);
         event.register(Registration.DECK_STATION_MENU.get(), CardDeckStationScreen::new);
         event.register(Registration.RESEARCH_LAB_MENU.get(), LabScreen::new);
+        event.register(Registration.SHIPMENT_TERMINAL_MENU.get(), ShipmentTerminalScreen::new);
+        event.register(Registration.MARKET_AUTOBUYER_MENU.get(), MarketAutoBuyerScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
@@ -115,6 +121,10 @@ public class INCoreClient {
 
         while (INCoreKeyMappings.OPEN_NUMISMATICS_BANK.consumeClick()) {
             NumismaticsNetworking.requestOpenBankScreen();
+        }
+
+        while (INCoreKeyMappings.OPEN_MARKET.consumeClick()) {
+            MarketNetworking.requestOpenMarketScreen();
         }
     }
 }

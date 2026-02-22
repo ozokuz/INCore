@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:sugar_cane",
+  "base_price_spur": 4,
+  "display_name": "Sugar Cane",
+  "sort_order": 93,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

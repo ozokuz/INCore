@@ -117,5 +117,37 @@ public class Config {
         BUILDER.pop();
     }
 
+    public static final ModConfigSpec.DoubleValue MARKET_BUY_IMPACT_PER_ITEM = BUILDER
+            .comment("Demand index increase applied per bought item.")
+            .defineInRange("marketBuyImpactPerItem", 0.0015D, 0D, 100D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_SELL_IMPACT_PER_ITEM = BUILDER
+            .comment("Demand index decrease applied per sold item.")
+            .defineInRange("marketSellImpactPerItem", 0.0015D, 0D, 100D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_DAILY_MEAN_REVERSION = BUILDER
+            .comment("Daily noon reversion amount toward neutral demand (0-1).")
+            .defineInRange("marketDailyMeanReversion", 0.12D, 0D, 1D);
+
+    public static final ModConfigSpec.IntValue MARKET_HISTORY_RETENTION_DAYS = BUILDER
+            .comment("How many days of hourly market candles are retained.")
+            .defineInRange("marketHistoryRetentionDays", 30, 1, 365);
+
+    public static final ModConfigSpec.DoubleValue MARKET_MIN_PRICE_MULTIPLIER = BUILDER
+            .comment("Lower global price multiplier clamp.")
+            .defineInRange("marketMinPriceMultiplier", 0.25D, 0.01D, 100D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_MAX_PRICE_MULTIPLIER = BUILDER
+            .comment("Upper global price multiplier clamp.")
+            .defineInRange("marketMaxPriceMultiplier", 4.0D, 0.01D, 100D);
+
+    public static final ModConfigSpec.IntValue MARKET_SHIPMENT_INTERVAL_TICKS = BUILDER
+            .comment("Shipment terminal sell interval in ticks.")
+            .defineInRange("marketShipmentIntervalTicks", 40, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MARKET_AUTOBUYER_INTERVAL_TICKS = BUILDER
+            .comment("Market autobuyer purchase interval in ticks.")
+            .defineInRange("marketAutobuyerIntervalTicks", 40, 1, Integer.MAX_VALUE);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }

@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:dark_oak_log",
+  "base_price_spur": 9,
+  "display_name": "Dark Oak Log",
+  "sort_order": 35,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

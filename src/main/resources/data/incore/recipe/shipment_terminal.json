@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SCS",
+    "THT",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:smooth_stone"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "T": {
+      "item": "incore:market_terminal"
+    },
+    "H": {
+      "item": "minecraft:chest"
+    }
+  },
+  "result": {
+    "id": "incore:shipment_terminal",
+    "count": 1
+  }
+}

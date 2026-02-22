@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:obsidian",
+  "base_price_spur": 14,
+  "display_name": "Obsidian",
+  "sort_order": 80,
+  "enabled": true,
+  "volatility_weight": 1.1
+}

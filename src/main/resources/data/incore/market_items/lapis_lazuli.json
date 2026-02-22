@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:lapis_lazuli",
+  "base_price_spur": 11,
+  "display_name": "Lapis Lazuli",
+  "sort_order": 55,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

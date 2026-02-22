@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:dirt",
+  "base_price_spur": 2,
+  "display_name": "Dirt",
+  "sort_order": 20,
+  "enabled": true,
+  "volatility_weight": 0.7
+}

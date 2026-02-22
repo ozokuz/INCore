@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:netherite_scrap",
+  "base_price_spur": 220,
+  "display_name": "Netherite Scrap",
+  "sort_order": 59,
+  "enabled": true,
+  "volatility_weight": 1.8
+}

@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:leather",
+  "base_price_spur": 9,
+  "display_name": "Leather",
+  "sort_order": 71,
+  "enabled": true,
+  "volatility_weight": 1.1
+}

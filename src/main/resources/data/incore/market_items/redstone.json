@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:redstone",
+  "base_price_spur": 9,
+  "display_name": "Redstone",
+  "sort_order": 54,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

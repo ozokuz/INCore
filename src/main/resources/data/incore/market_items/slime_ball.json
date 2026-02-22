@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:slime_ball",
+  "base_price_spur": 18,
+  "display_name": "Slime Ball",
+  "sort_order": 77,
+  "enabled": true,
+  "volatility_weight": 1.2
+}

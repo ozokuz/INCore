@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:rotten_flesh",
+  "base_price_spur": 2,
+  "display_name": "Rotten Flesh",
+  "sort_order": 73,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:stone",
+  "base_price_spur": 3,
+  "display_name": "Stone",
+  "sort_order": 10,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

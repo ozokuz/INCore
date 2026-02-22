@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:granite",
+  "base_price_spur": 3,
+  "display_name": "Granite",
+  "sort_order": 12,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

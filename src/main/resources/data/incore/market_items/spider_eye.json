@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:spider_eye",
+  "base_price_spur": 8,
+  "display_name": "Spider Eye",
+  "sort_order": 75,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

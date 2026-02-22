@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:feather",
+  "base_price_spur": 4,
+  "display_name": "Feather",
+  "sort_order": 96,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

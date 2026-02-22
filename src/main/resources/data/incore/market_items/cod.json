@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:cod",
+  "base_price_spur": 6,
+  "display_name": "Raw Cod",
+  "sort_order": 98,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

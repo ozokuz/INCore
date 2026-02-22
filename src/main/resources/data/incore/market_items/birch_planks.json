@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:birch_planks",
+  "base_price_spur": 6,
+  "display_name": "Birch Planks",
+  "sort_order": 41,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

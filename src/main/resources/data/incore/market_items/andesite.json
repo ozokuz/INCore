@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:andesite",
+  "base_price_spur": 3,
+  "display_name": "Andesite",
+  "sort_order": 14,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

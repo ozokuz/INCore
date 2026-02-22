@@ -272,6 +272,39 @@ Manual gameplay verification checklist for testers.
 - [ ] Given a generated dungeon layout, when tracing room connections from the starting room through hallways in each of 10 runs, then every generated room is reachable from the start.
 - [ ] Given a dungeon slot is recycled for a new run, when the next dungeon is generated in that slot, then blocks from the previous dungeon are cleared across the full slot build volume before new rooms and hallways are placed.
 
+## Market Keybind And Terminal Permissions
+- [ ] Given a player is in-world with no GUI open, when pressing the Market keybind (`M` default), then the Global Market screen opens in read-only mode and no buy/sell buttons are shown.
+- [ ] Given a player opens Market from keybind, when selecting any listed market item, then current price, base price, demand index, intraday chart, and 30-day chart are visible for that item.
+- [ ] Given player A places a Market Terminal and player B is not trusted, when player B opens the terminal and tries to buy or sell, then trading is blocked and a not-allowed message is shown.
+- [ ] Given player A holds a bound Numismatics ID card and sneaks-right-clicks their Market Terminal, when the ID card is bound to player B, then player B can open the terminal and buy/sell after trust is added.
+- [ ] Given player A is terminal owner and has player B's bound Numismatics ID card in main hand, when using market trust-add and trust-remove actions from the terminal market screen, then player B is added/removed from the trusted list accordingly.
+
+## Market Demand And Daily Rebalance
+- [ ] Given a market item starts near its base price, when repeatedly buying enough units from a terminal, then demand index for that item increases and current price rises compared to its initial value.
+- [ ] Given a market item starts near its base price, when repeatedly selling enough units through market terminal or shipment terminal, then demand index decreases and current price drops compared to its initial value.
+- [ ] Given a market item has strongly positive or negative demand before local noon, when server time passes 12:00 local and the next market tick runs, then demand moves partway back toward zero and price shifts toward base price.
+- [ ] Given market data has run for over one in-game day with trades, when inspecting item chart history after each hourly rollover, then candle entries are stored hourly and older entries are retained up to the configured retention window.
+
+## Shipment Terminal
+- [ ] Given a Shipment Terminal has a bound Numismatics card in card slot and a tradeable market item stack in input, when waiting one shipment interval, then exactly one full stack from the first valid input slot is sold and card balance increases by current market price times sold count.
+- [ ] Given a Shipment Terminal card slot is empty, when waiting for at least one shipment interval, then shipment progress resets and status shows no-card.
+- [ ] Given a Shipment Terminal has a non-tradeable item in the first occupied input slot, when waiting for at least one shipment interval, then shipment does not execute and status shows invalid-item.
+
+## Market Auto-Buyer
+- [ ] Given a Market Auto-Buyer has access permission, a bound Numismatics card, a valid target market item, and enough funds, when interval completes with output space available, then configured batch quantity is purchased, inserted into output slots, and market demand/price update upward.
+- [ ] Given a Market Auto-Buyer has target item configured and market price rises above configured cap, when interval ticks, then no purchase happens and status shows price-too-high.
+- [ ] Given a Market Auto-Buyer has valid target but insufficient funds on bound card, when interval ticks, then no purchase happens and status shows no-funds.
+- [ ] Given a Market Auto-Buyer output inventory is full for target item, when interval ticks, then no purchase happens and status shows output-full.
+
+## Market Machine UI Layout
+- [ ] Given Shipment Terminal UI is open, when viewing the header area, then the title is fully readable and the progress bar does not overlap title text.
+- [ ] Given Shipment Terminal UI is open under each status condition (ready/no card/no items/invalid item), when viewing status text, then text remains inside the status panel without clipping into machine slots.
+- [ ] Given Market Auto-Buyer UI is open, when viewing control widgets (target field, enable toggle, cap/qty buttons, apply target), then no widget overlaps any machine slot or player inventory slot.
+- [ ] Given Market Auto-Buyer UI is open, when viewing card/output/player slot rows, then each slot row stays fully inside its intended panel (controls above, machine middle, inventory bottom) with no border intersections.
+- [ ] Given Market Auto-Buyer UI is open with long status messages, when viewing the status panel, then status text wraps/truncates cleanly and does not draw over progress bar or title.
+- [ ] Given Market Auto-Buyer UI is open, when clicking each control button and typing in the target field, then all controls are clickable/focusable and no hidden slot captures the interaction.
+- [ ] Given either market machine UI is open, when checking the player inventory and hotbar labels/slot frames, then labels are aligned to the inventory section and slots are fully visible within panel borders.
+
 ## Numismatics Bank Keybind
 - [ ] Given the player is in-world with Create Numismatics loaded and no other GUI open, when pressing the Numismatics Bank keybind (`N` default), then the Create Numismatics bank terminal screen opens for that player.
 - [ ] Given the Numismatics Bank keybind is rebound in Controls to a different key, when pressing the rebound key in-world with no GUI open, then the Create Numismatics bank terminal screen opens and no action is bound to the old default key.

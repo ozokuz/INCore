@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:diamond",
+  "base_price_spur": 120,
+  "display_name": "Diamond",
+  "sort_order": 56,
+  "enabled": true,
+  "volatility_weight": 1.6
+}

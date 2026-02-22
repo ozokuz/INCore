@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:ghast_tear",
+  "base_price_spur": 90,
+  "display_name": "Ghast Tear",
+  "sort_order": 79,
+  "enabled": true,
+  "volatility_weight": 1.6
+}

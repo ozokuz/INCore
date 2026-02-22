@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:ender_pearl",
+  "base_price_spur": 40,
+  "display_name": "Ender Pearl",
+  "sort_order": 76,
+  "enabled": true,
+  "volatility_weight": 1.4
+}

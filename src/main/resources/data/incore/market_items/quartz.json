@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:quartz",
+  "base_price_spur": 12,
+  "display_name": "Nether Quartz",
+  "sort_order": 58,
+  "enabled": true,
+  "volatility_weight": 1.0
+}
