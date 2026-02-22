@@ -1,0 +1,9 @@
+{
+  "category": "incore:daily_exchange",
+  "item": "minecraft:redstone",
+  "display_name": "Redstone Dust",
+  "sort_order": 30,
+  "enabled": true,
+  "price_spur": 28,
+  "item_count": 8
+}

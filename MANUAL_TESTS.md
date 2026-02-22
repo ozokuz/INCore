@@ -434,3 +434,18 @@ Manual gameplay verification checklist for testers.
 - [ ] Given a vendor offer has remaining stock `N`, when pressing `+` repeatedly in that row, then displayed quantity never exceeds `N`.
 - [ ] Given a vendor has partially depleted stock, when leaving and rejoining the world/server and reopening that same vendor block, then previously remaining stock values persist.
 - [ ] Given op permissions, when running `/incore cards debug_deck <player>` and `/incore cards collection <player>`, then command output reports current deck integrity/bricked/module counts and collection totals without errors.
+
+## Shop System
+- [ ] Given a player is in-world with no GUI open, when pressing the Shop keybind (`L` default), then the Supply Shop selection screen opens.
+- [ ] Given shop datapack categories are loaded, when viewing the Supply Shop selection screen, then category tabs render on the left and offer rows render on the right with item icon, offer name, price, and stock label.
+- [ ] Given the Supply Shop selection screen is open, when clicking any offer row, then a separate Shop Item Details screen opens and the Back button returns to the previous category selection.
+- [ ] Given an unlocked offer with available stock is selected in details, when increasing quantity and pressing Purchase, then the player receives `item_count * quantity` items and player bank balance decreases by `price_spur * quantity`.
+- [ ] Given the player inventory has insufficient space for the requested purchase, when pressing Purchase in details, then purchase is blocked, no items are granted, no stock is consumed, and no bank funds are withdrawn.
+- [ ] Given a category uses `stock_mode: per_item`, when buying one offer from that category, then only that offer's stock decreases and sibling offers in the same category keep their own stock values.
+- [ ] Given a category uses `stock_mode: category_bucket`, when buying one offer from that category, then bucket stock decreases and all offers in that category show the same reduced shared stock value.
+- [ ] Given a `per_item` category configured with `replenish_mode: daily_noon`, when server local time crosses 12:00 and shop screen is reopened, then that category's offer stocks reset to their configured `initial_stock`.
+- [ ] Given a `category_bucket` category configured with `replenish_mode: gacha_rotation`, when the mapped gacha category rotates (scheduled or forced) and shop screen is reopened, then that category bucket stock resets to its configured `initial_stock`.
+- [ ] Given a category configured with `replenish_mode: none` is partially depleted, when multiple day changes and gacha rotations occur and shop screen is reopened, then its remaining stock does not reset.
+- [ ] Given operator runs `/incore shop lock category <target> <category>` or `/incore shop lock offer <target> <offer>`, when the target opens shop, then locked entries remain visible but Purchase is disabled.
+- [ ] Given operator runs `/incore shop lock_global category <category>` or `/incore shop lock_global offer <offer>`, when any player opens shop, then those entries are locked globally until corresponding `unlock_global` command is executed.
+- [ ] Given a globally locked category or offer and a specific player, when operator runs player-scoped `/incore shop unlock ...` for that target, then that player can purchase the unlocked entry while it remains locked for other players.

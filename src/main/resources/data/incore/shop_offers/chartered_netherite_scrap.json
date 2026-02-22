@@ -1,0 +1,9 @@
+{
+  "category": "incore:chartered_rotation",
+  "item": "minecraft:netherite_scrap",
+  "display_name": "Netherite Scrap",
+  "sort_order": 20,
+  "enabled": true,
+  "price_spur": 620,
+  "item_count": 1
+}

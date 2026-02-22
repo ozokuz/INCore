@@ -43,6 +43,10 @@ import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
+import io.github.ozokuz.incore.features.shop.ShopCategoryManager;
+import io.github.ozokuz.incore.features.shop.ShopOfferManager;
+import io.github.ozokuz.incore.features.shop.command.ShopCommands;
+import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import io.github.ozokuz.incore.features.tasks.TaskDataManager;
 import io.github.ozokuz.incore.features.tasks.command.TaskCommands;
 import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
@@ -93,6 +97,7 @@ public class INCore {
         CardVendorIntegration.initialize();
         modEventBus.addListener(NumismaticsNetworking::registerPayloads);
         modEventBus.addListener(MarketNetworking::registerPayloads);
+        modEventBus.addListener(ShopNetworking::registerPayloads);
         modEventBus.addListener(MarketMachineCapabilities::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
@@ -104,6 +109,7 @@ public class INCore {
         NeoForge.EVENT_BUS.addListener(RoguelikeCommands::register);
         NeoForge.EVENT_BUS.addListener(CardCommands::register);
         NeoForge.EVENT_BUS.addListener(MarketCommands::register);
+        NeoForge.EVENT_BUS.addListener(ShopCommands::register);
         NeoForge.EVENT_BUS.addListener(MarketEvents::onServerTick);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -169,5 +175,7 @@ public class INCore {
         event.addListener(new CardSynergyManager());
         event.addListener(new VendorOfferManager());
         event.addListener(new MarketItemManager());
+        event.addListener(new ShopCategoryManager());
+        event.addListener(new ShopOfferManager());
     }
 }
