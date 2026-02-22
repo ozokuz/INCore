@@ -99,6 +99,10 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                     MarketService.ItemView item = ordered.get(index);
                     selectedItemId = item.itemId();
                     minecraft.setScreen(new MarketDetailsScreen(data, item.itemId(), scrollRow));
+                    ResourceLocation selectedResourceId = MarketScreenDataUtil.parseItemId(item.itemId());
+                    if (selectedResourceId != null) {
+                        requestItemDetails(selectedResourceId);
+                    }
                     return true;
                 }
             }
@@ -185,6 +189,15 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
             MarketNetworking.sendRefresh(terminalPos);
         } else {
             MarketNetworking.requestOpenMarketScreen();
+        }
+    }
+
+    private void requestItemDetails(ResourceLocation itemId) {
+        Long terminalPos = data == null ? null : data.terminalPos();
+        if (terminalPos != null) {
+            MarketNetworking.sendRefresh(terminalPos, itemId);
+        } else {
+            MarketNetworking.requestOpenMarketScreen(itemId);
         }
     }
 

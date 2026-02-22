@@ -11,9 +11,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record OpenMarketScreenPayload(String json) implements CustomPacketPayload {
+    private static final int MAX_JSON_BYTES = 4 * 1024 * 1024;
     public static final Type<OpenMarketScreenPayload> TYPE = new Type<>(ResourceLocation.parse("incore:open_market_screen"));
     public static final StreamCodec<ByteBuf, OpenMarketScreenPayload> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8,
+            ByteBufCodecs.stringUtf8(MAX_JSON_BYTES),
             OpenMarketScreenPayload::json,
             OpenMarketScreenPayload::new
     );

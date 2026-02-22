@@ -40,6 +40,7 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
     public static final int STATUS_NO_CARD = 1;
     public static final int STATUS_NO_ITEMS = 2;
     public static final int STATUS_INVALID_ITEM = 3;
+    public static final int STATUS_NEED_FULL_STACK = 4;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private @Nullable UUID owner;
@@ -108,6 +109,15 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
             return;
         }
 
+        ItemStack inputStack = be.items.get(slot);
+        int requiredStackSize = Math.max(1, inputStack.getMaxStackSize());
+        if (inputStack.getCount() < requiredStackSize) {
+            be.progress = 0;
+            be.status = STATUS_NEED_FULL_STACK;
+            be.setChanged();
+            return;
+        }
+
         be.status = STATUS_IDLE;
         be.progress++;
         if (be.progress < interval) {
@@ -121,7 +131,8 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
         }
 
         ItemStack stack = be.items.get(slot);
-        int sellingCount = stack.getCount();
+        int sellingCount = Math.max(1, stack.getMaxStackSize());
+        int soldStacks = 1;
         int unitPrice = MarketPricingService.currentPrice(level.getServer(), itemId);
         if (unitPrice <= 0 || sellingCount <= 0) {
             return;
@@ -135,10 +146,10 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
         }
 
         stack.shrink(sellingCount);
-        long payoutLong = (long) unitPrice * sellingCount;
+        long payoutLong = (long) unitPrice * soldStacks;
         int payout = (int) Math.min(Integer.MAX_VALUE, payoutLong);
         MarketBanking.deposit(account, payout);
-        MarketPricingService.applySell(level.getServer(), itemId, sellingCount);
+        MarketPricingService.applySell(level.getServer(), itemId, soldStacks);
         be.setChanged();
     }
 

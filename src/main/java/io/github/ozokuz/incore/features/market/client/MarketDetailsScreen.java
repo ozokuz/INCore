@@ -19,6 +19,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
     private String selectedItemId;
     private int selectionScrollRow;
     private int quantity = 1;
+    private @Nullable String requestedHistoryForItemId;
 
     public MarketDetailsScreen(MarketService.ScreenData data, String selectedItemId, int selectionScrollRow) {
         super(Component.translatable("screen.incore.market.details.title"));
@@ -33,10 +34,15 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
         List<MarketService.ItemView> ordered = MarketScreenDataUtil.orderedItems(data);
         if (ordered.isEmpty()) {
             selectedItemId = null;
+            requestedHistoryForItemId = null;
             return;
         }
         if (selectedItemId == null || MarketScreenDataUtil.findItem(data, selectedItemId) == null) {
             selectedItemId = ordered.getFirst().itemId();
+        }
+        MarketService.ItemView selected = selectedItem();
+        if (selected != null && selected.candles() != null && !selected.candles().isEmpty()) {
+            requestedHistoryForItemId = null;
         }
         if (minecraft != null) {
             rebuildWidgets();
@@ -57,12 +63,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
                 }).bounds(16, 14, 60, 20)
                 .build());
         addRenderableWidget(Button.builder(Component.translatable("screen.incore.market.refresh"), button -> {
-                    Long terminalPos = data == null ? null : data.terminalPos();
-                    if (terminalPos != null) {
-                        MarketNetworking.sendRefresh(terminalPos);
-                    } else {
-                        MarketNetworking.requestOpenMarketScreen();
-                    }
+                    requestSelectedSnapshot();
                 }).bounds(width - 98, 14, 82, 20)
                 .build());
 
@@ -119,6 +120,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
             guiGraphics.drawString(font, Component.translatable("screen.incore.market.no_selection"), 16, 44, 0xD0D0D0, false);
             return;
         }
+        requestSelectedHistoryIfMissing(selected);
 
         drawPanel(guiGraphics, 12, 40, width - 24, 64, 0xAA1B212B, 0xFF475063);
         drawPanel(guiGraphics, 12, 110, width - 24, 84, 0xAA1B212B, 0xFF475063);
@@ -181,6 +183,43 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
 
     private @Nullable MarketService.ItemView selectedItem() {
         return MarketScreenDataUtil.findItem(data, selectedItemId);
+    }
+
+    private void requestSelectedSnapshot() {
+        if (selectedItemId == null) {
+            Long terminalPos = data == null ? null : data.terminalPos();
+            if (terminalPos != null) {
+                MarketNetworking.sendRefresh(terminalPos);
+            } else {
+                MarketNetworking.requestOpenMarketScreen();
+            }
+            return;
+        }
+
+        ResourceLocation itemId = MarketScreenDataUtil.parseItemId(selectedItemId);
+        if (itemId == null) {
+            return;
+        }
+        Long terminalPos = data == null ? null : data.terminalPos();
+        if (terminalPos != null) {
+            MarketNetworking.sendRefresh(terminalPos, itemId);
+        } else {
+            MarketNetworking.requestOpenMarketScreen(itemId);
+        }
+        requestedHistoryForItemId = selectedItemId;
+    }
+
+    private void requestSelectedHistoryIfMissing(MarketService.ItemView selected) {
+        if (selected.candles() != null && !selected.candles().isEmpty()) {
+            if (selected.itemId().equals(requestedHistoryForItemId)) {
+                requestedHistoryForItemId = null;
+            }
+            return;
+        }
+        if (selected.itemId().equals(requestedHistoryForItemId)) {
+            return;
+        }
+        requestSelectedSnapshot();
     }
 
     private void renderItemIcon(GuiGraphics guiGraphics, String itemId, int x, int y) {

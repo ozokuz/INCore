@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.jetbrains.annotations.Nullable;
 
 public final class MarketNetworking {
     private static final Gson GSON = new Gson();
@@ -24,11 +25,27 @@ public final class MarketNetworking {
     }
 
     public static void requestOpenMarketScreen() {
-        PacketDistributor.sendToServer(new RequestOpenMarketScreenPayload(true));
+        requestOpenMarketScreen(null);
+    }
+
+    public static void requestOpenMarketScreen(@Nullable ResourceLocation detailItemId) {
+        PacketDistributor.sendToServer(new RequestOpenMarketScreenPayload(
+                true,
+                detailItemId == null ? "" : detailItemId.toString()
+        ));
     }
 
     public static void sendRefresh(long terminalPos) {
-        PacketDistributor.sendToServer(new MarketActionPayload(MarketActionPayload.ACTION_REFRESH, terminalPos, "", 1));
+        sendRefresh(terminalPos, null);
+    }
+
+    public static void sendRefresh(long terminalPos, @Nullable ResourceLocation detailItemId) {
+        PacketDistributor.sendToServer(new MarketActionPayload(
+                MarketActionPayload.ACTION_REFRESH,
+                terminalPos,
+                detailItemId == null ? "" : detailItemId.toString(),
+                1
+        ));
     }
 
     public static void sendBuy(long terminalPos, ResourceLocation itemId, int quantity) {
@@ -64,20 +81,27 @@ public final class MarketNetworking {
     }
 
     static void openReadOnlyScreenFor(ServerPlayer player) {
-        MarketService.openReadOnlyScreen(player);
+        openReadOnlyScreenFor(player, null);
+    }
+
+    static void openReadOnlyScreenFor(ServerPlayer player, @Nullable ResourceLocation detailItemId) {
+        MarketService.openReadOnlyScreen(player, detailItemId);
     }
 
     static void handleAction(ServerPlayer player, MarketActionPayload payload) {
         BlockPos terminalPos = BlockPos.of(payload.terminalPos());
         switch (payload.action()) {
-            case MarketActionPayload.ACTION_REFRESH -> MarketService.requestRefresh(player, terminalPos);
+            case MarketActionPayload.ACTION_REFRESH -> {
+                ResourceLocation detailItemId = parseOptionalItemId(payload.itemId());
+                MarketService.requestRefresh(player, terminalPos, detailItemId);
+            }
             case MarketActionPayload.ACTION_BUY -> {
                 ResourceLocation itemId = ResourceLocation.tryParse(payload.itemId());
                 if (itemId == null) {
                     return;
                 }
                 if (MarketService.buyFromMarket(player, terminalPos, itemId, payload.quantity())) {
-                    MarketService.requestRefresh(player, terminalPos);
+                    MarketService.requestRefresh(player, terminalPos, itemId);
                 }
             }
             case MarketActionPayload.ACTION_SELL -> {
@@ -86,11 +110,18 @@ public final class MarketNetworking {
                     return;
                 }
                 if (MarketService.sellToMarket(player, terminalPos, itemId, payload.quantity())) {
-                    MarketService.requestRefresh(player, terminalPos);
+                    MarketService.requestRefresh(player, terminalPos, itemId);
                 }
             }
             default -> {
             }
         }
+    }
+
+    private static @Nullable ResourceLocation parseOptionalItemId(@Nullable String rawItemId) {
+        if (rawItemId == null || rawItemId.isBlank()) {
+            return null;
+        }
+        return ResourceLocation.tryParse(rawItemId);
     }
 }
