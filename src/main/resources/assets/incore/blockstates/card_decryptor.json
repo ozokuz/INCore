@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "incore:block/card_decryptor" }
+  }
+}

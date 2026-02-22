@@ -1,0 +1,12 @@
+{
+  "name": "Bulkhead Plate",
+  "set": "incore:base_protocol",
+  "rarity": 2,
+  "deck_points": 2,
+  "module_type": "regular",
+  "tags": ["tech", "defense"],
+  "effects": [
+    { "attribute": "minecraft:armor", "amount": 2.0, "operation": "add_value" },
+    { "attribute": "minecraft:max_health", "amount": 2.0, "operation": "add_value" }
+  ]
+}

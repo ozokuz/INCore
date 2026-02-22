@@ -6,17 +6,17 @@
       "request": "launch",
       "name": "Client",
       "presentation": {
-        "group": "Mod Development - INCore-gacha",
+        "group": "Mod Development - INCore-cards",
         "order": 0
       },
-      "projectName": "INCore-gacha",
+      "projectName": "INCore-cards",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@/home/ozoku/src/github.com/ozokuz/INCore-gacha/build/moddev/clientRunProgramArgs.txt"
+        "@/home/ozoku/src/github.com/ozokuz/INCore-cards/build/moddev/clientRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@/home/ozoku/src/github.com/ozokuz/INCore-gacha/build/moddev/clientRunVmArgs.txt",
-        "-Dfml.modFolders\u003dincore%%/home/ozoku/src/github.com/ozokuz/INCore-gacha/bin/main"
+        "@/home/ozoku/src/github.com/ozokuz/INCore-cards/build/moddev/clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003dincore%%/home/ozoku/src/github.com/ozokuz/INCore-cards/bin/main"
       ],
       "cwd": "${workspaceFolder}/run",
       "env": {},
@@ -28,17 +28,17 @@
       "request": "launch",
       "name": "Data",
       "presentation": {
-        "group": "Mod Development - INCore-gacha",
+        "group": "Mod Development - INCore-cards",
         "order": 1
       },
-      "projectName": "INCore-gacha",
+      "projectName": "INCore-cards",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@/home/ozoku/src/github.com/ozokuz/INCore-gacha/build/moddev/dataRunProgramArgs.txt"
+        "@/home/ozoku/src/github.com/ozokuz/INCore-cards/build/moddev/dataRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@/home/ozoku/src/github.com/ozokuz/INCore-gacha/build/moddev/dataRunVmArgs.txt",
-        "-Dfml.modFolders\u003dincore%%/home/ozoku/src/github.com/ozokuz/INCore-gacha/bin/main"
+        "@/home/ozoku/src/github.com/ozokuz/INCore-cards/build/moddev/dataRunVmArgs.txt",
+        "-Dfml.modFolders\u003dincore%%/home/ozoku/src/github.com/ozokuz/INCore-cards/bin/main"
       ],
       "cwd": "${workspaceFolder}/run",
       "env": {},
@@ -50,17 +50,17 @@
       "request": "launch",
       "name": "GameTestServer",
       "presentation": {
-        "group": "Mod Development - INCore-gacha",
+        "group": "Mod Development - INCore-cards",
         "order": 2
       },
-      "projectName": "INCore-gacha",
+      "projectName": "INCore-cards",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@/home/ozoku/src/github.com/ozokuz/INCore-gacha/build/moddev/gameTestServerRunProgramArgs.txt"
+        "@/home/ozoku/src/github.com/ozokuz/INCore-cards/build/moddev/gameTestServerRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@/home/ozoku/src/github.com/ozokuz/INCore-gacha/build/moddev/gameTestServerRunVmArgs.txt",
-        "-Dfml.modFolders\u003dincore%%/home/ozoku/src/github.com/ozokuz/INCore-gacha/bin/main"
+        "@/home/ozoku/src/github.com/ozokuz/INCore-cards/build/moddev/gameTestServerRunVmArgs.txt",
+        "-Dfml.modFolders\u003dincore%%/home/ozoku/src/github.com/ozokuz/INCore-cards/bin/main"
       ],
       "cwd": "${workspaceFolder}/run",
       "env": {},
@@ -72,17 +72,17 @@
       "request": "launch",
       "name": "Server",
       "presentation": {
-        "group": "Mod Development - INCore-gacha",
+        "group": "Mod Development - INCore-cards",
         "order": 3
       },
-      "projectName": "INCore-gacha",
+      "projectName": "INCore-cards",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@/home/ozoku/src/github.com/ozokuz/INCore-gacha/build/moddev/serverRunProgramArgs.txt"
+        "@/home/ozoku/src/github.com/ozokuz/INCore-cards/build/moddev/serverRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@/home/ozoku/src/github.com/ozokuz/INCore-gacha/build/moddev/serverRunVmArgs.txt",
-        "-Dfml.modFolders\u003dincore%%/home/ozoku/src/github.com/ozokuz/INCore-gacha/bin/main"
+        "@/home/ozoku/src/github.com/ozokuz/INCore-cards/build/moddev/serverRunVmArgs.txt",
+        "-Dfml.modFolders\u003dincore%%/home/ozoku/src/github.com/ozokuz/INCore-cards/bin/main"
       ],
       "cwd": "${workspaceFolder}/run",
       "env": {},

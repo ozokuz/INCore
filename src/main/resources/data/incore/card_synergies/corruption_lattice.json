@@ -1,0 +1,10 @@
+{
+  "name": "Corruption Lattice",
+  "required_type_counts": {
+    "corrupted": 2
+  },
+  "min_cards": 2,
+  "effects": [
+    { "attribute": "minecraft:attack_damage", "amount": 0.12, "operation": "add_multiplied_total" }
+  ]
+}

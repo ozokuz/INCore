@@ -8,6 +8,16 @@ import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.command.BattlePassCommands;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
+import io.github.ozokuz.incore.features.cards.CardBoosterBoxManager;
+import io.github.ozokuz.incore.features.cards.CardBoosterManager;
+import io.github.ozokuz.incore.features.cards.CardDeckBoxManager;
+import io.github.ozokuz.incore.features.cards.CardDeckCoreManager;
+import io.github.ozokuz.incore.features.cards.CardModuleManager;
+import io.github.ozokuz.incore.features.cards.CardSetManager;
+import io.github.ozokuz.incore.features.cards.CardSynergyManager;
+import io.github.ozokuz.incore.features.cards.CardVendorOfferManager;
+import io.github.ozokuz.incore.features.cards.command.CardCommands;
+import io.github.ozokuz.incore.features.cards.network.CardNetworking;
 import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
 import io.github.ozokuz.incore.features.gacha.GachaEventCategoryManager;
 import io.github.ozokuz.incore.features.gacha.command.GachaCommands;
@@ -66,6 +76,7 @@ public class INCore {
         modEventBus.addListener(ResearchNetworking::registerPayloads);
         modEventBus.addListener(ArenaNetworking::registerPayloads);
         modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener(CardNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -74,6 +85,7 @@ public class INCore {
         NeoForge.EVENT_BUS.addListener(BattlePassCommands::register);
         NeoForge.EVENT_BUS.addListener(ResearchCommands::register);
         NeoForge.EVENT_BUS.addListener(RoguelikeCommands::register);
+        NeoForge.EVENT_BUS.addListener(CardCommands::register);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -125,5 +137,13 @@ public class INCore {
         event.addListener(new DungeonThemeManager());
         event.addListener(new DungeonObjectiveManager());
         event.addListener(new ArenaCatalogManager());
+        event.addListener(new CardSetManager());
+        event.addListener(new CardModuleManager());
+        event.addListener(new CardBoosterManager());
+        event.addListener(new CardBoosterBoxManager());
+        event.addListener(new CardDeckCoreManager());
+        event.addListener(new CardDeckBoxManager());
+        event.addListener(new CardSynergyManager());
+        event.addListener(new CardVendorOfferManager());
     }
 }

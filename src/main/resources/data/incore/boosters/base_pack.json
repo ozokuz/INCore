@@ -1,0 +1,6 @@
+{
+  "name": "Base Booster",
+  "set": "incore:base_protocol",
+  "cards_per_pack": 5,
+  "foil_chance": 0.08
+}

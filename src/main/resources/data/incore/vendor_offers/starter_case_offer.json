@@ -1,0 +1,9 @@
+{
+  "name": "Starter Case Deal",
+  "product_type": "booster_box",
+  "product_id": "incore:starter_case",
+  "count": 1,
+  "token_cost": 10,
+  "spur_cost": 4,
+  "weight": 5
+}

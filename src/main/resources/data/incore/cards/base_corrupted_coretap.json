@@ -1,0 +1,16 @@
+{
+  "name": "Corrupted Coretap",
+  "set": "incore:base_protocol",
+  "rarity": 5,
+  "deck_points": 4,
+  "module_type": "corrupted",
+  "tags": ["tech", "corrupted"],
+  "corrupted_integrity_cost": 2,
+  "effects": [
+    { "attribute": "minecraft:attack_damage", "amount": 0.3, "operation": "add_multiplied_total" },
+    { "attribute": "minecraft:luck", "amount": 1.0, "operation": "add_value" }
+  ],
+  "downsides": [
+    { "attribute": "minecraft:max_health", "amount": -2.0, "operation": "add_value" }
+  ]
+}

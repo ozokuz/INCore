@@ -1,0 +1,9 @@
+{
+  "name": "Signal Booster Deal",
+  "product_type": "booster",
+  "product_id": "incore:season_signal",
+  "count": 1,
+  "token_cost": 3,
+  "spur_cost": 1,
+  "weight": 8
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Void Ink",
+  "set": "incore:season_signal",
+  "rarity": 5,
+  "deck_points": 4,
+  "module_type": "cryptic",
+  "tags": ["seasonal", "cryptic"],
+  "effects": [
+    { "attribute": "minecraft:attack_damage", "amount": 0.26, "operation": "add_multiplied_total" },
+    { "attribute": "minecraft:movement_speed", "amount": 0.04, "operation": "add_multiplied_total" }
+  ],
+  "downsides": [
+    { "attribute": "minecraft:max_health", "amount": -3.0, "operation": "add_value" }
+  ]
+}

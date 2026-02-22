@@ -1,0 +1,12 @@
+{
+  "name": "Signal Mesh",
+  "set": "incore:season_signal",
+  "rarity": 3,
+  "deck_points": 2,
+  "module_type": "regular",
+  "tags": ["seasonal", "tech"],
+  "effects": [
+    { "attribute": "minecraft:luck", "amount": 1.0, "operation": "add_value" },
+    { "attribute": "minecraft:movement_speed", "amount": 0.02, "operation": "add_multiplied_total" }
+  ]
+}
