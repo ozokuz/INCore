@@ -1,7 +1,6 @@
 package io.github.ozokuz.incore.features.market.content;
 
 import com.mojang.serialization.MapCodec;
-import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -23,8 +22,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 public class MarketAutoBuyerBlock extends BaseEntityBlock {
     public static final MapCodec<MarketAutoBuyerBlock> CODEC = simpleCodec(MarketAutoBuyerBlock::new);
@@ -108,18 +105,6 @@ public class MarketAutoBuyerBlock extends BaseEntityBlock {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof MarketAutoBuyerBlockEntity autoBuyer)) {
             return ItemInteractionResult.CONSUME;
-        }
-
-        if (player.isShiftKeyDown() && IDCardItem.isBound(stack) && autoBuyer.canManageTrust(player.getUUID())) {
-            UUID trusted = IDCardItem.get(stack);
-            if (trusted != null) {
-                boolean added = autoBuyer.toggleTrusted(trusted);
-                player.sendSystemMessage(Component.translatable(
-                        added ? "incore.market.trust.added" : "incore.market.trust.removed",
-                        trusted.toString()
-                ));
-            }
-            return ItemInteractionResult.SUCCESS;
         }
 
         if (player instanceof ServerPlayer serverPlayer) {

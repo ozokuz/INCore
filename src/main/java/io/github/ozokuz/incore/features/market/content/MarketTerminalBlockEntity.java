@@ -1,24 +1,34 @@
 package io.github.ozokuz.incore.features.market.content;
 
+import dev.ithundxr.createnumismatics.content.bank.CardItem;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.market.MarketTeamAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
-public class MarketTerminalBlockEntity extends BlockEntity {
+public class MarketTerminalBlockEntity extends BlockEntity implements Container, MenuProvider {
+    public static final int CARD_SLOT = 0;
+    public static final int SLOT_COUNT = 1;
+
+    private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private @Nullable UUID owner;
-    private final Set<UUID> trustedPlayers = new HashSet<>();
 
     public MarketTerminalBlockEntity(BlockPos pos, BlockState state) {
         super(Registration.MARKET_TERMINAL_BE.get(), pos, state);
@@ -33,55 +43,12 @@ public class MarketTerminalBlockEntity extends BlockEntity {
         return owner;
     }
 
-    public boolean canManageTrust(UUID playerId) {
-        return owner != null && owner.equals(playerId);
+    public boolean canTrade(Player player) {
+        return MarketTeamAccess.canAccess(owner, player);
     }
 
-    public boolean canTrade(net.minecraft.world.entity.player.Player player) {
-        if (owner == null) {
-            return true;
-        }
-
-        UUID playerId = player.getUUID();
-        return owner.equals(playerId) || trustedPlayers.contains(playerId);
-    }
-
-    public Set<UUID> trustedPlayers() {
-        return Set.copyOf(trustedPlayers);
-    }
-
-    public void addTrusted(UUID id) {
-        if (id == null) {
-            return;
-        }
-        if (trustedPlayers.add(id)) {
-            setChanged();
-        }
-    }
-
-    public void removeTrusted(UUID id) {
-        if (id == null) {
-            return;
-        }
-        if (trustedPlayers.remove(id)) {
-            setChanged();
-        }
-    }
-
-    public boolean toggleTrusted(UUID id) {
-        if (id == null) {
-            return false;
-        }
-
-        if (trustedPlayers.contains(id)) {
-            trustedPlayers.remove(id);
-            setChanged();
-            return false;
-        }
-
-        trustedPlayers.add(id);
-        setChanged();
-        return true;
+    public ItemStack cardStack() {
+        return items.get(CARD_SLOT);
     }
 
     @Override
@@ -91,25 +58,123 @@ public class MarketTerminalBlockEntity extends BlockEntity {
             tag.putUUID("owner", owner);
         }
 
-        ListTag trustedTag = new ListTag();
-        for (UUID trusted : trustedPlayers) {
-            trustedTag.add(StringTag.valueOf(trusted.toString()));
+        ListTag itemsTag = new ListTag();
+        for (int slot = 0; slot < items.size(); slot++) {
+            ItemStack stack = items.get(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+
+            CompoundTag row = new CompoundTag();
+            row.putInt("slot", slot);
+            row.put("stack", stack.save(registries));
+            itemsTag.add(row);
         }
-        tag.put("trustedPlayers", trustedTag);
+        tag.put("items", itemsTag);
     }
 
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
         owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
-        trustedPlayers.clear();
 
-        ListTag trustedTag = tag.getList("trustedPlayers", Tag.TAG_STRING);
-        for (Tag row : trustedTag) {
-            try {
-                trustedPlayers.add(UUID.fromString(row.getAsString()));
-            } catch (IllegalArgumentException ignored) {
+        items.set(CARD_SLOT, ItemStack.EMPTY);
+        ListTag itemsTag = tag.getList("items", Tag.TAG_COMPOUND);
+        for (Tag rowTag : itemsTag) {
+            CompoundTag row = (CompoundTag) rowTag;
+            int slot = row.getInt("slot");
+            if (slot < 0 || slot >= items.size()) {
+                continue;
             }
+            items.set(slot, ItemStack.parseOptional(registries, row.getCompound("stack")));
         }
+    }
+
+    @Override
+    public @NotNull Component getDisplayName() {
+        return Component.translatable("screen.incore.market.card.title");
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
+        return new MarketTerminalCardMenu(containerId, playerInventory, this);
+    }
+
+    @Override
+    public int getContainerSize() {
+        return SLOT_COUNT;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return items.get(CARD_SLOT).isEmpty();
+    }
+
+    @Override
+    public @NotNull ItemStack getItem(int slot) {
+        if (slot < 0 || slot >= items.size()) {
+            return ItemStack.EMPTY;
+        }
+        return items.get(slot);
+    }
+
+    @Override
+    public @NotNull ItemStack removeItem(int slot, int amount) {
+        ItemStack stack = getItem(slot);
+        if (stack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        ItemStack removed = stack.split(amount);
+        if (stack.isEmpty()) {
+            items.set(slot, ItemStack.EMPTY);
+        }
+        setChanged();
+        return removed;
+    }
+
+    @Override
+    public @NotNull ItemStack removeItemNoUpdate(int slot) {
+        ItemStack stack = getItem(slot);
+        if (slot >= 0 && slot < items.size()) {
+            items.set(slot, ItemStack.EMPTY);
+        }
+        return stack;
+    }
+
+    @Override
+    public void setItem(int slot, @NotNull ItemStack stack) {
+        if (slot < 0 || slot >= items.size()) {
+            return;
+        }
+        ItemStack normalized = stack;
+        if (!normalized.isEmpty() && normalized.getCount() > 1) {
+            normalized = normalized.copy();
+            normalized.setCount(1);
+        }
+        items.set(slot, normalized);
+        setChanged();
+    }
+
+    @Override
+    public boolean stillValid(@NotNull Player player) {
+        return this.level != null
+                && this.level.getBlockEntity(this.worldPosition) == this
+                && player.distanceToSqr(
+                this.worldPosition.getX() + 0.5D,
+                this.worldPosition.getY() + 0.5D,
+                this.worldPosition.getZ() + 0.5D
+        ) <= 64.0D;
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, @NotNull ItemStack stack) {
+        return slot == CARD_SLOT && CardItem.isBound(stack);
+    }
+
+    @Override
+    public void clearContent() {
+        items.set(CARD_SLOT, ItemStack.EMPTY);
+        setChanged();
     }
 }

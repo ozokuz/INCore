@@ -274,10 +274,16 @@ Manual gameplay verification checklist for testers.
 
 ## Market Keybind And Terminal Permissions
 - [ ] Given a player is in-world with no GUI open, when pressing the Market keybind (`M` default), then the Global Market screen opens in read-only mode and no buy/sell buttons are shown.
-- [ ] Given a player opens Market from keybind, when selecting any listed market item, then current price, base price, demand index, intraday chart, and 30-day chart are visible for that item.
-- [ ] Given player A places a Market Terminal and player B is not trusted, when player B opens the terminal and tries to buy or sell, then trading is blocked and a not-allowed message is shown.
-- [ ] Given player A holds a bound Numismatics ID card and sneaks-right-clicks their Market Terminal, when the ID card is bound to player B, then player B can open the terminal and buy/sell after trust is added.
-- [ ] Given player A is terminal owner and has player B's bound Numismatics ID card in main hand, when using market trust-add and trust-remove actions from the terminal market screen, then player B is added/removed from the trusted list accordingly.
+- [ ] Given a player opens Market from keybind, when viewing the selection screen, then a scrollable item grid is shown with each tile rendering item icon, item name, current price, and 24h percentage change.
+- [ ] Given a selected market item has positive 24h change, when viewing its tile in market selection, then the percentage is shown in green with an `▲` arrow; when change is negative, then percentage is shown in red with a `▼` arrow.
+- [ ] Given market selection is open with many items, when scrolling mouse wheel and then clicking a tile, then item details open in a separate screen and back navigation returns to selection with previous scroll position preserved.
+- [ ] Given market item details screen is open, when viewing the selected item, then current price, base price, demand index, 24h change, intraday chart, and 30-day chart are visible.
+- [ ] Given player A and player B are not on the same FTB Team (or owner has no team), when player B attempts to use player A's Market Terminal, Shipment Terminal, or Market Auto-Buyer, then access is denied with a not-allowed message.
+- [ ] Given player A and player B are on the same FTB Team, when player B uses player A's Market Terminal, Shipment Terminal, or Market Auto-Buyer, then access is allowed.
+- [ ] Given Market Terminal has no card inserted and player has no personal bank account available, when attempting to buy or sell from terminal details screen, then trade is blocked and no-account feedback is shown.
+- [ ] Given Market Terminal has no card inserted and player has a personal bank account, when buying or selling from terminal details screen, then the player's personal bank account is charged/credited.
+- [ ] Given Market Terminal has a bound bank card inserted and player also holds a different bound card in inventory, when buying or selling from terminal details screen, then the terminal slot card account is used and held cards are ignored.
+- [ ] Given player sneaks and right-clicks a Market Terminal, when the terminal card UI opens, then it shows exactly one bank-card slot and accepts only bound Numismatics cards.
 
 ## Market Demand And Daily Rebalance
 - [ ] Given a market item starts near its base price, when repeatedly buying enough units from a terminal, then demand index for that item increases and current price rises compared to its initial value.

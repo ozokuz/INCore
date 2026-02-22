@@ -105,7 +105,7 @@ public final class MarketCommands {
         }
         int synced = 0;
         for (ServerPlayer target : targets) {
-            MarketNetworking.openMarketScreen(target, MarketService.buildScreenData(target.getServer(), false, null, null));
+            MarketNetworking.openMarketScreen(target, MarketService.buildScreenData(target.getServer(), false, null));
             synced++;
         }
 

@@ -1,7 +1,6 @@
 package io.github.ozokuz.incore.features.market.content;
 
 import com.mojang.serialization.MapCodec;
-import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,8 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.github.ozokuz.incore.Registration;
-
-import java.util.UUID;
 
 public class ShipmentTerminalBlock extends BaseEntityBlock {
     public static final MapCodec<ShipmentTerminalBlock> CODEC = simpleCodec(ShipmentTerminalBlock::new);
@@ -109,18 +106,6 @@ public class ShipmentTerminalBlock extends BaseEntityBlock {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof ShipmentTerminalBlockEntity terminal)) {
             return ItemInteractionResult.CONSUME;
-        }
-
-        if (player.isShiftKeyDown() && IDCardItem.isBound(stack) && terminal.canManageTrust(player.getUUID())) {
-            UUID trusted = IDCardItem.get(stack);
-            if (trusted != null) {
-                boolean added = terminal.toggleTrusted(trusted);
-                player.sendSystemMessage(Component.translatable(
-                        added ? "incore.market.trust.added" : "incore.market.trust.removed",
-                        trusted.toString()
-                ));
-            }
-            return ItemInteractionResult.SUCCESS;
         }
 
         if (player instanceof ServerPlayer serverPlayer) {

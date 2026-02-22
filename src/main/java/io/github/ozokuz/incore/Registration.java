@@ -32,6 +32,7 @@ import io.github.ozokuz.incore.features.vendor.VendorDiscountCharmItem;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlock;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMenu;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalCardMenu;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlock;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlock;
@@ -137,6 +138,14 @@ public class Registration {
     public static final Supplier<BlockEntityType<MarketTerminalBlockEntity>> MARKET_TERMINAL_BE = BLOCK_ENTITY_TYPES.register(
             "market_terminal",
             () -> BlockEntityType.Builder.of(MarketTerminalBlockEntity::new, MARKET_TERMINAL_BLOCK.get()).build(null)
+    );
+    public static final Supplier<MenuType<MarketTerminalCardMenu>> MARKET_TERMINAL_CARD_MENU = MENU_TYPES.register(
+            "market_terminal_card",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new MarketTerminalCardMenu(
+                    id,
+                    inv,
+                    (MarketTerminalBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
     );
     public static final DeferredItem<BlockItem> MARKET_TERMINAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_terminal", MARKET_TERMINAL_BLOCK);
     public static final DeferredBlock<Block> SHIPMENT_TERMINAL_BLOCK = BLOCKS.register("shipment_terminal", () -> new ShipmentTerminalBlock());

@@ -1,8 +1,6 @@
 package io.github.ozokuz.incore.features.market;
 
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
-import dev.ithundxr.createnumismatics.content.bank.CardItem;
-import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import net.minecraft.core.BlockPos;
@@ -16,7 +14,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public final class MarketService {
     private MarketService() {
@@ -30,7 +27,7 @@ public final class MarketService {
         if (player.getServer() == null) {
             return;
         }
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), false, null, null));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), false, null));
     }
 
     public static void openTerminalScreen(ServerPlayer player, MarketTerminalBlockEntity terminal) {
@@ -39,7 +36,7 @@ public final class MarketService {
         }
         boolean canTrade = terminal.canTrade(player);
         BlockPos pos = terminal.getBlockPos();
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, pos, terminal));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, pos));
     }
 
     public static void requestRefresh(ServerPlayer player, BlockPos terminalPos) {
@@ -49,7 +46,7 @@ public final class MarketService {
 
         MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
         boolean canTrade = terminal != null && terminal.canTrade(player);
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, terminal == null ? null : terminalPos, terminal));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, terminal == null ? null : terminalPos));
     }
 
     public static boolean buyFromMarket(ServerPlayer player, BlockPos terminalPos, ResourceLocation itemId, int quantity) {
@@ -77,8 +74,13 @@ public final class MarketService {
         long costLong = (long) unitPrice * qty;
         int cost = (int) Math.min(Integer.MAX_VALUE, costLong);
 
-        BankAccount account = MarketBanking.resolveManualAccount(player, findFirstBoundCard(player));
-        if (account == null || !MarketBanking.withdraw(account, cost)) {
+        ItemStack card = terminal.cardStack();
+        BankAccount account = MarketBanking.resolveManualAccount(player, card);
+        if (account == null) {
+            player.sendSystemMessage(Component.translatable("incore.market.no_account"));
+            return false;
+        }
+        if (!MarketBanking.withdraw(account, cost)) {
             player.sendSystemMessage(Component.translatable("incore.market.insufficient_funds"));
             return false;
         }
@@ -126,7 +128,8 @@ public final class MarketService {
             return false;
         }
 
-        BankAccount account = MarketBanking.resolveManualAccount(player, findFirstBoundCard(player));
+        ItemStack card = terminal.cardStack();
+        BankAccount account = MarketBanking.resolveManualAccount(player, card);
         if (account == null) {
             player.sendSystemMessage(Component.translatable("incore.market.no_account"));
             return false;
@@ -143,46 +146,6 @@ public final class MarketService {
         return true;
     }
 
-    public static boolean addTrustedFromHeldIdCard(ServerPlayer player, BlockPos terminalPos) {
-        MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
-        if (terminal == null || !terminal.canManageTrust(player.getUUID())) {
-            return false;
-        }
-
-        ItemStack held = player.getMainHandItem();
-        if (held.isEmpty() || !IDCardItem.isBound(held)) {
-            return false;
-        }
-
-        UUID trusted = IDCardItem.get(held);
-        if (trusted == null) {
-            return false;
-        }
-
-        terminal.addTrusted(trusted);
-        return true;
-    }
-
-    public static boolean removeTrustedFromHeldIdCard(ServerPlayer player, BlockPos terminalPos) {
-        MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
-        if (terminal == null || !terminal.canManageTrust(player.getUUID())) {
-            return false;
-        }
-
-        ItemStack held = player.getMainHandItem();
-        if (held.isEmpty() || !IDCardItem.isBound(held)) {
-            return false;
-        }
-
-        UUID trusted = IDCardItem.get(held);
-        if (trusted == null) {
-            return false;
-        }
-
-        terminal.removeTrusted(trusted);
-        return true;
-    }
-
     private static MarketTerminalBlockEntity terminalAt(ServerPlayer player, BlockPos pos) {
         if (pos == null) {
             return null;
@@ -191,20 +154,6 @@ public final class MarketService {
             return null;
         }
         return terminal;
-    }
-
-    private static ItemStack findFirstBoundCard(ServerPlayer player) {
-        for (ItemStack stack : player.getInventory().items) {
-            if (!stack.isEmpty() && CardItem.isBound(stack)) {
-                return stack;
-            }
-        }
-        for (ItemStack stack : player.getInventory().offhand) {
-            if (!stack.isEmpty() && CardItem.isBound(stack)) {
-                return stack;
-            }
-        }
-        return ItemStack.EMPTY;
     }
 
     private static int countInInventory(ServerPlayer player, ResourceLocation itemId) {
@@ -267,15 +216,17 @@ public final class MarketService {
         return remaining <= 0;
     }
 
-    public static ScreenData buildScreenData(MinecraftServer server, boolean canTrade, BlockPos terminalPos, MarketTerminalBlockEntity terminal) {
+    public static ScreenData buildScreenData(MinecraftServer server, boolean canTrade, BlockPos terminalPos) {
         MarketPricingService.tick(server);
 
         List<ItemView> items = new ArrayList<>();
         for (MarketItemDefinition definition : MarketItemManager.all()) {
             int price = MarketPricingService.currentPrice(server, definition.itemId());
-            List<CandleView> candles = MarketPricingService.candles(server, definition.itemId()).stream()
+            List<MarketSavedData.PriceCandle> sourceCandles = MarketPricingService.candles(server, definition.itemId());
+            List<CandleView> candles = sourceCandles.stream()
                     .map(c -> new CandleView(c.hourKey(), c.open(), c.high(), c.low(), c.close(), c.buyVolume(), c.sellVolume()))
                     .toList();
+            double dayChangePercent = dayChangePercent(sourceCandles, price);
 
             double demand = MarketSavedData.get(server)
                     .stateFor(definition.itemId(), definition.basePriceSpur())
@@ -286,28 +237,48 @@ public final class MarketService {
                     definition.displayName(),
                     definition.basePriceSpur(),
                     price,
+                    dayChangePercent,
                     demand,
                     candles
             ));
         }
 
-        List<String> trusted = terminal == null
-                ? List.of()
-                : terminal.trustedPlayers().stream().map(UUID::toString).toList();
-
         return new ScreenData(
                 canTrade,
                 terminalPos == null ? null : terminalPos.asLong(),
-                items,
-                trusted
+                items
         );
+    }
+
+    private static double dayChangePercent(List<MarketSavedData.PriceCandle> candles, int fallbackPrice) {
+        if (candles == null || candles.isEmpty()) {
+            return 0D;
+        }
+
+        MarketSavedData.PriceCandle latest = candles.getLast();
+        int latestClose = Math.max(1, latest.close());
+        long targetHourKey = latest.hourKey() - 24L;
+
+        int baseline = Math.max(1, candles.getFirst().close());
+        for (int i = candles.size() - 1; i >= 0; i--) {
+            MarketSavedData.PriceCandle candle = candles.get(i);
+            if (candle.hourKey() <= targetHourKey) {
+                baseline = Math.max(1, candle.close());
+                break;
+            }
+        }
+
+        if (baseline <= 0) {
+            baseline = Math.max(1, fallbackPrice);
+        }
+
+        return ((latestClose - baseline) * 100D) / baseline;
     }
 
     public record ScreenData(
             boolean canTrade,
             Long terminalPos,
-            List<ItemView> items,
-            List<String> trustedPlayers
+            List<ItemView> items
     ) {
     }
 
@@ -316,6 +287,7 @@ public final class MarketService {
             String displayName,
             int basePriceSpur,
             int currentPriceSpur,
+            double dayChangePercent,
             double demandIndex,
             List<CandleView> candles
     ) {

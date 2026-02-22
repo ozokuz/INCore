@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.market.network;
 
-import io.github.ozokuz.incore.features.market.client.MarketScreen;
+import io.github.ozokuz.incore.features.market.client.MarketPayloadUpdatable;
+import io.github.ozokuz.incore.features.market.client.MarketSelectionScreen;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -25,11 +26,11 @@ public record OpenMarketScreenPayload(String json) implements CustomPacketPayloa
     public static void handle(OpenMarketScreenPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.screen instanceof MarketScreen screen) {
-                screen.updatePayload(payload.json());
+            if (minecraft.screen instanceof MarketPayloadUpdatable updatable) {
+                updatable.updatePayload(payload.json());
                 return;
             }
-            minecraft.setScreen(new MarketScreen(payload.json()));
+            minecraft.setScreen(new MarketSelectionScreen(payload.json()));
         });
     }
 }

@@ -49,14 +49,6 @@ public final class MarketNetworking {
         ));
     }
 
-    public static void sendTrustAdd(long terminalPos) {
-        PacketDistributor.sendToServer(new MarketActionPayload(MarketActionPayload.ACTION_ADD_TRUSTED, terminalPos, "", 1));
-    }
-
-    public static void sendTrustRemove(long terminalPos) {
-        PacketDistributor.sendToServer(new MarketActionPayload(MarketActionPayload.ACTION_REMOVE_TRUSTED, terminalPos, "", 1));
-    }
-
     public static void sendAutoBuyerConfig(long blockPos, String targetItemId, int priceCapSpur, int batchSize, boolean enabled) {
         PacketDistributor.sendToServer(new MarketAutoBuyerConfigPayload(
                 blockPos,
@@ -94,16 +86,6 @@ public final class MarketNetworking {
                     return;
                 }
                 if (MarketService.sellToMarket(player, terminalPos, itemId, payload.quantity())) {
-                    MarketService.requestRefresh(player, terminalPos);
-                }
-            }
-            case MarketActionPayload.ACTION_ADD_TRUSTED -> {
-                if (MarketService.addTrustedFromHeldIdCard(player, terminalPos)) {
-                    MarketService.requestRefresh(player, terminalPos);
-                }
-            }
-            case MarketActionPayload.ACTION_REMOVE_TRUSTED -> {
-                if (MarketService.removeTrustedFromHeldIdCard(player, terminalPos)) {
                     MarketService.requestRefresh(player, terminalPos);
                 }
             }
