@@ -174,7 +174,9 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         int statusColor = switch (menu.status()) {
             case MarketAutoBuyerBlockEntity.STATUS_READY -> 0xFF7DD6A7;
             case MarketAutoBuyerBlockEntity.STATUS_DISABLED -> 0xFFAAAAAA;
-            case MarketAutoBuyerBlockEntity.STATUS_PRICE_TOO_HIGH, MarketAutoBuyerBlockEntity.STATUS_NO_FUNDS -> 0xFFD17C7C;
+            case MarketAutoBuyerBlockEntity.STATUS_PRICE_TOO_HIGH, MarketAutoBuyerBlockEntity.STATUS_NO_FUNDS,
+                 MarketAutoBuyerBlockEntity.STATUS_NO_STRESS, MarketAutoBuyerBlockEntity.STATUS_NO_POWER -> 0xFFD17C7C;
+            case MarketAutoBuyerBlockEntity.STATUS_NO_RPM -> 0xFFE2C777;
             default -> 0xFFE2C777;
         };
         guiGraphics.fill(x + 198, y + 31, x + 206, y + 39, statusColor);
@@ -193,6 +195,9 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
             case MarketAutoBuyerBlockEntity.STATUS_PRICE_TOO_HIGH -> Component.translatable("screen.incore.market.autobuyer.status.price_too_high");
             case MarketAutoBuyerBlockEntity.STATUS_NO_FUNDS -> Component.translatable("screen.incore.market.autobuyer.status.no_funds");
             case MarketAutoBuyerBlockEntity.STATUS_OUTPUT_FULL -> Component.translatable("screen.incore.market.autobuyer.status.output_full");
+            case MarketAutoBuyerBlockEntity.STATUS_NO_RPM -> Component.translatable("screen.incore.market.autobuyer.status.no_rpm");
+            case MarketAutoBuyerBlockEntity.STATUS_NO_STRESS -> Component.translatable("screen.incore.market.autobuyer.status.no_stress");
+            case MarketAutoBuyerBlockEntity.STATUS_NO_POWER -> Component.translatable("screen.incore.market.autobuyer.status.no_power");
             default -> Component.translatable("screen.incore.market.autobuyer.status.ready");
         };
         List<FormattedCharSequence> statusLines = font.split(status, 136);

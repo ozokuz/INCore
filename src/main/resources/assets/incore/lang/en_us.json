@@ -451,7 +451,9 @@
   "screen.incore.vendor.conversion.confirm": "Convert & Buy",
   "block.incore.market_terminal": "Market Terminal",
   "block.incore.shipment_terminal": "Shipment Terminal",
+  "block.incore.shipment_terminal_mk2": "Shipment Terminal MK2",
   "block.incore.market_autobuyer": "Market Auto-Buyer",
+  "block.incore.market_autobuyer_mk2": "Market Auto-Buyer MK2",
   "key.incore.open_market": "Open Market",
   "incore.configuration.marketBuyImpactPerItem": "Market Buy Impact Per Item",
   "incore.configuration.marketSellImpactPerItem": "Market Sell Impact Per Item",
@@ -503,6 +505,9 @@
   "screen.incore.market.shipment.status.no_items": "Insert tradeable items",
   "screen.incore.market.shipment.status.invalid_item": "First input slot is not market tradeable",
   "screen.incore.market.shipment.status.need_full_stack": "First input slot must be a full stack",
+  "screen.incore.market.shipment.status.no_rpm": "Needs at least 128 RPM",
+  "screen.incore.market.shipment.status.no_stress": "Insufficient stress capacity",
+  "screen.incore.market.shipment.status.no_power": "Not enough FE power",
   "screen.incore.market.autobuyer.target": "Target item",
   "screen.incore.market.autobuyer.target_hint": "Click item or drag from EMI",
   "screen.incore.market.autobuyer.apply_target": "Apply Target",
@@ -514,5 +519,8 @@
   "screen.incore.market.autobuyer.status.no_target": "Set a target market item",
   "screen.incore.market.autobuyer.status.price_too_high": "Price above cap",
   "screen.incore.market.autobuyer.status.no_funds": "Insufficient funds",
-  "screen.incore.market.autobuyer.status.output_full": "Output inventory full"
+  "screen.incore.market.autobuyer.status.output_full": "Output inventory full",
+  "screen.incore.market.autobuyer.status.no_rpm": "Needs at least 128 RPM",
+  "screen.incore.market.autobuyer.status.no_stress": "Insufficient stress capacity",
+  "screen.incore.market.autobuyer.status.no_power": "Not enough FE power"
 }

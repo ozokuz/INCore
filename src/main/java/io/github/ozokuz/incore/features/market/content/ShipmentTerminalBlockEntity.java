@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.market.content;
 
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
 import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.Registration;
@@ -24,14 +26,15 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
 
-public class ShipmentTerminalBlockEntity extends BlockEntity implements Container, MenuProvider {
+public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements Container, MenuProvider {
     public static final int INPUT_SLOT_COUNT = 9;
     public static final int CARD_SLOT = 9;
     public static final int SLOT_COUNT = 10;
@@ -41,11 +44,17 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
     public static final int STATUS_NO_ITEMS = 2;
     public static final int STATUS_INVALID_ITEM = 3;
     public static final int STATUS_NEED_FULL_STACK = 4;
+    public static final int STATUS_NO_RPM = 5;
+    public static final int STATUS_NO_STRESS = 6;
+    public static final int STATUS_NO_POWER = 7;
+
+    protected static final int MIN_REQUIRED_RPM = 128;
+    protected static final float STATIC_STRESS = 1024.0F;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private @Nullable UUID owner;
-    private int progress;
-    private int status = STATUS_IDLE;
+    protected int progress;
+    protected int status = STATUS_IDLE;
 
     public final ContainerData data = new ContainerData() {
         @Override
@@ -75,62 +84,87 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
     };
 
     public ShipmentTerminalBlockEntity(BlockPos pos, BlockState state) {
-        super(Registration.SHIPMENT_TERMINAL_BE.get(), pos, state);
+        this(Registration.SHIPMENT_TERMINAL_BE.get(), pos, state);
+    }
+
+    protected ShipmentTerminalBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
+        super(blockEntityType, pos, state);
+    }
+
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ShipmentTerminalBlockEntity be) {
+        be.tick();
         if (level.isClientSide) {
             return;
         }
+        be.serverTick(level);
+    }
 
+    protected void serverTick(Level level) {
         int interval = Math.max(1, Config.MARKET_SHIPMENT_INTERVAL_TICKS.get());
+        refreshStressInNetwork();
 
-        ItemStack card = be.items.get(CARD_SLOT);
+        if (!hasOperationalPower()) {
+            progress = 0;
+            setChanged();
+            return;
+        }
+
+        ItemStack card = items.get(CARD_SLOT);
         if (card.isEmpty()) {
-            be.progress = 0;
-            be.status = STATUS_NO_CARD;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_NO_CARD;
+            setChanged();
             return;
         }
 
-        int slot = be.firstInputSlotWithItems();
+        int slot = firstInputSlotWithItems();
         if (slot < 0) {
-            be.progress = 0;
-            be.status = STATUS_NO_ITEMS;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_NO_ITEMS;
+            setChanged();
             return;
         }
 
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(be.items.get(slot).getItem());
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(items.get(slot).getItem());
         if (!MarketItemManager.isTradeable(itemId)) {
-            be.progress = 0;
-            be.status = STATUS_INVALID_ITEM;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_INVALID_ITEM;
+            setChanged();
             return;
         }
 
-        ItemStack inputStack = be.items.get(slot);
+        ItemStack inputStack = items.get(slot);
         int requiredStackSize = Math.max(1, inputStack.getMaxStackSize());
         if (inputStack.getCount() < requiredStackSize) {
-            be.progress = 0;
-            be.status = STATUS_NEED_FULL_STACK;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_NEED_FULL_STACK;
+            setChanged();
             return;
         }
 
-        be.status = STATUS_IDLE;
-        be.progress++;
-        if (be.progress < interval) {
-            be.setChanged();
+        if (!consumePowerForWorkTick()) {
+            progress = 0;
+            setChanged();
             return;
         }
 
-        be.progress = 0;
+        status = STATUS_IDLE;
+        progress++;
+        if (progress < interval) {
+            setChanged();
+            return;
+        }
+
+        progress = 0;
         if (level.getServer() == null) {
             return;
         }
 
-        ItemStack stack = be.items.get(slot);
+        ItemStack stack = items.get(slot);
         int sellingCount = Math.max(1, stack.getMaxStackSize());
         int soldStacks = 1;
         int unitPrice = MarketPricingService.currentPrice(level.getServer(), itemId);
@@ -140,8 +174,8 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
 
         BankAccount account = MarketBanking.resolveCardAccount(null, card, false);
         if (account == null) {
-            be.status = STATUS_NO_CARD;
-            be.setChanged();
+            status = STATUS_NO_CARD;
+            setChanged();
             return;
         }
 
@@ -150,7 +184,39 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
         int payout = (int) Math.min(Integer.MAX_VALUE, payoutLong);
         MarketBanking.deposit(account, payout);
         MarketPricingService.applySell(level.getServer(), itemId, soldStacks);
-        be.setChanged();
+        setChanged();
+    }
+
+    protected boolean hasOperationalPower() {
+        if (isOverStressed()) {
+            status = STATUS_NO_STRESS;
+            return false;
+        }
+
+        if (Math.abs(getSpeed()) < MIN_REQUIRED_RPM) {
+            status = STATUS_NO_RPM;
+            return false;
+        }
+
+        return true;
+    }
+
+    protected boolean consumePowerForWorkTick() {
+        return true;
+    }
+
+    protected void refreshStressInNetwork() {
+        if (hasNetwork()) {
+            getOrCreateNetwork().updateStressFor(this, calculateStressApplied());
+        }
+    }
+
+    @Override
+    public float calculateStressApplied() {
+        float speed = Math.abs(getTheoreticalSpeed());
+        float applied = speed <= 0 ? 0 : STATIC_STRESS / speed;
+        this.lastStressApplied = applied;
+        return applied;
     }
 
     private int firstInputSlotWithItems() {
@@ -172,8 +238,9 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+
         ListTag itemsTag = new ListTag();
         for (int i = 0; i < items.size(); i++) {
             ItemStack stack = items.get(i);
@@ -195,8 +262,9 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
     }
 
     @Override
-    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+
         for (int i = 0; i < SLOT_COUNT; i++) {
             items.set(i, ItemStack.EMPTY);
         }

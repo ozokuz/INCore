@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.market.content;
 
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
 import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.Registration;
@@ -15,8 +17,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -28,14 +28,15 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
 
-public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container, MenuProvider {
+public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Container, MenuProvider {
     public static final int CARD_SLOT = 0;
     public static final int OUTPUT_START = 1;
     public static final int OUTPUT_COUNT = 27;
@@ -48,6 +49,12 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
     public static final int STATUS_PRICE_TOO_HIGH = 4;
     public static final int STATUS_NO_FUNDS = 5;
     public static final int STATUS_OUTPUT_FULL = 6;
+    public static final int STATUS_NO_RPM = 7;
+    public static final int STATUS_NO_STRESS = 8;
+    public static final int STATUS_NO_POWER = 9;
+
+    protected static final int MIN_REQUIRED_RPM = 128;
+    protected static final float STATIC_STRESS = 1024.0F;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private @Nullable UUID owner;
@@ -56,8 +63,8 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
     private int priceCapSpur = 64;
     private int batchSize = 1;
     private boolean enabled = true;
-    private int progress;
-    private int status = STATUS_READY;
+    protected int progress;
+    protected int status = STATUS_READY;
 
     public final ContainerData data = new ContainerData() {
         @Override
@@ -99,33 +106,52 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
     };
 
     public MarketAutoBuyerBlockEntity(BlockPos pos, BlockState state) {
-        super(Registration.MARKET_AUTOBUYER_BE.get(), pos, state);
+        this(Registration.MARKET_AUTOBUYER_BE.get(), pos, state);
+    }
+
+    protected MarketAutoBuyerBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
+        super(blockEntityType, pos, state);
+    }
+
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, MarketAutoBuyerBlockEntity be) {
+        be.tick();
         if (level.isClientSide) {
             return;
         }
+        be.serverTick(level);
+    }
 
-        if (!be.enabled) {
-            be.progress = 0;
-            be.status = STATUS_DISABLED;
-            be.setChanged();
+    protected void serverTick(Level level) {
+        refreshStressInNetwork();
+        if (!enabled) {
+            progress = 0;
+            status = STATUS_DISABLED;
+            setChanged();
             return;
         }
 
-        ItemStack card = be.items.get(CARD_SLOT);
+        if (!hasOperationalPower()) {
+            progress = 0;
+            setChanged();
+            return;
+        }
+
+        ItemStack card = items.get(CARD_SLOT);
         if (card.isEmpty()) {
-            be.progress = 0;
-            be.status = STATUS_NO_CARD;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_NO_CARD;
+            setChanged();
             return;
         }
 
-        if (be.targetItemId == null || !MarketItemManager.isTradeable(be.targetItemId)) {
-            be.progress = 0;
-            be.status = STATUS_NO_TARGET;
-            be.setChanged();
+        if (targetItemId == null || !MarketItemManager.isTradeable(targetItemId)) {
+            progress = 0;
+            status = STATUS_NO_TARGET;
+            setChanged();
             return;
         }
 
@@ -133,75 +159,115 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
             return;
         }
 
-        int unitPrice = MarketPricingService.currentPrice(level.getServer(), be.targetItemId);
+        int unitPrice = MarketPricingService.currentPrice(level.getServer(), targetItemId);
         if (unitPrice <= 0) {
             return;
         }
 
-        Item targetItem = BuiltInRegistries.ITEM.get(be.targetItemId);
+        Item targetItem = BuiltInRegistries.ITEM.get(targetItemId);
         if (targetItem == null || targetItem == net.minecraft.world.item.Items.AIR) {
-            be.progress = 0;
-            be.status = STATUS_NO_TARGET;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_NO_TARGET;
+            setChanged();
             return;
         }
-        int requestedItemCount = toItemCount(be.batchSize, targetItem);
+
+        int requestedItemCount = toItemCount(batchSize, targetItem);
         if (requestedItemCount <= 0) {
-            be.progress = 0;
-            be.status = STATUS_NO_TARGET;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_NO_TARGET;
+            setChanged();
             return;
         }
 
-        if (unitPrice > be.priceCapSpur) {
-            be.progress = 0;
-            be.status = STATUS_PRICE_TOO_HIGH;
-            be.setChanged();
+        if (unitPrice > priceCapSpur) {
+            progress = 0;
+            status = STATUS_PRICE_TOO_HIGH;
+            setChanged();
             return;
         }
 
-        if (!be.canInsertFully(be.targetItemId, requestedItemCount)) {
-            be.progress = 0;
-            be.status = STATUS_OUTPUT_FULL;
-            be.setChanged();
+        if (!canInsertFully(targetItemId, requestedItemCount)) {
+            progress = 0;
+            status = STATUS_OUTPUT_FULL;
+            setChanged();
             return;
         }
 
         BankAccount account = MarketBanking.resolveCardAccount(null, card, false);
         if (account == null) {
-            be.progress = 0;
-            be.status = STATUS_NO_CARD;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_NO_CARD;
+            setChanged();
             return;
         }
 
         long totalCostLong = (long) unitPrice * requestedItemCount;
         int totalCost = (int) Math.min(Integer.MAX_VALUE, totalCostLong);
         if (MarketBanking.balanceSpur(account) < totalCost) {
-            be.progress = 0;
-            be.status = STATUS_NO_FUNDS;
-            be.setChanged();
+            progress = 0;
+            status = STATUS_NO_FUNDS;
+            setChanged();
             return;
         }
 
-        be.status = STATUS_READY;
-        be.progress++;
+        if (!consumePowerForWorkTick()) {
+            progress = 0;
+            setChanged();
+            return;
+        }
+
+        status = STATUS_READY;
+        progress++;
+
         int interval = Math.max(1, Config.MARKET_AUTOBUYER_INTERVAL_TICKS.get());
-        if (be.progress < interval) {
-            be.setChanged();
+        if (progress < interval) {
+            setChanged();
             return;
         }
 
-        be.progress = 0;
+        progress = 0;
         if (!MarketBanking.withdraw(account, totalCost)) {
-            be.status = STATUS_NO_FUNDS;
-            be.setChanged();
+            status = STATUS_NO_FUNDS;
+            setChanged();
             return;
         }
 
-        be.insertOutput(be.targetItemId, requestedItemCount);
-        MarketPricingService.applyBuy(level.getServer(), be.targetItemId, requestedItemCount);
-        be.setChanged();
+        insertOutput(targetItemId, requestedItemCount);
+        MarketPricingService.applyBuy(level.getServer(), targetItemId, requestedItemCount);
+        setChanged();
+    }
+
+    protected boolean hasOperationalPower() {
+        if (isOverStressed()) {
+            status = STATUS_NO_STRESS;
+            return false;
+        }
+
+        if (Math.abs(getSpeed()) < MIN_REQUIRED_RPM) {
+            status = STATUS_NO_RPM;
+            return false;
+        }
+
+        return true;
+    }
+
+    protected boolean consumePowerForWorkTick() {
+        return true;
+    }
+
+    protected void refreshStressInNetwork() {
+        if (hasNetwork()) {
+            getOrCreateNetwork().updateStressFor(this, calculateStressApplied());
+        }
+    }
+
+    @Override
+    public float calculateStressApplied() {
+        float speed = Math.abs(getTheoreticalSpeed());
+        float applied = speed <= 0 ? 0 : STATIC_STRESS / speed;
+        this.lastStressApplied = applied;
+        return applied;
     }
 
     public boolean canAccess(Player player) {
@@ -312,8 +378,8 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
 
         ListTag itemsTag = new ListTag();
         for (int i = 0; i < items.size(); i++) {
@@ -344,8 +410,8 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
     }
 
     @Override
-    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
 
         for (int i = 0; i < SLOT_COUNT; i++) {
             items.set(i, ItemStack.EMPTY);
@@ -379,7 +445,7 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
     }
 
     @Override
-    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+    public @Nullable ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 

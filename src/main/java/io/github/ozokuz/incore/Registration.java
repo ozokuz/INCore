@@ -31,12 +31,16 @@ import io.github.ozokuz.incore.features.vendor.VendorBlockEntity;
 import io.github.ozokuz.incore.features.vendor.VendorDiscountCharmItem;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlock;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMk2Block;
+import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMk2BlockEntity;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMenu;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalCardMenu;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlock;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlock;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlockEntity;
+import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMk2Block;
+import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMk2BlockEntity;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMenu;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabMenu;
@@ -162,6 +166,12 @@ public class Registration {
             ))
     );
     public static final DeferredItem<BlockItem> SHIPMENT_TERMINAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("shipment_terminal", SHIPMENT_TERMINAL_BLOCK);
+    public static final DeferredBlock<Block> SHIPMENT_TERMINAL_MK2_BLOCK = BLOCKS.register("shipment_terminal_mk2", () -> new ShipmentTerminalMk2Block());
+    public static final Supplier<BlockEntityType<ShipmentTerminalMk2BlockEntity>> SHIPMENT_TERMINAL_MK2_BE = BLOCK_ENTITY_TYPES.register(
+            "shipment_terminal_mk2",
+            () -> BlockEntityType.Builder.of(ShipmentTerminalMk2BlockEntity::new, SHIPMENT_TERMINAL_MK2_BLOCK.get()).build(null)
+    );
+    public static final DeferredItem<BlockItem> SHIPMENT_TERMINAL_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("shipment_terminal_mk2", SHIPMENT_TERMINAL_MK2_BLOCK);
     public static final DeferredBlock<Block> MARKET_AUTOBUYER_BLOCK = BLOCKS.register("market_autobuyer", () -> new MarketAutoBuyerBlock());
     public static final Supplier<BlockEntityType<MarketAutoBuyerBlockEntity>> MARKET_AUTOBUYER_BE = BLOCK_ENTITY_TYPES.register(
             "market_autobuyer",
@@ -176,6 +186,12 @@ public class Registration {
             ))
     );
     public static final DeferredItem<BlockItem> MARKET_AUTOBUYER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autobuyer", MARKET_AUTOBUYER_BLOCK);
+    public static final DeferredBlock<Block> MARKET_AUTOBUYER_MK2_BLOCK = BLOCKS.register("market_autobuyer_mk2", () -> new MarketAutoBuyerMk2Block());
+    public static final Supplier<BlockEntityType<MarketAutoBuyerMk2BlockEntity>> MARKET_AUTOBUYER_MK2_BE = BLOCK_ENTITY_TYPES.register(
+            "market_autobuyer_mk2",
+            () -> BlockEntityType.Builder.of(MarketAutoBuyerMk2BlockEntity::new, MARKET_AUTOBUYER_MK2_BLOCK.get()).build(null)
+    );
+    public static final DeferredItem<BlockItem> MARKET_AUTOBUYER_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autobuyer_mk2", MARKET_AUTOBUYER_MK2_BLOCK);
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_BLOCK = BLOCKS.register("cinnabar_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
@@ -326,7 +342,9 @@ public class Registration {
                 output.accept(VENDOR_BLOCK_ITEM.get());
                 output.accept(MARKET_TERMINAL_BLOCK_ITEM.get());
                 output.accept(SHIPMENT_TERMINAL_BLOCK_ITEM.get());
+                output.accept(SHIPMENT_TERMINAL_MK2_BLOCK_ITEM.get());
                 output.accept(MARKET_AUTOBUYER_BLOCK_ITEM.get());
+                output.accept(MARKET_AUTOBUYER_MK2_BLOCK_ITEM.get());
                 output.accept(CINNABAR_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(MIXED_METALS_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(GEM_CLUSTERS_ORE_STONE_BLOCK_ITEM.get());

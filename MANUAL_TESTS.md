@@ -312,6 +312,15 @@ Manual gameplay verification checklist for testers.
 - [ ] Given a Market Auto-Buyer has valid target but insufficient funds on bound card, when interval ticks, then no purchase happens and status shows no-funds.
 - [ ] Given a Market Auto-Buyer output inventory is full for target item, when interval ticks, then no purchase happens and status shows output-full.
 
+## Market Machine Power Tiers And Rotation
+- [ ] Given a base Shipment Terminal or base Market Auto-Buyer is not connected to Create rotation, when waiting at least one work interval with otherwise valid inputs, then progress stays at 0 and status shows missing RPM (`Needs at least 128 RPM`).
+- [ ] Given a base Shipment Terminal or base Market Auto-Buyer receives at least 128 RPM but the kinetic network is overstressed, when waiting at least one work interval with otherwise valid inputs, then progress stays at 0 and status shows insufficient stress capacity.
+- [ ] Given a base Shipment Terminal or base Market Auto-Buyer has at least 128 RPM and enough stress capacity, when valid card/target/items are present and machine RPM changes (for example 128 to 256), then work proceeds normally and each block contributes a static total 1024 stress in Create network totals (not 1024 per RPM).
+- [ ] Given a Shipment Terminal MK2 or Market Auto-Buyer MK2 has less than 256 FE available in its internal buffer, when waiting at least one work interval with otherwise valid inputs, then progress stays at 0 and status shows not enough FE power.
+- [ ] Given a Shipment Terminal MK2 or Market Auto-Buyer MK2 has FE input and enough stored power, when valid card/target/items are present, then work proceeds and FE decreases only during active work ticks (no passive idle drain while blocked/disabled).
+- [ ] Given any shipment or auto-buyer tier is placed, when right-clicking with a Create wrench, then the block rotates horizontally, front-facing texture direction changes accordingly, and shaft connection remains on the block's back face.
+- [ ] Given shipment terminal/autobuyer base and mk2 blocks are placed in world, when viewing each facing direction after placement/rotation, then block models render correctly in-world (not missing/invisible) and orientation matches the current facing.
+
 ## Market Machine UI Layout
 - [ ] Given Shipment Terminal UI is open, when viewing the header area, then the title is fully readable and the progress bar does not overlap title text.
 - [ ] Given Shipment Terminal UI is open under each status condition (ready/no card/no items/invalid item), when viewing status text, then text remains inside the status panel without clipping into machine slots.
