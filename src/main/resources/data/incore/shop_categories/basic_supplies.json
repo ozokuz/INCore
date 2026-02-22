@@ -1,0 +1,7 @@
+{
+  "display_name": "Basic Supplies",
+  "sort_order": 10,
+  "enabled": true,
+  "stock_mode": "none",
+  "replenish_mode": "none"
+}

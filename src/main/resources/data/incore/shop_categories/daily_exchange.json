@@ -1,0 +1,8 @@
+{
+  "display_name": "Daily Exchange",
+  "sort_order": 20,
+  "enabled": true,
+  "stock_mode": "per_item",
+  "initial_stock": 12,
+  "replenish_mode": "daily_noon"
+}

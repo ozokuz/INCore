@@ -1,0 +1,9 @@
+{
+  "display_name": "Chartered Rotation",
+  "sort_order": 30,
+  "enabled": true,
+  "stock_mode": "category_bucket",
+  "initial_stock": 24,
+  "replenish_mode": "gacha_rotation",
+  "gacha_category": "incore:chartered"
+}

@@ -109,6 +109,32 @@ public final class GachaEventRotation {
         return token;
     }
 
+    public static String getRotationTokenForCategory(ResourceLocation categoryId) {
+        GachaEventCategoryData category = GachaEventCategoryManager.get(categoryId);
+        if (category == null) {
+            return "missing:" + categoryId;
+        }
+
+        List<ResourceLocation> order = category.bannerOrder().stream()
+                .map(GachaEventRotation::normalizeEventBanner)
+                .filter(Objects::nonNull)
+                .toList();
+        if (order.isEmpty()) {
+            return "empty:" + categoryId;
+        }
+
+        long now = System.currentTimeMillis();
+        long durationMillis = Math.max(1L, category.durationHours()) * 60L * 60L * 1000L;
+        long cycle = Math.floorDiv(now, durationMillis);
+
+        String token = categoryId + "#" + cycle;
+        ForcedCategoryOverride forced = getActiveForcedOverride(categoryId, cycle, order);
+        if (forced != null) {
+            token += "#f" + forced.nonce();
+        }
+        return token;
+    }
+
     public static List<GachaBannerData> visibleBanners() {
         List<GachaBannerData> basics = GachaBannerManager.all().stream()
                 .filter(banner -> banner.bannerType() == GachaBannerData.BannerType.BASIC)

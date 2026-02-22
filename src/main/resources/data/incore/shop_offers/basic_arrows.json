@@ -1,0 +1,9 @@
+{
+  "category": "incore:basic_supplies",
+  "item": "minecraft:arrow",
+  "display_name": "Arrow Bundle",
+  "sort_order": 30,
+  "enabled": true,
+  "price_spur": 30,
+  "item_count": 16
+}

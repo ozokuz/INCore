@@ -53,6 +53,12 @@ public final class INCoreKeyMappings {
             GLFW.GLFW_KEY_M,
             "key.categories.incore"
     );
+    public static final KeyMapping OPEN_SHOP = new KeyMapping(
+            "key.incore.open_shop",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_L,
+            "key.categories.incore"
+    );
 
     private INCoreKeyMappings() {
     }

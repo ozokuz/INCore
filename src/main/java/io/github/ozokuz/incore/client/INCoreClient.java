@@ -24,6 +24,7 @@ import io.github.ozokuz.incore.features.research.ResearchRecipeLockManager;
 import io.github.ozokuz.incore.features.research.client.LabScreen;
 import io.github.ozokuz.incore.features.research.client.ResearchRecipeLockClientCache;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
+import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -62,6 +63,7 @@ public class INCoreClient {
         event.register(INCoreKeyMappings.OPEN_COMBAT_CATALOG);
         event.register(INCoreKeyMappings.OPEN_NUMISMATICS_BANK);
         event.register(INCoreKeyMappings.OPEN_MARKET);
+        event.register(INCoreKeyMappings.OPEN_SHOP);
     }
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
@@ -127,6 +129,10 @@ public class INCoreClient {
 
         while (INCoreKeyMappings.OPEN_MARKET.consumeClick()) {
             MarketNetworking.requestOpenMarketScreen();
+        }
+
+        while (INCoreKeyMappings.OPEN_SHOP.consumeClick()) {
+            ShopNetworking.requestOpenShopScreen();
         }
     }
 }

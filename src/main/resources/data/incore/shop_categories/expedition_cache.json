@@ -1,0 +1,8 @@
+{
+  "display_name": "Expedition Cache",
+  "sort_order": 40,
+  "enabled": true,
+  "stock_mode": "category_bucket",
+  "initial_stock": 40,
+  "replenish_mode": "none"
+}

@@ -1,0 +1,9 @@
+{
+  "category": "incore:basic_supplies",
+  "item": "minecraft:torch",
+  "display_name": "Torch Bundle",
+  "sort_order": 20,
+  "enabled": true,
+  "price_spur": 24,
+  "item_count": 32
+}
