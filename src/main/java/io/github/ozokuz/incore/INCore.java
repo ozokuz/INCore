@@ -121,6 +121,10 @@ public class INCore {
                 Registration.MECHANICAL_LAB_BLOCK.get(),
                 () -> Config.MECHANICAL_LAB_STRESS_PER_RPM.get().doubleValue()
         ));
+        event.enqueueWork(() -> {
+            BlockStressValues.IMPACTS.register(Registration.SHIPMENT_TERMINAL_BLOCK.get(), () -> 1024.0D);
+            BlockStressValues.IMPACTS.register(Registration.MARKET_AUTOBUYER_BLOCK.get(), () -> 1024.0D);
+        });
     }
 
     @SubscribeEvent
@@ -135,10 +139,6 @@ public class INCore {
                     return lab.labTier() == LabTier.MODULAR ? lab.energyStorage() : null;
                 }
         );
-        event.enqueueWork(() -> {
-            BlockStressValues.IMPACTS.register(Registration.SHIPMENT_TERMINAL_BLOCK.get(), () -> 1024.0D);
-            BlockStressValues.IMPACTS.register(Registration.MARKET_AUTOBUYER_BLOCK.get(), () -> 1024.0D);
-        });
     }
 
     @SubscribeEvent
