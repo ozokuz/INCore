@@ -1,18 +1,22 @@
 package io.github.ozokuz.incore.features.market.content;
 
 import com.mojang.serialization.MapCodec;
+import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
+import com.simibubi.create.content.equipment.wrench.WrenchItem;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -23,7 +27,7 @@ import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketAutoBuyerBlock extends BaseEntityBlock {
+public class MarketAutoBuyerBlock extends HorizontalKineticBlock implements EntityBlock {
     public static final MapCodec<MarketAutoBuyerBlock> CODEC = simpleCodec(MarketAutoBuyerBlock::new);
 
     public MarketAutoBuyerBlock() {
@@ -32,10 +36,11 @@ public class MarketAutoBuyerBlock extends BaseEntityBlock {
 
     public MarketAutoBuyerBlock(Properties properties) {
         super(properties);
+        registerDefaultState(defaultBlockState().setValue(HORIZONTAL_FACING, Direction.NORTH));
     }
 
     @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+    protected @NotNull MapCodec<? extends HorizontalKineticBlock> codec() {
         return CODEC;
     }
 
@@ -50,8 +55,22 @@ public class MarketAutoBuyerBlock extends BaseEntityBlock {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, Registration.MARKET_AUTOBUYER_BE.get(), MarketAutoBuyerBlockEntity::tick);
+        if (blockEntityType != Registration.MARKET_AUTOBUYER_BE.get()) {
+            return null;
+        }
+        return (lvl, pos, blockState, blockEntity) -> MarketAutoBuyerBlockEntity.tick(lvl, pos, blockState, (MarketAutoBuyerBlockEntity) blockEntity);
+    }
+
+    @Override
+    public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
+        return face == state.getValue(HORIZONTAL_FACING).getOpposite();
+    }
+
+    @Override
+    public Direction.Axis getRotationAxis(BlockState state) {
+        return state.getValue(HORIZONTAL_FACING).getAxis();
     }
 
     @Override
@@ -98,6 +117,10 @@ public class MarketAutoBuyerBlock extends BaseEntityBlock {
             @NotNull InteractionHand hand,
             @NotNull net.minecraft.world.phys.BlockHitResult hitResult
     ) {
+        if (stack.getItem() instanceof WrenchItem) {
+            return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        }
+
         if (level.isClientSide) {
             return ItemInteractionResult.SUCCESS;
         }

@@ -25,6 +25,7 @@ import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.market.MarketItemManager;
 import io.github.ozokuz.incore.features.market.MarketEvents;
 import io.github.ozokuz.incore.features.market.command.MarketCommands;
+import io.github.ozokuz.incore.features.market.content.MarketMachineCapabilities;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
@@ -54,6 +55,7 @@ import net.minecraft.data.PackOutput;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import com.simibubi.create.api.stress.BlockStressValues;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
@@ -91,6 +93,7 @@ public class INCore {
         CardVendorIntegration.initialize();
         modEventBus.addListener(NumismaticsNetworking::registerPayloads);
         modEventBus.addListener(MarketNetworking::registerPayloads);
+        modEventBus.addListener(MarketMachineCapabilities::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -126,6 +129,10 @@ public class INCore {
                     return lab.labTier() == LabTier.MODULAR ? lab.energyStorage() : null;
                 }
         );
+        event.enqueueWork(() -> {
+            BlockStressValues.IMPACTS.register(Registration.SHIPMENT_TERMINAL_BLOCK.get(), () -> 1024.0D);
+            BlockStressValues.IMPACTS.register(Registration.MARKET_AUTOBUYER_BLOCK.get(), () -> 1024.0D);
+        });
     }
 
     @SubscribeEvent

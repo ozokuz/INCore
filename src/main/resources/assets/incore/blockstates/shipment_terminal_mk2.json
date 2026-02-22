@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "incore:block/shipment_terminal_mk2" },
+    "facing=east": { "model": "incore:block/shipment_terminal_mk2", "y": 90 },
+    "facing=south": { "model": "incore:block/shipment_terminal_mk2", "y": 180 },
+    "facing=west": { "model": "incore:block/shipment_terminal_mk2", "y": 270 }
+  }
+}
