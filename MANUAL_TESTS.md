@@ -182,7 +182,9 @@ Manual gameplay verification checklist for testers.
 - [ ] Given the player is inside a prepared arena, when attempting to move upward through the top boundary (for example with creative flight or vertical movement tools), then an invisible barrier ceiling blocks movement out of the arena.
 
 ## Arena Orb And Gateway Flow
+- [ ] Given the arena is prepared and no fight is active, when checking the center of the arena, then the `Arena Orb` is present and floating one block higher than its previous center position.
 - [ ] Given the player is in their prepared arena run, when right-clicking the center `Arena Orb`, then the configured Gateways gateway starts and the player receives the gateway started message.
+- [ ] Given the gateway fight is active, when checking the arena center, then the `Arena Orb` is not present until the run ends.
 - [ ] Given a gateway configured by arena catalog is missing from datapacks, when trying to start from the orb, then the orb interaction fails with a missing gateway message and no fight starts.
 - [ ] Given an active arena gateway run is completed, when the gateway finishes successfully, then the run state ends as success and the player receives one `Arena Reward Crate`.
 - [ ] Given an active arena gateway run fails, when the gateway emits a failure, then the run state ends as failed, no reward crate is granted, and the orb displays return-ready behavior.
@@ -190,7 +192,7 @@ Manual gameplay verification checklist for testers.
 
 ## Arena Reward Crate Sanity Spend
 - [ ] Given the player receives an `Arena Reward Crate` block item, when hovering it in inventory, then tooltip shows source category+difficulty, sanity cost, and deterministic reward entries with counts.
-- [ ] Given the player receives an `Arena Reward Crate` block item, when reading its display name, then the name format is `<Category Name> <Difficulty Name> Sanity Reward Crate` (for example `Gear Materials Level 5 Sanity Reward Crate`).
+- [ ] Given the player receives an `Arena Reward Crate` block item, when reading its display name, then the name format is `<Category Name> <Difficulty Name> Sanity Reward Crate` (for example `Gear Materials Level 5 Sanity Reward Crate`) and the label is rendered with normal non-cursive item-name styling.
 - [ ] Given the player places an `Arena Reward Crate` block and right-clicks without sneaking, then the crate does not open.
 - [ ] Given the player sneak-right-clicks an `Arena Reward Crate` block while either hand is not empty, then the crate does not open and shows the empty-hands required message.
 - [ ] Given the player sneak-right-clicks an `Arena Reward Crate` block with empty hands and sanity below configured cost, then the crate does not open, sanity is not consumed, and not-enough-sanity message appears.

@@ -105,7 +105,7 @@ public final class ArenaService {
             return false;
         }
 
-        BlockPos expectedOrbPos = run.origin().above();
+        BlockPos expectedOrbPos = orbPosForRun(run);
         if (!expectedOrbPos.equals(orbPos) || !player.serverLevel().dimension().equals(ArenaConstants.ARENA_DIMENSION)) {
             player.sendSystemMessage(Component.translatable("incore.arena.orb.not_bound"));
             return false;
@@ -141,10 +141,12 @@ public final class ArenaService {
         ArenaCatalogEntry entry = ArenaCatalogManager.get(run.entryId());
         if (entry == null) {
             data.putRun(run.withState(ArenaSavedData.RunState.ENDED_FAIL));
+            showOrb(level, run);
             return;
         }
 
         data.putRun(run.withState(ArenaSavedData.RunState.ENDED_SUCCESS));
+        showOrb(level, run);
         ServerPlayer player = level.getServer().getPlayerList().getPlayer(run.playerId());
         if (player != null) {
             ItemStack crate = ArenaRewardCrateData.createCrateStack(entry);
@@ -169,6 +171,7 @@ public final class ArenaService {
         }
 
         data.putRun(run.withState(ArenaSavedData.RunState.ENDED_FAIL));
+        showOrb(level, run);
         ServerPlayer player = level.getServer().getPlayerList().getPlayer(run.playerId());
         if (player != null) {
             player.sendSystemMessage(Component.translatable("incore.arena.run.failed"));
@@ -260,13 +263,14 @@ public final class ArenaService {
 
         Gateway gateway = holder.get();
         GatewayEntity entity = gateway.createEntity(player.serverLevel(), player);
-        entity.setPos(run.origin().getX() + 0.5D, run.origin().getY() + 2D, run.origin().getZ() + 0.5D);
+        entity.setPos(run.origin().getX() + 0.5D, run.origin().getY() + 3D, run.origin().getZ() + 0.5D);
 
         if (!player.serverLevel().noCollision(entity)) {
             player.sendSystemMessage(Component.translatable("incore.arena.gateway.no_space"));
             return false;
         }
 
+        hideOrb(player.serverLevel(), run);
         player.serverLevel().addFreshEntity(entity);
         entity.onGateCreated();
 
@@ -391,12 +395,32 @@ public final class ArenaService {
             }
         }
 
-        BlockPos orbPos = origin.above();
+        BlockPos orbPos = orbPosForOrigin(origin);
         level.setBlockAndUpdate(orbPos, Registration.ARENA_ORB_BLOCK.get().defaultBlockState());
 
         for (int y = orbPos.getY() + 1; y <= orbPos.getY() + 3; y++) {
             level.setBlockAndUpdate(new BlockPos(origin.getX(), y, origin.getZ()), Blocks.AIR.defaultBlockState());
         }
+    }
+
+    private static BlockPos orbPosForRun(ArenaSavedData.RunRecord run) {
+        return orbPosForOrigin(run.origin());
+    }
+
+    private static BlockPos orbPosForOrigin(BlockPos origin) {
+        return origin.above(2);
+    }
+
+    private static void hideOrb(ServerLevel level, ArenaSavedData.RunRecord run) {
+        BlockPos orbPos = orbPosForRun(run);
+        if (level.getBlockState(orbPos).getBlock() == Registration.ARENA_ORB_BLOCK.get()) {
+            level.setBlockAndUpdate(orbPos, Blocks.AIR.defaultBlockState());
+        }
+    }
+
+    private static void showOrb(ServerLevel level, ArenaSavedData.RunRecord run) {
+        BlockPos orbPos = orbPosForRun(run);
+        level.setBlockAndUpdate(orbPos, Registration.ARENA_ORB_BLOCK.get().defaultBlockState());
     }
 
     public record ScreenData(List<CategoryView> categories, List<ScreenEntry> entries) {
