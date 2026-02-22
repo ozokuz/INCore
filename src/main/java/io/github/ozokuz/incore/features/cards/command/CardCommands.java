@@ -107,8 +107,6 @@ public final class CardCommands {
                                         .then(Commands.argument("targets", EntityArgument.players()).executes(context -> setBricked(context, true))))
                                 .then(Commands.literal("unbrick_debug")
                                         .then(Commands.argument("targets", EntityArgument.players()).executes(context -> setBricked(context, false))))
-                                .then(Commands.literal("vendor_open")
-                                        .then(Commands.argument("target", EntityArgument.player()).executes(CardCommands::openVendor)))
                                 .then(Commands.literal("collection")
                                         .then(Commands.argument("target", EntityArgument.player()).executes(CardCommands::collection)))
                                 .then(Commands.literal("debug_deck")
@@ -321,16 +319,6 @@ public final class CardCommands {
 
         context.getSource().sendSuccess(() -> Component.literal((bricked ? "Bricked" : "Unbricked") + " equipped decks for " + targets.size() + " player(s)."), true);
         return targets.size();
-    }
-
-    private static int openVendor(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer target = EntityArgument.getPlayer(context, "target");
-        if (!CardVendorService.openNearestVendorScreen(target, 8)) {
-            context.getSource().sendFailure(Component.translatable("incore.cards.vendor.no_nearby_vendor"));
-            return 0;
-        }
-        context.getSource().sendSuccess(() -> Component.literal("Opened card vendor for " + target.getGameProfile().getName()), true);
-        return Command.SINGLE_SUCCESS;
     }
 
     private static int collection(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

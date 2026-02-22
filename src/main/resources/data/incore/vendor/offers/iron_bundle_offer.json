@@ -1,0 +1,17 @@
+{
+  "name": "Iron Bundle",
+  "category": "incore:materials",
+  "product": {
+    "type": "incore:item",
+    "item": "minecraft:iron_ingot",
+    "count": 8
+  },
+  "currency": {
+    "type": "incore:bank_spur",
+    "amount": 25,
+    "spur_conversion_rate": 1
+  },
+  "weight": 6,
+  "stock_min": 3,
+  "stock_max": 8
+}

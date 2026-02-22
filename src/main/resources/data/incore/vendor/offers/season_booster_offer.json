@@ -1,0 +1,18 @@
+{
+  "name": "Signal Booster Deal",
+  "category": "incore:cards",
+  "product": {
+    "type": "incore:card_booster",
+    "set": "incore:season_signal",
+    "count": 1
+  },
+  "currency": {
+    "type": "incore:item",
+    "item": "minecraft:emerald",
+    "amount": 2,
+    "spur_conversion_rate": 16
+  },
+  "weight": 8,
+  "stock_min": 2,
+  "stock_max": 7
+}
