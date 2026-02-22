@@ -16,6 +16,20 @@ Manual gameplay verification checklist for testers.
 
 ## Current Test Cases
 
+## Gacha 6★ Secondary Pity And Rotation Commands
+- [ ] Given op permissions and a target player with `incore:expedition_relic` selected, when running `/incore gacha pity set <player> incore:expedition_relic 0 0 119 0` and then opening one crate on `incore:expedition_relic`, then that pull includes the banner main showcased 6★ (`minecraft:mace`) and featured 6★ pity resets.
+- [ ] Given op permissions and a target player on `incore:expedition_relic`, when running `/incore gacha pity set <player> incore:expedition_relic 0 0 20 0` and then `/incore gacha rotate incore:expedition next`, then `/incore gacha pity status <player> incore:expedition_relic` shows featured 6★ pity reset for the new rotation token.
+- [ ] Given op permissions and a target player on `incore:basic`, when running `/incore gacha pity set <player> incore:basic 0 0 0 239` and opening one basic crate, then basic selectable 6★ pity reaches at least `240/240` and further basic pulls are blocked.
+- [ ] Given a player has reached `240/240` on `incore:basic`, when attempting to buy/pull another basic crate, then the action fails with the guaranteed-6★ required message and no new crate is consumed/opened.
+- [ ] Given a player has reached `240/240` on `incore:basic`, when opening the gacha screen, then `Pull x10` remains visible but disabled and `Select Guaranteed 6★` appears to the left of `Info`.
+- [ ] Given a player at `240/240` on `incore:basic`, when clicking `Select Guaranteed 6★`, then a dedicated selection screen opens and each pullable 6★ for that banner is shown as a clickable column/card.
+- [ ] Given the dedicated 6★ selection screen is open with no column selected, when viewing action buttons, then `Confirm Selection` is disabled until one column/card is clicked.
+- [ ] Given a player is at `240/240` on `incore:basic` and selects a valid 6★ column, when clicking `Confirm Selection`, then the selected 6★ item is granted immediately and basic selectable 6★ pity resets to `0`.
+- [ ] Given a player is below `240` on a basic banner, when sending an invalid or early guaranteed-claim payload (invalid item id or not ready), then the server rejects it and no free reward is granted.
+- [ ] Given op permissions and two target players, when running `/incore gacha pity set <players> incore:basic_tools 5 7 0 120`, then `/incore gacha pity status <player> incore:basic_tools` reports `5*=5`, `6*=7`, and `basic240=120` for each updated player.
+- [ ] Given event category `incore:chartered` is loaded, when running `/incore gacha rotate incore:chartered next`, then the active chartered banner changes immediately and the command reports the new active banner id.
+- [ ] Given op permissions and an active category already force-rotated once, when waiting until the current category window expires without additional commands, then visible event banners resume normal time-based rotation order automatically.
+
 ## Daily & Weekly Datapack Tasks
 - [ ] Given a weekly tier has become unlocked but `Claim Weekly Rewards` has not been clicked, when checking inventory/chat reward outputs, then no weekly tier reward is granted automatically until the claim button is used.
 - [ ] Given daily and weekly reward pools contain item and non-item rewards, when opening the Daily/Weekly screen, then reward item icons are visible with padding in the daily reward section and on each weekly tier slot (without crossing panel/tier borders) and hovering each icon shows a tooltip describing that reward.

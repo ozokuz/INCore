@@ -88,6 +88,8 @@ public class GachaBannerScreen extends Screen {
         int infoWidth = 64;
         int buyX = this.width - 12 - buyWidth;
         int infoX = buyX - 6 - infoWidth;
+        GachaService.BannerView selectedBanner = getSelectedBanner();
+        boolean basicGuaranteeBlocked = selectedBanner != null && selectedBanner.basicGuaranteeBlocked();
 
         this.addRenderableWidget(Button.builder(Component.translatable("screen.incore.gacha_banners.info"), button -> {
                     GachaService.BannerView selected = getSelectedBanner();
@@ -98,7 +100,7 @@ public class GachaBannerScreen extends Screen {
                 .bounds(infoX, exitY, infoWidth, 20)
                 .build());
 
-        this.addRenderableWidget(Button.builder(Component.translatable("screen.incore.gacha_banners.pull_x10"), button -> {
+        Button pullButton = Button.builder(Component.translatable("screen.incore.gacha_banners.pull_x10"), button -> {
                     GachaService.BannerView selected = getSelectedBanner();
                     if (selected == null) {
                         return;
@@ -109,7 +111,20 @@ public class GachaBannerScreen extends Screen {
                     }
                 })
                 .bounds(buyX, exitY, buyWidth, 20)
-                .build());
+                .build();
+        pullButton.active = !basicGuaranteeBlocked;
+        this.addRenderableWidget(pullButton);
+
+        if (basicGuaranteeBlocked && selectedBanner != null) {
+            int selectorWidth = 136;
+            int selectorX = infoX - 6 - selectorWidth;
+            this.addRenderableWidget(Button.builder(
+                            Component.translatable("screen.incore.gacha_banners.open_guaranteed_six_selector"),
+                            button -> this.minecraft.setScreen(new GachaGuaranteedSixSelectionScreen(this, selectedBanner))
+                    )
+                    .bounds(selectorX, exitY, selectorWidth, 20)
+                    .build());
+        }
 
         if (totalPages > 1) {
             this.addRenderableWidget(Button.builder(Component.literal("<"), button -> {
@@ -196,40 +211,94 @@ public class GachaBannerScreen extends Screen {
                 mainTop + 20,
                 "basic".equals(selected.type()) ? 0x9AE6FF : 0xFFD98A
         );
+        int infoY = mainTop + 32;
         guiGraphics.drawString(
                 this.font,
                 Component.translatable("screen.incore.gacha_banners.pity", selected.pityFive(), 40, selected.pitySix(), 80),
                 mainLeft + 10,
-                mainTop + 32,
+                infoY,
                 0xD8D8D8
         );
-        guiGraphics.drawString(
-                this.font,
-                Component.translatable("screen.incore.gacha_banners.cost", GachaService.PULLS_PER_CRATE),
-                mainLeft + 10,
-                mainTop + 44,
-                0xCECECE
-        );
+        infoY += 12;
+        if ("event".equals(selected.type())) {
+            Component featuredLine = selected.eventFeaturedPityEnabled()
+                    ? Component.translatable(
+                            "screen.incore.gacha_banners.event_featured_pity",
+                            selected.eventFeaturedPity(),
+                            GachaService.EVENT_FEATURED_SIX_PITY_THRESHOLD
+                    )
+                    : Component.translatable("screen.incore.gacha_banners.event_featured_pity.unavailable");
+            guiGraphics.drawString(this.font, featuredLine, mainLeft + 10, infoY, 0xFFDB9A);
+            infoY += 12;
+        } else {
+            guiGraphics.drawString(
+                    this.font,
+                    Component.translatable(
+                            "screen.incore.gacha_banners.basic_guaranteed_pity",
+                            selected.basicSelectedSixPity(),
+                            GachaService.BASIC_SELECTED_SIX_THRESHOLD
+                    ),
+                    mainLeft + 10,
+                    infoY,
+                    0xB0E0FF
+            );
+            infoY += 12;
+            if (selected.basicGuaranteeBlocked()) {
+                guiGraphics.drawString(
+                        this.font,
+                        Component.translatable("screen.incore.gacha_banners.basic_guaranteed_locked"),
+                        mainLeft + 10,
+                        infoY,
+                        0xFF9696
+                );
+                infoY += 12;
+            }
+        }
+
+        if (!selected.basicGuaranteeBlocked()) {
+            guiGraphics.drawString(
+                    this.font,
+                    Component.translatable("screen.incore.gacha_banners.cost", GachaService.PULLS_PER_CRATE),
+                    mainLeft + 10,
+                    infoY,
+                    0xCECECE
+            );
+            infoY += 12;
+        }
+
         String selectedRemaining = renderRemainingLabel(selected);
         if (!selectedRemaining.isEmpty()) {
             guiGraphics.drawString(
                     this.font,
                     Component.translatable("screen.incore.gacha_banners.time_left", selectedRemaining),
                     mainLeft + 10,
-                    mainTop + 56,
+                    infoY,
                     0xD8D8D8
             );
+            infoY += 12;
         }
+        int showcaseTitleY = Math.max(mainTop + 74, infoY + 6);
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.translatable("screen.incore.gacha_banners.high_rarity_showcase"),
                 (mainLeft + mainRight) / 2,
-                mainTop + 74,
+                showcaseTitleY,
                 0xF3D26A
         );
 
-        renderPullCostPanel(guiGraphics, selected);
-        ItemStack hoveredHighlight = renderHighRarityShowcase(guiGraphics, selected, mainLeft, mainTop, mainRight, mainBottom, mouseX, mouseY);
+        if (!selected.basicGuaranteeBlocked()) {
+            renderPullCostPanel(guiGraphics, selected);
+        }
+        ItemStack hoveredHighlight = renderHighRarityShowcase(
+                guiGraphics,
+                selected,
+                mainLeft,
+                showcaseTitleY + 12,
+                mainRight,
+                mainBottom,
+                mouseX,
+                mouseY
+        );
         if (hoveredHighlight != null && !hoveredHighlight.isEmpty()) {
             guiGraphics.renderTooltip(this.font, hoveredHighlight, mouseX, mouseY);
         }
@@ -426,7 +495,7 @@ public class GachaBannerScreen extends Screen {
             GuiGraphics guiGraphics,
             GachaService.BannerView banner,
             int mainLeft,
-            int mainTop,
+            int showcaseTop,
             int mainRight,
             int mainBottom,
             int mouseX,
@@ -440,13 +509,12 @@ public class GachaBannerScreen extends Screen {
                     this.font,
                     Component.translatable("screen.incore.gacha_banners.high_rarity_none"),
                     (mainLeft + mainRight) / 2,
-                    mainTop + 110,
+                    showcaseTop + 24,
                     0xD88B8B
             );
             return null;
         }
 
-        int showcaseTop = mainTop + 86;
         int showcaseBottom = mainBottom - 8;
         int centerX = (mainLeft + mainRight) / 2;
         int maxWidth = Math.max(80, (mainRight - mainLeft) - 28);

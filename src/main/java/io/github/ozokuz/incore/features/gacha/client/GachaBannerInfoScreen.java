@@ -71,6 +71,28 @@ public class GachaBannerInfoScreen extends Screen {
                 28,
                 0xD9D9D9
         );
+        if ("event".equals(banner.type())) {
+            Component featuredLine = banner.eventFeaturedPityEnabled()
+                    ? Component.translatable(
+                            "screen.incore.gacha_banners.event_featured_pity",
+                            banner.eventFeaturedPity(),
+                            GachaService.EVENT_FEATURED_SIX_PITY_THRESHOLD
+                    )
+                    : Component.translatable("screen.incore.gacha_banners.event_featured_pity.unavailable");
+            guiGraphics.drawCenteredString(this.font, featuredLine, this.width / 2, 40, 0xFFD4A4);
+        } else {
+            guiGraphics.drawCenteredString(
+                    this.font,
+                    Component.translatable(
+                            "screen.incore.gacha_banners.basic_guaranteed_pity",
+                            banner.basicSelectedSixPity(),
+                            GachaService.BASIC_SELECTED_SIX_THRESHOLD
+                    ),
+                    this.width / 2,
+                    40,
+                    0xC2E9FF
+            );
+        }
 
         List<GachaService.RewardView> rewards = banner.rewards();
         int totalPages = Math.max(1, (rewards.size() + REWARDS_PER_PAGE - 1) / REWARDS_PER_PAGE);
@@ -78,13 +100,13 @@ public class GachaBannerInfoScreen extends Screen {
                 this.font,
                 Component.translatable("screen.incore.gacha_banners.page", page + 1, totalPages),
                 this.width / 2,
-                40,
+                52,
                 0xAEAEAE
         );
 
         int start = page * REWARDS_PER_PAGE;
         int end = Math.min(rewards.size(), start + REWARDS_PER_PAGE);
-        int rowY = 56;
+        int rowY = 68;
         int rowHeight = 16;
         int left = this.width / 2 - 140;
         int right = this.width / 2 + 140;
