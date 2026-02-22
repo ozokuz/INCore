@@ -108,22 +108,7 @@ public final class CardDeckService {
         int maxIntegrity = Math.max(1, core.baseIntegrity() + box.integrityBonus());
         List<CardItemData.CardInstance> modules = selected.stream().map(CardCandidate::instance).toList();
 
-        ItemStack deck = new ItemStack(Registration.CARD_DECK_ITEM.get());
-        CardItemData.writeDeckData(
-                deck,
-                core.id(),
-                box.id(),
-                maxIntegrity,
-                maxIntegrity,
-                false,
-                modules
-        );
-        List<ResolvedModule> assembledResolvedModules = selected.stream()
-                .map(candidate -> new ResolvedModule(candidate.instance(), candidate.module()))
-                .toList();
-        Multimap<Holder<Attribute>, AttributeModifier> resolvedModifiers = resolveModifiersFromModules(assembledResolvedModules, maxIntegrity, maxIntegrity);
-        CardItemData.writeDeckModifierSnapshot(deck, snapshotModifiers(resolvedModifiers));
-        CardItemData.writeDeckModifierLineSnapshot(deck, snapshotModifierLines(resolvedModifiers));
+        ItemStack deck = createDeckStack(core.id(), box.id(), maxIntegrity, modules);
 
         if (!player.addItem(deck)) {
             player.drop(deck, false);
@@ -141,7 +126,227 @@ public final class CardDeckService {
         return true;
     }
 
+    public static DeckSelectionPreview previewSelection(
+            ServerPlayer player,
+            @Nullable Integer coreSlot,
+            @Nullable Integer boxSlot,
+            Map<Integer, Integer> moduleSelections
+    ) {
+        CoreSelection coreSelection = resolveCoreAtSlot(player, coreSlot);
+        BoxSelection boxSelection = resolveBoxAtSlot(player, boxSlot);
+        List<ModulePick> picks = resolveModulePicks(player, moduleSelections);
+
+        int usedPoints = picks.stream().mapToInt(pick -> pick.module().deckPoints() * pick.count()).sum();
+        int moduleCount = picks.stream().mapToInt(ModulePick::count).sum();
+
+        if (coreSelection == null) {
+            return new DeckSelectionPreview(moduleCount, usedPoints, 0, 0, List.of(), false, "incore.cards.deck.missing_core");
+        }
+        if (boxSelection == null) {
+            return new DeckSelectionPreview(moduleCount, usedPoints, 0, 0, List.of(), false, "incore.cards.deck.missing_box");
+        }
+
+        CardDeckCoreData core = CardDeckCoreManager.get(coreSelection.coreId());
+        CardDeckBoxData box = CardDeckBoxManager.get(boxSelection.boxId());
+        if (core == null) {
+            return new DeckSelectionPreview(moduleCount, usedPoints, 0, 0, List.of(), false, "incore.cards.deck.missing_core");
+        }
+        if (box == null) {
+            return new DeckSelectionPreview(moduleCount, usedPoints, 0, 0, List.of(), false, "incore.cards.deck.missing_box");
+        }
+
+        int capacity = Math.max(1, core.capacityPoints() + box.capacityBonus());
+        int maxIntegrity = Math.max(1, core.baseIntegrity() + box.integrityBonus());
+
+        if (picks.isEmpty()) {
+            return new DeckSelectionPreview(moduleCount, usedPoints, capacity, maxIntegrity, List.of(), false, "incore.cards.deck.missing_modules");
+        }
+        if (usedPoints > capacity) {
+            return new DeckSelectionPreview(moduleCount, usedPoints, capacity, maxIntegrity, List.of(), false, "incore.cards.deck.no_capacity");
+        }
+
+        List<ResolvedModule> resolvedModules = expandPicks(picks).stream()
+                .map(candidate -> new ResolvedModule(candidate.instance(), candidate.module()))
+                .toList();
+
+        Multimap<Holder<Attribute>, AttributeModifier> resolvedModifiers = resolveModifiersFromModules(resolvedModules, maxIntegrity, maxIntegrity, true);
+        List<String> modifierLines = snapshotModifierLines(resolvedModifiers);
+        int unrevealedCryptics = countUndecryptedCrypticsResolved(resolvedModules);
+        if (unrevealedCryptics > 0) {
+            modifierLines = appendUndecryptedCrypticsLine(modifierLines, unrevealedCryptics);
+        }
+        return new DeckSelectionPreview(moduleCount, usedPoints, capacity, maxIntegrity, modifierLines, true, "");
+    }
+
+    public static boolean assembleDeckFromSelection(
+            ServerPlayer player,
+            @Nullable Integer coreSlot,
+            @Nullable Integer boxSlot,
+            Map<Integer, Integer> moduleSelections
+    ) {
+        CoreSelection coreSelection = resolveCoreAtSlot(player, coreSlot);
+        if (coreSelection == null) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("incore.cards.deck.missing_core"));
+            return false;
+        }
+
+        BoxSelection boxSelection = resolveBoxAtSlot(player, boxSlot);
+        if (boxSelection == null) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("incore.cards.deck.missing_box"));
+            return false;
+        }
+
+        CardDeckCoreData core = CardDeckCoreManager.get(coreSelection.coreId());
+        if (core == null) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("incore.cards.deck.invalid_core", coreSelection.coreId().toString()));
+            return false;
+        }
+
+        CardDeckBoxData box = CardDeckBoxManager.get(boxSelection.boxId());
+        if (box == null) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("incore.cards.deck.invalid_box", boxSelection.boxId().toString()));
+            return false;
+        }
+
+        List<ModulePick> picks = resolveModulePicks(player, moduleSelections);
+        if (picks.isEmpty()) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("incore.cards.deck.missing_modules"));
+            return false;
+        }
+
+        int capacity = Math.max(1, core.capacityPoints() + box.capacityBonus());
+        int used = picks.stream().mapToInt(pick -> pick.module().deckPoints() * pick.count()).sum();
+        if (used > capacity) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("incore.cards.deck.no_capacity"));
+            return false;
+        }
+
+        coreSelection.stack().shrink(1);
+        boxSelection.stack().shrink(1);
+
+        for (ModulePick pick : picks) {
+            ItemStack stack = player.getInventory().getItem(pick.slot());
+            if (stack.isEmpty() || stack.getItem() != Registration.CARD_MODULE_ITEM.get()) {
+                continue;
+            }
+            stack.shrink(pick.count());
+            if (stack.isEmpty()) {
+                player.getInventory().setItem(pick.slot(), ItemStack.EMPTY);
+            }
+        }
+
+        int maxIntegrity = Math.max(1, core.baseIntegrity() + box.integrityBonus());
+        List<CardItemData.CardInstance> modules = expandPicks(picks).stream().map(CardCandidate::instance).toList();
+
+        ItemStack deck = createDeckStack(core.id(), box.id(), maxIntegrity, modules);
+
+        if (!player.addItem(deck)) {
+            player.drop(deck, false);
+        }
+
+        player.getInventory().setChanged();
+        player.containerMenu.broadcastChanges();
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                "incore.cards.deck.assembled",
+                modules.size(),
+                used,
+                capacity,
+                maxIntegrity
+        ));
+        return true;
+    }
+
+    public static ItemStack createDeckStack(
+            ResourceLocation coreId,
+            ResourceLocation boxId,
+            int maxIntegrity,
+            List<CardItemData.CardInstance> modules
+    ) {
+        ItemStack deck = new ItemStack(Registration.CARD_DECK_ITEM.get());
+        int clampedMaxIntegrity = Math.max(1, maxIntegrity);
+        CardItemData.writeDeckData(
+                deck,
+                coreId,
+                boxId,
+                clampedMaxIntegrity,
+                clampedMaxIntegrity,
+                false,
+                modules
+        );
+
+        List<ResolvedModule> resolvedModules = new ArrayList<>();
+        for (CardItemData.CardInstance instance : modules) {
+            CardModuleData module = CardModuleManager.get(instance.cardId());
+            if (module == null) {
+                continue;
+            }
+            resolvedModules.add(new ResolvedModule(instance, module));
+        }
+
+        Multimap<Holder<Attribute>, AttributeModifier> resolvedModifiers = resolveModifiersFromModules(resolvedModules, clampedMaxIntegrity, clampedMaxIntegrity, false);
+        CardItemData.writeDeckModifierSnapshot(deck, snapshotModifiers(resolvedModifiers));
+        CardItemData.writeDeckModifierLineSnapshot(deck, snapshotModifierLines(resolvedModifiers));
+        return deck;
+    }
+
+    public static List<String> previewModifierLines(
+            List<CardItemData.CardInstance> modules,
+            int integrity,
+            int maxIntegrity,
+            boolean hideUndecryptedCrypticDetails
+    ) {
+        List<ResolvedModule> resolvedModules = new ArrayList<>();
+        for (CardItemData.CardInstance instance : modules) {
+            CardModuleData module = CardModuleManager.get(instance.cardId());
+            if (module == null) {
+                continue;
+            }
+            resolvedModules.add(new ResolvedModule(instance, module));
+        }
+
+        if (resolvedModules.isEmpty()) {
+            return List.of();
+        }
+
+        Multimap<Holder<Attribute>, AttributeModifier> resolvedModifiers = resolveModifiersFromModules(
+                resolvedModules,
+                Math.max(0, integrity),
+                Math.max(1, maxIntegrity),
+                hideUndecryptedCrypticDetails
+        );
+        List<String> lines = snapshotModifierLines(resolvedModifiers);
+        if (hideUndecryptedCrypticDetails) {
+            int unrevealedCryptics = countUndecryptedCrypticsResolved(resolvedModules);
+            if (unrevealedCryptics > 0) {
+                lines = appendUndecryptedCrypticsLine(lines, unrevealedCryptics);
+            }
+        }
+        return lines;
+    }
+
+    public static int countUndecryptedCryptics(List<CardItemData.CardInstance> modules) {
+        int count = 0;
+        for (CardItemData.CardInstance moduleInstance : modules) {
+            CardModuleData module = CardModuleManager.get(moduleInstance.cardId());
+            if (module == null) {
+                continue;
+            }
+            if (module.moduleType() == CardModuleType.CRYPTIC && !moduleInstance.revealed()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static Multimap<Holder<Attribute>, AttributeModifier> resolveDeckModifiers(ItemStack deckStack, @Nullable ServerPlayer wearer) {
+        return resolveDeckModifiers(deckStack, wearer, false);
+    }
+
+    public static Multimap<Holder<Attribute>, AttributeModifier> resolveDeckModifiers(
+            ItemStack deckStack,
+            @Nullable ServerPlayer wearer,
+            boolean hideUndecryptedCrypticDetails
+    ) {
         CardItemData.DeckData deck = CardItemData.readDeckData(deckStack);
         if (deck == null || deck.bricked() || deck.integrity() <= 0) {
             return HashMultimap.create();
@@ -159,7 +364,7 @@ public final class CardDeckService {
         if (resolvedModules.isEmpty()) {
             return HashMultimap.create();
         }
-        return resolveModifiersFromModules(resolvedModules, deck.integrity(), deck.maxIntegrity());
+        return resolveModifiersFromModules(resolvedModules, deck.integrity(), deck.maxIntegrity(), hideUndecryptedCrypticDetails);
     }
 
     public static void onDungeonTransition(ServerPlayer player) {
@@ -354,7 +559,8 @@ public final class CardDeckService {
     private static Multimap<Holder<Attribute>, AttributeModifier> resolveModifiersFromModules(
             List<ResolvedModule> resolvedModules,
             int integrity,
-            int maxIntegrity
+            int maxIntegrity,
+            boolean hideUndecryptedCrypticDetails
     ) {
         Multimap<Holder<Attribute>, AttributeModifier> modifiers = HashMultimap.create();
         int modifierIndex = 0;
@@ -377,12 +583,17 @@ public final class CardDeckService {
                     ? (resolved.instance.chaoticDownsides().isEmpty() ? resolved.module.downsides() : resolved.instance.chaoticDownsides())
                     : resolved.module.downsides();
             boolean capToTwoDecimals = resolved.module.moduleType() == CardModuleType.CHAOTIC;
+            boolean hideCrypticDetails = hideUndecryptedCrypticDetails
+                    && resolved.module.moduleType() == CardModuleType.CRYPTIC
+                    && !resolved.instance.revealed();
 
-            for (CardAttributeEffect effect : effects) {
-                addModifier(modifiers, effect, multiplier, modifierIndex++, capToTwoDecimals);
-            }
-            for (CardAttributeEffect downside : downsides) {
-                addModifier(modifiers, downside, multiplier, modifierIndex++, capToTwoDecimals);
+            if (!hideCrypticDetails) {
+                for (CardAttributeEffect effect : effects) {
+                    addModifier(modifiers, effect, multiplier, modifierIndex++, capToTwoDecimals);
+                }
+                for (CardAttributeEffect downside : downsides) {
+                    addModifier(modifiers, downside, multiplier, modifierIndex++, capToTwoDecimals);
+                }
             }
         }
 
@@ -428,6 +639,22 @@ public final class CardDeckService {
         }
 
         return modifiers;
+    }
+
+    private static int countUndecryptedCrypticsResolved(List<ResolvedModule> modules) {
+        int count = 0;
+        for (ResolvedModule module : modules) {
+            if (module.module.moduleType() == CardModuleType.CRYPTIC && !module.instance.revealed()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static List<String> appendUndecryptedCrypticsLine(List<String> lines, int undecryptedCount) {
+        List<String> result = new ArrayList<>(lines);
+        result.add("Undecrypted Cryptics: " + undecryptedCount);
+        return List.copyOf(result);
     }
 
     private static void addPenalty(
@@ -546,7 +773,102 @@ public final class CardDeckService {
         return result;
     }
 
+    private static @Nullable CoreSelection resolveCoreAtSlot(ServerPlayer player, @Nullable Integer slotIndex) {
+        if (slotIndex == null) {
+            return null;
+        }
+        if (slotIndex < 0 || slotIndex >= player.getInventory().getContainerSize()) {
+            return null;
+        }
+
+        ItemStack stack = player.getInventory().getItem(slotIndex);
+        if (stack.isEmpty() || stack.getItem() != Registration.CARD_DECK_CORE_ITEM.get()) {
+            return null;
+        }
+
+        ResourceLocation id = CardItemData.readDeckCoreId(stack);
+        if (id == null) {
+            id = CardDeckCoreManager.getDefaultCoreId();
+        }
+        return new CoreSelection(slotIndex, stack, id);
+    }
+
+    private static @Nullable BoxSelection resolveBoxAtSlot(ServerPlayer player, @Nullable Integer slotIndex) {
+        if (slotIndex == null) {
+            return null;
+        }
+        if (slotIndex < 0 || slotIndex >= player.getInventory().getContainerSize()) {
+            return null;
+        }
+
+        ItemStack stack = player.getInventory().getItem(slotIndex);
+        if (stack.isEmpty() || stack.getItem() != Registration.CARD_DECK_BOX_ITEM.get()) {
+            return null;
+        }
+
+        ResourceLocation id = CardItemData.readDeckBoxId(stack);
+        if (id == null) {
+            id = CardDeckBoxManager.getDefaultBoxId();
+        }
+        return new BoxSelection(slotIndex, stack, id);
+    }
+
+    private static List<ModulePick> resolveModulePicks(ServerPlayer player, Map<Integer, Integer> moduleSelections) {
+        if (moduleSelections.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Integer, Integer> normalized = new LinkedHashMap<>();
+        for (Map.Entry<Integer, Integer> entry : moduleSelections.entrySet()) {
+            Integer slot = entry.getKey();
+            Integer count = entry.getValue();
+            if (slot == null || count == null || count <= 0) {
+                continue;
+            }
+            if (slot < 0 || slot >= player.getInventory().getContainerSize()) {
+                continue;
+            }
+            normalized.merge(slot, count, Integer::sum);
+        }
+
+        List<ModulePick> picks = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> entry : normalized.entrySet()) {
+            ItemStack stack = player.getInventory().getItem(entry.getKey());
+            if (stack.isEmpty() || stack.getItem() != Registration.CARD_MODULE_ITEM.get()) {
+                continue;
+            }
+
+            CardItemData.CardInstance instance = CardItemData.readCardInstance(stack);
+            if (instance == null) {
+                continue;
+            }
+
+            CardModuleData module = CardModuleManager.get(instance.cardId());
+            if (module == null) {
+                continue;
+            }
+
+            int count = Math.clamp(entry.getValue(), 1, stack.getCount());
+            picks.add(new ModulePick(entry.getKey(), count, instance, module));
+        }
+
+        return List.copyOf(picks);
+    }
+
+    private static List<CardCandidate> expandPicks(List<ModulePick> picks) {
+        List<CardCandidate> result = new ArrayList<>();
+        for (ModulePick pick : picks) {
+            for (int i = 0; i < pick.count(); i++) {
+                result.add(new CardCandidate(pick.slot(), pick.instance(), pick.module()));
+            }
+        }
+        return List.copyOf(result);
+    }
+
     private record CardCandidate(int slot, CardItemData.CardInstance instance, CardModuleData module) {
+    }
+
+    private record ModulePick(int slot, int count, CardItemData.CardInstance instance, CardModuleData module) {
     }
 
     private record CoreSelection(int slot, ItemStack stack, ResourceLocation coreId) {
@@ -559,5 +881,16 @@ public final class CardDeckService {
     }
 
     private record ModifierKey(Holder<Attribute> attribute, AttributeModifier.Operation operation) {
+    }
+
+    public record DeckSelectionPreview(
+            int modules,
+            int usedPoints,
+            int capacity,
+            int maxIntegrity,
+            List<String> modifierLines,
+            boolean valid,
+            String failureKey
+    ) {
     }
 }

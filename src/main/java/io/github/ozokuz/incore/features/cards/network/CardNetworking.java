@@ -1,6 +1,5 @@
 package io.github.ozokuz.incore.features.cards.network;
 
-import io.github.ozokuz.incore.features.cards.CardVendorService;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;

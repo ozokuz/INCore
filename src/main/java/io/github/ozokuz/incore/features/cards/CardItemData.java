@@ -37,6 +37,7 @@ public final class CardItemData {
     public static final String KEY_DECK_MODIFIERS = "incore:deck_modifiers";
     public static final String KEY_DECK_MODIFIER_LINES = "incore:deck_modifier_lines";
     public static final String KEY_DECK_MODIFIER_TEXT = "incore:deck_modifier_text";
+    public static final String KEY_DECK_PREVIEW = "incore:deck_preview";
 
     private CardItemData() {
     }
@@ -306,6 +307,23 @@ public final class CardItemData {
             result.add(raw.getAsString());
         }
         return List.copyOf(result);
+    }
+
+    public static void writeDeckPreview(ItemStack stack, boolean preview) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        CompoundTag tag = readCustomTag(stack);
+        if (tag == null) {
+            tag = new CompoundTag();
+        }
+        tag.putBoolean(KEY_DECK_PREVIEW, preview);
+        writeCustomData(stack, tag);
+    }
+
+    public static boolean readDeckPreview(ItemStack stack) {
+        CompoundTag tag = readCustomTag(stack);
+        return tag != null && tag.getBoolean(KEY_DECK_PREVIEW);
     }
 
     private static ListTag writeEffectList(List<CardAttributeEffect> effects) {

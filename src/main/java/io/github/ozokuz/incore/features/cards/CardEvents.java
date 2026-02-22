@@ -51,9 +51,19 @@ public final class CardEvents {
         }
 
         var block = event.getLevel().getBlockState(event.getPos()).getBlock();
-        if (block != Registration.DECK_STATION_BLOCK.get()
-                && block != Registration.CARD_DECRYPTOR_BLOCK.get()
+        if (block != Registration.CARD_DECRYPTOR_BLOCK.get()
                 && block != Registration.CARD_VENDOR_BLOCK.get()) {
+            return;
+        }
+
+        if (block == Registration.CARD_DECRYPTOR_BLOCK.get()) {
+            if (player.isShiftKeyDown()) {
+                CardDecryptorService.decryptAll(player);
+            } else {
+                CardDecryptorService.decryptHeld(player, player.getMainHandItem());
+            }
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
             return;
         }
 
@@ -61,20 +71,6 @@ public final class CardEvents {
             player.sendSystemMessage(Component.translatable("incore.cards.station.empty_hand"));
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.FAIL);
-            return;
-        }
-
-        if (block == Registration.DECK_STATION_BLOCK.get()) {
-            CardDeckService.assembleDeckFromInventory(player);
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.SUCCESS);
-            return;
-        }
-
-        if (block == Registration.CARD_DECRYPTOR_BLOCK.get()) {
-            CardDecryptorService.decryptOne(player);
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.SUCCESS);
             return;
         }
 
