@@ -128,6 +128,7 @@ Manual gameplay verification checklist for testers.
 - [ ] Given a queued active technology exists but required materials are missing, when viewing the left `Status` column in the widened layout, then the full `Not enough materials` state text is visible without clipping.
 - [ ] Given a player opens the Research Lab screen, when viewing the divider between top columns and bottom inventory panel, then the `Inventory` label is fully inside the lower panel and does not overlap any border line.
 - [ ] Given a player has active queued research with non-zero max progress, when viewing the status column, then the `Progress: <current>/<max>` label is readable without truncating into `...` for typical run values.
+- [ ] Given a player opens a `Modular Lab`, when viewing the Materials panel, then FE text, module-card row, and 3x3 material grid are all visible without overlapping each other or crossing panel borders.
 - [x] Given no valid process item is in any lab input slot, when the menu is open, then the progress label reads `Progress: 0/0` and the progress bar remains empty.
 - [x] Given valid process inputs are placed in any of the 3x3 lab slots, when waiting for processing, then the progress bar fills left-to-right and resets after reward payout.
 - [ ] Given a player opens the Research Lab screen, when viewing the top section, then information is split into three columns with lab status on the left, current research in the middle, and material slots on the right.
@@ -199,6 +200,56 @@ Manual gameplay verification checklist for testers.
 - [ ] Given operator permission level 2 and a target player with `incore:lab_basics` unlocked, when running `/incore research revoke <target> incore:lab_basics`, then `/incore research get <target>` shows one fewer unlocked research and the revoked entry is not active/queued.
 - [ ] Given operator permission level 2 and a target player, when running `/incore research complete_task <target> incore:field_notes` and `/incore research clear_queue <target>`, then required-task gates treat `field_notes` as complete and queue size returns to 0.
 - [ ] Given operator permission level 2 and a target player with any research progress, when running `/incore research reset_all <target>`, then `/incore research get <target>` reports queue=0, unlocked=0, completedTasks=0, and active=none.
+
+## Research Team Sharing (FTB Teams)
+- [ ] Given two players are in the same FTB Team and player A queues `incore:lab_basics`, when player B opens the Research screen, then player B sees the same queue entry and active research progress values.
+- [ ] Given two players are in the same FTB Team and player A unlocks `incore:lab_basics`, when player B opens the Research screen, then `Lab Basics` is already unlocked for player B without separate progression.
+- [ ] Given a player with existing solo research joins an FTB Team that has different research state, when the player reopens the Research screen, then the displayed research state matches the team scope instead of the previous solo scope.
+- [ ] Given a player is not in any FTB Team, when progressing research with a lab, then research progress and unlocks remain personal and are not shared to other non-team players.
+
+## Research Recipe Locks And EMI
+- [ ] Given `incore:lab_basics_unlocks` lock-set recipes are not yet unlocked, when attempting to craft `minecraft:hopper` or `minecraft:observer`, then crafted outputs are blocked by research lock enforcement and a lock warning message appears.
+- [ ] Given `incore:lab_basics` is unlocked, when crafting `minecraft:hopper` and `minecraft:observer` again, then outputs are crafted normally.
+- [ ] Given a locked crafting recipe is arranged in a crafting table (or 2x2 player crafting), when attempting to take the result, then the result slot is prevented from crafting and input ingredients are not consumed or voided.
+- [ ] Given a locked recipe is viewed in EMI before unlocking its research, when opening the recipe page, then EMI shows a red `🔒` lock icon centered over the recipe arrow (not beside it) instead of the previous text marker.
+- [ ] Given a locked recipe is viewed in EMI, when comparing the lock icon to normal tooltip text glyph thickness, then the `🔒` marker appears visibly bolder/larger for readability.
+- [ ] Given the player hovers the red `🔒` icon on a locked EMI recipe, when the tooltip appears, then it shows formatted lines: `Research Locked`, `This recipe is locked behind research.`, and `Required Research: <research name>`.
+- [ ] Given a recipe is accidentally mapped to multiple research lock-sets, when a player opens that locked recipe in EMI after joining/reloading the world, then one chat warning appears for that world session and logs contain a conflict error while EMI still shows the first matched research name.
+- [ ] Given a recipe has been unlocked by research progression, when reopening EMI recipe view, then the lock marker/tooltip is no longer shown for that recipe.
+
+## Research Materials (Datapack + KubeJS)
+- [ ] Given datapack research materials exist under `data/incore/research_materials/`, when reloading datapacks, then server logs show research materials loading and research entries using `material` ids still resolve to correct item costs.
+- [ ] Given `Lab Basics` uses `incore:paper` and `incore:glass_bottle` material ids, when inserting required items and completing one run, then the expected item counts are consumed and one run of research progress is granted.
+- [ ] Given startup KubeJS script registers a new research material via `INCoreEvents.researchMaterials`, when reloading the world, then research entries referencing that material id resolve without datapack parse errors.
+- [ ] Given active research has multiple colored materials, when the lab is actively processing, then colored lab-top particles cycle through those material colors over time.
+
+## Lab Tiers (Burner / Mechanical / Modular)
+- [ ] Given a placed `incore:burner_lab`, when opening it, then the screen title shows `Burner Lab` and the block requires burnable fuel in the fuel slot to process.
+- [ ] Given a placed `incore:mechanical_lab`, when opening it, then the screen title shows `Mechanical Lab` instead of a generic shared lab name.
+- [ ] Given a placed `incore:modular_lab`, when opening it, then the screen title shows `Modular Lab` instead of a generic shared lab name.
+- [ ] Given any lab tier UI is open after the second layout pass, when viewing the right panel header area, then helper lines such as `Burner slot active` / `Kinetic input required` are not shown and only core power + materials labels remain.
+- [ ] Given a `Modular Lab` UI is open, when viewing the right panel, then `FE`, `Modules`, and `Materials` labels are vertically separated from module slots and material slots with no text-slot overlap.
+- [ ] Given any lab UI is open, when viewing the bottom panel, then the `Inventory` label is positioned in the left side of the panel and does not overlap player inventory slot borders.
+- [ ] Given any lab UI is open with active progress, when viewing the left panel progress section, then `Progress` and `Overall` text lines render above their bars and do not overlap bar fills.
+- [ ] Given player looks at a Burner Lab or Mechanical Lab with Jade overlay enabled, when power-related info is shown, then no Forge Energy storage/capacity line appears for those two tiers.
+- [ ] Given a Burner Lab has required materials but no fuel, when waiting 10 seconds, then progress stays at zero and status does not enter continuous working state.
+- [ ] Given a Burner Lab has required materials and valid fuel, when waiting one run cycle, then progress advances and consumes both fuel time and research materials.
+- [ ] Given a Mechanical Lab has required materials and no adjacent Create kinetic source, when waiting 10 seconds, then processing does not advance and displayed RPM remains zero.
+- [ ] Given a Mechanical Lab has required materials and adjacent Create kinetic source, when increasing provided RPM, then processing speed increases and displayed SU demand value increases with RPM.
+- [ ] Given a Modular Lab has required materials and five module card slots, when inserting speed/productivity cards and providing FE, then processing speed and bonus progress behavior increase up to configured caps.
+- [ ] Given a Modular Lab has required materials but zero FE buffer, when waiting 10 seconds, then progress does not advance until FE is supplied.
+- [ ] Given the player hovers `Speed Module Card` in inventory, when reading tooltip text, then it shows `Speed bonus` per card and `Max speed bonus` values that match current config percentages.
+- [ ] Given the player hovers `Productivity Module Card` in inventory, when reading tooltip text, then it shows `Productivity chance` per card and `Max productivity chance` values that match current config percentages.
+- [ ] Given a `Modular Lab` UI is open with module cards inserted, when viewing the `Modules` section, then `Speed` and `Productivity` modifier lines are visible and update to reflect installed cards (capped by config max values).
+
+## Jade Lab Overlay
+- [ ] Given Jade and INCore are both loaded, when joining a world and pressing `F3 + T` to reload resources, then reload completes without `Missing config translation: config.jade.plugin_incore.lab_status*` errors and selected resource packs remain enabled.
+- [ ] Given Jade is enabled and player looks at any lab tier block, when tooltip appears, then it includes tier, status, run progress, and overall progress lines.
+- [ ] Given a lab is owned by an FTB team member, when Jade tooltip is shown, then it displays `Owner: <team name>` instead of raw scope ids like `team:<uuid>` or `player:<uuid>`.
+- [ ] Given player looks at a Burner Lab with active fuel burn, when Jade tooltip is shown, then fuel remaining/total line is visible.
+- [ ] Given player looks at a Mechanical Lab while powered by Create rotation, when Jade tooltip is shown, then exactly one RPM/SU line is visible (not duplicated) and no burner fuel or modular FE lines are present.
+- [ ] Given player looks at a Modular Lab with FE stored, when Jade tooltip is shown, then exactly one FE stored/capacity line is visible (not duplicated) and no burner fuel or mechanical RPM/SU lines are present.
+- [ ] Given player looks at Mechanical or Modular labs while Jade overlay is active, when tooltip is shown, then generic lines (`Tier`, `Owner`, `Status`, `Run`, `Overall`) appear once each (no duplicated sections).
 
 ## Dungeon Return Portal Placeholder
 - [ ] Given a dungeon structure template contains `incore:dungeon_return_portal`, when a dungeon is generated in the roguelike dimension, then each placeholder block is replaced with an active `incore:roguelike_portal` block.

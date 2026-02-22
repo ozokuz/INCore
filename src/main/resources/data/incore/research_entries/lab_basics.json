@@ -5,9 +5,10 @@
   "icon_item": "minecraft:paper",
   "run_duration_ticks": 100,
   "unlocks": ["Research Lab Handling", "Safety Protocols"],
+  "recipe_lock_sets": ["incore:lab_basics_unlocks"],
   "research_materials": [
-    { "item": "minecraft:paper", "count": 4 },
-    { "item": "minecraft:glass_bottle", "count": 1 }
+    { "material": "incore:paper", "count": 4 },
+    { "material": "incore:glass_bottle", "count": 1 }
   ],
   "prerequisites": [],
   "required_tasks": ["incore:field_notes"]

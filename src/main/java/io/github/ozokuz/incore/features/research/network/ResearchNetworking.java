@@ -1,7 +1,9 @@
 package io.github.ozokuz.incore.features.research.network;
 
 import io.github.ozokuz.incore.features.research.ResearchProgressService;
+import io.github.ozokuz.incore.features.research.ResearchRecipeLockService;
 import io.github.ozokuz.incore.features.research.ResearchSyncData;
+import com.google.gson.JsonArray;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -19,6 +21,7 @@ public final class ResearchNetworking {
         registrar.playToServer(SubmitResearchTaskPayload.TYPE, SubmitResearchTaskPayload.STREAM_CODEC, SubmitResearchTaskPayload::handle);
         registrar.playToServer(MoveResearchQueuePayload.TYPE, MoveResearchQueuePayload.STREAM_CODEC, MoveResearchQueuePayload::handle);
         registrar.playToServer(RemoveResearchQueueEntryPayload.TYPE, RemoveResearchQueueEntryPayload.STREAM_CODEC, RemoveResearchQueueEntryPayload::handle);
+        registrar.playToClient(ResearchLockStateSyncPayload.TYPE, ResearchLockStateSyncPayload.STREAM_CODEC, ResearchLockStateSyncPayload::handle);
     }
 
     public static void requestOpen() {
@@ -43,6 +46,7 @@ public final class ResearchNetworking {
 
     public static void openFor(ServerPlayer player) {
         PacketDistributor.sendToPlayer(player, new OpenResearchScreenPayload(ResearchSyncData.build(player)));
+        syncLockState(player);
     }
 
     public static void unlock(ServerPlayer player, ResourceLocation id) {
@@ -67,5 +71,14 @@ public final class ResearchNetworking {
         if (ResearchProgressService.dequeueResearch(player, id)) {
             openFor(player);
         }
+    }
+
+    public static void syncLockState(ServerPlayer player) {
+        JsonArray array = new JsonArray();
+        ResearchRecipeLockService.lockedRecipeIds(player).stream()
+                .map(ResourceLocation::toString)
+                .sorted()
+                .forEach(array::add);
+        PacketDistributor.sendToPlayer(player, new ResearchLockStateSyncPayload(array.toString()));
     }
 }

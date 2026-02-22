@@ -16,6 +16,9 @@ import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
+import io.github.ozokuz.incore.features.research.LabTier;
+import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
+import io.github.ozokuz.incore.features.research.ResearchRecipeLockManager;
 import io.github.ozokuz.incore.features.research.command.ResearchCommands;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
@@ -27,9 +30,12 @@ import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import io.github.ozokuz.incore.features.tasks.TaskDataManager;
 import io.github.ozokuz.incore.features.tasks.command.TaskCommands;
 import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
+import com.simibubi.create.api.stress.BlockStressValues;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
@@ -59,6 +65,7 @@ public class INCore {
         modEventBus.addListener(BattlePassNetworking::registerPayloads);
         modEventBus.addListener(ResearchNetworking::registerPayloads);
         modEventBus.addListener(ArenaNetworking::registerPayloads);
+        modEventBus.addListener(this::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -73,6 +80,24 @@ public class INCore {
 
     @SubscribeEvent
     private void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> BlockStressValues.IMPACTS.register(
+                Registration.MECHANICAL_LAB_BLOCK.get(),
+                () -> Config.MECHANICAL_LAB_STRESS_PER_RPM.get().doubleValue()
+        ));
+    }
+
+    @SubscribeEvent
+    private void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.EnergyStorage.BLOCK,
+                Registration.LAB_BLOCK_ENTITY.get(),
+                (be, side) -> {
+                    if (!(be instanceof io.github.ozokuz.incore.features.research.LabBlockEntity lab)) {
+                        return null;
+                    }
+                    return lab.labTier() == LabTier.MODULAR ? lab.energyStorage() : null;
+                }
+        );
     }
 
     @SubscribeEvent
@@ -92,6 +117,8 @@ public class INCore {
         event.addListener(new PlayerLevelRewardManager());
         event.addListener(new TaskDataManager());
         event.addListener(new BattlePassManager());
+        event.addListener(new ResearchMaterialManager());
+        event.addListener(new ResearchRecipeLockManager());
         event.addListener(new ResearchEntryManager());
         event.addListener(new ManualResearchTaskManager());
         event.addListener(new AltarOfferingManager());

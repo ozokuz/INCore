@@ -13,7 +13,7 @@ import io.github.ozokuz.incore.features.gacha.GachaCrateBlock;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockEntity;
 import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
-import io.github.ozokuz.incore.features.research.LabBlock;
+import io.github.ozokuz.incore.features.research.BurnerLabBlock;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabMenu;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOrePatchFeature;
@@ -25,6 +25,10 @@ import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneDebugCompassItem;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStonePatchFeature;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneSpotBlock;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneType;
+import io.github.ozokuz.incore.features.research.MechanicalLabBlock;
+import io.github.ozokuz.incore.features.research.ModularLabBlock;
+import io.github.ozokuz.incore.features.research.ProductivityModuleCardItem;
+import io.github.ozokuz.incore.features.research.SpeedModuleCardItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCompletionCrateItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonReturnPortalBlock;
@@ -155,6 +159,22 @@ public class Registration {
     public static final DeferredItem<BlockItem> SCORIA_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("scoria_surface_stone_spot", SCORIA_SURFACE_STONE_SPOT_BLOCK);
     public static final DeferredHolder<Feature<?>, SurfaceOrePatchFeature> SURFACE_ORE_PATCH_FEATURE = FEATURES.register("surface_ore_patch", SurfaceOrePatchFeature::new);
     public static final DeferredHolder<Feature<?>, SurfaceStonePatchFeature> SURFACE_STONE_PATCH_FEATURE = FEATURES.register("surface_stone_patch", SurfaceStonePatchFeature::new);
+    public static final DeferredBlock<Block> BURNER_LAB_BLOCK = BLOCKS.register("burner_lab", () -> new BurnerLabBlock());
+    public static final DeferredBlock<Block> MECHANICAL_LAB_BLOCK = BLOCKS.register("mechanical_lab", MechanicalLabBlock::new);
+    public static final DeferredBlock<Block> MODULAR_LAB_BLOCK = BLOCKS.register("modular_lab", ModularLabBlock::new);
+    public static final Supplier<BlockEntityType<LabBlockEntity>> LAB_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
+            "burner_lab",
+            () -> BlockEntityType.Builder.of(
+                    LabBlockEntity::new,
+                    BURNER_LAB_BLOCK.get(),
+                    MECHANICAL_LAB_BLOCK.get(),
+                    MODULAR_LAB_BLOCK.get()
+            ).build(null)
+    );
+    public static final Supplier<MenuType<LabMenu>> BURNER_LAB_MENU = MENU_TYPES.register("burner_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
+    public static final DeferredItem<BlockItem> BURNER_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_lab", BURNER_LAB_BLOCK);
+    public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
+    public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
 
     public static final DeferredBlock<Block> ROGUELIKE_ALTAR_BLOCK = BLOCKS.register("roguelike_altar", RoguelikeAltarBlock::new);
     public static final Supplier<BlockEntityType<RoguelikeAltarBlockEntity>> ROGUELIKE_ALTAR_BE = BLOCK_ENTITY_TYPES.register("roguelike_altar", () -> BlockEntityType.Builder.of(RoguelikeAltarBlockEntity::new, ROGUELIKE_ALTAR_BLOCK.get()).build(null));
@@ -186,6 +206,8 @@ public class Registration {
     public static final DeferredItem<Item> BASIC_BANNER_PERMIT_ITEM = ITEMS.registerItem("basic_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.BASIC));
     public static final DeferredItem<Item> CHARTERED_BANNER_PERMIT_ITEM = ITEMS.registerItem("chartered_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.CHARTERED));
     public static final DeferredItem<Item> BANNER_PERMIT_ITEM = ITEMS.registerItem("banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
+    public static final DeferredItem<Item> SPEED_MODULE_CARD_ITEM = ITEMS.registerItem("speed_module_card", properties -> new SpeedModuleCardItem(properties.stacksTo(16)));
+    public static final DeferredItem<Item> PRODUCTIVITY_MODULE_CARD_ITEM = ITEMS.registerItem("productivity_module_card", properties -> new ProductivityModuleCardItem(properties.stacksTo(16)));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> DUNGEON_CRYSTAL_THEME =
             DATA_COMPONENT_TYPES.registerComponentType(
@@ -223,6 +245,9 @@ public class Registration {
                 output.accept(CINNABAR_ORE_STONE_SLAB_BLOCK_ITEM.get());
                 output.accept(MIXED_METALS_ORE_STONE_SLAB_BLOCK_ITEM.get());
                 output.accept(GEM_CLUSTERS_ORE_STONE_SLAB_BLOCK_ITEM.get());
+                output.accept(BURNER_LAB_BLOCK_ITEM.get());
+                output.accept(MECHANICAL_LAB_BLOCK_ITEM.get());
+                output.accept(MODULAR_LAB_BLOCK_ITEM.get());
                 output.accept(ENCOUNTER_WAND_ITEM.get());
                 output.accept(SANITY_CRATE_ITEM.get());
                 output.accept(SANITY_BOOSTER_SMALL_ITEM.get());
@@ -233,5 +258,7 @@ public class Registration {
                 output.accept(BASIC_BANNER_PERMIT_ITEM.get());
                 output.accept(CHARTERED_BANNER_PERMIT_ITEM.get());
                 output.accept(BANNER_PERMIT_ITEM.get());
+                output.accept(SPEED_MODULE_CARD_ITEM.get());
+                output.accept(PRODUCTIVITY_MODULE_CARD_ITEM.get());
             }).build());
 }

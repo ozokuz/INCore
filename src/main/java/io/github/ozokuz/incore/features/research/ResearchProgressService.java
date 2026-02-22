@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 public final class ResearchProgressService {
+    // Legacy player-persistent root key, kept for one-time migration into scope saved data.
     private static final String KEY_ROOT = "incore_research";
     private static final String KEY_UNLOCKED = "unlocked";
     private static final String KEY_TASKS = "tasks";
@@ -27,42 +28,43 @@ public final class ResearchProgressService {
 
     private ResearchProgressService() {}
 
-    private static CompoundTag root(ServerPlayer player) {
-        CompoundTag persistent = player.getPersistentData();
-        if (!persistent.contains(KEY_ROOT, Tag.TAG_COMPOUND)) {
-            persistent.put(KEY_ROOT, new CompoundTag());
+    private static OwnerState ownerState(ServerPlayer player) {
+        ResearchProgressSavedData data = ResearchProgressSavedData.get(player.serverLevel().getServer());
+        String ownerKey = ResearchScopeResolver.ownerKey(player);
+        CompoundTag root = data.getOrCreateRoot(ownerKey);
+
+        // One-time migration path from legacy player-persistent storage.
+        if (root.isEmpty()) {
+            CompoundTag persistent = player.getPersistentData();
+            if (persistent.contains(KEY_ROOT, Tag.TAG_COMPOUND)) {
+                root.merge(persistent.getCompound(KEY_ROOT).copy());
+                data.setDirty();
+            }
         }
-        CompoundTag root = persistent.getCompound(KEY_ROOT);
+
         migrateLegacyActiveProgress(root);
-        return root;
+        return new OwnerState(data, root);
     }
 
     public static void copyData(ServerPlayer oldPlayer, ServerPlayer newPlayer) {
-        if (oldPlayer == null || newPlayer == null) {
-            return;
-        }
-
-        CompoundTag source = oldPlayer.getPersistentData().getCompound(KEY_ROOT);
-        if (!source.isEmpty()) {
-            newPlayer.getPersistentData().put(KEY_ROOT, source.copy());
-        }
+        // No-op: research data now lives in scope saved data, not cloned player NBT.
     }
 
     public static Set<ResourceLocation> unlocked(ServerPlayer player) {
-        return readSet(root(player).getList(KEY_UNLOCKED, Tag.TAG_STRING));
+        return readSet(ownerState(player).root.getList(KEY_UNLOCKED, Tag.TAG_STRING));
     }
 
     public static Set<ResourceLocation> completedTasks(ServerPlayer player) {
-        return readSet(root(player).getList(KEY_TASKS, Tag.TAG_STRING));
+        return readSet(ownerState(player).root.getList(KEY_TASKS, Tag.TAG_STRING));
     }
 
     public static List<ResourceLocation> queuedResearch(ServerPlayer player) {
-        return readList(root(player).getList(KEY_QUEUE, Tag.TAG_STRING));
+        return readList(ownerState(player).root.getList(KEY_QUEUE, Tag.TAG_STRING));
     }
 
     public static int activeProgress(ServerPlayer player) {
         ResourceLocation active = activeResearch(player);
-        return active == null ? 0 : getProgress(root(player), active);
+        return active == null ? 0 : getProgress(ownerState(player).root, active);
     }
 
     public static ResourceLocation activeResearch(ServerPlayer player) {
@@ -83,11 +85,11 @@ public final class ResearchProgressService {
         if (id == null) {
             return 0;
         }
-        return getProgress(root(player), id);
+        return getProgress(ownerState(player).root, id);
     }
 
     public static Map<ResourceLocation, Integer> progressByEntry(ServerPlayer player) {
-        CompoundTag progressTag = progressTag(root(player));
+        CompoundTag progressTag = progressTag(ownerState(player).root);
         Map<ResourceLocation, Integer> progress = new HashMap<>();
         for (String key : progressTag.getAllKeys()) {
             ResourceLocation id = ResourceLocation.tryParse(key);
@@ -111,7 +113,8 @@ public final class ResearchProgressService {
             return false;
         }
 
-        CompoundTag root = root(player);
+        OwnerState ownerState = ownerState(player);
+        CompoundTag root = ownerState.root;
         Set<ResourceLocation> unlocked = unlocked(player);
         boolean unlockedChanged = unlocked.add(id);
         if (unlockedChanged) {
@@ -125,7 +128,11 @@ public final class ResearchProgressService {
         }
         boolean progressChanged = clearProgress(root, id);
 
-        return unlockedChanged || queueChanged || progressChanged;
+        boolean changed = unlockedChanged || queueChanged || progressChanged;
+        if (changed) {
+            ownerState.data.setDirty();
+        }
+        return changed;
     }
 
     public static boolean revokeResearch(ServerPlayer player, ResourceLocation id) {
@@ -133,7 +140,8 @@ public final class ResearchProgressService {
             return false;
         }
 
-        CompoundTag root = root(player);
+        OwnerState ownerState = ownerState(player);
+        CompoundTag root = ownerState.root;
         Set<ResourceLocation> unlocked = unlocked(player);
         boolean unlockedChanged = unlocked.remove(id);
         if (unlockedChanged) {
@@ -147,7 +155,11 @@ public final class ResearchProgressService {
         }
         boolean progressChanged = clearProgress(root, id);
 
-        return unlockedChanged || queueChanged || progressChanged;
+        boolean changed = unlockedChanged || queueChanged || progressChanged;
+        if (changed) {
+            ownerState.data.setDirty();
+        }
+        return changed;
     }
 
     public static boolean enqueueResearch(ServerPlayer player, ResourceLocation id) {
@@ -174,8 +186,10 @@ public final class ResearchProgressService {
         }
 
         queue.add(id);
-        CompoundTag root = root(player);
+        OwnerState ownerState = ownerState(player);
+        CompoundTag root = ownerState.root;
         writeList(root, KEY_QUEUE, queue);
+        ownerState.data.setDirty();
         return true;
     }
 
@@ -186,7 +200,9 @@ public final class ResearchProgressService {
 
         Set<ResourceLocation> completed = completedTasks(player);
         if (completed.add(taskId)) {
-            writeSet(root(player), KEY_TASKS, completed);
+            OwnerState ownerState = ownerState(player);
+            writeSet(ownerState.root, KEY_TASKS, completed);
+            ownerState.data.setDirty();
             return true;
         }
 
@@ -202,14 +218,18 @@ public final class ResearchProgressService {
         if (!changed) {
             return false;
         }
-        writeList(root(player), KEY_QUEUE, queue);
+        OwnerState ownerState = ownerState(player);
+        writeList(ownerState.root, KEY_QUEUE, queue);
+        ownerState.data.setDirty();
         return true;
     }
 
     public static void clearQueue(ServerPlayer player) {
-        CompoundTag root = root(player);
+        OwnerState ownerState = ownerState(player);
+        CompoundTag root = ownerState.root;
         writeList(root, KEY_QUEUE, List.of());
         root.remove(KEY_PROGRESS);
+        ownerState.data.setDirty();
     }
 
     public static boolean reorderQueue(ServerPlayer player, int fromIndex, int toIndex) {
@@ -228,15 +248,22 @@ public final class ResearchProgressService {
             return false;
         }
 
-        CompoundTag root = root(player);
+        OwnerState ownerState = ownerState(player);
+        CompoundTag root = ownerState.root;
         writeList(root, KEY_QUEUE, queue);
+        ownerState.data.setDirty();
         return true;
     }
 
     public static boolean resetAllResearch(ServerPlayer player) {
-        CompoundTag persistent = player.getPersistentData();
-        boolean hadResearch = persistent.contains(KEY_ROOT, Tag.TAG_COMPOUND);
-        persistent.remove(KEY_ROOT);
+        ResearchProgressSavedData data = ResearchProgressSavedData.get(player.serverLevel().getServer());
+        String ownerKey = ResearchScopeResolver.ownerKey(player);
+        CompoundTag existing = data.getRoot(ownerKey);
+        boolean hadResearch = existing != null && !existing.isEmpty();
+        boolean removed = data.removeOwner(ownerKey);
+        if (removed) {
+            data.setDirty();
+        }
         return hadResearch;
     }
 
@@ -261,7 +288,9 @@ public final class ResearchProgressService {
         }
 
         if (completed.add(taskId)) {
-            writeSet(root(player), KEY_TASKS, completed);
+            OwnerState ownerState = ownerState(player);
+            writeSet(ownerState.root, KEY_TASKS, completed);
+            ownerState.data.setDirty();
         }
         return true;
     }
@@ -270,7 +299,8 @@ public final class ResearchProgressService {
         if (id == null || amount <= 0) {
             return false;
         }
-        CompoundTag root = root(player);
+        OwnerState ownerState = ownerState(player);
+        CompoundTag root = ownerState.root;
         Set<ResourceLocation> unlocked = unlocked(player);
         Set<ResourceLocation> completedTasks = completedTasks(player);
         List<ResourceLocation> queue = queuedResearch(player);
@@ -315,18 +345,21 @@ public final class ResearchProgressService {
 
         if (changed) {
             writeList(root, KEY_QUEUE, queue);
+            ownerState.data.setDirty();
         }
         return changed;
     }
 
     public static boolean tickResearch(ServerPlayer player) {
-        CompoundTag root = root(player);
+        OwnerState ownerState = ownerState(player);
+        CompoundTag root = ownerState.root;
         Set<ResourceLocation> unlocked = unlocked(player);
         List<ResourceLocation> queue = queuedResearch(player);
         boolean changed = normalizeQueue(root, queue, unlocked);
         changed = unlockReadyHead(root, queue, unlocked) || changed;
         if (changed) {
             writeList(root, KEY_QUEUE, queue);
+            ownerState.data.setDirty();
         }
         return changed;
     }
@@ -501,5 +534,8 @@ public final class ResearchProgressService {
         ListTag listTag = new ListTag();
         values.forEach(id -> listTag.add(StringTag.valueOf(id.toString())));
         root.put(key, listTag);
+    }
+
+    private record OwnerState(ResearchProgressSavedData data, CompoundTag root) {
     }
 }

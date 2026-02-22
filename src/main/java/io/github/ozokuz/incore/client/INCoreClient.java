@@ -13,7 +13,10 @@ import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
+import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
+import io.github.ozokuz.incore.features.research.ResearchRecipeLockManager;
 import io.github.ozokuz.incore.features.research.client.LabScreen;
+import io.github.ozokuz.incore.features.research.client.ResearchRecipeLockClientCache;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -31,6 +34,8 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 @Mod(value = INCore.MODID, dist = Dist.CLIENT)
 public class INCoreClient {
+    private boolean hadClientPlayer;
+
     public INCoreClient(IEventBus modEventBus, ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         modEventBus.addListener(this::onRegisterKeyMappings);
@@ -52,10 +57,12 @@ public class INCoreClient {
     }
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
-        event.register(Registration.RESEARCH_LAB_MENU.get(), LabScreen::new);
+        event.register(Registration.BURNER_LAB_MENU.get(), LabScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener(new ResearchMaterialManager());
+        event.registerReloadListener(new ResearchRecipeLockManager());
         event.registerReloadListener(new ResearchEntryManager());
         event.registerReloadListener(new ManualResearchTaskManager());
     }
@@ -67,7 +74,13 @@ public class INCoreClient {
 
     private void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.screen != null) {
+        boolean hasPlayer = minecraft.player != null;
+        if (hasPlayer && !hadClientPlayer) {
+            ResearchRecipeLockClientCache.onWorldJoined();
+        }
+        hadClientPlayer = hasPlayer;
+
+        if (!hasPlayer || minecraft.screen != null) {
             return;
         }
 

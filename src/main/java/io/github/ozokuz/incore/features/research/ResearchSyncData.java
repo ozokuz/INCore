@@ -52,11 +52,17 @@ public final class ResearchSyncData {
             JsonArray materials = new JsonArray();
             entry.researchMaterials().forEach(material -> {
                 JsonObject materialJson = new JsonObject();
+                materialJson.addProperty("material", material.materialId() == null ? "" : material.materialId().toString());
                 materialJson.addProperty("item", material.itemId() == null ? "" : material.itemId().toString());
                 materialJson.addProperty("count", material.itemCount());
+                materialJson.addProperty("color", material.color());
                 materials.add(materialJson);
             });
             json.add("research_materials", materials);
+
+            JsonArray recipeLockSets = new JsonArray();
+            entry.recipeLockSets().stream().map(ResourceLocation::toString).sorted().forEach(recipeLockSets::add);
+            json.add("recipe_lock_sets", recipeLockSets);
 
             JsonArray prereq = new JsonArray();
             entry.prerequisites().stream().map(ResourceLocation::toString).sorted().forEach(prereq::add);
