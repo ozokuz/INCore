@@ -169,6 +169,7 @@
   "key.incore.open_gacha_banners": "Open Gacha Banners",
   "key.incore.open_battle_pass": "Open Battle Pass",
   "key.incore.open_combat_catalog": "Open Combat Catalog",
+  "key.incore.open_numismatics_bank": "Open Numismatics Bank",
   "screen.incore.player_status.title": "Player Status",
   "screen.incore.player_status.sanity": "Sanity",
   "screen.incore.player_status.next_gain": "Next increase in: %s",

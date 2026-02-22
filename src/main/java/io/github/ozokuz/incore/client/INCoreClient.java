@@ -12,6 +12,7 @@ import io.github.ozokuz.incore.client.tasks.TaskOverviewScreen;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.cards.client.CardDeckStationScreen;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
+import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
 import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
@@ -55,6 +56,7 @@ public class INCoreClient {
         event.register(INCoreKeyMappings.OPEN_BATTLE_PASS);
         event.register(INCoreKeyMappings.OPEN_RESEARCH_TREE);
         event.register(INCoreKeyMappings.OPEN_COMBAT_CATALOG);
+        event.register(INCoreKeyMappings.OPEN_NUMISMATICS_BANK);
     }
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
@@ -109,6 +111,10 @@ public class INCoreClient {
 
         while (INCoreKeyMappings.OPEN_COMBAT_CATALOG.consumeClick()) {
             ArenaNetworking.requestOpenCatalog();
+        }
+
+        while (INCoreKeyMappings.OPEN_NUMISMATICS_BANK.consumeClick()) {
+            NumismaticsNetworking.requestOpenBankScreen();
         }
     }
 }

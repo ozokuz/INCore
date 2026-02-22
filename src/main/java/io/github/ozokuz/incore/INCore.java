@@ -24,6 +24,7 @@ import io.github.ozokuz.incore.features.gacha.command.GachaCommands;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
+import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
 import io.github.ozokuz.incore.features.research.LabTier;
@@ -84,6 +85,7 @@ public class INCore {
 
         VendorBootstrap.initialize();
         CardVendorIntegration.initialize();
+        modEventBus.addListener(NumismaticsNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);

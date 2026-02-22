@@ -272,6 +272,10 @@ Manual gameplay verification checklist for testers.
 - [ ] Given a generated dungeon layout, when tracing room connections from the starting room through hallways in each of 10 runs, then every generated room is reachable from the start.
 - [ ] Given a dungeon slot is recycled for a new run, when the next dungeon is generated in that slot, then blocks from the previous dungeon are cleared across the full slot build volume before new rooms and hallways are placed.
 
+## Numismatics Bank Keybind
+- [ ] Given the player is in-world with Create Numismatics loaded and no other GUI open, when pressing the Numismatics Bank keybind (`N` default), then the Create Numismatics bank terminal screen opens for that player.
+- [ ] Given the Numismatics Bank keybind is rebound in Controls to a different key, when pressing the rebound key in-world with no GUI open, then the Create Numismatics bank terminal screen opens and no action is bound to the old default key.
+
 ## Arena Combat Catalog
 - [ ] Given at least one arena catalog datapack entry exists, when pressing the Combat Catalog keybind (`V` default), then the `Combat Catalog` screen opens and shows reward categories and difficulties.
 - [ ] Given the Combat Catalog is open with at least one category selected, when selecting a different category button, then the difficulty list updates to entries from that category only.
