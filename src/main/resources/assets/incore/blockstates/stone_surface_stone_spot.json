@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/stone_surface_stone_spot"
+    }
+  }
+}

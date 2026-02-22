@@ -20,13 +20,20 @@ public final class SurfaceOreDebugCompassClientEvents {
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> ItemProperties.register(
-                Registration.SURFACE_ORE_DEBUG_COMPASS_ITEM.get(),
+        event.enqueueWork(() -> {
+            registerCompassAngleProperty(Registration.SURFACE_ORE_DEBUG_COMPASS_ITEM.get());
+            registerCompassAngleProperty(Registration.SURFACE_STONE_DEBUG_COMPASS_ITEM.get());
+        });
+    }
+
+    private static void registerCompassAngleProperty(net.minecraft.world.item.Item item) {
+        ItemProperties.register(
+                item,
                 ResourceLocation.withDefaultNamespace("angle"),
                 new CompassItemPropertyFunction((level, stack, entity) -> {
                     LodestoneTracker tracker = stack.get(DataComponents.LODESTONE_TRACKER);
                     return tracker != null ? tracker.target().orElse(null) : CompassItem.getSpawnPosition(level);
                 })
-        ));
+        );
     }
 }

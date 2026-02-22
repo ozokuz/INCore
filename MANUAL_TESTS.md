@@ -58,6 +58,21 @@ Manual gameplay verification checklist for testers.
 - [ ] Given a partially mined surface ore spot, when leaving the area (or restarting server) and returning, then its remaining mine count persists and continues from the previous value.
 - [ ] Given fake-player or machine-style block breaking that uses normal break flow, when it mines a surface ore spot, then the spot mine count decreases by one and the spot behavior matches player mining.
 
+## Overworld Surface Stone Patches
+- [ ] Given the server has unexplored overworld terrain, when traveling through newly generated chunks, then regular surface stone patches generate deterministically at an average of 1 selected chunk in 75 by world seed/chunk hash.
+- [ ] Given any generated regular surface stone patch, when counting spots in that single patch, then it contains 2 to 6 spots.
+- [ ] Given multiple generated regular surface stone patches, when checking spot block types across samples, then each patch uses exactly one type from: Stone, Deepslate, Limestone, Basalt, Scoria.
+- [ ] Given a regular surface stone spot, when mining it repeatedly without sneaking, then the spot never depletes and each break attempt drops stone-type loot while the block remains in place.
+- [ ] Given a deepslate surface stone spot and a non-silk-touch tool, when mining once normally, then the drop is cobbled deepslate.
+- [ ] Given a deepslate surface stone spot and a silk-touch tool, when mining once normally, then the drop is deepslate.
+- [ ] Given any generated regular surface stone patch, when checking spot spacing on the XZ plane, then all spots are spaced by at least 3 blocks.
+- [ ] Given a generated regular surface stone patch, when inspecting the footprint, then it forms an oval/spherical-looking covered area with no intentional empty gaps and includes some slab smoothing.
+- [ ] Given a generated regular surface stone patch on uneven terrain, when inspecting edges and top exposure, then patch fill extends two blocks down and no generated block is placed above spot blocks.
+- [ ] Given any regular surface stone spot variant, when observing its model, then it uses a baked base-stone texture with the same center mark style used by ore spots (no separate overlay geometry).
+- [ ] Given a player in survival mode, when sneaking and breaking a regular surface stone spot once, then the break is canceled with a warning; when sneaking and breaking the same spot again within 4 seconds, then the spot is destroyed.
+- [ ] Given a dev environment and a player with the Surface Stone Debug Compass, when right-clicking the compass in the overworld, then it locks to the nearest unfound regular surface stone patch and the needle points there.
+- [ ] Given repeated right-clicks with Surface Stone Debug Compass and multiple regular stone patches saved, when using the compass repeatedly, then each use advances to the next nearest unfound stone patch and persists found chunk progress across relogs independently from the ore debug compass.
+
 ## Daily & Weekly Datapack Tasks
 - [ ] Given a weekly tier has become unlocked but `Claim Weekly Rewards` has not been clicked, when checking inventory/chat reward outputs, then no weekly tier reward is granted automatically until the claim button is used.
 - [ ] Given daily and weekly reward pools contain item and non-item rewards, when opening the Daily/Weekly screen, then reward item icons are visible with padding in the daily reward section and on each weekly tier slot (without crossing panel/tier borders) and hovering each icon shows a tooltip describing that reward.

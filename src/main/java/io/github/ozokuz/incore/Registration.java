@@ -21,6 +21,10 @@ import io.github.ozokuz.incore.features.surfaceore.SurfaceOreDebugCompassItem;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreSpotBlock;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreSpotBlockEntity;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreType;
+import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneDebugCompassItem;
+import io.github.ozokuz.incore.features.surfaceore.SurfaceStonePatchFeature;
+import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneSpotBlock;
+import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneType;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCompletionCrateItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonReturnPortalBlock;
@@ -122,6 +126,11 @@ public class Registration {
     public static final DeferredBlock<Block> CINNABAR_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("cinnabar_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.CINNABAR));
     public static final DeferredBlock<Block> MIXED_METALS_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("mixed_metals_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.MIXED_METALS));
     public static final DeferredBlock<Block> GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("gem_clusters_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.GEM_CLUSTERS));
+    public static final DeferredBlock<Block> STONE_SURFACE_STONE_SPOT_BLOCK = BLOCKS.register("stone_surface_stone_spot", () -> new SurfaceStoneSpotBlock(SurfaceStoneType.STONE));
+    public static final DeferredBlock<Block> DEEPSLATE_SURFACE_STONE_SPOT_BLOCK = BLOCKS.register("deepslate_surface_stone_spot", () -> new SurfaceStoneSpotBlock(SurfaceStoneType.DEEPSLATE));
+    public static final DeferredBlock<Block> LIMESTONE_SURFACE_STONE_SPOT_BLOCK = BLOCKS.register("limestone_surface_stone_spot", () -> new SurfaceStoneSpotBlock(SurfaceStoneType.LIMESTONE));
+    public static final DeferredBlock<Block> BASALT_SURFACE_STONE_SPOT_BLOCK = BLOCKS.register("basalt_surface_stone_spot", () -> new SurfaceStoneSpotBlock(SurfaceStoneType.BASALT));
+    public static final DeferredBlock<Block> SCORIA_SURFACE_STONE_SPOT_BLOCK = BLOCKS.register("scoria_surface_stone_spot", () -> new SurfaceStoneSpotBlock(SurfaceStoneType.SCORIA));
     public static final Supplier<BlockEntityType<SurfaceOreSpotBlockEntity>> SURFACE_ORE_SPOT_BE = BLOCK_ENTITY_TYPES.register("surface_ore_spot", () -> BlockEntityType.Builder.of(
             SurfaceOreSpotBlockEntity::new,
             CRIMSITE_SURFACE_ORE_SPOT_BLOCK.get(),
@@ -139,7 +148,13 @@ public class Registration {
     public static final DeferredItem<BlockItem> CINNABAR_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("cinnabar_surface_ore_spot", CINNABAR_SURFACE_ORE_SPOT_BLOCK);
     public static final DeferredItem<BlockItem> MIXED_METALS_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mixed_metals_surface_ore_spot", MIXED_METALS_SURFACE_ORE_SPOT_BLOCK);
     public static final DeferredItem<BlockItem> GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("gem_clusters_surface_ore_spot", GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK);
+    public static final DeferredItem<BlockItem> STONE_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("stone_surface_stone_spot", STONE_SURFACE_STONE_SPOT_BLOCK);
+    public static final DeferredItem<BlockItem> DEEPSLATE_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("deepslate_surface_stone_spot", DEEPSLATE_SURFACE_STONE_SPOT_BLOCK);
+    public static final DeferredItem<BlockItem> LIMESTONE_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("limestone_surface_stone_spot", LIMESTONE_SURFACE_STONE_SPOT_BLOCK);
+    public static final DeferredItem<BlockItem> BASALT_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("basalt_surface_stone_spot", BASALT_SURFACE_STONE_SPOT_BLOCK);
+    public static final DeferredItem<BlockItem> SCORIA_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("scoria_surface_stone_spot", SCORIA_SURFACE_STONE_SPOT_BLOCK);
     public static final DeferredHolder<Feature<?>, SurfaceOrePatchFeature> SURFACE_ORE_PATCH_FEATURE = FEATURES.register("surface_ore_patch", SurfaceOrePatchFeature::new);
+    public static final DeferredHolder<Feature<?>, SurfaceStonePatchFeature> SURFACE_STONE_PATCH_FEATURE = FEATURES.register("surface_stone_patch", SurfaceStonePatchFeature::new);
 
     public static final DeferredBlock<Block> ROGUELIKE_ALTAR_BLOCK = BLOCKS.register("roguelike_altar", RoguelikeAltarBlock::new);
     public static final Supplier<BlockEntityType<RoguelikeAltarBlockEntity>> ROGUELIKE_ALTAR_BE = BLOCK_ENTITY_TYPES.register("roguelike_altar", () -> BlockEntityType.Builder.of(RoguelikeAltarBlockEntity::new, ROGUELIKE_ALTAR_BLOCK.get()).build(null));
@@ -155,6 +170,7 @@ public class Registration {
     public static final DeferredItem<Item> DUNGEON_CRYSTAL_ITEM = ITEMS.registerItem("dungeon_crystal", DungeonCrystalItem::new);
     public static final DeferredItem<Item> DUNGEON_COMPLETION_CRATE_ITEM = ITEMS.registerItem("dungeon_completion_crate", DungeonCompletionCrateItem::new);
     public static final DeferredItem<Item> SURFACE_ORE_DEBUG_COMPASS_ITEM = ITEMS.registerItem("surface_ore_debug_compass", SurfaceOreDebugCompassItem::new);
+    public static final DeferredItem<Item> SURFACE_STONE_DEBUG_COMPASS_ITEM = ITEMS.registerItem("surface_stone_debug_compass", SurfaceStoneDebugCompassItem::new);
     public static final DeferredItem<Item> SANITY_CRATE_ITEM = ITEMS.registerItem("sanity_crate", SanityCrateItem::new);
     public static final DeferredItem<Item> SANITY_BOOSTER_SMALL_ITEM = ITEMS.registerItem("sanity_booster_small", properties -> new SanityBoosterItem(properties, 50));
     public static final DeferredItem<Item> SANITY_BOOSTER_LARGE_ITEM = ITEMS.registerItem("sanity_booster_large", properties -> new SanityBoosterItem(properties, 100));
@@ -194,6 +210,7 @@ public class Registration {
                 output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());
                 if (!FMLEnvironment.production) {
                     output.accept(SURFACE_ORE_DEBUG_COMPASS_ITEM.get());
+                    output.accept(SURFACE_STONE_DEBUG_COMPASS_ITEM.get());
                 }
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
                 output.accept(GACHA_CRATE_BLOCK_ITEM.get());
