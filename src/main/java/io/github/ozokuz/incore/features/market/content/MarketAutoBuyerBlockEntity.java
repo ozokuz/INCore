@@ -15,6 +15,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
@@ -229,6 +232,9 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
     public void setTargetItemId(@Nullable ResourceLocation targetItemId) {
         this.targetItemId = targetItemId;
         setChanged();
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), 3);
+        }
     }
 
     public int priceCapSpur() {
@@ -385,6 +391,16 @@ public class MarketAutoBuyerBlockEntity extends BlockEntity implements Container
         enabled = tag.getBoolean("enabled");
         progress = Math.max(0, tag.getInt("progress"));
         status = tag.getInt("status");
+    }
+
+    @Override
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override

@@ -47,7 +47,9 @@ public record MarketAutoBuyerConfigPayload(long blockPos, String targetItemId, i
             }
 
             String raw = payload.targetItemId() == null ? "" : payload.targetItemId().trim();
-            if (!raw.isEmpty()) {
+            if (raw.isEmpty()) {
+                autoBuyer.setTargetItemId(null);
+            } else {
                 ResourceLocation itemId = ResourceLocation.tryParse(raw);
                 if (itemId != null && MarketItemManager.isTradeable(itemId)) {
                     autoBuyer.setTargetItemId(itemId);

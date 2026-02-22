@@ -5,19 +5,26 @@ import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMenu;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Inventory;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuyerMenu> {
     private static final int TEXT_COLOR = 0xCDD3DE;
+    private static final int GHOST_SLOT_X = 74;
+    private static final int GHOST_SLOT_Y = 66;
 
-    private EditBox targetItemField;
     private Button enabledButton;
+    private @Nullable ResourceLocation ghostTargetItemId;
+    private ItemStack ghostTargetPreview = ItemStack.EMPTY;
 
     public MarketAutoBuyerScreen(MarketAutoBuyerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -29,54 +36,47 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     protected void init() {
         super.init();
 
-        this.targetItemField = new EditBox(
-                this.font,
-                leftPos + 74,
-                topPos + 66,
-                142,
-                16,
-                Component.translatable("screen.incore.market.autobuyer.target")
-        );
-        this.targetItemField.setMaxLength(120);
-        this.targetItemField.setValue(menu.targetItemId());
-        this.addRenderableWidget(this.targetItemField);
+        this.syncGhostTargetFromString(menu.targetItemId());
 
         this.enabledButton = this.addRenderableWidget(Button.builder(Component.literal(""), button -> {
-                    sendConfigUpdate(targetItemField.getValue(), menu.priceCap(), menu.batchSize(), !menu.enabled());
+                    sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), !menu.enabled());
                 }).bounds(leftPos + 12, topPos + 86, 56, 20)
                 .build());
 
         this.addRenderableWidget(Button.builder(Component.literal("Cap -"), b -> sendConfigUpdate(
-                        targetItemField.getValue(),
+                        currentTargetIdString(),
                         Math.max(1, menu.priceCap() - 1),
                         menu.batchSize(),
                         menu.enabled()
                 )).bounds(leftPos + 74, topPos + 86, 38, 20)
                 .build());
         this.addRenderableWidget(Button.builder(Component.literal("Cap +"), b -> sendConfigUpdate(
-                        targetItemField.getValue(),
+                        currentTargetIdString(),
                         menu.priceCap() + 1,
                         menu.batchSize(),
                         menu.enabled()
                 )).bounds(leftPos + 114, topPos + 86, 38, 20)
                 .build());
 
-        this.addRenderableWidget(Button.builder(Component.literal("Apply"), b -> sendConfigUpdate(
-                        targetItemField.getValue(),
-                        menu.priceCap(),
-                        menu.batchSize(),
-                        menu.enabled()
-                )).bounds(leftPos + 12, topPos + 108, 56, 20)
+        this.addRenderableWidget(Button.builder(Component.literal("Clear"), b -> {
+                    clearGhostTarget();
+                    sendConfigUpdate(
+                            currentTargetIdString(),
+                            menu.priceCap(),
+                            menu.batchSize(),
+                            menu.enabled()
+                    );
+                }).bounds(leftPos + 12, topPos + 108, 56, 20)
                 .build());
         this.addRenderableWidget(Button.builder(Component.literal("Qty -"), b -> sendConfigUpdate(
-                        targetItemField.getValue(),
+                        currentTargetIdString(),
                         menu.priceCap(),
                         Math.max(1, menu.batchSize() - 1),
                         menu.enabled()
                 )).bounds(leftPos + 74, topPos + 108, 38, 20)
                 .build());
         this.addRenderableWidget(Button.builder(Component.literal("Qty +"), b -> sendConfigUpdate(
-                        targetItemField.getValue(),
+                        currentTargetIdString(),
                         menu.priceCap(),
                         Math.min(64, menu.batchSize() + 1),
                         menu.enabled()
@@ -89,6 +89,10 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     @Override
     protected void containerTick() {
         super.containerTick();
+        String menuTargetId = menu.targetItemId();
+        if (ghostTargetItemId == null && menuTargetId != null && !menuTargetId.isBlank()) {
+            syncGhostTargetFromString(menuTargetId);
+        }
         refreshEnabledButton();
     }
 
@@ -96,6 +100,10 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         if (enabledButton != null) {
             enabledButton.setMessage(Component.literal(menu.enabled() ? "On" : "Off"));
         }
+    }
+
+    private String currentTargetIdString() {
+        return ghostTargetItemId == null ? "" : ghostTargetItemId.toString();
     }
 
     private void sendConfigUpdate(String targetItemId, int priceCap, int batchSize, boolean enabled) {
@@ -126,6 +134,14 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         drawPanel(guiGraphics, progressX - 1, progressY - 1, progressWidth + 2, 8, 0xFF101318, 0xFF2F3540);
         guiGraphics.fill(progressX, progressY, progressX + progressWidth, progressY + 6, 0xFF242B34);
         guiGraphics.fill(progressX, progressY, progressX + menu.progressScaled(progressWidth), progressY + 6, 0xFF71C2FF);
+
+        drawSlotFrame(guiGraphics, x + GHOST_SLOT_X, y + GHOST_SLOT_Y);
+        if (!ghostTargetPreview.isEmpty()) {
+            guiGraphics.renderItem(ghostTargetPreview, x + GHOST_SLOT_X, y + GHOST_SLOT_Y);
+        }
+        if (isMouseOverGhostSlot(mouseX, mouseY)) {
+            guiGraphics.fill(x + GHOST_SLOT_X, y + GHOST_SLOT_Y, x + GHOST_SLOT_X + 16, y + GHOST_SLOT_Y + 16, 0x55FFFFFF);
+        }
 
         drawSlotFrame(guiGraphics, x + MarketAutoBuyerMenu.CARD_X, y + MarketAutoBuyerMenu.CARD_Y);
         for (int row = 0; row < 3; row++) {
@@ -185,6 +201,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         }
 
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.autobuyer.target"), 12, 70, TEXT_COLOR, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.autobuyer.target_hint"), 94, 70, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Cap: " + menu.priceCap()), 158, 92, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Qty: " + menu.batchSize()), 158, 114, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Card"), 12, 132, TEXT_COLOR, false);
@@ -195,23 +212,99 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        if (isMouseOverGhostSlot(mouseX, mouseY) && !ghostTargetPreview.isEmpty()) {
+            guiGraphics.renderTooltip(this.font, ghostTargetPreview, mouseX, mouseY);
+            return;
+        }
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (targetItemField != null && targetItemField.keyPressed(keyCode, scanCode, modifiers)) {
-            return true;
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (isMouseOverGhostSlot(mouseX, mouseY)) {
+            if (button == 1 || button == 2) {
+                clearGhostTarget();
+                sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+                return true;
+            }
+
+            if (button == 0) {
+                ItemStack carried = menu.getCarried();
+                if (!carried.isEmpty() && setGhostTargetFromItemStack(carried)) {
+                    sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+                    return true;
+                }
+            }
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    @Override
-    public boolean charTyped(char codePoint, int modifiers) {
-        if (targetItemField != null && targetItemField.charTyped(codePoint, modifiers)) {
-            return true;
+    public boolean applyGhostTargetFromItemStack(ItemStack stack) {
+        if (!setGhostTargetFromItemStack(stack)) {
+            return false;
         }
-        return super.charTyped(codePoint, modifiers);
+        sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+        return true;
+    }
+
+    public void clearGhostTargetFromExternal() {
+        clearGhostTarget();
+        sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+    }
+
+    public int ghostSlotLeft() {
+        return leftPos + GHOST_SLOT_X - 1;
+    }
+
+    public int ghostSlotTop() {
+        return topPos + GHOST_SLOT_Y - 1;
+    }
+
+    private boolean isMouseOverGhostSlot(double mouseX, double mouseY) {
+        return mouseX >= leftPos + GHOST_SLOT_X
+                && mouseX <= leftPos + GHOST_SLOT_X + 16
+                && mouseY >= topPos + GHOST_SLOT_Y
+                && mouseY <= topPos + GHOST_SLOT_Y + 16;
+    }
+
+    private void syncGhostTargetFromString(String targetId) {
+        if (targetId == null || targetId.isBlank()) {
+            clearGhostTarget();
+            return;
+        }
+        ResourceLocation itemId = ResourceLocation.tryParse(targetId.trim());
+        if (itemId == null) {
+            clearGhostTarget();
+            return;
+        }
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            clearGhostTarget();
+            return;
+        }
+        this.ghostTargetItemId = itemId;
+        this.ghostTargetPreview = new ItemStack(item);
+    }
+
+    private boolean setGhostTargetFromItemStack(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+
+        Item item = stack.getItem();
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+        if (itemId == null || item == net.minecraft.world.item.Items.AIR) {
+            return false;
+        }
+
+        this.ghostTargetItemId = itemId;
+        this.ghostTargetPreview = new ItemStack(item);
+        return true;
+    }
+
+    private void clearGhostTarget() {
+        this.ghostTargetItemId = null;
+        this.ghostTargetPreview = ItemStack.EMPTY;
     }
 
     private static void drawPanel(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor) {
