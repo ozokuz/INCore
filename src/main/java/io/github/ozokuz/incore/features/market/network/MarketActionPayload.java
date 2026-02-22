@@ -12,8 +12,6 @@ public record MarketActionPayload(int action, long terminalPos, String itemId, i
     public static final int ACTION_REFRESH = 0;
     public static final int ACTION_BUY = 1;
     public static final int ACTION_SELL = 2;
-    public static final int ACTION_ADD_TRUSTED = 3;
-    public static final int ACTION_REMOVE_TRUSTED = 4;
 
     public static final Type<MarketActionPayload> TYPE = new Type<>(ResourceLocation.parse("incore:market_action"));
     public static final StreamCodec<ByteBuf, MarketActionPayload> STREAM_CODEC = StreamCodec.composite(

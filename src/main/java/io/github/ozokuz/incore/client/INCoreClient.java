@@ -13,6 +13,7 @@ import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.cards.client.CardDeckStationScreen;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.market.client.MarketAutoBuyerScreen;
+import io.github.ozokuz.incore.features.market.client.MarketTerminalCardScreen;
 import io.github.ozokuz.incore.features.market.client.ShipmentTerminalScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
@@ -67,6 +68,7 @@ public class INCoreClient {
         event.register(Registration.BURNER_LAB_MENU.get(), LabScreen::new);
         event.register(Registration.DECK_STATION_MENU.get(), CardDeckStationScreen::new);
         event.register(Registration.RESEARCH_LAB_MENU.get(), LabScreen::new);
+        event.register(Registration.MARKET_TERMINAL_CARD_MENU.get(), MarketTerminalCardScreen::new);
         event.register(Registration.SHIPMENT_TERMINAL_MENU.get(), ShipmentTerminalScreen::new);
         event.register(Registration.MARKET_AUTOBUYER_MENU.get(), MarketAutoBuyerScreen::new);
     }

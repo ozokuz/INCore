@@ -6,13 +6,13 @@ import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.market.MarketBanking;
 import io.github.ozokuz.incore.features.market.MarketItemManager;
 import io.github.ozokuz.incore.features.market.MarketPricingService;
+import io.github.ozokuz.incore.features.market.MarketTeamAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,8 +29,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 public class ShipmentTerminalBlockEntity extends BlockEntity implements Container, MenuProvider {
@@ -45,7 +43,6 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private @Nullable UUID owner;
-    private final Set<UUID> trustedPlayers = new HashSet<>();
     private int progress;
     private int status = STATUS_IDLE;
 
@@ -160,31 +157,7 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
     }
 
     public boolean canAccess(Player player) {
-        if (owner == null) {
-            return true;
-        }
-        UUID id = player.getUUID();
-        return owner.equals(id) || trustedPlayers.contains(id);
-    }
-
-    public boolean canManageTrust(UUID playerId) {
-        return owner != null && owner.equals(playerId);
-    }
-
-    public boolean toggleTrusted(UUID id) {
-        if (id == null) {
-            return false;
-        }
-        boolean added;
-        if (trustedPlayers.contains(id)) {
-            trustedPlayers.remove(id);
-            added = false;
-        } else {
-            trustedPlayers.add(id);
-            added = true;
-        }
-        setChanged();
-        return added;
+        return MarketTeamAccess.canAccess(owner, player);
     }
 
     @Override
@@ -208,12 +181,6 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
         if (owner != null) {
             tag.putUUID("owner", owner);
         }
-
-        ListTag trustedTag = new ListTag();
-        for (UUID trusted : trustedPlayers) {
-            trustedTag.add(StringTag.valueOf(trusted.toString()));
-        }
-        tag.put("trustedPlayers", trustedTag);
     }
 
     @Override
@@ -236,15 +203,6 @@ public class ShipmentTerminalBlockEntity extends BlockEntity implements Containe
         progress = Math.max(0, tag.getInt("progress"));
         status = tag.getInt("status");
         owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
-
-        trustedPlayers.clear();
-        ListTag trustedTag = tag.getList("trustedPlayers", Tag.TAG_STRING);
-        for (Tag row : trustedTag) {
-            try {
-                trustedPlayers.add(UUID.fromString(row.getAsString()));
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
     }
 
     @Override

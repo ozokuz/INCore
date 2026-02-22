@@ -1,7 +1,6 @@
 package io.github.ozokuz.incore.features.market.content;
 
 import com.mojang.serialization.MapCodec;
-import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import io.github.ozokuz.incore.features.market.MarketService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -9,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -22,9 +22,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
-
 public class MarketTerminalBlock extends BaseEntityBlock {
     public static final MapCodec<MarketTerminalBlock> CODEC = simpleCodec(MarketTerminalBlock::new);
 
@@ -76,6 +73,14 @@ public class MarketTerminalBlock extends BaseEntityBlock {
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MarketTerminalBlockEntity terminal) {
+            if (!terminal.canTrade(player)) {
+                player.sendSystemMessage(Component.translatable("incore.market.not_allowed"));
+                return InteractionResult.FAIL;
+            }
+            if (player.isShiftKeyDown()) {
+                serverPlayer.openMenu(terminal, pos);
+                return InteractionResult.CONSUME;
+            }
             MarketService.openTerminalScreen(serverPlayer, terminal);
         }
         return InteractionResult.CONSUME;
@@ -104,19 +109,34 @@ public class MarketTerminalBlock extends BaseEntityBlock {
             return ItemInteractionResult.CONSUME;
         }
 
-        if (player.isShiftKeyDown() && IDCardItem.isBound(stack) && terminal.canManageTrust(player.getUUID())) {
-            UUID trusted = IDCardItem.get(stack);
-            if (trusted != null) {
-                boolean added = terminal.toggleTrusted(trusted);
-                serverPlayer.sendSystemMessage(Component.translatable(
-                        added ? "incore.market.trust.added" : "incore.market.trust.removed",
-                        trusted.toString()
-                ));
-            }
+        if (!terminal.canTrade(player)) {
+            player.sendSystemMessage(Component.translatable("incore.market.not_allowed"));
+            return ItemInteractionResult.FAIL;
+        }
+
+        if (player.isShiftKeyDown()) {
+            serverPlayer.openMenu(terminal, pos);
             return ItemInteractionResult.SUCCESS;
         }
 
         MarketService.openTerminalScreen(serverPlayer, terminal);
         return ItemInteractionResult.CONSUME;
+    }
+
+    @Override
+    protected void onRemove(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock())) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof MarketTerminalBlockEntity terminal) {
+                Containers.dropItemStack(
+                        level,
+                        pos.getX() + 0.5D,
+                        pos.getY() + 0.5D,
+                        pos.getZ() + 0.5D,
+                        terminal.cardStack().copy()
+                );
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }
