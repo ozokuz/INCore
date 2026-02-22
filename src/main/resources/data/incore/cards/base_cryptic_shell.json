@@ -1,0 +1,14 @@
+{
+  "name": "Cryptic Shell",
+  "set": "incore:base_protocol",
+  "rarity": 3,
+  "deck_points": 2,
+  "module_type": "cryptic",
+  "tags": ["tech", "cryptic"],
+  "effects": [
+    { "attribute": "minecraft:max_health", "amount": 3.0, "operation": "add_value" }
+  ],
+  "downsides": [
+    { "attribute": "minecraft:movement_speed", "amount": -0.02, "operation": "add_multiplied_total" }
+  ]
+}

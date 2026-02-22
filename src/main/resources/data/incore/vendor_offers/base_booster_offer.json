@@ -1,0 +1,9 @@
+{
+  "name": "Base Booster Deal",
+  "product_type": "booster",
+  "product_id": "incore:base_protocol",
+  "count": 1,
+  "token_cost": 2,
+  "spur_cost": 0,
+  "weight": 10
+}

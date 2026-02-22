@@ -1,0 +1,11 @@
+{
+  "name": "Tech Circuit",
+  "required_tags": ["tech"],
+  "required_type_counts": {
+    "regular": 2
+  },
+  "min_cards": 3,
+  "effects": [
+    { "attribute": "minecraft:attack_speed", "amount": 0.08, "operation": "add_multiplied_total" }
+  ]
+}

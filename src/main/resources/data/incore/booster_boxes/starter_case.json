@@ -1,0 +1,5 @@
+{
+  "name": "Starter Case",
+  "set": "incore:base_protocol",
+  "booster_count": 5
+}

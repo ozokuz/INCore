@@ -1,0 +1,17 @@
+{
+  "name": "Flux Prism",
+  "set": "incore:season_signal",
+  "rarity": 4,
+  "deck_points": 3,
+  "module_type": "chaotic",
+  "tags": ["seasonal", "chaotic", "tech"],
+  "chaotic_multiplier_min": 0.6,
+  "chaotic_multiplier_max": 1.6,
+  "effects": [
+    { "attribute": "minecraft:attack_damage", "amount": 0.22, "operation": "add_multiplied_total" },
+    { "attribute": "minecraft:attack_speed", "amount": 0.12, "operation": "add_multiplied_total" }
+  ],
+  "downsides": [
+    { "attribute": "minecraft:armor", "amount": -1.0, "operation": "add_value" }
+  ]
+}

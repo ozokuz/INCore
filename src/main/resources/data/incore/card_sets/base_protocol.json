@@ -1,0 +1,5 @@
+{
+  "name": "Base Protocol",
+  "base": true,
+  "weight": 10
+}

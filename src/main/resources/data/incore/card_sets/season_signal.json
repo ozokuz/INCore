@@ -1,0 +1,7 @@
+{
+  "name": "Season Signal",
+  "base": false,
+  "start": "2026-02-01T00:00:00Z",
+  "end": "2026-06-01T00:00:00Z",
+  "weight": 6
+}

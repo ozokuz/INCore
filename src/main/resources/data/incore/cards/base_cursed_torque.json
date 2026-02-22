@@ -1,0 +1,15 @@
+{
+  "name": "Cursed Torque",
+  "set": "incore:base_protocol",
+  "rarity": 4,
+  "deck_points": 3,
+  "module_type": "cursed",
+  "tags": ["tech", "cursed"],
+  "effects": [
+    { "attribute": "minecraft:attack_damage", "amount": 0.2, "operation": "add_multiplied_total" }
+  ],
+  "downsides": [
+    { "attribute": "minecraft:armor", "amount": -1.0, "operation": "add_value" },
+    { "attribute": "minecraft:movement_speed", "amount": -0.03, "operation": "add_multiplied_total" }
+  ]
+}

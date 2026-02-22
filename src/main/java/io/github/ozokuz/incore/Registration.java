@@ -14,6 +14,18 @@ import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockEntity;
 import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
 import io.github.ozokuz.incore.features.research.BurnerLabBlock;
+import io.github.ozokuz.incore.features.cards.CardBoosterBoxItem;
+import io.github.ozokuz.incore.features.cards.CardBoosterItem;
+import io.github.ozokuz.incore.features.cards.CardModuleItem;
+import io.github.ozokuz.incore.features.cards.CardSleeveItem;
+import io.github.ozokuz.incore.features.cards.CardTokenItem;
+import io.github.ozokuz.incore.features.cards.CardVendorBlock;
+import io.github.ozokuz.incore.features.cards.DeckBoxItem;
+import io.github.ozokuz.incore.features.cards.DeckCoreItem;
+import io.github.ozokuz.incore.features.cards.DeckItem;
+import io.github.ozokuz.incore.features.cards.DeckStationBlock;
+import io.github.ozokuz.incore.features.cards.DecryptorBlock;
+import io.github.ozokuz.incore.features.research.LabBlock;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabMenu;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOrePatchFeature;
@@ -98,6 +110,16 @@ public class Registration {
             BLOCK_ENTITY_TYPES.register("arena_reward_crate", () -> BlockEntityType.Builder.of(ArenaRewardCrateBlockEntity::new, ARENA_REWARD_CRATE_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> ARENA_REWARD_CRATE_BLOCK_ITEM =
             ITEMS.registerItem("arena_reward_crate", properties -> new ArenaRewardCrateBlockItem(ARENA_REWARD_CRATE_BLOCK.get(), properties));
+    public static final DeferredBlock<Block> DECK_STATION_BLOCK = BLOCKS.register("deck_station", DeckStationBlock::new);
+    public static final DeferredItem<BlockItem> DECK_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("deck_station", DECK_STATION_BLOCK);
+    public static final DeferredBlock<Block> CARD_DECRYPTOR_BLOCK = BLOCKS.register("card_decryptor", DecryptorBlock::new);
+    public static final DeferredItem<BlockItem> CARD_DECRYPTOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_decryptor", CARD_DECRYPTOR_BLOCK);
+    public static final DeferredBlock<Block> CARD_VENDOR_BLOCK = BLOCKS.register("card_vendor", CardVendorBlock::new);
+    public static final DeferredItem<BlockItem> CARD_VENDOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_vendor", CARD_VENDOR_BLOCK);
+    public static final DeferredBlock<Block> RESEARCH_LAB_BLOCK = BLOCKS.register("research_lab", () -> new LabBlock());
+    public static final Supplier<BlockEntityType<LabBlockEntity>> RESEARCH_LAB_BE = BLOCK_ENTITY_TYPES.register("research_lab", () -> BlockEntityType.Builder.of(LabBlockEntity::new, RESEARCH_LAB_BLOCK.get()).build(null));
+    public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
+    public static final DeferredItem<BlockItem> RESEARCH_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_lab", RESEARCH_LAB_BLOCK);
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_BLOCK = BLOCKS.register("cinnabar_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
@@ -204,6 +226,14 @@ public class Registration {
     public static final DeferredItem<Item> BANNER_PERMIT_ITEM = ITEMS.registerItem("banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
     public static final DeferredItem<Item> SPEED_MODULE_CARD_ITEM = ITEMS.registerItem("speed_module_card", properties -> new SpeedModuleCardItem(properties.stacksTo(16)));
     public static final DeferredItem<Item> PRODUCTIVITY_MODULE_CARD_ITEM = ITEMS.registerItem("productivity_module_card", properties -> new ProductivityModuleCardItem(properties.stacksTo(16)));
+    public static final DeferredItem<Item> CARD_MODULE_ITEM = ITEMS.registerItem("card_module", CardModuleItem::new);
+    public static final DeferredItem<Item> CARD_BOOSTER_ITEM = ITEMS.registerItem("card_booster", CardBoosterItem::new);
+    public static final DeferredItem<Item> CARD_BOOSTER_BOX_ITEM = ITEMS.registerItem("card_booster_box", CardBoosterBoxItem::new);
+    public static final DeferredItem<Item> CARD_DECK_CORE_ITEM = ITEMS.registerItem("card_deck_core", DeckCoreItem::new);
+    public static final DeferredItem<Item> CARD_DECK_BOX_ITEM = ITEMS.registerItem("card_deck_box", DeckBoxItem::new);
+    public static final DeferredItem<Item> CARD_DECK_ITEM = ITEMS.registerItem("card_deck", DeckItem::new);
+    public static final DeferredItem<Item> CARD_SLEEVE_ITEM = ITEMS.registerItem("card_sleeve", CardSleeveItem::new);
+    public static final DeferredItem<Item> CARD_TOKEN_ITEM = ITEMS.registerItem("card_token", CardTokenItem::new);
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> DUNGEON_CRYSTAL_THEME =
             DATA_COMPONENT_TYPES.registerComponentType(
@@ -234,6 +264,10 @@ public class Registration {
                 output.accept(GACHA_CRATE_BLOCK_ITEM.get());
                 output.accept(ARENA_ORB_BLOCK_ITEM.get());
                 output.accept(ARENA_REWARD_CRATE_BLOCK_ITEM.get());
+                output.accept(DECK_STATION_BLOCK_ITEM.get());
+                output.accept(CARD_DECRYPTOR_BLOCK_ITEM.get());
+                output.accept(CARD_VENDOR_BLOCK_ITEM.get());
+                output.accept(RESEARCH_LAB_BLOCK_ITEM.get());
                 output.accept(CINNABAR_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(MIXED_METALS_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(GEM_CLUSTERS_ORE_STONE_BLOCK_ITEM.get());
@@ -255,5 +289,13 @@ public class Registration {
                 output.accept(BANNER_PERMIT_ITEM.get());
                 output.accept(SPEED_MODULE_CARD_ITEM.get());
                 output.accept(PRODUCTIVITY_MODULE_CARD_ITEM.get());
+                output.accept(CARD_MODULE_ITEM.get());
+                output.accept(CARD_BOOSTER_ITEM.get());
+                output.accept(CARD_BOOSTER_BOX_ITEM.get());
+                output.accept(CARD_DECK_CORE_ITEM.get());
+                output.accept(CARD_DECK_BOX_ITEM.get());
+                output.accept(CARD_DECK_ITEM.get());
+                output.accept(CARD_SLEEVE_ITEM.get());
+                output.accept(CARD_TOKEN_ITEM.get());
             }).build());
 }

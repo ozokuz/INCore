@@ -1,0 +1,6 @@
+{
+  "name": "Signal Booster",
+  "set": "incore:season_signal",
+  "cards_per_pack": 5,
+  "foil_chance": 0.12
+}

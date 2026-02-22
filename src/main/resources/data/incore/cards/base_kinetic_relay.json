@@ -1,0 +1,12 @@
+{
+  "name": "Kinetic Relay",
+  "set": "incore:base_protocol",
+  "rarity": 2,
+  "deck_points": 2,
+  "module_type": "regular",
+  "tags": ["tech", "kinetic"],
+  "effects": [
+    { "attribute": "minecraft:movement_speed", "amount": 0.03, "operation": "add_multiplied_total" },
+    { "attribute": "minecraft:attack_speed", "amount": 0.06, "operation": "add_multiplied_total" }
+  ]
+}
