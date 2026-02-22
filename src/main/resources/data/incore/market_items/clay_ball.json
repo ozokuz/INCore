@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:clay_ball",
+  "base_price_spur": 6,
+  "display_name": "Clay Ball",
+  "sort_order": 24,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

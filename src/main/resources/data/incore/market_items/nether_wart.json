@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:nether_wart",
+  "base_price_spur": 12,
+  "display_name": "Nether Wart",
+  "sort_order": 83,
+  "enabled": true,
+  "volatility_weight": 1.1
+}

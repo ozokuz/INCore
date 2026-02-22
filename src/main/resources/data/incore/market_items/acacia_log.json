@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:acacia_log",
+  "base_price_spur": 8,
+  "display_name": "Acacia Log",
+  "sort_order": 34,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

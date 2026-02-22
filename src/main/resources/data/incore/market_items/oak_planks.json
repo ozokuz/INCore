@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:oak_planks",
+  "base_price_spur": 5,
+  "display_name": "Oak Planks",
+  "sort_order": 39,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:red_sand",
+  "base_price_spur": 4,
+  "display_name": "Red Sand",
+  "sort_order": 23,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

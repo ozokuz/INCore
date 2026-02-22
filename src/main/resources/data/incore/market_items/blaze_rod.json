@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:blaze_rod",
+  "base_price_spur": 28,
+  "display_name": "Blaze Rod",
+  "sort_order": 78,
+  "enabled": true,
+  "volatility_weight": 1.3
+}

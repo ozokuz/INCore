@@ -47,6 +47,12 @@ public final class INCoreKeyMappings {
             GLFW.GLFW_KEY_N,
             "key.categories.incore"
     );
+    public static final KeyMapping OPEN_MARKET = new KeyMapping(
+            "key.incore.open_market",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_M,
+            "key.categories.incore"
+    );
 
     private INCoreKeyMappings() {
     }

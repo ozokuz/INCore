@@ -22,6 +22,10 @@ import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
 import io.github.ozokuz.incore.features.gacha.GachaEventCategoryManager;
 import io.github.ozokuz.incore.features.gacha.command.GachaCommands;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
+import io.github.ozokuz.incore.features.market.MarketItemManager;
+import io.github.ozokuz.incore.features.market.MarketEvents;
+import io.github.ozokuz.incore.features.market.command.MarketCommands;
+import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
@@ -86,6 +90,7 @@ public class INCore {
         VendorBootstrap.initialize();
         CardVendorIntegration.initialize();
         modEventBus.addListener(NumismaticsNetworking::registerPayloads);
+        modEventBus.addListener(MarketNetworking::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
         NeoForge.EVENT_BUS.addListener(SanityCommands::register);
@@ -95,6 +100,8 @@ public class INCore {
         NeoForge.EVENT_BUS.addListener(ResearchCommands::register);
         NeoForge.EVENT_BUS.addListener(RoguelikeCommands::register);
         NeoForge.EVENT_BUS.addListener(CardCommands::register);
+        NeoForge.EVENT_BUS.addListener(MarketCommands::register);
+        NeoForge.EVENT_BUS.addListener(MarketEvents::onServerTick);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -154,5 +161,6 @@ public class INCore {
         event.addListener(new CardDeckBoxManager());
         event.addListener(new CardSynergyManager());
         event.addListener(new VendorOfferManager());
+        event.addListener(new MarketItemManager());
     }
 }

@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:birch_log",
+  "base_price_spur": 7,
+  "display_name": "Birch Log",
+  "sort_order": 32,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

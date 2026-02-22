@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:carrot",
+  "base_price_spur": 3,
+  "display_name": "Carrot",
+  "sort_order": 92,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

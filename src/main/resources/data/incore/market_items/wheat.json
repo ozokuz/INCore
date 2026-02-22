@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:wheat",
+  "base_price_spur": 4,
+  "display_name": "Wheat",
+  "sort_order": 90,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

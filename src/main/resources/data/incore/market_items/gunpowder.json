@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:gunpowder",
+  "base_price_spur": 15,
+  "display_name": "Gunpowder",
+  "sort_order": 74,
+  "enabled": true,
+  "volatility_weight": 1.2
+}

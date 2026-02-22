@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:diorite",
+  "base_price_spur": 3,
+  "display_name": "Diorite",
+  "sort_order": 13,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

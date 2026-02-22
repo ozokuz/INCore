@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:bone",
+  "base_price_spur": 5,
+  "display_name": "Bone",
+  "sort_order": 72,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:salmon",
+  "base_price_spur": 7,
+  "display_name": "Raw Salmon",
+  "sort_order": 99,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

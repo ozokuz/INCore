@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:glowstone_dust",
+  "base_price_spur": 10,
+  "display_name": "Glowstone Dust",
+  "sort_order": 82,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

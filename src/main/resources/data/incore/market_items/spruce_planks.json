@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:spruce_planks",
+  "base_price_spur": 6,
+  "display_name": "Spruce Planks",
+  "sort_order": 40,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

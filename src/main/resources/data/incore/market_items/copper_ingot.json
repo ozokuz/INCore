@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:copper_ingot",
+  "base_price_spur": 16,
+  "display_name": "Copper Ingot",
+  "sort_order": 52,
+  "enabled": true,
+  "volatility_weight": 1.1
+}

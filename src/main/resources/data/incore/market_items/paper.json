@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:paper",
+  "base_price_spur": 5,
+  "display_name": "Paper",
+  "sort_order": 94,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

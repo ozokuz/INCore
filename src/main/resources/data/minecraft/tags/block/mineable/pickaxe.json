@@ -18,6 +18,9 @@
     "incore:gem_clusters_ore_stone",
     "incore:cinnabar_ore_stone_slab",
     "incore:mixed_metals_ore_stone_slab",
-    "incore:gem_clusters_ore_stone_slab"
+    "incore:gem_clusters_ore_stone_slab",
+    "incore:market_terminal",
+    "incore:shipment_terminal",
+    "incore:market_autobuyer"
   ]
 }

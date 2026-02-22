@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:cobblestone",
+  "base_price_spur": 2,
+  "display_name": "Cobblestone",
+  "sort_order": 11,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

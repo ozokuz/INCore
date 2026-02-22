@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:deepslate",
+  "base_price_spur": 4,
+  "display_name": "Deepslate",
+  "sort_order": 15,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

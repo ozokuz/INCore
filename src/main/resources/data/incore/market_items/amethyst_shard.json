@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:amethyst_shard",
+  "base_price_spur": 14,
+  "display_name": "Amethyst Shard",
+  "sort_order": 60,
+  "enabled": true,
+  "volatility_weight": 1.1
+}

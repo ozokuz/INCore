@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:spruce_log",
+  "base_price_spur": 7,
+  "display_name": "Spruce Log",
+  "sort_order": 31,
+  "enabled": true,
+  "volatility_weight": 0.9
+}

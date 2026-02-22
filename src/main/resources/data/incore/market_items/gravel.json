@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:gravel",
+  "base_price_spur": 3,
+  "display_name": "Gravel",
+  "sort_order": 21,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

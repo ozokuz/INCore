@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:emerald",
+  "base_price_spur": 95,
+  "display_name": "Emerald",
+  "sort_order": 57,
+  "enabled": true,
+  "volatility_weight": 1.5
+}

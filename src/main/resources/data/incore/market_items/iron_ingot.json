@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:iron_ingot",
+  "base_price_spur": 22,
+  "display_name": "Iron Ingot",
+  "sort_order": 51,
+  "enabled": true,
+  "volatility_weight": 1.2
+}

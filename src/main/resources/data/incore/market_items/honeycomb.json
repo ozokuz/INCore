@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:honeycomb",
+  "base_price_spur": 8,
+  "display_name": "Honeycomb",
+  "sort_order": 97,
+  "enabled": true,
+  "volatility_weight": 1.0
+}

@@ -29,6 +29,14 @@ import io.github.ozokuz.incore.features.cards.DecryptorBlock;
 import io.github.ozokuz.incore.features.vendor.VendorBlock;
 import io.github.ozokuz.incore.features.vendor.VendorBlockEntity;
 import io.github.ozokuz.incore.features.vendor.VendorDiscountCharmItem;
+import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlock;
+import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMenu;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalBlock;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
+import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlock;
+import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlockEntity;
+import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMenu;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabMenu;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOrePatchFeature;
@@ -123,6 +131,42 @@ public class Registration {
     public static final Supplier<BlockEntityType<VendorBlockEntity>> VENDOR_BE = BLOCK_ENTITY_TYPES.register("vendor", () -> BlockEntityType.Builder.of(VendorBlockEntity::new, VENDOR_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> VENDOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("vendor", VENDOR_BLOCK);
     public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
+    public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
+    public static final DeferredItem<BlockItem> RESEARCH_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_lab", RESEARCH_LAB_BLOCK);
+    public static final DeferredBlock<Block> MARKET_TERMINAL_BLOCK = BLOCKS.register("market_terminal", () -> new MarketTerminalBlock());
+    public static final Supplier<BlockEntityType<MarketTerminalBlockEntity>> MARKET_TERMINAL_BE = BLOCK_ENTITY_TYPES.register(
+            "market_terminal",
+            () -> BlockEntityType.Builder.of(MarketTerminalBlockEntity::new, MARKET_TERMINAL_BLOCK.get()).build(null)
+    );
+    public static final DeferredItem<BlockItem> MARKET_TERMINAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_terminal", MARKET_TERMINAL_BLOCK);
+    public static final DeferredBlock<Block> SHIPMENT_TERMINAL_BLOCK = BLOCKS.register("shipment_terminal", () -> new ShipmentTerminalBlock());
+    public static final Supplier<BlockEntityType<ShipmentTerminalBlockEntity>> SHIPMENT_TERMINAL_BE = BLOCK_ENTITY_TYPES.register(
+            "shipment_terminal",
+            () -> BlockEntityType.Builder.of(ShipmentTerminalBlockEntity::new, SHIPMENT_TERMINAL_BLOCK.get()).build(null)
+    );
+    public static final Supplier<MenuType<ShipmentTerminalMenu>> SHIPMENT_TERMINAL_MENU = MENU_TYPES.register(
+            "shipment_terminal",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new ShipmentTerminalMenu(
+                    id,
+                    inv,
+                    (ShipmentTerminalBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
+    );
+    public static final DeferredItem<BlockItem> SHIPMENT_TERMINAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("shipment_terminal", SHIPMENT_TERMINAL_BLOCK);
+    public static final DeferredBlock<Block> MARKET_AUTOBUYER_BLOCK = BLOCKS.register("market_autobuyer", () -> new MarketAutoBuyerBlock());
+    public static final Supplier<BlockEntityType<MarketAutoBuyerBlockEntity>> MARKET_AUTOBUYER_BE = BLOCK_ENTITY_TYPES.register(
+            "market_autobuyer",
+            () -> BlockEntityType.Builder.of(MarketAutoBuyerBlockEntity::new, MARKET_AUTOBUYER_BLOCK.get()).build(null)
+    );
+    public static final Supplier<MenuType<MarketAutoBuyerMenu>> MARKET_AUTOBUYER_MENU = MENU_TYPES.register(
+            "market_autobuyer",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new MarketAutoBuyerMenu(
+                    id,
+                    inv,
+                    (MarketAutoBuyerBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
+    );
+    public static final DeferredItem<BlockItem> MARKET_AUTOBUYER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autobuyer", MARKET_AUTOBUYER_BLOCK);
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_BLOCK = BLOCKS.register("cinnabar_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
@@ -271,6 +315,9 @@ public class Registration {
                 output.accept(DECK_STATION_BLOCK_ITEM.get());
                 output.accept(CARD_DECRYPTOR_BLOCK_ITEM.get());
                 output.accept(VENDOR_BLOCK_ITEM.get());
+                output.accept(MARKET_TERMINAL_BLOCK_ITEM.get());
+                output.accept(SHIPMENT_TERMINAL_BLOCK_ITEM.get());
+                output.accept(MARKET_AUTOBUYER_BLOCK_ITEM.get());
                 output.accept(CINNABAR_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(MIXED_METALS_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(GEM_CLUSTERS_ORE_STONE_BLOCK_ITEM.get());

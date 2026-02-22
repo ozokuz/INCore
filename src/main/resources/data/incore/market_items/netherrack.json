@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:netherrack",
+  "base_price_spur": 2,
+  "display_name": "Netherrack",
+  "sort_order": 81,
+  "enabled": true,
+  "volatility_weight": 0.8
+}

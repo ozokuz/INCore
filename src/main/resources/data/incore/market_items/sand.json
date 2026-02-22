@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:sand",
+  "base_price_spur": 3,
+  "display_name": "Sand",
+  "sort_order": 22,
+  "enabled": true,
+  "volatility_weight": 0.8
+}
