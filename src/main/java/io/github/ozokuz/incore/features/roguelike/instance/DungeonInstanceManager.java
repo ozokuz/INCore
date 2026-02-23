@@ -57,7 +57,8 @@ public final class DungeonInstanceManager {
     private static final String REGION_FILE_PATTERN = "r.%d.%d.mca";
     private static final int ROOM_MIDDLE_FLOOR_WORLD_Y = 26;
     private static final int ROOM_SIZE_CHUNKS = 3;
-    private static final int CHUNK_STRIDE = 4;
+    private static final int ROOM_GAP_CHUNKS = 2;
+    private static final int CHUNK_STRIDE = ROOM_SIZE_CHUNKS + ROOM_GAP_CHUNKS;
     private static final int START_CHUNK_OFFSET = RoguelikeConstants.INSTANCE_SIZE_CHUNKS / 2;
 
     private DungeonInstanceManager() {
@@ -690,7 +691,7 @@ public final class DungeonInstanceManager {
         if (from.room().startRoom() || to.room().startRoom()) {
             return new HallwayFootprint(
                     instance.originChunkX() + START_CHUNK_OFFSET,
-                    instance.originChunkZ() + START_CHUNK_OFFSET + 1,
+                    instance.originChunkZ() + START_CHUNK_OFFSET + ROOM_GAP_CHUNKS,
                     1,
                     2
             );
