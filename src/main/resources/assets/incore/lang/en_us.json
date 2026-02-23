@@ -134,7 +134,7 @@
   "incore.roguelike.portal.frame_invalid": "Build a valid portal frame and use the crystal on it.",
   "incore.roguelike.portal.already_entered": "You already attempted this dungeon and cannot re-enter it.",
   "incore.roguelike.portal.no_dungeon": "This portal has no active dungeon bound to it.",
-  "incore.roguelike.portal.dimension_missing": "The roguelike dimension is not available.",
+  "incore.roguelike.portal.dimension_missing": "The dungeon dimension is not available.",
   "incore.roguelike.portal.missing_structure": "Missing structure template for this theme: %s",
   "incore.roguelike.portal.generation_failed": "Dungeon generation failed for the selected theme.",
   "incore.roguelike.portal.objective": "Objective: %s (%s/%s)",

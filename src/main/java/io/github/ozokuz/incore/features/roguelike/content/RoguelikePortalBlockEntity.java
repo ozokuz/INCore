@@ -9,40 +9,56 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 public class RoguelikePortalBlockEntity extends BlockEntity {
-    private long dungeonId;
+    private long instanceId;
 
     public RoguelikePortalBlockEntity(BlockPos pos, BlockState blockState) {
         super(Registration.ROGUELIKE_PORTAL_BE.get(), pos, blockState);
     }
 
+    public long instanceId() {
+        return instanceId;
+    }
+
     public long dungeonId() {
-        return dungeonId;
+        return instanceId;
     }
 
     public boolean isActivated() {
-        return dungeonId > 0;
+        return instanceId > 0;
     }
 
-    public void setDungeonId(long dungeonId) {
-        this.dungeonId = Math.max(0, dungeonId);
+    public void setInstanceId(long instanceId) {
+        this.instanceId = Math.max(0, instanceId);
         setChanged();
     }
 
+    public void setDungeonId(long dungeonId) {
+        setInstanceId(dungeonId);
+    }
+
+    public void clearInstanceId() {
+        setInstanceId(0L);
+    }
+
     public void clearDungeonId() {
-        setDungeonId(0L);
+        clearInstanceId();
     }
 
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
-        dungeonId = Math.max(0L, tag.getLong("dungeonId"));
+        if (tag.contains("instanceId")) {
+            instanceId = Math.max(0L, tag.getLong("instanceId"));
+        } else {
+            instanceId = Math.max(0L, tag.getLong("dungeonId"));
+        }
     }
 
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
-        if (dungeonId > 0) {
-            tag.putLong("dungeonId", dungeonId);
+        if (instanceId > 0L) {
+            tag.putLong("instanceId", instanceId);
         }
     }
 }

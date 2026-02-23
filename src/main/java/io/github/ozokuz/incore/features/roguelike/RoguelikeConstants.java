@@ -7,13 +7,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 public final class RoguelikeConstants {
-    public static final ResourceLocation ROGUELIKE_ID = ResourceLocation.parse(INCore.MODID + ":roguelike");
-    public static final ResourceKey<Level> ROGUELIKE_DIMENSION = ResourceKey.create(Registries.DIMENSION, ROGUELIKE_ID);
-    public static final int DUNGEON_ROOM_SIZE = 33;
-    public static final int DUNGEON_ROOM_HEIGHT = 9;
-    public static final int DUNGEON_SPACING = 512;
-    public static final int DUNGEON_BASE_Y = 64;
+    public static final ResourceLocation DUNGEON_ID = ResourceLocation.parse(INCore.MODID + ":dungeon");
+    public static final ResourceKey<Level> DUNGEON_DIMENSION = ResourceKey.create(Registries.DIMENSION, DUNGEON_ID);
+
+    @Deprecated
+    public static final ResourceKey<Level> ROGUELIKE_DIMENSION = DUNGEON_DIMENSION;
+
+    public static final int INSTANCE_SIZE_CHUNKS = 43;
+    public static final int INSTANCE_SLOT_STRIDE_CHUNKS = 64;
+    public static final int REGION_SIZE_CHUNKS = 32;
+    public static final int DUNGEON_FLOOR_Y = 40;
     public static final int DUNGEON_TIME_LIMIT_TICKS = 20 * 60 * 15;
+    public static final int MANAGER_TICK_INTERVAL = 20;
 
     private RoguelikeConstants() {
     }

@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.roguelike.content;
 
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.roguelike.RoguelikePortalShape;
+import io.github.ozokuz.incore.features.roguelike.RoguelikeConstants;
 import io.github.ozokuz.incore.features.roguelike.RoguelikeService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -61,6 +62,10 @@ public class RoguelikePortalBlock extends Block implements EntityBlock {
     @Override
     protected @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull Direction direction, @NotNull BlockState neighborState,
                                               @NotNull LevelAccessor level, @NotNull BlockPos currentPos, @NotNull BlockPos neighborPos) {
+        if (level instanceof Level world && world.dimension().equals(RoguelikeConstants.DUNGEON_DIMENSION)) {
+            return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
+        }
+
         Direction.Axis directionAxis = direction.getAxis();
         Direction.Axis portalAxis = state.getValue(AXIS);
         boolean isPerpendicularHorizontal = directionAxis.isHorizontal() && directionAxis != portalAxis;

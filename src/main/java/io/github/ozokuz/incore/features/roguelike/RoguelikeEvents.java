@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -50,5 +51,10 @@ public class RoguelikeEvents {
         }
 
         RoguelikeService.onPlayerLogout(player);
+    }
+
+    @SubscribeEvent
+    public static void onSpawnPositionCheck(MobSpawnEvent.PositionCheck event) {
+        RoguelikeService.onSpawnPositionCheck(event);
     }
 }
