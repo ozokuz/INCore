@@ -168,18 +168,45 @@ public final class VendorService {
         List<BalanceEntryView> entries = new ArrayList<>();
 
         for (VendorOfferView offer : offers) {
-            VendorCurrencyView currency = offer.currency();
-            if (currency.primaryIconItemId() != null && !seen.contains(currency.primaryIconItemId())) {
-                seen.add(currency.primaryIconItemId());
-                entries.add(new BalanceEntryView(currency.primaryIconItemId(), currency.availablePrimary()));
-            }
-            if (currency.conversionIconItemId() != null && !seen.contains(currency.conversionIconItemId())) {
-                seen.add(currency.conversionIconItemId());
-                entries.add(new BalanceEntryView(currency.conversionIconItemId(), currency.availableConversion()));
-            }
+            appendCurrencyBalanceEntries(entries, seen, offer.currency());
         }
 
         return entries;
+    }
+
+    public static List<BalanceEntryView> collectPlayerBalanceEntries(ServerPlayer player) {
+        LinkedHashSet<String> seen = new LinkedHashSet<>();
+        List<BalanceEntryView> entries = new ArrayList<>();
+
+        List<VendorOfferData> offers = VendorOfferManager.all().stream()
+                .filter(offer -> offer.productType().isAvailable(offer.productSpec()))
+                .sorted(Comparator.comparing(offer -> offer.id().toString()))
+                .toList();
+        for (VendorOfferData offer : offers) {
+            VendorCurrencyView currency = offer.currencyType().buildView(player, offer.currencySpec());
+            appendCurrencyBalanceEntries(entries, seen, currency);
+        }
+
+        return entries;
+    }
+
+    private static void appendCurrencyBalanceEntries(
+            List<BalanceEntryView> entries,
+            LinkedHashSet<String> seen,
+            VendorCurrencyView currency
+    ) {
+        if (currency.primaryIconItemId() != null
+                && !currency.primaryIconItemId().isBlank()
+                && !seen.contains(currency.primaryIconItemId())) {
+            seen.add(currency.primaryIconItemId());
+            entries.add(new BalanceEntryView(currency.primaryIconItemId(), Math.max(0, currency.availablePrimary())));
+        }
+        if (currency.conversionIconItemId() != null
+                && !currency.conversionIconItemId().isBlank()
+                && !seen.contains(currency.conversionIconItemId())) {
+            seen.add(currency.conversionIconItemId());
+            entries.add(new BalanceEntryView(currency.conversionIconItemId(), Math.max(0, currency.availableConversion())));
+        }
     }
 
     private static void ensureInventoryInitialized(ServerPlayer player, VendorBlockEntity vendor) {

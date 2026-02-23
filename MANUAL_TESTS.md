@@ -462,3 +462,20 @@ Manual gameplay verification checklist for testers.
 - [ ] Given operator runs `/incore shop lock category <target> <category>` or `/incore shop lock offer <target> <offer>`, when the target opens shop, then locked entries remain visible but Purchase is disabled.
 - [ ] Given operator runs `/incore shop lock_global category <category>` or `/incore shop lock_global offer <offer>`, when any player opens shop, then those entries are locked globally until corresponding `unlock_global` command is executed.
 - [ ] Given a globally locked category or offer and a specific player, when operator runs player-scoped `/incore shop unlock ...` for that target, then that player can purchase the unlocked entry while it remains locked for other players.
+
+## Player Status And Level Rewards Screens
+- [ ] Given a player is in-world with no other GUI open, when pressing the Player Status keybind (`O` default), then a futuristic full-panel Player Status screen opens with player level in the top-left, sanity below it, and quick navigation on the right.
+- [ ] Given menu background blur is enabled in client video settings, when opening and then closing Player Status, then the world remains unblurred while the screen is open and the prior blur setting is restored on close.
+- [ ] Given at least one vendor offer currency exists in datapacks, when opening Player Status, then currencies render in the top header area aligned to the right as icon-plus-count entries.
+- [ ] Given vendor currency sync has not yet returned and Player Status is opened, when viewing the top-right header currency area immediately, then a loading state is shown until balance data arrives.
+- [ ] Given sanity is below cap and sanity regen is active, when opening Player Status, then the sanity section shows the sanity bar plus accurate `current/cap`, `Next increase in`, and `Full in` values.
+- [ ] Given Player Status is open, when viewing quick navigation controls, then buttons are larger than icon-only chips and each button shows a visible text label without hovering.
+- [ ] Given Player Status is open, when scanning the quick navigation area, then there is no Numismatics Bank navigation button.
+- [ ] Given Player Status is open, when scanning the quick navigation area, then there is no Combat Catalog navigation button in quick navigation.
+- [ ] Given Player Status is open, when clicking each quick navigation button once, then the corresponding destination screen/request opens (Gacha banners, Tasks, Research tree, Battle Pass, Market, Shop).
+- [ ] Given Player Status is open, when clicking the Combat Catalog button inside the sanity section, then the Combat Catalog screen opens.
+- [ ] Given Player Status is open, when clicking `View Level Rewards` in the player level section, then the redesigned futuristic Level Rewards screen opens from Player Status.
+- [ ] Given the redesigned Level Rewards screen is open, when viewing layout at default GUI scale, then a futuristic panel is shown with a left level list, top-right current XP summary card, and bottom-right selected-level rewards card without clipping.
+- [ ] Given Level Rewards has enough entries to exceed the visible sidebar area, when scrolling the mouse wheel over the level list, then the list scrolls and the selected entry remains highlighted correctly.
+- [ ] Given Level Rewards has a selected level with item and non-item rewards, when hovering reward tiles, then item rewards show item tooltips and sanity-cap/command rewards show the appropriate custom tooltip text.
+- [ ] Given a selected level has more rewards than the visible reward tile grid can display, when viewing the bottom of the rewards card, then a `+N more rewards` overflow indicator is shown.
