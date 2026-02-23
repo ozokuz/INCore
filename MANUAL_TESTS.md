@@ -273,6 +273,8 @@ Manual gameplay verification checklist for testers.
 - [ ] Given a dungeon slot is recycled for a new run, when the next dungeon is generated in that slot, then blocks from the previous dungeon are cleared across the full slot build volume before new rooms and hallways are placed.
 
 ## Market Keybind And Terminal Permissions
+- [ ] Given a player opens the Player Level Rewards screen, when viewing the layout, then the level list takes up the full height of the left side and reward details are shown on the right side.
+- [ ] Given a player opens the Player Level Rewards screen, when selecting different levels in the left sidebar, then the right side updates to show rewards for that level without layout shifts.
 - [ ] Given a player is in-world with no GUI open, when pressing the Market keybind (`M` default), then the Global Market screen opens in read-only mode and no buy/sell buttons are shown.
 - [ ] Given a brand-new world save with no prior market file, when joining and opening the Market screen for the first time, then the selection screen opens without packet/decode errors or client disconnect.
 - [ ] Given a player opens Market from keybind, when viewing the selection screen, then a scrollable item grid is shown with each tile rendering item icon, item name, current price, and 24h percentage change.
@@ -462,7 +464,8 @@ Manual gameplay verification checklist for testers.
 - [ ] Given Player Status is open, when clicking each quick navigation button once, then the corresponding destination screen/request opens (Gacha banners, Tasks, Research tree, Battle Pass, Market, Shop).
 - [ ] Given Player Status is open, when clicking the Combat Catalog button inside the sanity section, then the Combat Catalog screen opens.
 - [ ] Given Player Status is open, when clicking `View Level Rewards` in the player level section, then the redesigned futuristic Level Rewards screen opens from Player Status.
-- [ ] Given the redesigned Level Rewards screen is open, when viewing layout at default GUI scale, then a futuristic panel is shown with a left level list, top-right current XP summary card, and bottom-right selected-level rewards card without clipping.
-- [ ] Given Level Rewards has enough entries to exceed the visible sidebar area, when scrolling the mouse wheel over the level list, then the list scrolls and the selected entry remains highlighted correctly.
-- [ ] Given Level Rewards has a selected level with item and non-item rewards, when hovering reward tiles, then item rewards show item tooltips and sanity-cap/command rewards show the appropriate custom tooltip text.
-- [ ] Given a selected level has more rewards than the visible reward tile grid can display, when viewing the bottom of the rewards card, then a `+N more rewards` overflow indicator is shown.
+- [ ] Given the redesigned Level Rewards screen is open, when viewing layout at default GUI scale, then a hero header card, a left level-card rail, and a right reward gallery are visible without panel overlap or clipping.
+- [ ] Given Level Rewards has enough entries to exceed the visible level rail area, when scrolling the mouse wheel over the level rail, then the rail scrolls and the selected level card remains highlighted correctly.
+- [ ] Given Level Rewards is open and a level card is selected, when observing the selected card and hero accent line for several seconds, then subtle glow/pulse highlighting is visible without distracting motion.
+- [ ] Given Level Rewards has a selected level with item and non-item rewards, when hovering reward cards, then item rewards show item tooltips and sanity-cap/command rewards show the appropriate custom tooltip text.
+- [ ] Given a selected level has more rewards than the visible reward gallery can display, when viewing the bottom-right of the gallery, then a `+N more rewards` overflow indicator is shown.
