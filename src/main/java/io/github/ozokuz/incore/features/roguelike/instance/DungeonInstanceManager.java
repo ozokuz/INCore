@@ -6,13 +6,19 @@ import io.github.ozokuz.incore.features.roguelike.RoguelikeConstants;
 import io.github.ozokuz.incore.features.roguelike.RoguelikePortalShape;
 import io.github.ozokuz.incore.features.roguelike.RoguelikeService;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.data.DungeonSocketData;
+import io.github.ozokuz.incore.features.roguelike.data.DungeonSocketManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveData;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeData;
+import io.github.ozokuz.incore.features.roguelike.layout.DungeonLayoutGenerator;
+import io.github.ozokuz.incore.features.roguelike.layout.DungeonLayoutPlan;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
+import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -37,15 +43,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 public final class DungeonInstanceManager {
     private static final String REGION_FILE_PATTERN = "r.%d.%d.mca";
+    private static final int ROOM_MIDDLE_FLOOR_WORLD_Y = 26;
+    private static final int ROOM_SIZE_CHUNKS = 3;
+    private static final int CHUNK_STRIDE = 4;
+    private static final int START_CHUNK_OFFSET = RoguelikeConstants.INSTANCE_SIZE_CHUNKS / 2;
 
     private DungeonInstanceManager() {
     }
@@ -98,7 +111,7 @@ public final class DungeonInstanceManager {
                 BlockPos.ZERO
         );
 
-        PlacementResult placement = placeStartRoom(dungeonLevel, instance, themeData);
+        PlacementResult placement = generateAndPlaceLayout(dungeonLevel, instance, themeData);
         if (placement == null) {
             data.freeSlot(slotIndex);
             player.sendSystemMessage(Component.translatable("incore.roguelike.portal.generation_failed"));
@@ -495,25 +508,234 @@ public final class DungeonInstanceManager {
         }
     }
 
-    private static PlacementResult placeStartRoom(ServerLevel level, DungeonInstanceData instance, DungeonThemeData theme) {
-        Optional<StructureTemplate> templateOptional = level.getStructureManager().get(theme.startingRoomStructure().id());
+    private static PlacementResult generateAndPlaceLayout(ServerLevel level, DungeonInstanceData instance, DungeonThemeData theme) {
+        long seed = level.getSeed() ^ instance.id().value() ^ ((long) instance.slotIndex() << 32);
+        net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create(seed);
+        DungeonLayoutPlan plan = DungeonLayoutGenerator.generate(theme, random);
+
+        List<DungeonLayoutPlan.RoomPlacement> orderedRooms = new ArrayList<>(plan.rooms());
+        orderedRooms.sort(Comparator
+                .comparing(DungeonLayoutPlan.RoomPlacement::startRoom).reversed()
+                .thenComparingInt(DungeonLayoutPlan.RoomPlacement::cellZ)
+                .thenComparingInt(DungeonLayoutPlan.RoomPlacement::cellX));
+
+        Map<Long, PlacedRoom> placedRooms = new HashMap<>();
+        Set<Long> occupiedChunks = new HashSet<>();
+        BlockPos startRoomOrigin = null;
+        BlockPos entryPos = null;
+
+        for (DungeonLayoutPlan.RoomPlacement room : orderedRooms) {
+            int footprintChunkX;
+            int footprintChunkZ;
+            int footprintWidth;
+            int footprintDepth;
+            if (room.startRoom()) {
+                footprintChunkX = instance.originChunkX() + START_CHUNK_OFFSET;
+                footprintChunkZ = instance.originChunkZ() + START_CHUNK_OFFSET;
+                footprintWidth = 1;
+                footprintDepth = 1;
+            } else {
+                footprintChunkX = instance.originChunkX() + room.cellX() * CHUNK_STRIDE;
+                footprintChunkZ = instance.originChunkZ() + room.cellZ() * CHUNK_STRIDE;
+                footprintWidth = ROOM_SIZE_CHUNKS;
+                footprintDepth = ROOM_SIZE_CHUNKS;
+            }
+
+            if (!isFootprintInBounds(instance, footprintChunkX, footprintChunkZ, footprintWidth, footprintDepth)) {
+                return null;
+            }
+
+            PlacedTemplate placed = placeTemplateInFootprint(
+                    level,
+                    room.template(),
+                    footprintChunkX,
+                    footprintChunkZ,
+                    footprintWidth,
+                    footprintDepth
+            );
+            if (placed == null) {
+                return null;
+            }
+
+            replaceReturnPortalPlaceholders(level, placed.template(), placed.origin(), placed.settings(), instance.id().value());
+            placeSocketFeatures(level, room.template().id(), placed.origin());
+            markOccupied(occupiedChunks, footprintChunkX, footprintChunkZ, footprintWidth, footprintDepth);
+
+            if (room.startRoom()) {
+                startRoomOrigin = placed.origin();
+                entryPos = resolveStartEntryPosition(room.template().id(), placed.origin(), placed.template());
+            }
+
+            placedRooms.put(cellKey(room.cellX(), room.cellZ()), new PlacedRoom(room, footprintChunkX, footprintChunkZ, placed.origin()));
+        }
+
+        List<DungeonLayoutPlan.HallwayPlacement> orderedHallways = new ArrayList<>(plan.hallways());
+        orderedHallways.sort(Comparator
+                .comparingInt(DungeonLayoutPlan.HallwayPlacement::fromCellZ)
+                .thenComparingInt(DungeonLayoutPlan.HallwayPlacement::fromCellX)
+                .thenComparingInt(DungeonLayoutPlan.HallwayPlacement::toCellZ)
+                .thenComparingInt(DungeonLayoutPlan.HallwayPlacement::toCellX));
+
+        for (DungeonLayoutPlan.HallwayPlacement hallway : orderedHallways) {
+            HallwayFootprint footprint = hallwayFootprint(instance, hallway, placedRooms);
+            if (footprint == null || !isFootprintInBounds(instance, footprint.chunkX(), footprint.chunkZ(), footprint.widthChunks(), footprint.depthChunks())) {
+                return null;
+            }
+
+            PlacedTemplate placed = placeTemplateInFootprint(
+                    level,
+                    hallway.template(),
+                    footprint.chunkX(),
+                    footprint.chunkZ(),
+                    footprint.widthChunks(),
+                    footprint.depthChunks()
+            );
+            if (placed == null) {
+                return null;
+            }
+
+            replaceReturnPortalPlaceholders(level, placed.template(), placed.origin(), placed.settings(), instance.id().value());
+            placeSocketFeatures(level, hallway.template().id(), placed.origin());
+            markOccupied(occupiedChunks, footprint.chunkX(), footprint.chunkZ(), footprint.widthChunks(), footprint.depthChunks());
+        }
+
+        placeSecretRooms(level, instance, theme, placedRooms, occupiedChunks, random);
+
+        if (startRoomOrigin == null || entryPos == null) {
+            return null;
+        }
+        clearEntrySpace(level, entryPos);
+        return new PlacementResult(startRoomOrigin, entryPos);
+    }
+
+    private static void placeSecretRooms(
+            ServerLevel level,
+            DungeonInstanceData instance,
+            DungeonThemeData theme,
+            Map<Long, PlacedRoom> placedRooms,
+            Set<Long> occupiedChunks,
+            net.minecraft.util.RandomSource random
+    ) {
+        if (theme.secretRooms().isEmpty()) {
+            return;
+        }
+
+        List<PlacedRoom> orderedRooms = placedRooms.values().stream()
+                .filter(room -> !room.room().startRoom())
+                .sorted(Comparator.comparingInt((PlacedRoom room) -> room.room().cellZ())
+                        .thenComparingInt(room -> room.room().cellX()))
+                .toList();
+
+        for (PlacedRoom room : orderedRooms) {
+            DungeonSocketData socketData = DungeonSocketManager.SOCKETS.getOrDefault(room.room().template().id(), DungeonSocketData.EMPTY);
+            if (socketData.secretSockets().isEmpty()) {
+                continue;
+            }
+
+            DungeonThemeData.TemplateRef secretTemplate = theme.secretRooms().pick(random).orElse(null);
+            if (secretTemplate == null) {
+                continue;
+            }
+
+            for (DungeonSocketData.SecretSocket secretSocket : socketData.secretSockets()) {
+                int secretChunkX = room.footprintChunkX() + secretSocket.chunkOffsetX();
+                int secretChunkZ = room.footprintChunkZ() + secretSocket.chunkOffsetZ();
+                if (!isFootprintInBounds(instance, secretChunkX, secretChunkZ, 1, 1)) {
+                    continue;
+                }
+
+                long key = chunkKey(secretChunkX, secretChunkZ);
+                if (occupiedChunks.contains(key)) {
+                    continue;
+                }
+
+                PlacedTemplate placedSecret = placeTemplateInFootprint(level, secretTemplate, secretChunkX, secretChunkZ, 1, 1);
+                if (placedSecret == null) {
+                    continue;
+                }
+
+                replaceReturnPortalPlaceholders(level, placedSecret.template(), placedSecret.origin(), placedSecret.settings(), instance.id().value());
+                placeSocketFeatures(level, secretTemplate.id(), placedSecret.origin());
+                occupiedChunks.add(key);
+                break;
+            }
+        }
+    }
+
+    private static BlockPos resolveStartEntryPosition(ResourceLocation templateId, BlockPos templateOrigin, StructureTemplate template) {
+        DungeonSocketData socketData = DungeonSocketManager.SOCKETS.getOrDefault(templateId, DungeonSocketData.EMPTY);
+        if (!socketData.entrySockets().isEmpty()) {
+            DungeonSocketData.EntrySocket chosen = socketData.entrySockets().stream()
+                    .filter(socket -> "spawn".equalsIgnoreCase(socket.id()))
+                    .findFirst()
+                    .orElse(socketData.entrySockets().getFirst());
+            return templateOrigin.offset(chosen.pos());
+        }
+
+        var size = template.getSize();
+        return templateOrigin.offset(Math.max(1, size.getX() / 2), 1, Math.max(1, size.getZ() / 2));
+    }
+
+    private static HallwayFootprint hallwayFootprint(
+            DungeonInstanceData instance,
+            DungeonLayoutPlan.HallwayPlacement hallway,
+            Map<Long, PlacedRoom> placedRooms
+    ) {
+        PlacedRoom from = placedRooms.get(cellKey(hallway.fromCellX(), hallway.fromCellZ()));
+        PlacedRoom to = placedRooms.get(cellKey(hallway.toCellX(), hallway.toCellZ()));
+        if (from == null || to == null) {
+            return null;
+        }
+
+        if (from.room().startRoom() || to.room().startRoom()) {
+            return new HallwayFootprint(
+                    instance.originChunkX() + START_CHUNK_OFFSET,
+                    instance.originChunkZ() + START_CHUNK_OFFSET + 1,
+                    1,
+                    2
+            );
+        }
+
+        if (hallway.orientation() == DungeonLayoutPlan.Orientation.EAST_WEST) {
+            int minCellX = Math.min(hallway.fromCellX(), hallway.toCellX());
+            int rowCellZ = hallway.fromCellZ();
+            int chunkX = instance.originChunkX() + minCellX * CHUNK_STRIDE + 3;
+            int chunkZ = instance.originChunkZ() + rowCellZ * CHUNK_STRIDE + 1;
+            return new HallwayFootprint(chunkX, chunkZ, 2, 1);
+        }
+
+        int minCellZ = Math.min(hallway.fromCellZ(), hallway.toCellZ());
+        int colCellX = hallway.fromCellX();
+        int chunkX = instance.originChunkX() + colCellX * CHUNK_STRIDE + 1;
+        int chunkZ = instance.originChunkZ() + minCellZ * CHUNK_STRIDE + 3;
+        return new HallwayFootprint(chunkX, chunkZ, 1, 2);
+    }
+
+    private static PlacedTemplate placeTemplateInFootprint(
+            ServerLevel level,
+            DungeonThemeData.TemplateRef templateRef,
+            int footprintChunkX,
+            int footprintChunkZ,
+            int footprintWidthChunks,
+            int footprintDepthChunks
+    ) {
+        Optional<StructureTemplate> templateOptional = level.getStructureManager().get(templateRef.id());
         if (templateOptional.isEmpty()) {
             return null;
         }
 
         StructureTemplate template = templateOptional.get();
         var size = template.getSize();
-        int slotSpanBlocks = RoguelikeConstants.INSTANCE_SIZE_CHUNKS * 16;
+        int footprintWidthBlocks = footprintWidthChunks * 16;
+        int footprintDepthBlocks = footprintDepthChunks * 16;
+        if (size.getX() > footprintWidthBlocks || size.getZ() > footprintDepthBlocks) {
+            return null;
+        }
 
-        int minBlockX = instance.originChunkX() * 16;
-        int minBlockZ = instance.originChunkZ() * 16;
-
-        int originX = minBlockX + Math.max(0, (slotSpanBlocks - size.getX()) / 2);
-        int originZ = minBlockZ + Math.max(0, (slotSpanBlocks - size.getZ()) / 2);
-        int floorY = RoguelikeConstants.DUNGEON_FLOOR_Y;
-        int originY = floorY - Math.max(0, theme.startingRoomStructure().floorYFromBottom());
-
-        if (originY < 0 || originY + size.getY() - 1 > 80) {
+        int originX = footprintChunkX * 16 + Math.max(0, (footprintWidthBlocks - size.getX()) / 2);
+        int originZ = footprintChunkZ * 16 + Math.max(0, (footprintDepthBlocks - size.getZ()) / 2);
+        int originY = templateRef.originYForMiddleFloor(ROOM_MIDDLE_FLOOR_WORLD_Y);
+        if (originY < level.getMinBuildHeight() || originY + size.getY() > level.getMaxBuildHeight()) {
             return null;
         }
 
@@ -522,15 +744,62 @@ public final class DungeonInstanceManager {
         if (!template.placeInWorld(level, origin, origin, settings, level.random, Block.UPDATE_ALL)) {
             return null;
         }
-        replaceReturnPortalPlaceholders(level, template, origin, settings, instance.id().value());
 
-        BlockPos entry = new BlockPos(
-                originX + Math.max(1, size.getX() / 2),
-                Math.min(80, floorY + 1),
-                originZ + Math.max(1, size.getZ() / 2)
-        );
-        clearEntrySpace(level, entry);
-        return new PlacementResult(origin, entry);
+        return new PlacedTemplate(origin, template, settings);
+    }
+
+    private static void placeSocketFeatures(ServerLevel level, ResourceLocation templateId, BlockPos templateOrigin) {
+        DungeonSocketData socketData = DungeonSocketManager.SOCKETS.getOrDefault(templateId, DungeonSocketData.EMPTY);
+        for (DungeonSocketData.FeatureSocket feature : socketData.featureSockets()) {
+            if (!"encounter_spawner".equals(feature.type())) {
+                continue;
+            }
+
+            if (feature.encounterId() == null) {
+                continue;
+            }
+
+            BlockPos socketPos = templateOrigin.offset(feature.pos());
+            level.setBlockAndUpdate(socketPos, Registration.ENCOUNTER_SPAWNER_BLOCK.get().defaultBlockState());
+            BlockEntity be = level.getBlockEntity(socketPos);
+            if (be instanceof EncounterSpawnerBE spawner) {
+                spawner.setEncounterId(feature.encounterId().toString());
+                Vec3i spawnOffset = feature.spawnOffset() == null ? Vec3i.ZERO : feature.spawnOffset();
+                spawner.setSpawnOffset(new BlockPos(spawnOffset.getX(), spawnOffset.getY(), spawnOffset.getZ()));
+                spawner.setChanged();
+            }
+        }
+    }
+
+    private static boolean isFootprintInBounds(
+            DungeonInstanceData instance,
+            int chunkX,
+            int chunkZ,
+            int widthChunks,
+            int depthChunks
+    ) {
+        int maxChunkX = chunkX + widthChunks - 1;
+        int maxChunkZ = chunkZ + depthChunks - 1;
+        return chunkX >= instance.originChunkX()
+                && chunkZ >= instance.originChunkZ()
+                && maxChunkX <= instance.maxChunkX()
+                && maxChunkZ <= instance.maxChunkZ();
+    }
+
+    private static void markOccupied(Set<Long> occupiedChunks, int chunkX, int chunkZ, int widthChunks, int depthChunks) {
+        for (int x = chunkX; x < chunkX + widthChunks; x++) {
+            for (int z = chunkZ; z < chunkZ + depthChunks; z++) {
+                occupiedChunks.add(chunkKey(x, z));
+            }
+        }
+    }
+
+    private static long chunkKey(int chunkX, int chunkZ) {
+        return ((long) chunkX << 32) ^ (chunkZ & 0xffffffffL);
+    }
+
+    private static long cellKey(int cellX, int cellZ) {
+        return ((long) cellX << 32) ^ (cellZ & 0xffffffffL);
     }
 
     private static void clearEntrySpace(ServerLevel level, BlockPos entry) {
@@ -542,10 +811,13 @@ public final class DungeonInstanceManager {
     }
 
     private static Optional<ResourceLocation> firstMissingStructureTemplate(ServerLevel level, DungeonThemeData theme) {
-        if (level.getStructureManager().get(theme.startingRoomStructure().id()).isEmpty()) {
-            return Optional.of(theme.startingRoomStructure().id());
+        List<ResourceLocation> ids = new ArrayList<>(theme.allTemplateIds());
+        ids.sort(Comparator.comparing(ResourceLocation::toString));
+        for (ResourceLocation id : ids) {
+            if (level.getStructureManager().get(id).isEmpty()) {
+                return Optional.of(id);
+            }
         }
-
         return Optional.empty();
     }
 
@@ -626,6 +898,20 @@ public final class DungeonInstanceManager {
 
     private static void teleport(ServerPlayer player, ServerLevel level, BlockPos pos) {
         player.teleportTo(level, pos.getX() + 0.5D, pos.getY() + 0.1D, pos.getZ() + 0.5D, player.getYRot(), player.getXRot());
+    }
+
+    private record PlacedTemplate(BlockPos origin, StructureTemplate template, StructurePlaceSettings settings) {
+    }
+
+    private record PlacedRoom(
+            DungeonLayoutPlan.RoomPlacement room,
+            int footprintChunkX,
+            int footprintChunkZ,
+            BlockPos origin
+    ) {
+    }
+
+    private record HallwayFootprint(int chunkX, int chunkZ, int widthChunks, int depthChunks) {
     }
 
     private record PlacementResult(BlockPos startRoomOrigin, BlockPos entryPos) {

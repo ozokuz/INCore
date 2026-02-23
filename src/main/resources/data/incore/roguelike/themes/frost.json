@@ -1,16 +1,100 @@
 {
-  "starting_room": "incore:roguelike/frost/starting_room",
-  "hallway_ns": "incore:roguelike/frost/hallway_ns",
-  "hallway_ew": "incore:roguelike/frost/hallway_ew",
-  "rooms": [
-    {
-      "id": "incore:roguelike/frost/room_big",
-      "floor_y_from_bottom": 12,
-      "weight": 3
-    },
+  "start_room": {
+    "id": "incore:roguelike/frost/starting_room",
+    "middle_floor_y": 1
+  },
+  "start_exit": "south",
+  "hallways": {
+    "north_south": [
+      {
+        "id": "incore:roguelike/frost/hallway_ns",
+        "middle_floor_y": 1,
+        "weight": 1
+      }
+    ],
+    "east_west": [
+      {
+        "id": "incore:roguelike/frost/hallway_ew",
+        "middle_floor_y": 1,
+        "weight": 1
+      }
+    ]
+  },
+  "room_types": {
+    "regular": [
+      {
+        "id": "incore:roguelike/frost/room_big",
+        "middle_floor_y": 12,
+        "weight": 3
+      }
+    ],
+    "quarry": [
+      {
+        "id": "incore:roguelike/frost/room_big",
+        "middle_floor_y": 12,
+        "weight": 1
+      }
+    ],
+    "market": [
+      {
+        "id": "incore:roguelike/frost/room_big",
+        "middle_floor_y": 12,
+        "weight": 1
+      }
+    ],
+    "loot": [
+      {
+        "id": "incore:roguelike/frost/room_big",
+        "middle_floor_y": 12,
+        "weight": 1
+      }
+    ],
+    "northium_caves": [
+      {
+        "id": "incore:roguelike/frost/room_big",
+        "middle_floor_y": 12,
+        "weight": 1
+      }
+    ],
+    "library": [
+      {
+        "id": "incore:roguelike/frost/room_big",
+        "middle_floor_y": 12,
+        "weight": 1
+      }
+    ],
+    "factory": [
+      {
+        "id": "incore:roguelike/frost/room_big",
+        "middle_floor_y": 12,
+        "weight": 1
+      }
+    ],
+    "workshop": [
+      {
+        "id": "incore:roguelike/frost/room_big",
+        "middle_floor_y": 12,
+        "weight": 1
+      }
+    ]
+  },
+  "room_type_weights": {
+    "regular": 5,
+    "quarry": 1,
+    "market": 1,
+    "loot": 2,
+    "northium_caves": 1
+  },
+  "special_room_quotas": {
+    "library": 1,
+    "factory": 1,
+    "workshop": 1
+  },
+  "secret_rooms": [
     {
       "id": "incore:roguelike/frost/room_small",
-      "weight": 2
+      "middle_floor_y": 1,
+      "weight": 1
     }
   ],
   "weight": 2
