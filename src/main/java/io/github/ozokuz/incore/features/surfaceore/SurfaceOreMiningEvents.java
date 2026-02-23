@@ -82,10 +82,6 @@ public final class SurfaceOreMiningEvents {
                     );
                 }
             }
-            player.displayClientMessage(
-                    Component.translatable("incore.surface_stone.mined_infinite", event.getState().getBlock().getName()),
-                    true
-            );
             return;
         }
 
@@ -99,14 +95,6 @@ public final class SurfaceOreMiningEvents {
         }
 
         if (spotBE.remainingMines() == 1) {
-            player.displayClientMessage(
-                    Component.translatable("incore.surface_ore.mined", event.getState().getBlock().getName(), 0, spotBE.maxMines()),
-                    true
-            );
-            player.displayClientMessage(
-                    Component.translatable("incore.surface_ore.depleted", event.getState().getBlock().getName()),
-                    false
-            );
             return;
         }
 
@@ -122,10 +110,6 @@ public final class SurfaceOreMiningEvents {
                 event.getPos().getY() + 0.5D,
                 event.getPos().getZ() + 0.5D,
                 oreSpotBlock.oreType().oreDropStack()
-        );
-        player.displayClientMessage(
-                Component.translatable("incore.surface_ore.mined", event.getState().getBlock().getName(), result.remainingMines(), result.maxMines()),
-                true
         );
     }
 

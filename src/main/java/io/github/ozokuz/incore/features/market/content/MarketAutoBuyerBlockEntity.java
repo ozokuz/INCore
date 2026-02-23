@@ -262,6 +262,38 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
         }
     }
 
+    public int progressForDisplay() {
+        return progress;
+    }
+
+    public int maxProgressForDisplay() {
+        return Math.max(1, Config.MARKET_AUTOBUYER_INTERVAL_TICKS.get());
+    }
+
+    public int statusForDisplay() {
+        return status;
+    }
+
+    public @Nullable ResourceLocation targetItemIdForDisplay() {
+        return targetItemId;
+    }
+
+    public int priceCapSpurForDisplay() {
+        return priceCapSpur;
+    }
+
+    public int batchSizeForDisplay() {
+        return batchSize;
+    }
+
+    public boolean enabledForDisplay() {
+        return enabled;
+    }
+
+    public int rpmForDisplay() {
+        return Math.round(Math.abs(getSpeed()));
+    }
+
     @Override
     public float calculateStressApplied() {
         float speed = Math.abs(getTheoreticalSpeed());
