@@ -7,8 +7,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -38,6 +40,11 @@ public class RoguelikeAltarBlock extends Block implements EntityBlock {
             return ItemInteractionResult.SUCCESS;
         }
 
+        if (stack.is(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get())) {
+            RoguelikeService.placeCrystal(player, hand, pos);
+            return ItemInteractionResult.SUCCESS;
+        }
+
         RoguelikeService.tryFinalizeAltar(player, hand, pos);
         return ItemInteractionResult.SUCCESS;
     }
@@ -46,6 +53,11 @@ public class RoguelikeAltarBlock extends Block implements EntityBlock {
     protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
                                                         @NotNull Player player, @NotNull BlockHitResult hitResult) {
         if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+
+        if (player.isShiftKeyDown()) {
+            RoguelikeService.tryFinalizeAltar(player, null, pos);
             return InteractionResult.SUCCESS;
         }
 
@@ -64,6 +76,19 @@ public class RoguelikeAltarBlock extends Block implements EntityBlock {
         if (blockEntity instanceof RoguelikeAltarBlockEntity altar) {
             altar.setOwner(player.getUUID());
         }
+    }
+
+    @Override
+    public void onRemove(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof RoguelikeAltarBlockEntity altar && altar.crystalPlaced()) {
+            if (!level.isClientSide) {
+                ItemStack crystalStack = new ItemStack(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get());
+                ItemEntity itemEntity = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, crystalStack);
+                level.addFreshEntity(itemEntity);
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

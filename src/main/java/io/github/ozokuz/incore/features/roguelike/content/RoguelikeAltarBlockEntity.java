@@ -28,6 +28,7 @@ public class RoguelikeAltarBlockEntity extends BlockEntity {
     private List<DisplayEntry> displayEntries = List.of();
     @Nullable
     private UUID ownerId;
+    private boolean crystalPlaced;
 
     public RoguelikeAltarBlockEntity(BlockPos pos, BlockState blockState) {
         super(Registration.ROGUELIKE_ALTAR_BE.get(), pos, blockState);
@@ -42,12 +43,26 @@ public class RoguelikeAltarBlockEntity extends BlockEntity {
         return ownerId;
     }
 
+    public boolean crystalPlaced() {
+        return crystalPlaced;
+    }
+
     public void setOwner(@Nullable UUID ownerId) {
         if (Objects.equals(this.ownerId, ownerId)) {
             return;
         }
 
         this.ownerId = ownerId;
+        setChanged();
+        syncToClient();
+    }
+
+    public void setCrystalPlaced(boolean value) {
+        if (this.crystalPlaced == value) {
+            return;
+        }
+
+        this.crystalPlaced = value;
         setChanged();
         syncToClient();
     }
@@ -87,6 +102,7 @@ public class RoguelikeAltarBlockEntity extends BlockEntity {
 
         displayEntries = List.copyOf(loaded);
         ownerId = tag.hasUUID("ownerId") ? tag.getUUID("ownerId") : null;
+        crystalPlaced = tag.getBoolean("crystalPlaced");
     }
 
     @Override
@@ -102,6 +118,7 @@ public class RoguelikeAltarBlockEntity extends BlockEntity {
         if (ownerId != null) {
             tag.putUUID("ownerId", ownerId);
         }
+        tag.putBoolean("crystalPlaced", crystalPlaced);
     }
 
     @Override

@@ -57,8 +57,9 @@ public class RoguelikeSavedData extends SavedData {
 
             UUID playerId = row.getUUID("player");
             int crystalsCrafted = Math.max(0, row.getInt("crystalsCrafted"));
+            boolean crystalPlaced = row.getBoolean("crystalPlaced");
             List<AltarRequirement> requirements = readAltarRequirements(row.getList("altarRequirements", Tag.TAG_COMPOUND));
-            data.altarProfiles.put(playerId, new AltarProfile(crystalsCrafted, requirements));
+            data.altarProfiles.put(playerId, new AltarProfile(crystalsCrafted, requirements, crystalPlaced));
         }
 
         ListTag dungeonsTag = tag.getList("dungeons", Tag.TAG_COMPOUND);
@@ -92,6 +93,7 @@ public class RoguelikeSavedData extends SavedData {
             CompoundTag row = new CompoundTag();
             row.putUUID("player", entry.getKey());
             row.putInt("crystalsCrafted", entry.getValue().crystalsCrafted());
+            row.putBoolean("crystalPlaced", entry.getValue().crystalPlaced());
             row.put("altarRequirements", toRequirementsTag(entry.getValue().altarRequirements()));
             playerAltarsTag.add(row);
         }
@@ -198,6 +200,15 @@ public class RoguelikeSavedData extends SavedData {
         return !requirements.isEmpty() && requirements.stream().allMatch(AltarRequirement::isComplete);
     }
 
+    public boolean isCrystalPlaced(UUID playerId) {
+        return altarProfile(playerId).crystalPlaced();
+    }
+
+    public void setCrystalPlaced(UUID playerId, boolean value) {
+        AltarProfile profile = altarProfile(playerId);
+        putAltarProfile(playerId, profile.withCrystalPlaced(value));
+    }
+
     public void setAltarRequirements(UUID playerId, List<AltarRequirement> requirements) {
         AltarProfile profile = altarProfile(playerId);
         putAltarProfile(playerId, profile.withAltarRequirements(normalizeRequirements(requirements)));
@@ -231,8 +242,8 @@ public class RoguelikeSavedData extends SavedData {
         return 0;
     }
 
-    public record AltarProfile(int crystalsCrafted, List<AltarRequirement> altarRequirements) {
-        public static final AltarProfile EMPTY = new AltarProfile(0, List.of());
+    public record AltarProfile(int crystalsCrafted, List<AltarRequirement> altarRequirements, boolean crystalPlaced) {
+        public static final AltarProfile EMPTY = new AltarProfile(0, List.of(), false);
 
         public AltarProfile {
             crystalsCrafted = Math.max(0, crystalsCrafted);
@@ -240,11 +251,15 @@ public class RoguelikeSavedData extends SavedData {
         }
 
         public AltarProfile withCrystalsCrafted(int newValue) {
-            return new AltarProfile(newValue, altarRequirements);
+            return new AltarProfile(newValue, altarRequirements, crystalPlaced);
         }
 
         public AltarProfile withAltarRequirements(List<AltarRequirement> requirements) {
-            return new AltarProfile(crystalsCrafted, requirements);
+            return new AltarProfile(crystalsCrafted, requirements, crystalPlaced);
+        }
+
+        public AltarProfile withCrystalPlaced(boolean value) {
+            return new AltarProfile(crystalsCrafted, altarRequirements, value);
         }
     }
 

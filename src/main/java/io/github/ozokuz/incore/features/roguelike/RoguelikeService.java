@@ -41,6 +41,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -90,11 +91,58 @@ public final class RoguelikeService {
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         ensureAltarRequirement(server, data, ownerId);
 
-        absorbDroppedItems(level, altarPos, data, ownerId);
+        boolean crystalPlaced = data.isCrystalPlaced(ownerId);
+        altar.setCrystalPlaced(crystalPlaced);
+
+        if (crystalPlaced) {
+            absorbDroppedItems(level, altarPos, data, ownerId);
+        }
         syncAltarDisplay(data.altarRequirements(ownerId), altar);
     }
 
-    public static boolean tryFinalizeAltar(Player player, InteractionHand hand, BlockPos altarPos) {
+    public static boolean placeCrystal(Player player, InteractionHand hand, BlockPos altarPos) {
+        if (!(player instanceof ServerPlayer serverPlayer) || serverPlayer.getServer() == null) {
+            return false;
+        }
+
+        UUID ownerId = resolveAltarOwner(serverPlayer, altarPos);
+        if (ownerId == null) {
+            return false;
+        }
+
+        MinecraftServer server = serverPlayer.getServer();
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+
+        if (data.isCrystalPlaced(ownerId)) {
+            serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.crystal_already_placed"));
+            return false;
+        }
+
+        ItemStack held = serverPlayer.getItemInHand(hand);
+        if (!held.is(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get())) {
+            return false;
+        }
+
+        if (!serverPlayer.isCreative()) {
+            held.shrink(1);
+        }
+
+        data.setCrystalPlaced(ownerId, true);
+        ensureAltarRequirement(server, data, ownerId);
+
+        serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.crystal_placed").withStyle(ChatFormatting.AQUA));
+        showAltarRequirement(serverPlayer, altarPos);
+
+        BlockEntity blockEntity = serverPlayer.serverLevel().getBlockEntity(altarPos);
+        if (blockEntity instanceof RoguelikeAltarBlockEntity altar) {
+            altar.setCrystalPlaced(true);
+            syncAltarDisplay(data.altarRequirements(ownerId), altar);
+        }
+
+        return true;
+    }
+
+    public static boolean tryFinalizeAltar(Player player, @Nullable InteractionHand hand, BlockPos altarPos) {
         if (!(player instanceof ServerPlayer serverPlayer) || serverPlayer.getServer() == null) {
             return false;
         }
@@ -108,10 +156,9 @@ public final class RoguelikeService {
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         ensureAltarRequirement(server, data, ownerId);
 
-        ItemStack held = serverPlayer.getItemInHand(hand);
-        if (!held.is(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get())) {
+        if (!data.isCrystalPlaced(ownerId)) {
+            serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.need_crystal"));
             showAltarRequirement(serverPlayer, altarPos);
-            serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.need_empty_crystal"));
             return false;
         }
 
@@ -121,16 +168,13 @@ public final class RoguelikeService {
             return false;
         }
 
-        if (!serverPlayer.isCreative()) {
-            held.shrink(1);
-        }
-
         ItemStack crystal = new ItemStack(Registration.DUNGEON_CRYSTAL_ITEM.get());
         if (!serverPlayer.addItem(crystal)) {
             serverPlayer.drop(crystal, false);
         }
 
         data.incrementCrystalsCrafted(ownerId);
+        data.setCrystalPlaced(ownerId, false);
         chooseNextAltarRequirement(server, data, ownerId);
 
         serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.created_crystal").withStyle(ChatFormatting.AQUA));
@@ -138,6 +182,7 @@ public final class RoguelikeService {
 
         BlockEntity blockEntity = serverPlayer.serverLevel().getBlockEntity(altarPos);
         if (blockEntity instanceof RoguelikeAltarBlockEntity altar) {
+            altar.setCrystalPlaced(false);
             syncAltarDisplay(data.altarRequirements(ownerId), altar);
         }
 
@@ -185,7 +230,10 @@ public final class RoguelikeService {
             );
         }
 
-        if (data.isAltarComplete(ownerId)) {
+        boolean crystalPlaced = data.isCrystalPlaced(ownerId);
+        if (!crystalPlaced) {
+            serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.need_crystal"));
+        } else if (data.isAltarComplete(ownerId)) {
             serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.ready"));
         } else {
             serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.drop_items_hint"));
