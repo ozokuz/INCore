@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,18 +19,23 @@ import java.util.Comparator;
 import java.util.List;
 
 public class PlayerLevelRewardsScreen extends Screen {
-    private static final int TARGET_WINDOW_WIDTH = 640;
-    private static final int TARGET_WINDOW_HEIGHT = 352;
-    private static final int SIDEBAR_TARGET_WIDTH = 210;
-    private static final int LIST_ROW_HEIGHT = 16;
+    private static final int TARGET_WINDOW_WIDTH = 660;
+    private static final int TARGET_WINDOW_HEIGHT = 368;
+    private static final int HERO_HEIGHT = 82;
+    private static final int SIDEBAR_TARGET_WIDTH = 220;
+    private static final int LEVEL_CARD_HEIGHT = 30;
     private static final int SCROLLBAR_WIDTH = 6;
     private static final int SCROLLBAR_GAP = 3;
     private static final int MIN_SCROLLBAR_THUMB_HEIGHT = 12;
-    private static final int REWARD_TILE_SIZE = 24;
-    private static final int REWARD_TILE_GAP = 6;
+    private static final int REWARD_CARD_SIZE = 38;
+    private static final int REWARD_CARD_GAP = 8;
     private static final ResourceLocation XP_BAR_BACKGROUND = ResourceLocation.parse("incore:hud/experience_bar_background_white");
     private static final ResourceLocation XP_BAR_PROGRESS = ResourceLocation.parse("incore:hud/experience_bar_progress_white");
     private static final int XP_BAR_HEIGHT = 5;
+
+    private static final int COLOR_TEXT_PRIMARY = 0xFFF3F8FF;
+    private static final int COLOR_TEXT_SECONDARY = 0xFFD4E3F0;
+    private static final int COLOR_TEXT_MUTED = 0xFFA6BED2;
 
     private final Screen parent;
     private Integer previousMenuBlur;
@@ -76,29 +82,83 @@ public class PlayerLevelRewardsScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         Layout layout = layout();
         SidebarMetrics sidebar = sidebarMetrics(layout);
+        float pulse = 0.5F + 0.5F * Mth.sin((System.currentTimeMillis() % 4000L) / 220.0F);
 
         guiGraphics.fillGradient(0, 0, this.width, this.height, 0xD5090B10, 0xE0010206);
         drawMainPanel(guiGraphics, layout.windowLeft(), layout.windowTop(), layout.windowWidth(), layout.windowHeight());
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawString(this.font, this.title, layout.windowLeft() + 12, layout.windowTop() + 8, 0xFFF3F8FF, false);
+        guiGraphics.drawString(this.font, this.title, layout.windowLeft() + 12, layout.windowTop() + 8, COLOR_TEXT_PRIMARY, false);
 
-        drawCard(guiGraphics, layout.sidebarX(), layout.sidebarY(), layout.sidebarWidth(), layout.sidebarHeight());
-        drawCard(guiGraphics, layout.summaryX(), layout.summaryY(), layout.summaryWidth(), layout.summaryHeight());
-        drawCard(guiGraphics, layout.detailsX(), layout.detailsY(), layout.detailsWidth(), layout.detailsHeight());
-
-        guiGraphics.drawString(
-                this.font,
-                Component.translatable("screen.incore.player_level_rewards.sidebar_title"),
-                layout.sidebarX() + 8,
-                layout.sidebarY() + 8,
-                0xFFD6F1FF,
-                false
-        );
+        drawCard(guiGraphics, layout.heroX(), layout.heroY(), layout.heroWidth(), layout.heroHeight());
+        drawCard(guiGraphics, layout.railX(), layout.railY(), layout.railWidth(), layout.railHeight());
+        drawCard(guiGraphics, layout.galleryX(), layout.galleryY(), layout.galleryWidth(), layout.galleryHeight());
 
         List<PlayerLevelClientCache.RewardPreview> ordered = getOrderedPreviews();
         syncSelection(ordered, sidebar.visibleRows());
+
+        drawHeroCard(guiGraphics, layout, pulse);
+        drawLevelRail(guiGraphics, ordered, sidebar, mouseX, mouseY, pulse);
+        drawRewardGallery(guiGraphics, layout, ordered, mouseX, mouseY, pulse);
+    }
+
+    private void drawHeroCard(GuiGraphics guiGraphics, Layout layout, float pulse) {
+        int currentLevel = PlayerLevelClientCache.getLevel();
+        int currentExperience = PlayerLevelClientCache.getCurrentExperience();
+        int experienceToNextLevel = PlayerLevelClientCache.getExperienceToNextLevel();
+
+        int x = layout.heroX() + 10;
+        int y = layout.heroY() + 8;
+        int width = layout.heroWidth() - 20;
+
+        int glowAlpha = 36 + Math.round(26 * pulse);
+        guiGraphics.fill(layout.heroX() + 1, layout.heroY() + 1, layout.heroX() + layout.heroWidth() - 1, layout.heroY() + 2, withAlpha(0x7DE9FF, glowAlpha));
+
+        guiGraphics.drawString(this.font, this.title, x, y, COLOR_TEXT_PRIMARY, false);
+        Component levelChip = Component.translatable("screen.incore.player_level_rewards.current_level", currentLevel);
+        drawChip(guiGraphics, x, y + 12, levelChip, 0xA7243648, 0xFFEAF6FF);
+
+        int progressTextY = y + 30;
+        guiGraphics.drawString(
+                this.font,
+                Component.translatable("screen.incore.player_level_rewards.current_progress", currentExperience, experienceToNextLevel),
+                x,
+                progressTextY,
+                COLOR_TEXT_SECONDARY,
+                false
+        );
+
+        int barY = progressTextY + 13;
+        drawProgressBar(guiGraphics, x, barY, Math.max(130, width - 4), currentExperience, experienceToNextLevel);
+
+        Component focusLine;
+        if (this.selectedLevel > 0) {
+            focusLine = Component.translatable("screen.incore.player_level_rewards.details_level", this.selectedLevel);
+        } else {
+            focusLine = Component.translatable("screen.incore.player_level_rewards.none");
+        }
+        int focusWidth = this.font.width(focusLine);
+        int focusX = layout.heroX() + layout.heroWidth() - focusWidth - 12;
+        guiGraphics.drawString(this.font, focusLine, focusX, y + 12, 0xFFD3ECFF, false);
+    }
+
+    private void drawLevelRail(
+            GuiGraphics guiGraphics,
+            List<PlayerLevelClientCache.RewardPreview> ordered,
+            SidebarMetrics sidebar,
+            int mouseX,
+            int mouseY,
+            float pulse
+    ) {
+        guiGraphics.drawString(
+                this.font,
+                Component.translatable("screen.incore.player_level_rewards.sidebar_title"),
+                sidebar.rowsLeft(),
+                sidebar.rowsTop() - 16,
+                COLOR_TEXT_PRIMARY,
+                false
+        );
 
         for (int i = 0; i < sidebar.visibleRows(); i++) {
             int index = this.sidebarScroll + i;
@@ -107,60 +167,52 @@ public class PlayerLevelRewardsScreen extends Screen {
             }
 
             PlayerLevelClientCache.RewardPreview preview = ordered.get(index);
-            int rowY = sidebar.rowsTop() + i * LIST_ROW_HEIGHT;
+            int rowX = sidebar.rowsLeft();
+            int rowY = sidebar.rowsTop() + i * LEVEL_CARD_HEIGHT;
+            int rowBottom = rowY + LEVEL_CARD_HEIGHT - 2;
+            int rowRight = sidebar.rowsRight();
+
+            boolean hovered = mouseX >= rowX && mouseX < rowRight && mouseY >= rowY && mouseY < rowBottom;
             boolean selected = preview.level() == this.selectedLevel;
 
-            if (selected) {
-                guiGraphics.fill(sidebar.rowsLeft(), rowY, sidebar.rowsRight(), rowY + LIST_ROW_HEIGHT - 1, 0x6636B4D6);
-                guiGraphics.fill(sidebar.rowsLeft(), rowY, sidebar.rowsLeft() + 2, rowY + LIST_ROW_HEIGHT - 1, 0xFF74E9FF);
+            int rowFill = selected ? 0xB1263E58 : 0x98202A36;
+            if (hovered && !selected) {
+                rowFill = 0xAE253446;
             }
+            guiGraphics.fill(rowX, rowY, rowRight, rowBottom, rowFill);
 
-            Component rowLevel = Component.translatable("screen.incore.player_level_rewards.sidebar_level", preview.level());
-            Component rowXp = Component.translatable("screen.incore.player_level_rewards.sidebar_xp", preview.requiredExperience());
-            int xpX = sidebar.rowsRight() - this.font.width(rowXp) - 4;
-            guiGraphics.drawString(this.font, rowLevel, sidebar.rowsLeft() + 6, rowY + 4, selected ? 0xFFEEF9FF : 0xFFE1E8F2, false);
-            guiGraphics.drawString(this.font, rowXp, xpX, rowY + 4, selected ? 0xFFD4F3FF : 0xFFAFC1D2, false);
+            int borderColor = selected ? withAlpha(0x89EFFF, 140 + Math.round(70 * pulse)) : (hovered ? 0xAA6ABFDF : 0x66516D86);
+            drawCardOutline(guiGraphics, rowX, rowY, rowRight, rowBottom, borderColor);
+
+            int accent = selected ? 0xFF7AEFFF : 0xAA4B9AB8;
+            guiGraphics.fill(rowX, rowY, rowX + 3, rowBottom, accent);
+
+            Component levelText = Component.translatable("screen.incore.player_level_rewards.sidebar_level", preview.level());
+            guiGraphics.drawString(this.font, levelText, rowX + 8, rowY + 6, selected ? 0xFFF3FBFF : 0xFFE1EDF8, false);
+
+            Component xpText = Component.translatable("screen.incore.player_level_rewards.sidebar_xp", preview.requiredExperience());
+            int xpWidth = this.font.width(xpText) + 8;
+            int xpX = rowRight - xpWidth - 5;
+            int xpY = rowY + 5;
+            guiGraphics.fill(xpX, xpY, xpX + xpWidth, xpY + 11, selected ? 0xB03A607D : 0x8A2F4255);
+            guiGraphics.drawString(this.font, xpText, xpX + 4, xpY + 2, 0xFFE6F6FF, false);
         }
 
         drawSidebarScrollbar(guiGraphics, sidebar, ordered.size());
-        drawSummaryCard(guiGraphics, layout);
-        drawDetailsCard(guiGraphics, layout, ordered, mouseX, mouseY);
     }
 
-    private void drawSummaryCard(GuiGraphics guiGraphics, Layout layout) {
-        int currentLevel = PlayerLevelClientCache.getLevel();
-        int currentExperience = PlayerLevelClientCache.getCurrentExperience();
-        int experienceToNextLevel = PlayerLevelClientCache.getExperienceToNextLevel();
-
-        int textX = layout.summaryX() + 10;
-        int top = layout.summaryY() + 8;
-
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_level_rewards.current_level", currentLevel), textX, top, 0xFFFFFFFF, false);
-        guiGraphics.drawString(
-                this.font,
-                Component.translatable("screen.incore.player_level_rewards.current_progress", currentExperience, experienceToNextLevel),
-                textX,
-                top + 14,
-                0xDCE7F3,
-                false
-        );
-
-        int barY = top + 30;
-        int barWidth = Math.max(120, layout.summaryWidth() - 20);
-        drawProgressBar(guiGraphics, textX, barY, barWidth, currentExperience, experienceToNextLevel);
-    }
-
-    private void drawDetailsCard(
+    private void drawRewardGallery(
             GuiGraphics guiGraphics,
             Layout layout,
             List<PlayerLevelClientCache.RewardPreview> ordered,
             int mouseX,
-            int mouseY
+            int mouseY,
+            float pulse
     ) {
-        int detailsTextX = layout.detailsX() + 10;
-        int detailsTop = layout.detailsY() + 8;
+        int x = layout.galleryX() + 10;
+        int y = layout.galleryY() + 8;
 
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_level_rewards.details_title"), detailsTextX, detailsTop, 0xFFD6F1FF, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_level_rewards.details_title"), x, y, COLOR_TEXT_PRIMARY, false);
 
         PlayerLevelClientCache.RewardPreview selectedPreview = ordered.stream()
                 .filter(preview -> preview.level() == this.selectedLevel)
@@ -168,101 +220,84 @@ public class PlayerLevelRewardsScreen extends Screen {
                 .orElse(null);
 
         if (selectedPreview == null) {
-            guiGraphics.drawString(
-                    this.font,
-                    Component.translatable("screen.incore.player_level_rewards.none"),
-                    detailsTextX,
-                    detailsTop + 18,
-                    0xAFC8D8,
-                    false
-            );
+            guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_level_rewards.none"), x, y + 18, COLOR_TEXT_MUTED, false);
             return;
         }
 
-        guiGraphics.drawString(
-                this.font,
-                Component.translatable("screen.incore.player_level_rewards.details_level", selectedPreview.level()),
-                detailsTextX,
-                detailsTop + 16,
-                0xFFFFFFFF,
-                false
-        );
-        guiGraphics.drawString(
-                this.font,
-                Component.translatable("screen.incore.player_level_rewards.details_required_xp", selectedPreview.requiredExperience()),
-                detailsTextX,
-                detailsTop + 30,
-                0xDCE7F3,
-                false
-        );
-        guiGraphics.drawString(
-                this.font,
-                Component.translatable("screen.incore.player_level_rewards.details_rewards"),
-                detailsTextX,
-                detailsTop + 44,
-                0xFFD6F1FF,
-                false
-        );
+        Component levelChip = Component.translatable("screen.incore.player_level_rewards.details_level", selectedPreview.level());
+        Component xpChip = Component.translatable("screen.incore.player_level_rewards.details_required_xp", selectedPreview.requiredExperience());
+        drawChip(guiGraphics, x, y + 12, levelChip, 0xA9283B4E, 0xFFEAF6FF);
+
+        int xpChipWidth = this.font.width(xpChip) + 10;
+        int xpX = layout.galleryX() + layout.galleryWidth() - xpChipWidth - 10;
+        drawChip(guiGraphics, xpX, y + 12, xpChip, 0xA82B425A, 0xFFDBEEFF);
+
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_level_rewards.details_rewards"), x, y + 30, COLOR_TEXT_SECONDARY, false);
 
         if (selectedPreview.rewards().isEmpty()) {
-            guiGraphics.drawString(
-                    this.font,
-                    Component.translatable("screen.incore.player_level_rewards.level_empty"),
-                    detailsTextX,
-                    detailsTop + 58,
-                    0xAFC8D8,
-                    false
-            );
+            guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_level_rewards.level_empty"), x, y + 46, COLOR_TEXT_MUTED, false);
             return;
         }
 
         PlayerLevelClientCache.RewardEntry hoveredReward = null;
         ItemStack hoveredStack = ItemStack.EMPTY;
 
-        int tilesX = detailsTextX;
-        int tilesY = detailsTop + 58;
-        int availableWidth = Math.max(32, layout.detailsWidth() - 20);
-        int availableHeight = Math.max(32, layout.detailsHeight() - 70);
-
-        int columns = Math.max(1, (availableWidth + REWARD_TILE_GAP) / (REWARD_TILE_SIZE + REWARD_TILE_GAP));
-        int rows = Math.max(1, (availableHeight + REWARD_TILE_GAP) / (REWARD_TILE_SIZE + REWARD_TILE_GAP));
-        int maxTiles = columns * rows;
-        int rewardCount = Math.min(maxTiles, selectedPreview.rewards().size());
+        int cardsX = x;
+        int cardsY = y + 46;
+        int availableWidth = Math.max(32, layout.galleryWidth() - 20);
+        int availableHeight = Math.max(32, layout.galleryHeight() - 60);
+        int columns = Math.max(1, (availableWidth + REWARD_CARD_GAP) / (REWARD_CARD_SIZE + REWARD_CARD_GAP));
+        int rows = Math.max(1, (availableHeight + REWARD_CARD_GAP) / (REWARD_CARD_SIZE + REWARD_CARD_GAP));
+        int maxCards = columns * rows;
+        int rewardCount = Math.min(maxCards, selectedPreview.rewards().size());
 
         for (int i = 0; i < rewardCount; i++) {
             PlayerLevelClientCache.RewardEntry reward = selectedPreview.rewards().get(i);
             int col = i % columns;
             int row = i / columns;
-            int tileX = tilesX + col * (REWARD_TILE_SIZE + REWARD_TILE_GAP);
-            int tileY = tilesY + row * (REWARD_TILE_SIZE + REWARD_TILE_GAP);
+            int cardX = cardsX + col * (REWARD_CARD_SIZE + REWARD_CARD_GAP);
+            int cardY = cardsY + row * (REWARD_CARD_SIZE + REWARD_CARD_GAP);
+            int cardRight = cardX + REWARD_CARD_SIZE;
+            int cardBottom = cardY + REWARD_CARD_SIZE;
 
-            guiGraphics.fill(tileX, tileY, tileX + REWARD_TILE_SIZE, tileY + REWARD_TILE_SIZE, 0xAC172331);
-            guiGraphics.fill(tileX, tileY, tileX + REWARD_TILE_SIZE, tileY + 1, 0xA452C1E4);
-            guiGraphics.fill(tileX, tileY + REWARD_TILE_SIZE - 1, tileX + REWARD_TILE_SIZE, tileY + REWARD_TILE_SIZE, 0x80111A24);
+            boolean hovered = mouseX >= cardX && mouseX < cardRight && mouseY >= cardY && mouseY < cardBottom;
+            int fill = rewardCardFill(reward.kind());
+            if (hovered) {
+                fill = brighten(fill, 18);
+            }
+            guiGraphics.fill(cardX, cardY, cardRight, cardBottom, fill);
+
+            int borderAlpha = hovered ? 200 : (120 + Math.round(40 * pulse));
+            drawCardOutline(guiGraphics, cardX, cardY, cardRight, cardBottom, withAlpha(0x79E9FF, borderAlpha));
 
             ItemStack iconStack = iconStackFor(reward);
-            int iconX = tileX + (REWARD_TILE_SIZE - 16) / 2;
-            int iconY = tileY + (REWARD_TILE_SIZE - 16) / 2;
+            int iconX = cardX + (REWARD_CARD_SIZE - 16) / 2;
+            int iconY = cardY + (REWARD_CARD_SIZE - 16) / 2 + (hovered ? -1 : 0);
             guiGraphics.renderItem(iconStack, iconX, iconY);
-            if (reward.kind() == PlayerLevelSyncPayload.REWARD_KIND_ITEM) {
-                guiGraphics.renderItemDecorations(this.font, iconStack, iconX, iconY);
+
+            if (reward.kind() == PlayerLevelSyncPayload.REWARD_KIND_ITEM && reward.amount() > 1) {
+                String qty = "x" + reward.amount();
+                int qtyWidth = this.font.width(qty);
+                int qtyX = cardRight - qtyWidth - 3;
+                int qtyY = cardBottom - this.font.lineHeight - 2;
+                guiGraphics.fill(qtyX - 2, qtyY - 1, qtyX + qtyWidth + 2, qtyY + this.font.lineHeight, 0xC0141F2A);
+                guiGraphics.drawString(this.font, qty, qtyX, qtyY, 0xFFF0F6FF, false);
             }
 
-            if (mouseX >= tileX && mouseX < tileX + REWARD_TILE_SIZE && mouseY >= tileY && mouseY < tileY + REWARD_TILE_SIZE) {
+            if (hovered) {
                 hoveredReward = reward;
                 hoveredStack = iconStack;
             }
         }
 
         if (rewardCount < selectedPreview.rewards().size()) {
-            guiGraphics.drawString(
-                    this.font,
-                    Component.translatable("screen.incore.player_level_rewards.more_rewards", selectedPreview.rewards().size() - rewardCount),
-                    detailsTextX,
-                    layout.detailsY() + layout.detailsHeight() - 12,
-                    0xAFC8D8,
-                    false
+            Component overflow = Component.translatable(
+                    "screen.incore.player_level_rewards.more_rewards",
+                    selectedPreview.rewards().size() - rewardCount
             );
+            int overflowX = layout.galleryX() + layout.galleryWidth() - this.font.width(overflow) - 10;
+            int overflowY = layout.galleryY() + layout.galleryHeight() - 12;
+            guiGraphics.drawString(this.font, overflow, overflowX, overflowY, COLOR_TEXT_MUTED, false);
         }
 
         if (hoveredReward != null) {
@@ -293,7 +328,7 @@ public class PlayerLevelRewardsScreen extends Screen {
         if (button == 0) {
             SidebarMetrics sidebar = sidebarMetrics(layout());
             if (mouseX >= sidebar.rowsLeft() && mouseX < sidebar.rowsRight() && mouseY >= sidebar.rowsTop() && mouseY < sidebar.rowsBottom()) {
-                int row = (int) ((mouseY - sidebar.rowsTop()) / LIST_ROW_HEIGHT);
+                int row = (int) ((mouseY - sidebar.rowsTop()) / LEVEL_CARD_HEIGHT);
                 int index = this.sidebarScroll + row;
                 List<PlayerLevelClientCache.RewardPreview> ordered = getOrderedPreviews();
                 if (index >= 0 && index < ordered.size()) {
@@ -325,11 +360,11 @@ public class PlayerLevelRewardsScreen extends Screen {
     }
 
     private int windowWidth() {
-        return Math.min(TARGET_WINDOW_WIDTH, Math.max(420, this.width - 24));
+        return Math.min(TARGET_WINDOW_WIDTH, Math.max(440, this.width - 24));
     }
 
     private int windowHeight() {
-        return Math.min(TARGET_WINDOW_HEIGHT, Math.max(280, this.height - 24));
+        return Math.min(TARGET_WINDOW_HEIGHT, Math.max(300, this.height - 24));
     }
 
     private Layout layout() {
@@ -343,17 +378,9 @@ public class PlayerLevelRewardsScreen extends Screen {
         int contentWidth = windowWidth - 24;
         int contentHeight = windowHeight - 42;
 
-        int sidebarWidth = Math.min(SIDEBAR_TARGET_WIDTH, Math.max(160, contentWidth / 3));
-        int rightX = contentX + sidebarWidth + 8;
-        int rightWidth = contentWidth - sidebarWidth - 8;
-
-        int summaryHeight = 74;
-        int detailsHeight = contentHeight - summaryHeight - 8;
-        if (detailsHeight < 96) {
-            int shift = 96 - detailsHeight;
-            summaryHeight = Math.max(58, summaryHeight - shift);
-            detailsHeight = contentHeight - summaryHeight - 8;
-        }
+        int railWidth = Math.min(SIDEBAR_TARGET_WIDTH, Math.max(170, contentWidth / 3));
+        int galleryX = contentX + railWidth + 8;
+        int galleryWidth = contentWidth - railWidth - 8;
 
         return new Layout(
                 windowLeft,
@@ -362,12 +389,11 @@ public class PlayerLevelRewardsScreen extends Screen {
                 windowHeight,
                 contentX,
                 contentY,
-                sidebarWidth,
+                contentWidth,
                 contentHeight,
-                rightX,
-                rightWidth,
-                summaryHeight,
-                detailsHeight
+                railWidth,
+                galleryX,
+                galleryWidth
         );
     }
 
@@ -385,6 +411,19 @@ public class PlayerLevelRewardsScreen extends Screen {
         guiGraphics.fill(x, y + height - 1, x + width, y + height, 0x80131A22);
         guiGraphics.fill(x, y, x + 1, y + height, 0x804A9EB9);
         guiGraphics.fill(x + width - 1, y, x + width, y + height, 0x80131A22);
+    }
+
+    private static void drawCardOutline(GuiGraphics guiGraphics, int left, int top, int right, int bottom, int color) {
+        guiGraphics.fill(left, top, right, top + 1, color);
+        guiGraphics.fill(left, bottom - 1, right, bottom, color);
+        guiGraphics.fill(left, top, left + 1, bottom, color);
+        guiGraphics.fill(right - 1, top, right, bottom, color);
+    }
+
+    private void drawChip(GuiGraphics guiGraphics, int x, int y, Component text, int fillColor, int textColor) {
+        int width = this.font.width(text) + 10;
+        guiGraphics.fill(x, y, x + width, y + 11, fillColor);
+        guiGraphics.drawString(this.font, text, x + 5, y + 2, textColor, false);
     }
 
     private List<PlayerLevelClientCache.RewardPreview> getOrderedPreviews() {
@@ -456,13 +495,13 @@ public class PlayerLevelRewardsScreen extends Screen {
     }
 
     private static SidebarMetrics sidebarMetrics(Layout layout) {
-        int rowsTop = layout.sidebarY() + 24;
-        int rowsBottom = layout.sidebarY() + layout.sidebarHeight() - 8;
-        int trackRight = layout.sidebarX() + layout.sidebarWidth() - 6;
+        int rowsTop = layout.railY() + 24;
+        int rowsBottom = layout.railY() + layout.railHeight() - 8;
+        int trackRight = layout.railX() + layout.railWidth() - 6;
         int trackLeft = trackRight - SCROLLBAR_WIDTH;
         int rowsRight = trackLeft - SCROLLBAR_GAP;
-        int rowsLeft = layout.sidebarX() + 6;
-        int visibleRows = Math.max(1, (rowsBottom - rowsTop) / LIST_ROW_HEIGHT);
+        int rowsLeft = layout.railX() + 8;
+        int visibleRows = Math.max(1, (rowsBottom - rowsTop) / LEVEL_CARD_HEIGHT);
         return new SidebarMetrics(rowsLeft, rowsTop, rowsRight, rowsBottom, visibleRows, trackLeft, trackRight);
     }
 
@@ -547,6 +586,27 @@ public class PlayerLevelRewardsScreen extends Screen {
         return lines;
     }
 
+    private static int rewardCardFill(int kind) {
+        return switch (kind) {
+            case PlayerLevelSyncPayload.REWARD_KIND_SANITY_CAP -> 0xB0193A3A;
+            case PlayerLevelSyncPayload.REWARD_KIND_COMMAND -> 0xB03A301B;
+            default -> 0xB01A2735;
+        };
+    }
+
+    private static int withAlpha(int rgb, int alpha) {
+        int clamped = Math.clamp(alpha, 0, 255);
+        return (clamped << 24) | (rgb & 0x00FFFFFF);
+    }
+
+    private static int brighten(int color, int amount) {
+        int a = (color >>> 24) & 0xFF;
+        int r = Math.clamp(((color >>> 16) & 0xFF) + amount, 0, 255);
+        int g = Math.clamp(((color >>> 8) & 0xFF) + amount, 0, 255);
+        int b = Math.clamp((color & 0xFF) + amount, 0, 255);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
     private record Layout(
             int windowLeft,
             int windowTop,
@@ -554,43 +614,46 @@ public class PlayerLevelRewardsScreen extends Screen {
             int windowHeight,
             int contentX,
             int contentY,
-            int sidebarWidth,
-            int sidebarHeight,
-            int rightX,
-            int rightWidth,
-            int summaryHeight,
-            int detailsHeight
+            int contentWidth,
+            int contentHeight,
+            int railWidth,
+            int galleryX,
+            int galleryWidth
     ) {
-        int sidebarX() {
+        int heroX() {
+            return galleryX;
+        }
+
+        int heroY() {
+            return contentY;
+        }
+
+        int heroWidth() {
+            return galleryWidth;
+        }
+
+        int heroHeight() {
+            return HERO_HEIGHT;
+        }
+
+        int railX() {
             return contentX;
         }
 
-        int sidebarY() {
+        int railY() {
             return contentY;
         }
 
-        int summaryX() {
-            return rightX;
+        int railHeight() {
+            return contentHeight;
         }
 
-        int summaryY() {
-            return contentY;
+        int galleryY() {
+            return contentY + HERO_HEIGHT + 8;
         }
 
-        int summaryWidth() {
-            return rightWidth;
-        }
-
-        int detailsX() {
-            return rightX;
-        }
-
-        int detailsY() {
-            return contentY + summaryHeight + 8;
-        }
-
-        int detailsWidth() {
-            return rightWidth;
+        int galleryHeight() {
+            return contentHeight - HERO_HEIGHT - 8;
         }
     }
 
