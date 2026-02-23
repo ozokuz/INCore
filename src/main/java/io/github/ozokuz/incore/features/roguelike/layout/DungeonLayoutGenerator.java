@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class DungeonLayoutGenerator {
-    public static final int GRID_SIZE = 11;
+    public static final int GRID_SIZE = 9;
     public static final int CENTER_CELL = GRID_SIZE / 2;
 
     private DungeonLayoutGenerator() {
