@@ -211,6 +211,22 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
         }
     }
 
+    public int progressForDisplay() {
+        return progress;
+    }
+
+    public int maxProgressForDisplay() {
+        return Math.max(1, Config.MARKET_SHIPMENT_INTERVAL_TICKS.get());
+    }
+
+    public int statusForDisplay() {
+        return status;
+    }
+
+    public int rpmForDisplay() {
+        return Math.round(Math.abs(getSpeed()));
+    }
+
     @Override
     public float calculateStressApplied() {
         float speed = Math.abs(getTheoreticalSpeed());

@@ -33,11 +33,12 @@ Manual gameplay verification checklist for testers.
 ## Overworld Surface Ore Patches
 - [ ] Given the server has unexplored overworld terrain, when traveling into newly generated chunks, then chunk selection for surface ore patches is deterministic and averages to 1 selected chunk in 50 by world seed/chunk hash.
 - [ ] Given any generated surface ore patch, when counting all spots in that one patch cluster, then the patch contains 2 to 6 spots.
-- [ ] Given any generated patch, when mining each spot once and observing the remaining/max counter message, then each spot in that patch starts with the same max mine count and that max remains between 400 and 1200.
+- [ ] Given any generated patch and Jade overlay enabled, when checking each spot tooltip before first mine, then each spot in that patch starts with the same `Mines: remaining/max` max value and that max remains between 400 and 1200.
 - [ ] Given generated patches near world spawn and generated patches far from world spawn, when comparing their max mine counts across multiple samples, then farther patches trend richer with higher max mine counts.
 - [ ] Given newly generated patches in multiple chunks, when identifying ore spot block types, then each patch uses exactly one ore type chosen from: Crimsite, Veridium, Asurine, Ochrum, Cinnabar, Mixed Metals, Gem Clusters.
 - [ ] Given a surface ore spot with more than one mine remaining, when breaking it once normally, then the block remains in place and drops one item of that ore type's original ore stone block.
 - [ ] Given a surface ore spot with one mine remaining, when breaking it once normally, then the block is removed and drops one item of that ore type's original ore stone block.
+- [ ] Given Jade overlay is enabled, when mining surface ore or surface stone spots normally, then no extra mined/depleted actionbar/chat message is shown for each mine tick.
 - [ ] Given a player in creative mode, when sneaking and breaking a surface ore spot, then the spot is destroyed immediately and the position becomes air.
 - [ ] Given a player in survival mode, when sneaking and breaking a surface ore spot once, then the break is canceled and a warning is shown; when sneaking and breaking that same spot again within 4 seconds, then the spot is destroyed.
 - [ ] Given any generated patch, when checking distance between each pair of spots in that patch on the XZ plane, then all spots are spaced by at least 3 blocks.
@@ -256,6 +257,18 @@ Manual gameplay verification checklist for testers.
 - [ ] Given player looks at a Mechanical Lab while powered by Create rotation, when Jade tooltip is shown, then exactly one RPM/SU line is visible (not duplicated) and no burner fuel or modular FE lines are present.
 - [ ] Given player looks at a Modular Lab with FE stored, when Jade tooltip is shown, then exactly one FE stored/capacity line is visible (not duplicated) and no burner fuel or mechanical RPM/SU lines are present.
 - [ ] Given player looks at Mechanical or Modular labs while Jade overlay is active, when tooltip is shown, then generic lines (`Tier`, `Owner`, `Status`, `Run`, `Overall`) appear once each (no duplicated sections).
+
+## Jade Shipment Terminals And Surface Spots
+- [ ] Given Jade and INCore are loaded and a base `incore:shipment_terminal` is powered by at least 128 RPM, when looking at the terminal, then tooltip includes shipment status, shipment progress, and an `RPM` line and does not include an `FE` line.
+- [ ] Given Jade and INCore are loaded and a `incore:shipment_terminal_mk2` has stored FE, when looking at the terminal, then tooltip includes shipment status, shipment progress, and an `FE: current/capacity` line and does not include an `RPM` line.
+- [ ] Given Jade and INCore are loaded and player looks at `incore:shipment_terminal_mk2`, when tooltip is visible, then `Status` and `Shipment` lines appear exactly once each (no duplicated MK1 + MK2 sections).
+- [ ] Given Jade is enabled and player looks at any surface ore spot block, when tooltip appears, then it includes ore type and `Mines: remaining/max`; after mining once, the remaining value decreases by one on the next tooltip refresh.
+- [ ] Given Jade is enabled and player looks at any surface stone spot block, when tooltip appears, then it includes stone type and `Mines: Infinite`.
+
+## Jade Market Auto-Buyer Overlay
+- [ ] Given Jade and INCore are loaded and a base `incore:market_autobuyer` has a target item configured, when looking at the block, then tooltip includes status, buy-cycle progress, target item id, price cap, stacks setting, enabled state, and an `RPM` line without any `FE` line.
+- [ ] Given Jade and INCore are loaded and `incore:market_autobuyer_mk2` has stored FE and a target item configured, when looking at the block, then tooltip includes status, buy-cycle progress, target item id, price cap, stacks setting, enabled state, and an `FE: current/capacity` line without any `RPM` line.
+- [ ] Given Jade and INCore are loaded and player looks at `incore:market_autobuyer_mk2`, when tooltip is visible, then shared lines (`Status`, `Buy Cycle`, `Target`, `Price Cap`, `Stacks`, `Enabled`) appear exactly once each (no duplicated MK1 + MK2 sections).
 
 ## Dungeon Return Portal Placeholder
 - [ ] Given a dungeon structure template contains `incore:dungeon_return_portal`, when a dungeon is generated in the roguelike dimension, then each placeholder block is replaced with an active `incore:roguelike_portal` block.

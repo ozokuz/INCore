@@ -73,6 +73,14 @@ public class ShipmentTerminalMk2BlockEntity extends ShipmentTerminalBlockEntity 
         return energy;
     }
 
+    public int energyStoredForDisplay() {
+        return energy.getEnergyStored();
+    }
+
+    public int energyCapacityForDisplay() {
+        return energy.getMaxEnergyStored();
+    }
+
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
