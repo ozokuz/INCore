@@ -40,7 +40,6 @@ import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
-import io.github.ozokuz.incore.features.roguelike.data.DungeonRoomInfoManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
@@ -168,7 +167,6 @@ public class INCore {
         event.addListener(new AltarOfferingManager());
         event.addListener(new DungeonThemeManager());
         event.addListener(new DungeonObjectiveManager());
-        event.addListener(new DungeonRoomInfoManager());
         event.addListener(new ArenaCatalogManager());
         event.addListener(new CardSetManager());
         event.addListener(new CardModuleManager());
