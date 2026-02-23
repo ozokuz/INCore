@@ -1,0 +1,13 @@
+{
+  "structure_id": "incore:roguelike/frost/starting_room",
+  "connection_height": 1,
+  "secrets": [
+    "intro_cache"
+  ],
+  "room_type": "regular",
+  "spawner_locations": [],
+  "feature_locations": [
+    [8, 1, 8]
+  ],
+  "objective_task_locations": []
+}
