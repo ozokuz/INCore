@@ -30,6 +30,8 @@ import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
+import io.github.ozokuz.incore.features.party.command.PartyCommands;
+import io.github.ozokuz.incore.features.party.network.PartyNetworking;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
 import io.github.ozokuz.incore.features.research.LabTier;
@@ -101,6 +103,7 @@ public class INCore {
         modEventBus.addListener(NumismaticsNetworking::registerPayloads);
         modEventBus.addListener(MarketNetworking::registerPayloads);
         modEventBus.addListener(ShopNetworking::registerPayloads);
+        modEventBus.addListener(PartyNetworking::registerPayloads);
         modEventBus.addListener(MarketMachineCapabilities::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
@@ -113,6 +116,7 @@ public class INCore {
         NeoForge.EVENT_BUS.addListener(CardCommands::register);
         NeoForge.EVENT_BUS.addListener(MarketCommands::register);
         NeoForge.EVENT_BUS.addListener(ShopCommands::register);
+        NeoForge.EVENT_BUS.addListener(PartyCommands::register);
         NeoForge.EVENT_BUS.addListener(MarketEvents::onServerTick);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
