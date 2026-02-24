@@ -17,80 +17,98 @@
   },
   "tasks": [
     {
-      "id": "alpha_week1_patrol",
+      "id": "alpha_week1_dungeon",
       "type": "weekly",
       "week": 1,
       "tier": "bronze",
-      "goal": 2,
-      "description": "Complete 2 patrol encounters"
+      "goal": 1,
+      "description": "Complete 1 dungeon",
+      "trigger_type": "dungeon_complete"
     },
     {
-      "id": "alpha_week1_relic",
-      "type": "weekly",
+      "id": "alpha_week1_arena",
+      "type": "weekly", 
       "week": 1,
       "tier": "silver",
       "goal": 1,
-      "description": "Open 1 expedition relic crate"
+      "description": "Complete 1 arena run",
+      "trigger_type": "arena_complete"
     },
     {
-      "id": "alpha_week1_command",
+      "id": "alpha_week1_vendor",
       "type": "weekly",
       "week": 1,
       "tier": "gold",
-      "goal": 1,
-      "description": "Finish 1 mission command objective"
+      "goal": 5,
+      "description": "Purchase 5 vendor offers",
+      "trigger_type": "vendor_purchase"
     },
     {
-      "id": "alpha_week2_supply",
+      "id": "alpha_week2_market_buy",
       "type": "weekly",
       "week": 2,
       "tier": "bronze",
-      "goal": 16,
-      "description": "Collect 16 supply drops"
+      "goal": 10,
+      "description": "Buy 10 stacks from the market",
+      "trigger_type": "market_buy"
     },
     {
-      "id": "alpha_week2_elite",
+      "id": "alpha_week2_cards",
       "type": "weekly",
       "week": 2,
       "tier": "platinum",
-      "goal": 1,
-      "description": "Defeat 1 elite encounter"
+      "goal": 5,
+      "description": "Open 5 card boosters",
+      "trigger_type": "card_booster_open"
     },
     {
-      "id": "alpha_week2_overdrive",
+      "id": "alpha_week2_mining",
       "type": "weekly",
       "week": 2,
       "tier": "diamond",
-      "goal": 3,
-      "description": "Clear 3 elite patrol chains"
+      "goal": 20,
+      "description": "Mine 20 surface ores",
+      "trigger_type": "surface_ore_mine"
     },
     {
       "id": "alpha_permanent_login",
       "type": "permanent",
       "tier": "bronze",
       "goal": 3,
-      "description": "Login 3 different days"
+      "description": "Login 3 different days",
+      "trigger_type": "login"
     },
     {
       "id": "alpha_permanent_banner",
       "type": "permanent",
       "tier": "silver",
       "goal": 10,
-      "description": "Use 10 banner permits"
+      "description": "Use 10 banner permits",
+      "trigger_type": "banner_permit_use"
     },
     {
       "id": "alpha_permanent_sanity",
       "type": "permanent",
       "tier": "gold",
       "goal": 50,
-      "description": "Recover 50 sanity"
+      "description": "Recover 50 sanity",
+      "trigger_type": "sanity_recover"
     },
     {
       "id": "alpha_permanent_crates",
       "type": "permanent",
       "tier": "platinum",
       "goal": 5,
-      "description": "Open 5 gacha crates"
+      "description": "Open 5 gacha crates",
+      "trigger_type": "gacha_crate_open"
+    },
+    {
+      "id": "alpha_permanent_research",
+      "type": "permanent",
+      "tier": "diamond",
+      "goal": 3,
+      "description": "Complete 3 research entries",
+      "trigger_type": "research_complete"
     }
   ],
   "rewards_by_lane": {

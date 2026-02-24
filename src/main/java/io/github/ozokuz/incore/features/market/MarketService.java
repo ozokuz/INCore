@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.market;
 
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import net.minecraft.core.BlockPos;
@@ -107,6 +108,7 @@ public final class MarketService {
         giveItems(player, item, totalItems);
 
         MarketPricingService.applyBuy(player.getServer(), itemId, stackCount);
+        BattlePassTaskHooks.onMarketBuy(player, totalItems);
         return true;
     }
 
@@ -163,6 +165,7 @@ public final class MarketService {
         int payout = (int) Math.min(Integer.MAX_VALUE, payoutLong);
         MarketBanking.deposit(account, payout);
         MarketPricingService.applySell(player.getServer(), itemId, stackCount);
+        BattlePassTaskHooks.onMarketSell(player, selling);
         return true;
     }
 

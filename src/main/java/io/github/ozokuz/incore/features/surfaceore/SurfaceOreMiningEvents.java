@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.surfaceore;
 
 import io.github.ozokuz.incore.INCore;
+import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -111,6 +112,7 @@ public final class SurfaceOreMiningEvents {
                 event.getPos().getZ() + 0.5D,
                 oreSpotBlock.oreType().oreDropStack()
         );
+        BattlePassTaskHooks.onSurfaceOreMined(player);
     }
 
     private static boolean hasValidDestroyConfirmation(ServerPlayer player, long pos) {

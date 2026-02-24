@@ -93,11 +93,30 @@ public record BattlePassDefinition(
         return List.copyOf(levels);
     }
 
-    public record BattlePassTask(String id, TaskType type, int week, String tier, int xpReward, int progressGoal, String description) {
+    public record BattlePassTask(String id, TaskType type, int week, String tier, int xpReward, int progressGoal, String description, TriggerType triggerType) {
+        public BattlePassTask(String id, TaskType type, int week, String tier, int xpReward, int progressGoal, String description) {
+            this(id, type, week, tier, xpReward, progressGoal, description, TriggerType.NONE);
+        }
     }
 
     public enum TaskType {
         WEEKLY,
         PERMANENT
+    }
+
+    public enum TriggerType {
+        NONE,
+        LOGIN,
+        SANITY_RECOVER,
+        GACHA_CRATE_OPEN,
+        BANNER_PERMIT_USE,
+        ARENA_COMPLETE,
+        DUNGEON_COMPLETE,
+        SURFACE_ORE_MINE,
+        VENDOR_PURCHASE,
+        MARKET_BUY,
+        MARKET_SELL,
+        CARD_BOOSTER_OPEN,
+        RESEARCH_COMPLETE
     }
 }

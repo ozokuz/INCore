@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.gacha;
 
 import com.google.gson.Gson;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import io.github.ozokuz.incore.features.gacha.GachaBannerData.BannerType;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import net.minecraft.network.chat.Component;
@@ -83,6 +84,7 @@ public final class GachaService {
         }
 
         GachaPityManager.setLastBanner(player, banner.id());
+        BattlePassTaskHooks.onBannerPermitUsed(player, PULLS_PER_CRATE);
         player.sendSystemMessage(Component.translatable("incore.gacha.purchase.success", banner.name(), PULLS_PER_CRATE));
     }
 
@@ -110,6 +112,7 @@ public final class GachaService {
                 player.getGameProfile().getName(),
                 banner.name()
         );
+        BattlePassTaskHooks.onGachaCrateOpened(player);
         return true;
     }
 

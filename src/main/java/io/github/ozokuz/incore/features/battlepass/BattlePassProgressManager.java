@@ -7,6 +7,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public final class BattlePassProgressManager {
-    private static final String KEY_ROOT = "incore:battlepass";
+    static final String KEY_ROOT = "incore:battlepass";
     private static final String KEY_PROGRESS_BY_SET = "sets";
     private static final String KEY_XP = "xp";
     private static final String KEY_LEVEL = "level";
@@ -27,6 +28,7 @@ public final class BattlePassProgressManager {
     private static final String KEY_TASK_PROGRESS = "task_progress";
     private static final String KEY_UNLOCKED_LANES = "unlocked_lanes";
     private static final String KEY_HIGHEST_REWARDED_BY_LANE = "highest_rewarded_by_lane";
+    private static final String KEY_LAST_LOGIN_DAY = "last_login_day";
 
     private BattlePassProgressManager() {
     }
@@ -152,6 +154,55 @@ public final class BattlePassProgressManager {
         }
 
         return ProgressResult.success("Task progress updated.", updatedProgress, goal, false, 0, 0, newLevel);
+    }
+
+    public static void addProgressByTriggerType(ServerPlayer player, BattlePassDefinition.TriggerType triggerType, int amount, Instant now) {
+        if (triggerType == BattlePassDefinition.TriggerType.NONE || amount <= 0) {
+            return;
+        }
+
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        if (activeOptional.isEmpty()) {
+            return;
+        }
+
+        BattlePassDefinition active = activeOptional.get();
+        int activeWeek = getActiveWeek(active, now);
+
+        for (BattlePassDefinition.BattlePassTask task : active.tasks()) {
+            if (task.triggerType() != triggerType) {
+                continue;
+            }
+            if (!isTaskAvailable(task, activeWeek)) {
+                continue;
+            }
+
+            addTaskProgress(player, task.id(), amount, now);
+        }
+    }
+
+    public static boolean checkAndProgressLogin(ServerPlayer player, Instant now) {
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        if (activeOptional.isEmpty()) {
+            return false;
+        }
+
+        BattlePassDefinition active = activeOptional.get();
+        LocalDate today = LocalDate.now(ZoneId.systemDefault());
+        String todayKey = today.toString();
+
+        CompoundTag root = player.getPersistentData().getCompound(KEY_ROOT);
+        String lastLoginDay = root.getString(KEY_LAST_LOGIN_DAY);
+
+        if (todayKey.equals(lastLoginDay)) {
+            return false;
+        }
+
+        root.putString(KEY_LAST_LOGIN_DAY, todayKey);
+        player.getPersistentData().put(KEY_ROOT, root);
+
+        addProgressByTriggerType(player, BattlePassDefinition.TriggerType.LOGIN, 1, now);
+        return true;
     }
 
     public static ManagementResult setXp(ServerPlayer player, int xp, Instant now) {

@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.sanity;
 
 import io.github.ozokuz.incore.Config;
+import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -75,6 +76,10 @@ public final class SanityManager {
         long next = (long) data.getInt(KEY_CURRENT) + delta;
         int clamped = (int) Math.max(0L, Math.min((long) cap, next));
         data.putInt(KEY_CURRENT, clamped);
+
+        if (delta > 0) {
+            BattlePassTaskHooks.onSanityRecovered(player, delta);
+        }
     }
 
     public static int getSanityCap(ServerPlayer player) {
