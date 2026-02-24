@@ -14,6 +14,7 @@ import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeData;
 import io.github.ozokuz.incore.features.roguelike.layout.DungeonLayoutGenerator;
 import io.github.ozokuz.incore.features.roguelike.layout.DungeonLayoutPlan;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
+import io.github.ozokuz.incore.features.party.PartyService;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -92,6 +93,7 @@ public final class DungeonInstanceManager {
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         int slotIndex = data.allocateSlot();
         RoguelikeSavedData.SlotOriginChunks slotOrigin = RoguelikeSavedData.slotOriginChunks(slotIndex);
+        long boundPartyId = PartyService.getPartyIdForPlayer(server, player.getUUID());
 
         DungeonInstanceId instanceId = data.nextInstanceId();
         DungeonInstanceData instance = new DungeonInstanceData(
@@ -109,7 +111,9 @@ public final class DungeonInstanceManager {
                 player.serverLevel().dimension().location(),
                 portalShape.bottomLeft(),
                 BlockPos.ZERO,
-                BlockPos.ZERO
+                BlockPos.ZERO,
+                boundPartyId,
+                player.getUUID()
         );
 
         PlacementResult placement = generateAndPlaceLayout(dungeonLevel, instance, themeData);
@@ -181,6 +185,12 @@ public final class DungeonInstanceManager {
         }
 
         UUID playerId = player.getUUID();
+        if (!PartyService.canEnterDungeonInstance(server, instance, playerId)) {
+            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.party_locked"));
+            player.setPortalCooldown();
+            return false;
+        }
+
         if (data.getRun(playerId).isPresent()) {
             player.sendSystemMessage(Component.translatable("incore.roguelike.portal.already_entered"));
             player.setPortalCooldown();
