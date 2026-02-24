@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.research;
 
+import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -143,6 +144,9 @@ public final class ResearchProgressService {
         boolean changed = unlockedChanged || queueChanged || progressChanged;
         if (changed) {
             ownerState.data.setDirty();
+            if (unlockedChanged) {
+                BattlePassTaskHooks.onResearchCompleted(player);
+            }
         }
         return changed;
     }
@@ -353,7 +357,7 @@ public final class ResearchProgressService {
         setProgress(root, activeEntry.id(), progress);
         changed = true;
 
-        changed = unlockReadyHead(root, queue, unlocked) || changed;
+        changed = unlockReadyHeadWithCallback(root, queue, unlocked, player) || changed;
 
         if (changed) {
             writeList(root, KEY_QUEUE, queue);
@@ -368,7 +372,7 @@ public final class ResearchProgressService {
         Set<ResourceLocation> unlocked = unlocked(player);
         List<ResourceLocation> queue = queuedResearch(player);
         boolean changed = normalizeQueue(root, queue, unlocked);
-        changed = unlockReadyHead(root, queue, unlocked) || changed;
+        changed = unlockReadyHeadWithCallback(root, queue, unlocked, player) || changed;
         if (changed) {
             writeList(root, KEY_QUEUE, queue);
             ownerState.data.setDirty();
@@ -447,6 +451,14 @@ public final class ResearchProgressService {
         queue.remove(0);
         clearProgress(root, activeId);
         return true;
+    }
+
+    private static boolean unlockReadyHeadWithCallback(CompoundTag root, List<ResourceLocation> queue, Set<ResourceLocation> unlocked, ServerPlayer player) {
+        boolean unlockedSomething = unlockReadyHead(root, queue, unlocked);
+        if (unlockedSomething && player != null) {
+            BattlePassTaskHooks.onResearchCompleted(player);
+        }
+        return unlockedSomething;
     }
 
     private static void migrateLegacyActiveProgress(CompoundTag root) {

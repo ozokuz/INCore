@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.vendor;
 
 import com.google.gson.Gson;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import io.github.ozokuz.incore.features.vendor.network.VendorNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -113,6 +114,7 @@ public final class VendorService {
                 offer.name(),
                 Math.max(1, offer.productSpec().unitCount()) * quantity
         ));
+        BattlePassTaskHooks.onVendorPurchase(player);
         return true;
     }
 

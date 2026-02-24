@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.roguelike;
 
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingData;
@@ -541,6 +542,7 @@ public final class RoguelikeService {
                     activePlayer.drop(reward, false);
                 }
                 activePlayer.sendSystemMessage(Component.translatable("incore.roguelike.portal.completed", rewardCount));
+                BattlePassTaskHooks.onDungeonCompleted(activePlayer);
             }
 
             dungeon = dungeon.upsertProgress(playerId, progress.withRewarded());

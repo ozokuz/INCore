@@ -185,7 +185,8 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
             int xpReward = Math.max(0, GsonHelper.getAsInt(taskObject, "xp", 0));
             int progressGoal = Math.max(1, GsonHelper.getAsInt(taskObject, "goal", 1));
             String description = GsonHelper.getAsString(taskObject, "description", taskId);
-            tasks.add(new BattlePassDefinition.BattlePassTask(taskId, taskType, week, tier, xpReward, progressGoal, description));
+            BattlePassDefinition.TriggerType triggerType = parseTriggerType(GsonHelper.getAsString(taskObject, "trigger_type", "none"));
+            tasks.add(new BattlePassDefinition.BattlePassTask(taskId, taskType, week, tier, xpReward, progressGoal, description, triggerType));
         }
 
         List<String> lanes = parseLanes(object);
@@ -304,6 +305,17 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
         ZoneId zone = ZoneId.systemDefault();
         ZonedDateTime localNow = ZonedDateTime.ofInstant(now, zone);
         return BattlePassWeekTime.weekStart(localNow).toInstant();
+    }
+
+    private static BattlePassDefinition.TriggerType parseTriggerType(String value) {
+        if (value == null || value.isBlank()) {
+            return BattlePassDefinition.TriggerType.NONE;
+        }
+        try {
+            return BattlePassDefinition.TriggerType.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return BattlePassDefinition.TriggerType.NONE;
+        }
     }
 
     private static BattlePassReward parseReward(JsonObject rewardObject) {

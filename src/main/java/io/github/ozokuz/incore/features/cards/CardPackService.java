@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.cards;
 
 import com.google.gson.Gson;
+import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import io.github.ozokuz.incore.features.cards.network.CardNetworking;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -96,6 +97,7 @@ public final class CardPackService {
 
         CardNetworking.openPackResults(player, GSON.toJson(new PackRevealScreenData(booster.name(), reveals)));
         player.sendSystemMessage(Component.translatable("incore.cards.booster.opened", booster.name(), reveals.size()));
+        BattlePassTaskHooks.onCardBoosterOpened(player);
         return true;
     }
 
