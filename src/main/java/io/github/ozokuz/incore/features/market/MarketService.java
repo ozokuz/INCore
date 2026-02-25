@@ -32,7 +32,7 @@ public final class MarketService {
         if (player.getServer() == null) {
             return;
         }
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), false, null, detailItemId));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player, player.getServer(), false, null, detailItemId));
     }
 
     public static void openTerminalScreen(ServerPlayer player, MarketTerminalBlockEntity terminal) {
@@ -41,7 +41,7 @@ public final class MarketService {
         }
         boolean canTrade = terminal.canTrade(player);
         BlockPos pos = terminal.getBlockPos();
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, pos, null));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player, player.getServer(), canTrade, pos, null));
     }
 
     public static void requestRefresh(ServerPlayer player, BlockPos terminalPos) {
@@ -55,7 +55,7 @@ public final class MarketService {
 
         MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
         boolean canTrade = terminal != null && terminal.canTrade(player);
-        MarketNetworking.openMarketScreen(player, buildScreenData(player.getServer(), canTrade, terminal == null ? null : terminalPos, detailItemId));
+        MarketNetworking.openMarketScreen(player, buildScreenData(player, player.getServer(), canTrade, terminal == null ? null : terminalPos, detailItemId));
     }
 
     public static boolean buyFromMarket(ServerPlayer player, BlockPos terminalPos, ResourceLocation itemId, int quantity) {
@@ -259,12 +259,15 @@ public final class MarketService {
         return (int) Math.min(Integer.MAX_VALUE, total);
     }
 
-    public static ScreenData buildScreenData(MinecraftServer server, boolean canTrade, BlockPos terminalPos) {
-        return buildScreenData(server, canTrade, terminalPos, null);
+    public static ScreenData buildScreenData(ServerPlayer player, MinecraftServer server, boolean canTrade, BlockPos terminalPos) {
+        return buildScreenData(player, server, canTrade, terminalPos, null);
     }
 
-    public static ScreenData buildScreenData(MinecraftServer server, boolean canTrade, BlockPos terminalPos, @Nullable ResourceLocation detailItemId) {
+    public static ScreenData buildScreenData(ServerPlayer player, MinecraftServer server, boolean canTrade, BlockPos terminalPos, @Nullable ResourceLocation detailItemId) {
         MarketPricingService.tick(server);
+
+        BankAccount account = MarketBanking.resolveManualAccount(player, ItemStack.EMPTY);
+        int balanceSpur = MarketBanking.balanceSpur(account);
 
         List<ItemView> items = new ArrayList<>();
         for (MarketItemDefinition definition : MarketItemManager.all()) {
@@ -282,6 +285,8 @@ public final class MarketService {
                     .stateFor(definition.itemId(), definition.basePriceSpur())
                     .demandIndex();
 
+            int inventoryCount = countInInventory(player, definition.itemId());
+
             items.add(new ItemView(
                     definition.itemId().toString(),
                     definition.displayName(),
@@ -289,14 +294,16 @@ public final class MarketService {
                     price,
                     dayChangePercent,
                     demand,
-                    candles
+                    candles,
+                    inventoryCount
             ));
         }
 
         return new ScreenData(
                 canTrade,
                 terminalPos == null ? null : terminalPos.asLong(),
-                items
+                items,
+                balanceSpur
         );
     }
 
@@ -328,7 +335,8 @@ public final class MarketService {
     public record ScreenData(
             boolean canTrade,
             Long terminalPos,
-            List<ItemView> items
+            List<ItemView> items,
+            int balanceSpur
     ) {
     }
 
@@ -339,7 +347,8 @@ public final class MarketService {
             int currentPriceSpur,
             double dayChangePercent,
             double demandIndex,
-            List<CandleView> candles
+            List<CandleView> candles,
+            int inventoryCount
     ) {
     }
 

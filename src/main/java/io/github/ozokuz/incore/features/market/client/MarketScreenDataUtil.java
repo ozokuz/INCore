@@ -18,9 +18,9 @@ final class MarketScreenDataUtil {
     static MarketService.ScreenData parse(String json) {
         MarketService.ScreenData parsed = GSON.fromJson(json, MarketService.ScreenData.class);
         if (parsed == null || parsed.items() == null) {
-            return new MarketService.ScreenData(false, null, List.of());
+            return new MarketService.ScreenData(false, null, List.of(), 0);
         }
-        return new MarketService.ScreenData(parsed.canTrade(), parsed.terminalPos(), parsed.items());
+        return new MarketService.ScreenData(parsed.canTrade(), parsed.terminalPos(), parsed.items(), parsed.balanceSpur());
     }
 
     static List<MarketService.ItemView> orderedItems(MarketService.ScreenData data) {
@@ -29,7 +29,9 @@ final class MarketScreenDataUtil {
         }
 
         List<MarketService.ItemView> copy = new ArrayList<>(data.items());
-        copy.sort(Comparator.comparing(MarketService.ItemView::displayName, String.CASE_INSENSITIVE_ORDER));
+        copy.sort(Comparator
+                .comparingInt(MarketService.ItemView::inventoryCount).reversed()
+                .thenComparing(MarketService.ItemView::displayName, String.CASE_INSENSITIVE_ORDER));
         return copy;
     }
 

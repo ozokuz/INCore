@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -21,6 +22,8 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
     private static final int TILE_WIDTH = 136;
     private static final int TILE_HEIGHT = 42;
     private static final int TILE_GAP = 6;
+    private static final float COST_SCALE = 0.75F;
+    private static final ResourceLocation SPUR_ICON_ITEM = ResourceLocation.parse("numismatics:spur");
 
     private MarketService.ScreenData data;
     private int scrollRow;
@@ -126,6 +129,7 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 ? Component.translatable("screen.incore.market.mode.terminal")
                 : Component.translatable("screen.incore.market.mode.read_only");
         guiGraphics.drawString(font, mode, PANEL_X, 16, data.canTrade() ? 0x9AE29A : 0xE2C777, false);
+        renderBalancePanel(guiGraphics, width - 200, 14, width - 16, 32);
         guiGraphics.drawString(font, Component.translatable("screen.incore.market.selection.hint"), 14, 26, 0xCFD6E2, false);
 
         drawPanel(guiGraphics, PANEL_X - 2, PANEL_Y - 2, panelWidth() + 4, panelHeight() + 4, 0xAA151920, 0xFF454F63);
@@ -157,6 +161,10 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 drawPanel(guiGraphics, tileX, tileY, TILE_WIDTH, TILE_HEIGHT, fillColor, borderColor);
 
                 renderItemIcon(guiGraphics, item.itemId(), tileX + 4, tileY + 4);
+                if (item.inventoryCount() > 0) {
+                    String countText = "x" + item.inventoryCount();
+                    guiGraphics.drawString(font, countText, tileX + 4, tileY + 20, 0xB7C1D0, false);
+                }
 
                 String name = font.plainSubstrByWidth(item.displayName(), TILE_WIDTH - 30);
                 guiGraphics.drawString(font, name, tileX + 24, tileY + 4, 0xECF2FF, false);
@@ -231,6 +239,39 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
             return;
         }
         guiGraphics.renderItem(new ItemStack(item), x, y);
+    }
+
+    private void renderBalancePanel(GuiGraphics guiGraphics, int left, int top, int right, int bottom) {
+        guiGraphics.fill(left, top, right, bottom, 0xAA141414);
+
+        ItemStack spurIcon = spurIconStack();
+        String text = "x" + data.balanceSpur();
+        int scaledLineHeight = (int) Math.ceil(16 * COST_SCALE);
+        int rowY = top + Math.max(0, (bottom - top - scaledLineHeight) / 2);
+
+        int textWidth = font.width(text);
+        int iconWidth = spurIcon.isEmpty() ? 0 : 20;
+        int totalWidth = iconWidth + textWidth;
+        int scaledWidth = (int) Math.ceil(totalWidth * COST_SCALE);
+        int lineX = left + Math.max(0, (right - left - scaledWidth) / 2);
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(lineX, rowY, 0.0F);
+        guiGraphics.pose().scale(COST_SCALE, COST_SCALE, 1.0F);
+
+        int textX = 0;
+        if (!spurIcon.isEmpty()) {
+            guiGraphics.renderItem(spurIcon, 0, 0);
+            textX = 20;
+        }
+
+        guiGraphics.drawString(font, Component.literal(text), textX, 4, 0xBDE8BD, false);
+        guiGraphics.pose().popPose();
+    }
+
+    private ItemStack spurIconStack() {
+        Item item = BuiltInRegistries.ITEM.get(SPUR_ICON_ITEM);
+        return item == Items.AIR ? ItemStack.EMPTY : item.getDefaultInstance();
     }
 
     private static void drawPanel(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor) {
