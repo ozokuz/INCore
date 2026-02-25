@@ -58,8 +58,8 @@ public class SurfaceStonePatchSavedData extends SavedData {
         return tag;
     }
 
-    public void recordPatch(BlockPos patchPos, ResourceKey<Level> dimension) {
-        String key = makeKey(patchPos, dimension);
+    public void recordPatch(BlockPos patchPos, ResourceKey<Level> dimension, SurfaceStoneType type) {
+        String key = makeKey(patchPos, dimension, type);
         BlockPos previous = patchesByKey.put(key, patchPos.immutable());
         if (previous == null || !previous.equals(patchPos)) {
             setDirty();
@@ -71,10 +71,11 @@ public class SurfaceStonePatchSavedData extends SavedData {
         double bestDistance = Double.MAX_VALUE;
         PatchTarget best = null;
         for (Map.Entry<String, BlockPos> entry : patchesByKey.entrySet()) {
-            if (!entry.getKey().startsWith(dimensionPrefix)) {
+            String key = entry.getKey();
+            if (!key.startsWith(dimensionPrefix)) {
                 continue;
             }
-            if (foundKeys.contains(entry.getKey())) {
+            if (foundKeys.contains(key)) {
                 continue;
             }
 
@@ -84,14 +85,39 @@ public class SurfaceStonePatchSavedData extends SavedData {
             }
 
             bestDistance = distance;
-            best = new PatchTarget(entry.getKey(), entry.getValue());
+            best = new PatchTarget(key, entry.getValue());
         }
         return Optional.ofNullable(best);
     }
 
-    private static String makeKey(BlockPos pos, ResourceKey<Level> dimension) {
+    public Optional<PatchTarget> findNearestUnfoundByType(BlockPos from, ResourceKey<Level> dimension, SurfaceStoneType type, Set<String> foundKeys) {
+        String typePrefix = type.getSerializedName();
+        String dimensionPrefix = dimension.location().toString() + ":" + typePrefix + ":";
+        double bestDistance = Double.MAX_VALUE;
+        PatchTarget best = null;
+        for (Map.Entry<String, BlockPos> entry : patchesByKey.entrySet()) {
+            String key = entry.getKey();
+            if (!key.startsWith(dimensionPrefix)) {
+                continue;
+            }
+            if (foundKeys.contains(key)) {
+                continue;
+            }
+
+            double distance = from.distSqr(entry.getValue());
+            if (distance >= bestDistance) {
+                continue;
+            }
+
+            bestDistance = distance;
+            best = new PatchTarget(key, entry.getValue());
+        }
+        return Optional.ofNullable(best);
+    }
+
+    private static String makeKey(BlockPos pos, ResourceKey<Level> dimension, SurfaceStoneType type) {
         ChunkPos chunkPos = new ChunkPos(pos);
-        return dimension.location().toString() + ":" + chunkPos.x + ":" + chunkPos.z;
+        return dimension.location().toString() + ":" + type.getSerializedName() + ":" + chunkPos.x + ":" + chunkPos.z;
     }
 
     public record PatchTarget(String key, BlockPos pos) {

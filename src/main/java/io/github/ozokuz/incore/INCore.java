@@ -53,6 +53,7 @@ import io.github.ozokuz.incore.features.shop.ShopOfferManager;
 import io.github.ozokuz.incore.features.shop.command.ShopCommands;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import io.github.ozokuz.incore.features.status.network.PlayerStatusNetworking;
+import io.github.ozokuz.incore.features.surfaceore.network.SurfaceOreNetworking;
 import io.github.ozokuz.incore.features.tasks.TaskDataManager;
 import io.github.ozokuz.incore.features.tasks.command.TaskCommands;
 import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
@@ -99,6 +100,7 @@ public class INCore {
         modEventBus.addListener(CardNetworking::registerPayloads);
         modEventBus.addListener(VendorNetworking::registerPayloads);
         modEventBus.addListener(PlayerStatusNetworking::registerPayloads);
+        modEventBus.addListener(SurfaceOreNetworking::registerPayloads);
 
         VendorBootstrap.initialize();
         CardVendorIntegration.initialize();
