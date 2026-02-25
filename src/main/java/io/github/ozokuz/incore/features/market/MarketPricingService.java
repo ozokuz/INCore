@@ -112,10 +112,10 @@ public final class MarketPricingService {
         MarketSavedData data = MarketSavedData.get(server);
         MarketSavedData.ItemState state = data.stateFor(itemId, definition.basePriceSpur());
 
-        double impactPerItem = buy
+        double impactPerStack = buy
                 ? Config.MARKET_BUY_IMPACT_PER_ITEM.get()
                 : Config.MARKET_SELL_IMPACT_PER_ITEM.get();
-        double signedImpact = impactPerItem * quantity * definition.volatilityWeight() * (buy ? 1D : -1D);
+        double signedImpact = impactPerStack * quantity * definition.volatilityWeight() * (buy ? 1D : -1D);
 
         double nextDemand = state.demandIndex() + signedImpact;
         int nextPrice = priceFromDemand(definition, nextDemand);

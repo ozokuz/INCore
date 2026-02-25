@@ -139,7 +139,8 @@ public class MarketTradeConfirmScreen extends Screen {
         int totalCost = quantity * price;
         int ownedItems = item.inventoryCount();
         int ownedSpur = data.balanceSpur();
-        int afterItems = isBuy ? ownedItems + quantity : ownedItems - quantity;
+        int stackUnitSize = stackUnitSizeForItem();
+        int afterItems = isBuy ? ownedItems + (quantity * stackUnitSize) : ownedItems - (quantity * stackUnitSize);
         int afterSpur = isBuy ? ownedSpur - totalCost : ownedSpur + totalCost;
 
         int sourceCenterX = left + 112;
@@ -244,7 +245,9 @@ public class MarketTradeConfirmScreen extends Screen {
             int maxByFunds = data.balanceSpur() / price;
             return Math.min(64, Math.max(1, maxByFunds));
         } else {
-            return Math.min(64, item.inventoryCount());
+            int stackUnitSize = stackUnitSizeForItem();
+            int maxByInventory = item.inventoryCount() / stackUnitSize;
+            return Math.min(64, Math.max(1, maxByInventory));
         }
     }
 
@@ -259,7 +262,8 @@ public class MarketTradeConfirmScreen extends Screen {
         if (isBuy) {
             return quantity * price <= data.balanceSpur();
         } else {
-            return quantity <= item.inventoryCount();
+            int stackUnitSize = stackUnitSizeForItem();
+            return quantity * stackUnitSize <= item.inventoryCount();
         }
     }
 
@@ -275,6 +279,15 @@ public class MarketTradeConfirmScreen extends Screen {
         }
         Item item = BuiltInRegistries.ITEM.get(id);
         return item == Items.AIR ? ItemStack.EMPTY : item.getDefaultInstance();
+    }
+
+    private int stackUnitSizeForItem() {
+        ResourceLocation id = MarketScreenDataUtil.parseItemId(selectedItemId);
+        if (id == null) {
+            return 64;
+        }
+        Item item = BuiltInRegistries.ITEM.get(id);
+        return item == Items.AIR ? 64 : Math.max(1, item.getDefaultMaxStackSize());
     }
 
     @Override

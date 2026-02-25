@@ -202,7 +202,7 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
             return;
         }
 
-        long totalCostLong = (long) unitPrice * requestedItemCount;
+        long totalCostLong = (long) unitPrice * batchSize;
         int totalCost = (int) Math.min(Integer.MAX_VALUE, totalCostLong);
         if (MarketBanking.balanceSpur(account) < totalCost) {
             progress = 0;
@@ -234,7 +234,7 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
         }
 
         insertOutput(targetItemId, requestedItemCount);
-        MarketPricingService.applyBuy(level.getServer(), targetItemId, requestedItemCount);
+        MarketPricingService.applyBuy(level.getServer(), targetItemId, batchSize);
         setChanged();
     }
 

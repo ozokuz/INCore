@@ -90,7 +90,7 @@ public final class MarketService {
             return false;
         }
 
-        long costLong = (long) unitPrice * totalItems;
+        long costLong = (long) unitPrice * stackCount;
         int cost = (int) Math.min(Integer.MAX_VALUE, costLong);
 
         ItemStack card = terminal.cardStack();
@@ -106,7 +106,7 @@ public final class MarketService {
 
         giveItems(player, item, totalItems);
 
-        MarketPricingService.applyBuy(player.getServer(), itemId, totalItems);
+        MarketPricingService.applyBuy(player.getServer(), itemId, stackCount);
         return true;
     }
 
@@ -138,12 +138,11 @@ public final class MarketService {
         }
 
         int available = countInInventory(player, itemId);
-        if (available <= 0) {
+        if (available < requestedItems) {
             player.sendSystemMessage(Component.translatable("incore.market.no_items_to_sell"));
             return false;
         }
 
-        int selling = Math.min(available, requestedItems);
         int unitPrice = MarketPricingService.currentPrice(player.getServer(), itemId);
         if (unitPrice <= 0) {
             return false;
@@ -156,14 +155,14 @@ public final class MarketService {
             return false;
         }
 
-        if (!removeItems(player, itemId, selling)) {
+        if (!removeItems(player, itemId, requestedItems)) {
             return false;
         }
 
-        long payoutLong = (long) unitPrice * selling;
+        long payoutLong = (long) unitPrice * stackCount;
         int payout = (int) Math.min(Integer.MAX_VALUE, payoutLong);
         MarketBanking.deposit(account, payout);
-        MarketPricingService.applySell(player.getServer(), itemId, selling);
+        MarketPricingService.applySell(player.getServer(), itemId, stackCount);
         return true;
     }
 
