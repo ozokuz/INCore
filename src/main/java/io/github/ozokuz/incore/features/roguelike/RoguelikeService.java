@@ -103,7 +103,8 @@ public final class RoguelikeService {
         data.setCrystalPlaced(ownerId, true);
         ensureAltarRequirement(server, data, ownerId);
 
-        serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.crystal_placed").withStyle(ChatFormatting.AQUA));
+        serverPlayer.sendSystemMessage(
+                Component.translatable("incore.roguelike.altar.crystal_placed").withStyle(ChatFormatting.AQUA));
         showAltarRequirement(serverPlayer, altarPos);
 
         BlockEntity blockEntity = serverPlayer.serverLevel().getBlockEntity(altarPos);
@@ -150,7 +151,8 @@ public final class RoguelikeService {
         data.setCrystalPlaced(ownerId, false);
         chooseNextAltarRequirement(server, data, ownerId);
 
-        serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.altar.created_crystal").withStyle(ChatFormatting.AQUA));
+        serverPlayer.sendSystemMessage(
+                Component.translatable("incore.roguelike.altar.created_crystal").withStyle(ChatFormatting.AQUA));
         showAltarRequirement(serverPlayer, altarPos);
 
         BlockEntity blockEntity = serverPlayer.serverLevel().getBlockEntity(altarPos);
@@ -194,13 +196,11 @@ public final class RoguelikeService {
 
             serverPlayer.sendSystemMessage(
                     Component.translatable(
-                                    "incore.roguelike.altar.requirement.item",
-                                    offering.item().getDescription(),
-                                    requirement.submittedAmount(),
-                                    requirement.requiredAmount()
-                            )
-                            .withStyle(requirement.isComplete() ? ChatFormatting.GREEN : ChatFormatting.WHITE)
-            );
+                            "incore.roguelike.altar.requirement.item",
+                            offering.item().getDescription(),
+                            requirement.submittedAmount(),
+                            requirement.requiredAmount())
+                            .withStyle(requirement.isComplete() ? ChatFormatting.GREEN : ChatFormatting.WHITE));
         }
 
         boolean crystalPlaced = data.isCrystalPlaced(ownerId);
@@ -232,8 +232,7 @@ public final class RoguelikeService {
             ResourceLocation themeId,
             ResourceLocation objectiveId,
             List<ResourceLocation> modifiers,
-            boolean customConfigured
-    ) {
+            boolean customConfigured) {
         ItemStack stack = new ItemStack(Registration.DUNGEON_CRYSTAL_ITEM.get(), Math.max(1, count));
         if (themeId == null && objectiveId == null && (modifiers == null || modifiers.isEmpty())) {
             return stack;
@@ -245,21 +244,25 @@ public final class RoguelikeService {
         if (objectiveId != null) {
             stack.set(Registration.DUNGEON_CRYSTAL_OBJECTIVE.get(), objectiveId);
         }
-        List<ResourceLocation> normalizedModifiers = modifiers == null ? List.of() : modifiers.stream()
-                .filter(id -> id != null && DungeonModifierManager.MODIFIERS.containsKey(id))
-                .distinct()
-                .toList();
+        List<ResourceLocation> normalizedModifiers = modifiers == null ? List.of()
+                : modifiers.stream()
+                        .filter(id -> id != null && DungeonModifierManager.MODIFIERS.containsKey(id))
+                        .distinct()
+                        .toList();
         DungeonCrystalDataUtil.writeModifiers(stack, normalizedModifiers);
-        DungeonCrystalDataUtil.setCustomCrystal(stack, customConfigured || themeId != null || objectiveId != null || !normalizedModifiers.isEmpty());
+        DungeonCrystalDataUtil.setCustomCrystal(stack,
+                customConfigured || themeId != null || objectiveId != null || !normalizedModifiers.isEmpty());
 
         return stack;
     }
 
-    public static boolean onPortalInteracted(Player player, InteractionHand hand, RoguelikePortalBlockEntity portal, BlockPos portalPos) {
+    public static boolean onPortalInteracted(Player player, InteractionHand hand, RoguelikePortalBlockEntity portal,
+            BlockPos portalPos) {
         return tryEnterPortal(player, portal, portalPos);
     }
 
-    public static boolean tryActivatePortalFromFrame(Player player, InteractionHand hand, BlockPos clickedPos, Direction clickedFace) {
+    public static boolean tryActivatePortalFromFrame(Player player, InteractionHand hand, BlockPos clickedPos,
+            Direction clickedFace) {
         if (!(player instanceof ServerPlayer serverPlayer) || serverPlayer.getServer() == null) {
             return false;
         }
@@ -278,7 +281,8 @@ public final class RoguelikeService {
 
         RandomSource random = level.random;
         Optional<DungeonThemeManager.PickedTheme> themePick = pickThemeForCrystal(serverPlayer, crystalStack, random);
-        Optional<DungeonObjectiveManager.PickedObjective> objectivePick = pickObjectiveForCrystal(serverPlayer, crystalStack, random);
+        Optional<DungeonObjectiveManager.PickedObjective> objectivePick = pickObjectiveForCrystal(serverPlayer,
+                crystalStack, random);
         List<ResourceLocation> modifiers = pickModifiersForCrystal(serverPlayer, crystalStack);
         if (themePick.isEmpty() || objectivePick.isEmpty()) {
             if (themePick.isEmpty() && objectivePick.isEmpty()) {
@@ -294,8 +298,7 @@ public final class RoguelikeService {
                 themePick.get().id(),
                 objectivePick.get().id(),
                 modifiers,
-                themePick.get().data()
-        );
+                themePick.get().data());
     }
 
     public static boolean tryEnterPortal(Player player, RoguelikePortalBlockEntity portal, BlockPos portalPos) {
@@ -370,8 +373,9 @@ public final class RoguelikeService {
         return ownerId;
     }
 
-    private static Optional<RoguelikePortalShape> findFrameShape(ServerLevel level, BlockPos clickedPos, Direction clickedFace) {
-        BlockPos[] seeds = new BlockPos[]{
+    private static Optional<RoguelikePortalShape> findFrameShape(ServerLevel level, BlockPos clickedPos,
+            Direction clickedFace) {
+        BlockPos[] seeds = new BlockPos[] {
                 clickedPos,
                 clickedPos.relative(clickedFace),
                 clickedPos.relative(clickedFace.getOpposite())
@@ -387,7 +391,8 @@ public final class RoguelikeService {
                             continue;
                         }
 
-                        Optional<RoguelikePortalShape> shape = RoguelikePortalShape.findEmptyPortalShape(level, candidate);
+                        Optional<RoguelikePortalShape> shape = RoguelikePortalShape.findEmptyPortalShape(level,
+                                candidate);
                         if (shape.isPresent()) {
                             return shape;
                         }
@@ -399,7 +404,8 @@ public final class RoguelikeService {
         return Optional.empty();
     }
 
-    private static Optional<DungeonThemeManager.PickedTheme> pickThemeForCrystal(ServerPlayer player, ItemStack crystalStack, RandomSource random) {
+    private static Optional<DungeonThemeManager.PickedTheme> pickThemeForCrystal(ServerPlayer player,
+            ItemStack crystalStack, RandomSource random) {
         ResourceLocation customThemeId = crystalStack.get(Registration.DUNGEON_CRYSTAL_THEME.get());
         if (customThemeId == null) {
             return DungeonThemeManager.pickRandom(random);
@@ -407,14 +413,16 @@ public final class RoguelikeService {
 
         DungeonThemeData themeData = DungeonThemeManager.THEMES.get(customThemeId);
         if (themeData == null) {
-            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.invalid_theme", customThemeId.toString()));
+            player.sendSystemMessage(
+                    Component.translatable("incore.roguelike.portal.invalid_theme", customThemeId.toString()));
             return Optional.empty();
         }
 
         return Optional.of(new DungeonThemeManager.PickedTheme(customThemeId, themeData));
     }
 
-    private static Optional<DungeonObjectiveManager.PickedObjective> pickObjectiveForCrystal(ServerPlayer player, ItemStack crystalStack, RandomSource random) {
+    private static Optional<DungeonObjectiveManager.PickedObjective> pickObjectiveForCrystal(ServerPlayer player,
+            ItemStack crystalStack, RandomSource random) {
         ResourceLocation customObjectiveId = crystalStack.get(Registration.DUNGEON_CRYSTAL_OBJECTIVE.get());
         if (customObjectiveId == null) {
             return DungeonObjectiveManager.pickRandom(random);
@@ -422,7 +430,8 @@ public final class RoguelikeService {
 
         DungeonObjectiveData objectiveData = DungeonObjectiveManager.OBJECTIVES.get(customObjectiveId);
         if (objectiveData == null) {
-            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.invalid_objective", customObjectiveId.toString()));
+            player.sendSystemMessage(
+                    Component.translatable("incore.roguelike.portal.invalid_objective", customObjectiveId.toString()));
             return Optional.empty();
         }
 
@@ -438,7 +447,8 @@ public final class RoguelikeService {
         List<ResourceLocation> valid = new ArrayList<>(selected.size());
         for (ResourceLocation id : selected) {
             if (!DungeonModifierManager.MODIFIERS.containsKey(id)) {
-                player.sendSystemMessage(Component.translatable("incore.roguelike.portal.invalid_modifier", id.toString()));
+                player.sendSystemMessage(
+                        Component.translatable("incore.roguelike.portal.invalid_modifier", id.toString()));
                 continue;
             }
             valid.add(id);
@@ -479,10 +489,10 @@ public final class RoguelikeService {
 
         int desiredVariants = Math.min(
                 Math.min(MAX_ALTAR_ITEM_VARIANTS, uniqueItems),
-                MIN_ALTAR_ITEM_VARIANTS + (data.crystalsCrafted(ownerId) / ALTAR_VARIANT_GROWTH_STEP)
-        );
+                MIN_ALTAR_ITEM_VARIANTS + (data.crystalsCrafted(ownerId) / ALTAR_VARIANT_GROWTH_STEP));
 
-        List<AltarOfferingManager.PickedOffering> picked = pickDistinctOfferings(server.overworld().random, desiredVariants);
+        List<AltarOfferingManager.PickedOffering> picked = pickDistinctOfferings(server.overworld().random,
+                desiredVariants);
         if (picked.size() < MIN_ALTAR_ITEM_VARIANTS) {
             data.setAltarRequirements(ownerId, List.of());
             return;
@@ -498,7 +508,8 @@ public final class RoguelikeService {
     }
 
     private static List<AltarOfferingManager.PickedOffering> pickDistinctOfferings(RandomSource random, int count) {
-        List<Map.Entry<ResourceLocation, AltarOfferingData>> pool = new ArrayList<>(AltarOfferingManager.OFFERINGS.entrySet());
+        List<Map.Entry<ResourceLocation, AltarOfferingData>> pool = new ArrayList<>(
+                AltarOfferingManager.OFFERINGS.entrySet());
         List<AltarOfferingManager.PickedOffering> picked = new ArrayList<>(count);
         Set<Item> usedItems = new HashSet<>();
 
@@ -542,13 +553,15 @@ public final class RoguelikeService {
         return picked;
     }
 
-    private static void absorbDroppedItems(ServerLevel level, BlockPos altarPos, RoguelikeSavedData data, UUID ownerId) {
+    private static void absorbDroppedItems(ServerLevel level, BlockPos altarPos, RoguelikeSavedData data,
+            UUID ownerId) {
         if (data.isAltarComplete(ownerId)) {
             return;
         }
 
         AABB area = new AABB(altarPos).inflate(ALTAR_COLLECTION_RADIUS, 1.0D, ALTAR_COLLECTION_RADIUS);
-        List<ItemEntity> itemEntities = level.getEntitiesOfClass(ItemEntity.class, area, itemEntity -> itemEntity.isAlive() && !itemEntity.getItem().isEmpty());
+        List<ItemEntity> itemEntities = level.getEntitiesOfClass(ItemEntity.class, area,
+                itemEntity -> itemEntity.isAlive() && !itemEntity.getItem().isEmpty());
 
         for (ItemEntity itemEntity : itemEntities) {
             if (data.isAltarComplete(ownerId)) {
@@ -597,7 +610,8 @@ public final class RoguelikeService {
         return 0;
     }
 
-    private static void syncAltarDisplay(List<RoguelikeSavedData.AltarRequirement> requirements, RoguelikeAltarBlockEntity altar) {
+    private static void syncAltarDisplay(List<RoguelikeSavedData.AltarRequirement> requirements,
+            RoguelikeAltarBlockEntity altar) {
         List<RoguelikeAltarBlockEntity.DisplayEntry> entries = new ArrayList<>();
         for (RoguelikeSavedData.AltarRequirement requirement : requirements) {
             AltarOfferingData offering = AltarOfferingManager.OFFERINGS.get(requirement.offeringId());
@@ -606,7 +620,8 @@ public final class RoguelikeService {
             }
 
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(offering.item());
-            entries.add(new RoguelikeAltarBlockEntity.DisplayEntry(itemId, requirement.submittedAmount(), requirement.requiredAmount()));
+            entries.add(new RoguelikeAltarBlockEntity.DisplayEntry(itemId, requirement.submittedAmount(),
+                    requirement.requiredAmount()));
         }
 
         altar.setDisplayEntries(entries);

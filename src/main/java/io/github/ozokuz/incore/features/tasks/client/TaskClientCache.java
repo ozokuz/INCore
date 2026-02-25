@@ -6,7 +6,7 @@ import java.util.List;
 
 public final class TaskClientCache {
     private static final Gson GSON = new Gson();
-    private static volatile TaskSnapshot snapshot = new TaskSnapshot(List.of(), List.of(), 0, false, false, List.of(), List.of());
+    private static volatile TaskSnapshot snapshot = new TaskSnapshot(List.of(), List.of(), 0, false, false, List.of(), List.of(), List.of(), 0, false, false);
 
     private TaskClientCache() {
     }
@@ -32,6 +32,7 @@ public final class TaskClientCache {
                         tier.rewards() == null ? List.of() : tier.rewards()
                 ))
                 .toList();
+        List<DailyTaskEntry> fixedDailyTasks = parsed.fixedDailyTasks() == null ? List.of() : parsed.fixedDailyTasks();
         return new TaskSnapshot(
                 daily,
                 weekly,
@@ -39,7 +40,11 @@ public final class TaskClientCache {
                 parsed.dailyCompleted(),
                 parsed.dailyRewardClaimed(),
                 dailyRewards,
-                tiers
+                tiers,
+                fixedDailyTasks,
+                parsed.fixedDailyCompleted(),
+                parsed.fixedDailyAllCompleted(),
+                parsed.fixedDailyRewardClaimed()
         );
     }
 
@@ -54,11 +59,18 @@ public final class TaskClientCache {
             boolean dailyCompleted,
             boolean dailyRewardClaimed,
             List<RewardEntry> dailyRewards,
-            List<TierEntry> tiers
+            List<TierEntry> tiers,
+            List<DailyTaskEntry> fixedDailyTasks,
+            int fixedDailyCompleted,
+            boolean fixedDailyAllCompleted,
+            boolean fixedDailyRewardClaimed
     ) {
     }
 
     public record TaskEntry(String title, String description, int goal, int progress, String difficulty, int points) {
+    }
+
+    public record DailyTaskEntry(String id, String title, int goal, int progress) {
     }
 
     public record TierEntry(int tier, int requiredPoints, boolean unlocked, boolean claimed, List<RewardEntry> rewards) {
