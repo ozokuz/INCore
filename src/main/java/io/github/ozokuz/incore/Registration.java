@@ -46,13 +46,17 @@ import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabMenu;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOrePatchFeature;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreDebugCompassItem;
+import io.github.ozokuz.incore.features.surfaceore.SurfaceOreLocatorItem;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreSpotBlock;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreSpotBlockEntity;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreType;
+import io.github.ozokuz.incore.features.surfaceore.SurfaceOreTypeLocatorItem;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneDebugCompassItem;
+import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneLocatorItem;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStonePatchFeature;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneSpotBlock;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneType;
+import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneTypeLocatorItem;
 import io.github.ozokuz.incore.features.research.MechanicalLabBlock;
 import io.github.ozokuz.incore.features.research.ModularLabBlock;
 import io.github.ozokuz.incore.features.research.ProductivityModuleCardItem;
@@ -289,6 +293,25 @@ public class Registration {
     public static final DeferredItem<Item> DUNGEON_COMPLETION_CRATE_ITEM = ITEMS.registerItem("dungeon_completion_crate", DungeonCompletionCrateItem::new);
     public static final DeferredItem<Item> SURFACE_ORE_DEBUG_COMPASS_ITEM = ITEMS.registerItem("surface_ore_debug_compass", SurfaceOreDebugCompassItem::new);
     public static final DeferredItem<Item> SURFACE_STONE_DEBUG_COMPASS_ITEM = ITEMS.registerItem("surface_stone_debug_compass", SurfaceStoneDebugCompassItem::new);
+
+    public static final DeferredItem<Item> CRIMSITE_ORE_LOCATOR = ITEMS.registerItem("crimsite_ore_locator", properties -> new SurfaceOreLocatorItem(properties, SurfaceOreType.CRIMSITE, "Cr", 1));
+    public static final DeferredItem<Item> VERIDIUM_ORE_LOCATOR = ITEMS.registerItem("veridium_ore_locator", properties -> new SurfaceOreLocatorItem(properties, SurfaceOreType.VERIDIUM, "Ve", 5));
+    public static final DeferredItem<Item> ASURINE_ORE_LOCATOR = ITEMS.registerItem("asurine_ore_locator", properties -> new SurfaceOreLocatorItem(properties, SurfaceOreType.ASURINE, "As", 11));
+    public static final DeferredItem<Item> OCHRUM_ORE_LOCATOR = ITEMS.registerItem("ochrum_ore_locator", properties -> new SurfaceOreLocatorItem(properties, SurfaceOreType.OCHRUM, "Oc", 4));
+    public static final DeferredItem<Item> CINNABAR_ORE_LOCATOR = ITEMS.registerItem("cinnabar_ore_locator", properties -> new SurfaceOreLocatorItem(properties, SurfaceOreType.CINNABAR, "Ci", 1));
+    public static final DeferredItem<Item> MIXED_METALS_ORE_LOCATOR = ITEMS.registerItem("mixed_metals_ore_locator", properties -> new SurfaceOreLocatorItem(properties, SurfaceOreType.MIXED_METALS, "Mm", 7));
+    public static final DeferredItem<Item> GEM_CLUSTERS_ORE_LOCATOR = ITEMS.registerItem("gem_clusters_ore_locator", properties -> new SurfaceOreLocatorItem(properties, SurfaceOreType.GEM_CLUSTERS, "Gc", 6));
+    public static final DeferredItem<Item> NETHER_QUARTZ_ORE_LOCATOR = ITEMS.registerItem("nether_quartz_ore_locator", properties -> new SurfaceOreLocatorItem(properties, SurfaceOreType.NETHER_QUARTZ, "Nq", 9));
+
+    public static final DeferredItem<Item> STONE_LOCATOR = ITEMS.registerItem("stone_locator", properties -> new SurfaceStoneLocatorItem(properties, SurfaceStoneType.STONE, "St", 8));
+    public static final DeferredItem<Item> DEEPSLATE_LOCATOR = ITEMS.registerItem("deepslate_locator", properties -> new SurfaceStoneLocatorItem(properties, SurfaceStoneType.DEEPSLATE, "Ds", 0));
+    public static final DeferredItem<Item> LIMESTONE_LOCATOR = ITEMS.registerItem("limestone_locator", properties -> new SurfaceStoneLocatorItem(properties, SurfaceStoneType.LIMESTONE, "Li", 15));
+    public static final DeferredItem<Item> BASALT_LOCATOR = ITEMS.registerItem("basalt_locator", properties -> new SurfaceStoneLocatorItem(properties, SurfaceStoneType.BASALT, "Ba", 0));
+    public static final DeferredItem<Item> SCORIA_LOCATOR = ITEMS.registerItem("scoria_locator", properties -> new SurfaceStoneLocatorItem(properties, SurfaceStoneType.SCORIA, "Sc", 14));
+
+    public static final DeferredItem<Item> UNIVERSAL_ORE_LOCATOR = ITEMS.registerItem("universal_ore_locator", properties -> new SurfaceOreTypeLocatorItem(properties, "Or", 7));
+    public static final DeferredItem<Item> UNIVERSAL_STONE_LOCATOR = ITEMS.registerItem("universal_stone_locator", properties -> new SurfaceStoneTypeLocatorItem(properties, "St", 8));
+
     public static final DeferredItem<Item> SANITY_CRATE_ITEM = ITEMS.registerItem("sanity_crate", SanityCrateItem::new);
     public static final DeferredItem<Item> SANITY_BOOSTER_SMALL_ITEM = ITEMS.registerItem("sanity_booster_small", properties -> new SanityBoosterItem(properties, 50));
     public static final DeferredItem<Item> SANITY_BOOSTER_LARGE_ITEM = ITEMS.registerItem("sanity_booster_large", properties -> new SanityBoosterItem(properties, 100));
@@ -341,6 +364,21 @@ public class Registration {
                     output.accept(SURFACE_ORE_DEBUG_COMPASS_ITEM.get());
                     output.accept(SURFACE_STONE_DEBUG_COMPASS_ITEM.get());
                 }
+                output.accept(CRIMSITE_ORE_LOCATOR.get());
+                output.accept(VERIDIUM_ORE_LOCATOR.get());
+                output.accept(ASURINE_ORE_LOCATOR.get());
+                output.accept(OCHRUM_ORE_LOCATOR.get());
+                output.accept(CINNABAR_ORE_LOCATOR.get());
+                output.accept(MIXED_METALS_ORE_LOCATOR.get());
+                output.accept(GEM_CLUSTERS_ORE_LOCATOR.get());
+                output.accept(NETHER_QUARTZ_ORE_LOCATOR.get());
+                output.accept(STONE_LOCATOR.get());
+                output.accept(DEEPSLATE_LOCATOR.get());
+                output.accept(LIMESTONE_LOCATOR.get());
+                output.accept(BASALT_LOCATOR.get());
+                output.accept(SCORIA_LOCATOR.get());
+                output.accept(UNIVERSAL_ORE_LOCATOR.get());
+                output.accept(UNIVERSAL_STONE_LOCATOR.get());
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
                 output.accept(GACHA_CRATE_BLOCK_ITEM.get());
                 output.accept(ARENA_ORB_BLOCK_ITEM.get());
