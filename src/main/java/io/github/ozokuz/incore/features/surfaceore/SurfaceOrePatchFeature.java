@@ -123,6 +123,10 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
 
             be.initializeMines(sharedMines);
             placedSpots.add(spotPos.immutable());
+
+            BlockState baseStoneState = getBaseStoneState(dimension);
+            level.setBlock(groundPos, baseStoneState, Block.UPDATE_ALL);
+            level.setBlock(groundPos.below(), baseStoneState, Block.UPDATE_ALL);
         }
 
         if (placedSpots.size() >= MIN_SPOTS_PER_PATCH) {
@@ -237,7 +241,7 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
                     if (!level.getFluidState(belowPos).isEmpty()) {
                         return false;
                     }
-                    plannedCoverage.put(belowPos, chooseSolidCoverageState(random, oreType, dimension));
+                    plannedCoverage.put(belowPos, chooseSolidCoverageState(dimension));
                 }
             }
         }
@@ -273,13 +277,13 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
         return slabBottom(oreType.oreStoneSlabState());
     }
 
-    private static BlockState chooseSolidCoverageState(RandomSource random, SurfaceOreType oreType, ResourceKey<Level> dimension) {
+    private static BlockState chooseSolidCoverageState(ResourceKey<Level> dimension) {
+        return getBaseStoneState(dimension);
+    }
+
+    private static BlockState getBaseStoneState(ResourceKey<Level> dimension) {
         Block baseStone = DimensionCategory.fromLevel(dimension) == DimensionCategory.NETHER ? Blocks.BLACKSTONE : Blocks.STONE;
-        
-        if (random.nextInt(100) < 52) {
-            return baseStone.defaultBlockState();
-        }
-        return oreType.oreStoneState();
+        return baseStone.defaultBlockState();
     }
 
     private static int rollMinesByDistance(WorldGenLevel level, RandomSource random, BlockPos origin) {
