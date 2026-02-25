@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/quartz_ore_stone"
+    }
+  }
+}

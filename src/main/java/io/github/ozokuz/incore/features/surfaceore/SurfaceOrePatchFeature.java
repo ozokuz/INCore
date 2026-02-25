@@ -225,7 +225,7 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
                     return false;
                 }
 
-                plannedCoverage.put(groundPos, chooseCoverageState(random, oreType));
+                plannedCoverage.put(groundPos, chooseCoverageState(random, oreType, dimension));
                 vegetationClearBases.add(groundPos);
 
                 for (int depth = 1; depth <= SURFACE_FILL_DEPTH; depth++) {
@@ -237,7 +237,7 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
                     if (!level.getFluidState(belowPos).isEmpty()) {
                         return false;
                     }
-                    plannedCoverage.put(belowPos, chooseSolidCoverageState(random, oreType));
+                    plannedCoverage.put(belowPos, chooseSolidCoverageState(random, oreType, dimension));
                 }
             }
         }
@@ -256,23 +256,28 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
         return normX * normX + normZ * normZ <= 1.0D;
     }
 
-    private static BlockState chooseCoverageState(RandomSource random, SurfaceOreType oreType) {
+    private static BlockState chooseCoverageState(RandomSource random, SurfaceOreType oreType, ResourceKey<Level> dimension) {
+        Block baseStone = DimensionCategory.fromLevel(dimension) == DimensionCategory.NETHER ? Blocks.BLACKSTONE : Blocks.STONE;
+        Block baseSlab = DimensionCategory.fromLevel(dimension) == DimensionCategory.NETHER ? Blocks.BLACKSTONE_SLAB : Blocks.STONE_SLAB;
+        
         int roll = random.nextInt(100);
         if (roll < 38) {
-            return Blocks.STONE.defaultBlockState();
+            return baseStone.defaultBlockState();
         }
         if (roll < 75) {
             return oreType.oreStoneState();
         }
         if (roll < 88) {
-            return slabBottom(Blocks.STONE_SLAB.defaultBlockState());
+            return slabBottom(baseSlab.defaultBlockState());
         }
         return slabBottom(oreType.oreStoneSlabState());
     }
 
-    private static BlockState chooseSolidCoverageState(RandomSource random, SurfaceOreType oreType) {
+    private static BlockState chooseSolidCoverageState(RandomSource random, SurfaceOreType oreType, ResourceKey<Level> dimension) {
+        Block baseStone = DimensionCategory.fromLevel(dimension) == DimensionCategory.NETHER ? Blocks.BLACKSTONE : Blocks.STONE;
+        
         if (random.nextInt(100) < 52) {
-            return Blocks.STONE.defaultBlockState();
+            return baseStone.defaultBlockState();
         }
         return oreType.oreStoneState();
     }
@@ -368,6 +373,7 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
             case CINNABAR -> Registration.CINNABAR_SURFACE_ORE_SPOT_BLOCK.get();
             case MIXED_METALS -> Registration.MIXED_METALS_SURFACE_ORE_SPOT_BLOCK.get();
             case GEM_CLUSTERS -> Registration.GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK.get();
+            case NETHER_QUARTZ -> Registration.NETHER_QUARTZ_SURFACE_ORE_SPOT_BLOCK.get();
         };
     }
 
@@ -392,8 +398,9 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
     private static int findGroundYFromBottom(WorldGenLevel level, int x, int z) {
         int minBuildHeight = level.getMinBuildHeight();
         int maxBuildHeight = level.getMaxBuildHeight();
+        int requiredAirAbove = 3;
         
-        for (int y = minBuildHeight + 1; y < maxBuildHeight - 1; y++) {
+        for (int y = minBuildHeight + 1; y < maxBuildHeight - requiredAirAbove; y++) {
             BlockPos pos = new BlockPos(x, y, z);
             BlockState state = level.getBlockState(pos);
             if (state.is(Blocks.BEDROCK)) {
@@ -401,9 +408,7 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
             }
             if (!state.isAir() && !state.is(BlockTags.REPLACEABLE)) {
                 if (state.isFaceSturdy(level, pos, Direction.UP)) {
-                    BlockPos abovePos = pos.above();
-                    BlockState aboveState = level.getBlockState(abovePos);
-                    if (aboveState.canBeReplaced() && level.getFluidState(abovePos).isEmpty()) {
+                    if (hasEnoughAirAbove(level, pos, requiredAirAbove)) {
                         return y;
                     }
                 }
@@ -411,5 +416,16 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
         }
         
         return minBuildHeight;
+    }
+
+    private static boolean hasEnoughAirAbove(WorldGenLevel level, BlockPos groundPos, int requiredAir) {
+        for (int dy = 1; dy <= requiredAir; dy++) {
+            BlockPos checkPos = groundPos.above(dy);
+            BlockState state = level.getBlockState(checkPos);
+            if (!state.canBeReplaced() || !level.getFluidState(checkPos).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

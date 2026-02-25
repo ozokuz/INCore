@@ -341,8 +341,9 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
     private static int findGroundYFromBottom(WorldGenLevel level, int x, int z) {
         int minBuildHeight = level.getMinBuildHeight();
         int maxBuildHeight = level.getMaxBuildHeight();
+        int requiredAirAbove = 3;
         
-        for (int y = minBuildHeight + 1; y < maxBuildHeight - 1; y++) {
+        for (int y = minBuildHeight + 1; y < maxBuildHeight - requiredAirAbove; y++) {
             BlockPos pos = new BlockPos(x, y, z);
             BlockState state = level.getBlockState(pos);
             if (state.is(Blocks.BEDROCK)) {
@@ -350,9 +351,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
             }
             if (!state.isAir() && !state.is(BlockTags.REPLACEABLE)) {
                 if (state.isFaceSturdy(level, pos, Direction.UP)) {
-                    BlockPos abovePos = pos.above();
-                    BlockState aboveState = level.getBlockState(abovePos);
-                    if (aboveState.canBeReplaced() && level.getFluidState(abovePos).isEmpty()) {
+                    if (hasEnoughAirAbove(level, pos, requiredAirAbove)) {
                         return y;
                     }
                 }
@@ -360,5 +359,16 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
         }
         
         return minBuildHeight;
+    }
+
+    private static boolean hasEnoughAirAbove(WorldGenLevel level, BlockPos groundPos, int requiredAir) {
+        for (int dy = 1; dy <= requiredAir; dy++) {
+            BlockPos checkPos = groundPos.above(dy);
+            BlockState state = level.getBlockState(checkPos);
+            if (!state.canBeReplaced() || !level.getFluidState(checkPos).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 }
