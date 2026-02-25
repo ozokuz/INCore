@@ -206,7 +206,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
                     return false;
                 }
 
-                plannedCoverage.put(groundPos, chooseCoverageState(random, stoneType));
+                plannedCoverage.put(groundPos, chooseCoverageState(random, stoneType, dimension));
                 vegetationClearBases.add(groundPos);
 
                 for (int depth = 1; depth <= SURFACE_FILL_DEPTH; depth++) {
@@ -218,7 +218,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
                     if (!level.getFluidState(belowPos).isEmpty()) {
                         return false;
                     }
-                    plannedCoverage.put(belowPos, chooseSolidCoverageState(random, stoneType));
+                    plannedCoverage.put(belowPos, chooseSolidCoverageState(random, stoneType, dimension));
                 }
             }
         }
@@ -237,23 +237,28 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
         return normX * normX + normZ * normZ <= 1.0D;
     }
 
-    private static BlockState chooseCoverageState(RandomSource random, SurfaceStoneType stoneType) {
+    private static BlockState chooseCoverageState(RandomSource random, SurfaceStoneType stoneType, ResourceKey<Level> dimension) {
+        Block baseStone = DimensionCategory.fromLevel(dimension) == DimensionCategory.NETHER ? Blocks.BLACKSTONE : Blocks.STONE;
+        Block baseSlab = DimensionCategory.fromLevel(dimension) == DimensionCategory.NETHER ? Blocks.BLACKSTONE_SLAB : Blocks.STONE_SLAB;
+        
         int roll = random.nextInt(100);
         if (roll < 40) {
-            return Blocks.STONE.defaultBlockState();
+            return baseStone.defaultBlockState();
         }
         if (roll < 77) {
             return stoneType.stoneState();
         }
         if (roll < 89) {
-            return slabBottom(Blocks.STONE_SLAB.defaultBlockState());
+            return slabBottom(baseSlab.defaultBlockState());
         }
         return slabBottom(stoneType.stoneSlabState());
     }
 
-    private static BlockState chooseSolidCoverageState(RandomSource random, SurfaceStoneType stoneType) {
+    private static BlockState chooseSolidCoverageState(RandomSource random, SurfaceStoneType stoneType, ResourceKey<Level> dimension) {
+        Block baseStone = DimensionCategory.fromLevel(dimension) == DimensionCategory.NETHER ? Blocks.BLACKSTONE : Blocks.STONE;
+        
         if (random.nextInt(100) < 52) {
-            return Blocks.STONE.defaultBlockState();
+            return baseStone.defaultBlockState();
         }
         return stoneType.stoneState();
     }
