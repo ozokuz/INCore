@@ -4,6 +4,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -26,7 +29,7 @@ import java.util.Set;
 
 public class SurfaceOreDebugCompassItem extends CompassItem {
     private static final String PLAYER_DATA_ROOT = "incore_surface_ore_debug";
-    private static final String PLAYER_DATA_FOUND_PATCHES = "found_patch_chunks";
+    private static final String PLAYER_DATA_FOUND_PATCHES = "found_patch_keys";
 
     public SurfaceOreDebugCompassItem(Item.Properties properties) {
         super(properties.stacksTo(1));
@@ -47,15 +50,15 @@ public class SurfaceOreDebugCompassItem extends CompassItem {
         }
 
         SurfaceOrePatchSavedData savedData = SurfaceOrePatchSavedData.get(serverPlayer.serverLevel());
-        Set<Long> foundPatches = readFoundPatchChunks(serverPlayer);
-        Optional<SurfaceOrePatchSavedData.PatchTarget> nearest = savedData.findNearestUnfound(serverPlayer.blockPosition(), foundPatches);
+        Set<String> foundPatches = readFoundPatchKeys(serverPlayer);
+        Optional<SurfaceOrePatchSavedData.PatchTarget> nearest = savedData.findNearestUnfound(serverPlayer.blockPosition(), level.dimension(), foundPatches);
         if (nearest.isEmpty()) {
             serverPlayer.displayClientMessage(Component.translatable("incore.surface_ore.debug_compass.none_left"), true);
             return InteractionResultHolder.fail(stack);
         }
 
         SurfaceOrePatchSavedData.PatchTarget target = nearest.get();
-        markFoundPatch(serverPlayer, target.chunkKey());
+        markFoundPatch(serverPlayer, target.key());
         stack.set(
                 DataComponents.LODESTONE_TRACKER,
                 new LodestoneTracker(Optional.of(GlobalPos.of(level.dimension(), target.pos())), false)
@@ -74,30 +77,30 @@ public class SurfaceOreDebugCompassItem extends CompassItem {
         return InteractionResultHolder.success(stack);
     }
 
-    private static Set<Long> readFoundPatchChunks(ServerPlayer player) {
+    private static Set<String> readFoundPatchKeys(ServerPlayer player) {
         CompoundTag root = player.getPersistentData().getCompound(PLAYER_DATA_ROOT);
-        long[] values = root.getLongArray(PLAYER_DATA_FOUND_PATCHES);
-        Set<Long> found = new HashSet<>();
-        for (long value : values) {
-            found.add(value);
+        ListTag list = root.getList(PLAYER_DATA_FOUND_PATCHES, Tag.TAG_STRING);
+        Set<String> found = new HashSet<>();
+        for (Tag tag : list) {
+            found.add(tag.getAsString());
         }
         return found;
     }
 
-    private static void markFoundPatch(ServerPlayer player, long chunkKey) {
+    private static void markFoundPatch(ServerPlayer player, String key) {
         CompoundTag persistent = player.getPersistentData();
         CompoundTag root = persistent.getCompound(PLAYER_DATA_ROOT);
-        Set<Long> found = new HashSet<>();
-        for (long value : root.getLongArray(PLAYER_DATA_FOUND_PATCHES)) {
-            found.add(value);
+        Set<String> found = new HashSet<>();
+        ListTag list = root.getList(PLAYER_DATA_FOUND_PATCHES, Tag.TAG_STRING);
+        for (Tag tag : list) {
+            found.add(tag.getAsString());
         }
-        if (found.add(chunkKey)) {
-            long[] packed = new long[found.size()];
-            int i = 0;
-            for (long value : found) {
-                packed[i++] = value;
+        if (found.add(key)) {
+            ListTag newList = new ListTag();
+            for (String foundKey : found) {
+                newList.add(StringTag.valueOf(foundKey));
             }
-            root.putLongArray(PLAYER_DATA_FOUND_PATCHES, packed);
+            root.put(PLAYER_DATA_FOUND_PATCHES, newList);
             persistent.put(PLAYER_DATA_ROOT, root);
         }
     }

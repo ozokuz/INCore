@@ -131,7 +131,7 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
 
         if (placedSpots.size() >= MIN_SPOTS_PER_PATCH) {
             if (coverPatchSurface(level, random, oreType, placedSpots, dimension)) {
-                SurfaceOrePatchSavedData.get(level.getLevel()).recordPatch(centerOf(placedSpots));
+                SurfaceOrePatchSavedData.get(level.getLevel()).recordPatch(centerOf(placedSpots), dimension);
                 return true;
             }
 
