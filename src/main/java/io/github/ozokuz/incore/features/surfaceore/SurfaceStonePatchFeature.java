@@ -112,7 +112,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
 
         if (placedSpots.size() >= MIN_SPOTS_PER_PATCH) {
             if (coverPatchSurface(level, random, stoneType, placedSpots, dimension)) {
-                SurfaceStonePatchSavedData.get(level.getLevel()).recordPatch(centerOf(placedSpots));
+                SurfaceStonePatchSavedData.get(level.getLevel()).recordPatch(centerOf(placedSpots), dimension);
                 return true;
             }
 
