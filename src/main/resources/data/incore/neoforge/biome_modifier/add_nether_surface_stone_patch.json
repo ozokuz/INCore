@@ -1,0 +1,8 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_nether",
+  "features": [
+    "incore:surface_stone_patch"
+  ],
+  "step": "top_layer_modification"
+}
