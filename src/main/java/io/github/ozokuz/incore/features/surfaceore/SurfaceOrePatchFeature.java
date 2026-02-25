@@ -398,7 +398,7 @@ public class SurfaceOrePatchFeature extends Feature<NoneFeatureConfiguration> {
     private static int findGroundYFromBottom(WorldGenLevel level, int x, int z) {
         int minBuildHeight = level.getMinBuildHeight();
         int maxBuildHeight = level.getMaxBuildHeight();
-        int requiredAirAbove = 3;
+        int requiredAirAbove = 5;
         
         for (int y = minBuildHeight + 1; y < maxBuildHeight - requiredAirAbove; y++) {
             BlockPos pos = new BlockPos(x, y, z);
