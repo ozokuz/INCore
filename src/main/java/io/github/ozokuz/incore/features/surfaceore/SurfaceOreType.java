@@ -22,7 +22,8 @@ public enum SurfaceOreType implements StringRepresentable {
     OCHRUM("ochrum", "create:ochrum", "create:cut_ochrum_slab", DimensionCategory.OVERWORLD),
     CINNABAR("cinnabar", "incore:cinnabar_ore_stone", "incore:cinnabar_ore_stone_slab", DimensionCategory.OVERWORLD),
     MIXED_METALS("mixed_metals", "incore:mixed_metals_ore_stone", "incore:mixed_metals_ore_stone_slab", DimensionCategory.OVERWORLD),
-    GEM_CLUSTERS("gem_clusters", "incore:gem_clusters_ore_stone", "incore:gem_clusters_ore_stone_slab", DimensionCategory.OVERWORLD);
+    GEM_CLUSTERS("gem_clusters", "incore:gem_clusters_ore_stone", "incore:gem_clusters_ore_stone_slab", DimensionCategory.OVERWORLD),
+    NETHER_QUARTZ("nether_quartz", "incore:quartz_ore_stone", "incore:quartz_ore_stone_slab", DimensionCategory.NETHER);
 
     private static final SurfaceOreType[] VALUES = values();
 

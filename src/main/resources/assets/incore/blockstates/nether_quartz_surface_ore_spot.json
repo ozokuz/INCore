@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/nether_quartz_surface_ore_spot"
+    }
+  }
+}

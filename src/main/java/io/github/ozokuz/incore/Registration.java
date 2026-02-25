@@ -205,12 +205,19 @@ public class Registration {
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_SLAB_BLOCK = BLOCKS.register("cinnabar_ore_stone_slab", () -> new SlabBlock(BlockBehaviour.Properties.ofFullCopy(CINNABAR_ORE_STONE_BLOCK.get())));
     public static final DeferredBlock<Block> MIXED_METALS_ORE_STONE_SLAB_BLOCK = BLOCKS.register("mixed_metals_ore_stone_slab", () -> new SlabBlock(BlockBehaviour.Properties.ofFullCopy(MIXED_METALS_ORE_STONE_BLOCK.get())));
     public static final DeferredBlock<Block> GEM_CLUSTERS_ORE_STONE_SLAB_BLOCK = BLOCKS.register("gem_clusters_ore_stone_slab", () -> new SlabBlock(BlockBehaviour.Properties.ofFullCopy(GEM_CLUSTERS_ORE_STONE_BLOCK.get())));
+    public static final DeferredBlock<Block> QUARTZ_ORE_STONE_BLOCK = BLOCKS.register("quartz_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.QUARTZ)
+            .requiresCorrectToolForDrops()
+            .strength(1.8F, 6.0F)));
+    public static final DeferredBlock<Block> QUARTZ_ORE_STONE_SLAB_BLOCK = BLOCKS.register("quartz_ore_stone_slab", () -> new SlabBlock(BlockBehaviour.Properties.ofFullCopy(QUARTZ_ORE_STONE_BLOCK.get())));
     public static final DeferredItem<BlockItem> CINNABAR_ORE_STONE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("cinnabar_ore_stone", CINNABAR_ORE_STONE_BLOCK);
     public static final DeferredItem<BlockItem> MIXED_METALS_ORE_STONE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mixed_metals_ore_stone", MIXED_METALS_ORE_STONE_BLOCK);
     public static final DeferredItem<BlockItem> GEM_CLUSTERS_ORE_STONE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("gem_clusters_ore_stone", GEM_CLUSTERS_ORE_STONE_BLOCK);
     public static final DeferredItem<BlockItem> CINNABAR_ORE_STONE_SLAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("cinnabar_ore_stone_slab", CINNABAR_ORE_STONE_SLAB_BLOCK);
     public static final DeferredItem<BlockItem> MIXED_METALS_ORE_STONE_SLAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mixed_metals_ore_stone_slab", MIXED_METALS_ORE_STONE_SLAB_BLOCK);
     public static final DeferredItem<BlockItem> GEM_CLUSTERS_ORE_STONE_SLAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("gem_clusters_ore_stone_slab", GEM_CLUSTERS_ORE_STONE_SLAB_BLOCK);
+    public static final DeferredItem<BlockItem> QUARTZ_ORE_STONE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("quartz_ore_stone", QUARTZ_ORE_STONE_BLOCK);
+    public static final DeferredItem<BlockItem> QUARTZ_ORE_STONE_SLAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("quartz_ore_stone_slab", QUARTZ_ORE_STONE_SLAB_BLOCK);
     public static final DeferredBlock<Block> CRIMSITE_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("crimsite_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.CRIMSITE));
     public static final DeferredBlock<Block> VERIDIUM_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("veridium_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.VERIDIUM));
     public static final DeferredBlock<Block> ASURINE_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("asurine_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.ASURINE));
@@ -218,6 +225,7 @@ public class Registration {
     public static final DeferredBlock<Block> CINNABAR_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("cinnabar_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.CINNABAR));
     public static final DeferredBlock<Block> MIXED_METALS_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("mixed_metals_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.MIXED_METALS));
     public static final DeferredBlock<Block> GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("gem_clusters_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.GEM_CLUSTERS));
+    public static final DeferredBlock<Block> NETHER_QUARTZ_SURFACE_ORE_SPOT_BLOCK = BLOCKS.register("nether_quartz_surface_ore_spot", () -> new SurfaceOreSpotBlock(SurfaceOreType.NETHER_QUARTZ));
     public static final DeferredBlock<Block> STONE_SURFACE_STONE_SPOT_BLOCK = BLOCKS.register("stone_surface_stone_spot", () -> new SurfaceStoneSpotBlock(SurfaceStoneType.STONE));
     public static final DeferredBlock<Block> DEEPSLATE_SURFACE_STONE_SPOT_BLOCK = BLOCKS.register("deepslate_surface_stone_spot", () -> new SurfaceStoneSpotBlock(SurfaceStoneType.DEEPSLATE));
     public static final DeferredBlock<Block> LIMESTONE_SURFACE_STONE_SPOT_BLOCK = BLOCKS.register("limestone_surface_stone_spot", () -> new SurfaceStoneSpotBlock(SurfaceStoneType.LIMESTONE));
@@ -231,7 +239,8 @@ public class Registration {
             OCHRUM_SURFACE_ORE_SPOT_BLOCK.get(),
             CINNABAR_SURFACE_ORE_SPOT_BLOCK.get(),
             MIXED_METALS_SURFACE_ORE_SPOT_BLOCK.get(),
-            GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK.get()
+            GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK.get(),
+            NETHER_QUARTZ_SURFACE_ORE_SPOT_BLOCK.get()
     ).build(null));
     public static final DeferredItem<BlockItem> CRIMSITE_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("crimsite_surface_ore_spot", CRIMSITE_SURFACE_ORE_SPOT_BLOCK);
     public static final DeferredItem<BlockItem> VERIDIUM_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("veridium_surface_ore_spot", VERIDIUM_SURFACE_ORE_SPOT_BLOCK);
@@ -240,6 +249,7 @@ public class Registration {
     public static final DeferredItem<BlockItem> CINNABAR_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("cinnabar_surface_ore_spot", CINNABAR_SURFACE_ORE_SPOT_BLOCK);
     public static final DeferredItem<BlockItem> MIXED_METALS_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mixed_metals_surface_ore_spot", MIXED_METALS_SURFACE_ORE_SPOT_BLOCK);
     public static final DeferredItem<BlockItem> GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("gem_clusters_surface_ore_spot", GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK);
+    public static final DeferredItem<BlockItem> NETHER_QUARTZ_SURFACE_ORE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("nether_quartz_surface_ore_spot", NETHER_QUARTZ_SURFACE_ORE_SPOT_BLOCK);
     public static final DeferredItem<BlockItem> STONE_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("stone_surface_stone_spot", STONE_SURFACE_STONE_SPOT_BLOCK);
     public static final DeferredItem<BlockItem> DEEPSLATE_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("deepslate_surface_stone_spot", DEEPSLATE_SURFACE_STONE_SPOT_BLOCK);
     public static final DeferredItem<BlockItem> LIMESTONE_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("limestone_surface_stone_spot", LIMESTONE_SURFACE_STONE_SPOT_BLOCK);
@@ -349,6 +359,8 @@ public class Registration {
                 output.accept(CINNABAR_ORE_STONE_SLAB_BLOCK_ITEM.get());
                 output.accept(MIXED_METALS_ORE_STONE_SLAB_BLOCK_ITEM.get());
                 output.accept(GEM_CLUSTERS_ORE_STONE_SLAB_BLOCK_ITEM.get());
+                output.accept(QUARTZ_ORE_STONE_BLOCK_ITEM.get());
+                output.accept(QUARTZ_ORE_STONE_SLAB_BLOCK_ITEM.get());
                 output.accept(BURNER_LAB_BLOCK_ITEM.get());
                 output.accept(MECHANICAL_LAB_BLOCK_ITEM.get());
                 output.accept(MODULAR_LAB_BLOCK_ITEM.get());
