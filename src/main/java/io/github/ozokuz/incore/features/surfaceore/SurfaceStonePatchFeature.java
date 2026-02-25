@@ -3,10 +3,12 @@ package io.github.ozokuz.incore.features.surfaceore;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -47,8 +49,15 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
             return false;
         }
 
+        ResourceKey<Level> dimension = level.getLevel().dimension();
+        DimensionCategory dimensionCategory = DimensionCategory.fromLevel(dimension);
+
         int targetSpots = Mth.nextInt(random, MIN_SPOTS_PER_PATCH, MAX_SPOTS_PER_PATCH);
-        SurfaceStoneType stoneType = SurfaceStoneType.random(random);
+        SurfaceStoneType stoneType = SurfaceStoneType.random(random, dimensionCategory);
+        
+        if (stoneType == null) {
+            return false;
+        }
 
         List<BlockPos> placedSpots = new ArrayList<>();
         Set<Long> occupied = new HashSet<>();
@@ -58,22 +67,16 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
         for (int attempt = 0; attempt < maxAttempts && placedSpots.size() < targetSpots; attempt++) {
             int x = origin.getX() + random.nextInt(radius * 2 + 1) - radius;
             int z = origin.getZ() + random.nextInt(radius * 2 + 1) - radius;
-            int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
-            if (surfaceY <= level.getMinBuildHeight() + 1) {
+            BlockPos groundPos = findGroundPos(level, x, z);
+            if (groundPos == null) {
                 continue;
             }
 
-            BlockPos groundPos = new BlockPos(x, surfaceY, z);
             BlockPos spotPos = groundPos.above();
             if (occupied.contains(spotPos.asLong())) {
                 continue;
             }
             if (!isFarEnoughFromOtherSpots(placedSpots, spotPos)) {
-                continue;
-            }
-
-            int worldSurfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-            if (spotPos.getY() < worldSurfaceY) {
                 continue;
             }
 
@@ -104,7 +107,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
         }
 
         if (placedSpots.size() >= MIN_SPOTS_PER_PATCH) {
-            if (coverPatchSurface(level, random, stoneType, placedSpots)) {
+            if (coverPatchSurface(level, random, stoneType, placedSpots, dimension)) {
                 SurfaceStonePatchSavedData.get(level.getLevel()).recordPatch(centerOf(placedSpots));
                 return true;
             }
@@ -150,7 +153,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
         return true;
     }
 
-    private static boolean coverPatchSurface(WorldGenLevel level, RandomSource random, SurfaceStoneType stoneType, List<BlockPos> placedSpots) {
+    private static boolean coverPatchSurface(WorldGenLevel level, RandomSource random, SurfaceStoneType stoneType, List<BlockPos> placedSpots, ResourceKey<Level> dimension) {
         int minX = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE;
         int minZ = Integer.MAX_VALUE;
@@ -181,7 +184,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
                     continue;
                 }
 
-                int groundY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+                int groundY = findGroundY(level, x, z);
                 if (groundY <= level.getMinBuildHeight() + 1) {
                     return false;
                 }
@@ -196,7 +199,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
                 if (!level.getFluidState(groundPos).isEmpty() || !level.getFluidState(abovePos).isEmpty()) {
                     return false;
                 }
-                if (!isNaturalSurfaceGround(groundState)) {
+                if (!DimensionGroundTags.isNaturalGround(groundState, dimension)) {
                     return false;
                 }
                 if (!canClearAboveForPatch(aboveState)) {
@@ -209,7 +212,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
                 for (int depth = 1; depth <= SURFACE_FILL_DEPTH; depth++) {
                     BlockPos belowPos = groundPos.below(depth);
                     BlockState belowState = level.getBlockState(belowPos);
-                    if (!canReplaceSubsurfaceGround(belowState)) {
+                    if (!canReplaceSubsurfaceGround(belowState, dimension)) {
                         return false;
                     }
                     if (!level.getFluidState(belowPos).isEmpty()) {
@@ -223,8 +226,8 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
         for (Map.Entry<BlockPos, BlockState> entry : plannedCoverage.entrySet()) {
             level.setBlock(entry.getKey(), entry.getValue(), Block.UPDATE_ALL);
         }
-        clearSoftVegetationAbove(level, vegetationClearBases);
-        clearSoftVegetationAbove(level, placedSpots);
+        clearSoftVegetationAbove(level, vegetationClearBases, dimension);
+        clearSoftVegetationAbove(level, placedSpots, dimension);
         return true;
     }
 
@@ -255,47 +258,24 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
         return stoneType.stoneState();
     }
 
-    private static boolean isNaturalSurfaceGround(BlockState state) {
-        return state.is(BlockTags.BASE_STONE_OVERWORLD)
-                || state.is(BlockTags.DIRT)
-                || state.is(BlockTags.SAND)
-                || state.is(BlockTags.TERRACOTTA)
-                || state.is(Blocks.GRAVEL)
-                || state.is(Blocks.CLAY)
-                || state.is(Blocks.SNOW_BLOCK)
-                || state.is(Blocks.POWDER_SNOW)
-                || state.is(Blocks.STONE)
-                || state.is(Blocks.STONE_SLAB);
-    }
-
     private static boolean canClearAboveForPatch(BlockState state) {
         return state.isAir() || state.is(BlockTags.REPLACEABLE);
     }
 
-    private static boolean canReplaceSubsurfaceGround(BlockState state) {
-        return isNaturalSurfaceGround(state) || state.isAir() || state.is(BlockTags.REPLACEABLE);
+    private static boolean canReplaceSubsurfaceGround(BlockState state, ResourceKey<Level> dimension) {
+        return DimensionGroundTags.isNaturalGround(state, dimension) || state.isAir() || state.is(BlockTags.REPLACEABLE);
     }
 
-    private static void clearSoftVegetationAbove(WorldGenLevel level, Iterable<BlockPos> bases) {
+    private static void clearSoftVegetationAbove(WorldGenLevel level, Iterable<BlockPos> bases, ResourceKey<Level> dimension) {
         for (BlockPos base : bases) {
             for (int dy = 1; dy <= VEGETATION_CLEAR_HEIGHT; dy++) {
                 BlockPos clearPos = base.above(dy);
                 BlockState clearState = level.getBlockState(clearPos);
-                if (isSoftVegetation(clearState)) {
+                if (DimensionGroundTags.isSoftVegetation(clearState, dimension)) {
                     level.setBlock(clearPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                 }
             }
         }
-    }
-
-    private static boolean isSoftVegetation(BlockState state) {
-        return state.is(Blocks.SHORT_GRASS)
-                || state.is(Blocks.TALL_GRASS)
-                || state.is(Blocks.FERN)
-                || state.is(Blocks.LARGE_FERN)
-                || state.is(Blocks.DEAD_BUSH)
-                || state.is(BlockTags.SMALL_FLOWERS)
-                || state.is(BlockTags.TALL_FLOWERS);
     }
 
     private static boolean isSpotBlock(BlockState state) {
@@ -333,5 +313,47 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
             case BASALT -> Registration.BASALT_SURFACE_STONE_SPOT_BLOCK.get();
             case SCORIA -> Registration.SCORIA_SURFACE_STONE_SPOT_BLOCK.get();
         };
+    }
+
+    private static BlockPos findGroundPos(WorldGenLevel level, int x, int z) {
+        int groundY = findGroundY(level, x, z);
+        if (groundY <= level.getMinBuildHeight() + 1) {
+            return null;
+        }
+        return new BlockPos(x, groundY, z);
+    }
+
+    private static int findGroundY(WorldGenLevel level, int x, int z) {
+        DimensionCategory category = DimensionCategory.fromLevel(level.getLevel().dimension());
+        
+        if (category == DimensionCategory.NETHER) {
+            return findGroundYFromBottom(level, x, z);
+        }
+        
+        return level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+    }
+
+    private static int findGroundYFromBottom(WorldGenLevel level, int x, int z) {
+        int minBuildHeight = level.getMinBuildHeight();
+        int maxBuildHeight = level.getMaxBuildHeight();
+        
+        for (int y = minBuildHeight + 1; y < maxBuildHeight - 1; y++) {
+            BlockPos pos = new BlockPos(x, y, z);
+            BlockState state = level.getBlockState(pos);
+            if (state.is(Blocks.BEDROCK)) {
+                continue;
+            }
+            if (!state.isAir() && !state.is(BlockTags.REPLACEABLE)) {
+                if (state.isFaceSturdy(level, pos, Direction.UP)) {
+                    BlockPos abovePos = pos.above();
+                    BlockState aboveState = level.getBlockState(abovePos);
+                    if (aboveState.canBeReplaced() && level.getFluidState(abovePos).isEmpty()) {
+                        return y;
+                    }
+                }
+            }
+        }
+        
+        return minBuildHeight;
     }
 }

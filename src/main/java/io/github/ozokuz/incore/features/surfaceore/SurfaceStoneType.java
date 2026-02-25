@@ -17,29 +17,48 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.List;
 
 public enum SurfaceStoneType implements StringRepresentable {
-    STONE("stone", "minecraft:stone", "minecraft:stone_slab"),
-    DEEPSLATE("deepslate", "minecraft:deepslate", "minecraft:cobbled_deepslate_slab"),
-    LIMESTONE("limestone", "create:limestone", "create:cut_limestone_slab"),
-    BASALT("basalt", "minecraft:basalt", "minecraft:stone_slab"),
-    SCORIA("scoria", "create:scoria", "create:cut_scoria_slab");
+    STONE("stone", "minecraft:stone", "minecraft:stone_slab", DimensionCategory.OVERWORLD),
+    DEEPSLATE("deepslate", "minecraft:deepslate", "minecraft:cobbled_deepslate_slab", DimensionCategory.OVERWORLD),
+    LIMESTONE("limestone", "create:limestone", "create:cut_limestone_slab", DimensionCategory.OVERWORLD),
+    BASALT("basalt", "minecraft:basalt", "minecraft:stone_slab", DimensionCategory.NETHER),
+    SCORIA("scoria", "create:scoria", "create:cut_scoria_slab", DimensionCategory.NETHER);
 
     private static final SurfaceStoneType[] VALUES = values();
 
     private final String serializedName;
     private final ResourceLocation sourceStoneBlockId;
     private final ResourceLocation sourceStoneSlabId;
+    private final DimensionCategory dimension;
 
-    SurfaceStoneType(String serializedName, String sourceStoneBlockId, String sourceStoneSlabId) {
+    SurfaceStoneType(String serializedName, String sourceStoneBlockId, String sourceStoneSlabId, DimensionCategory dimension) {
         this.serializedName = serializedName;
         this.sourceStoneBlockId = ResourceLocation.parse(sourceStoneBlockId);
         this.sourceStoneSlabId = ResourceLocation.parse(sourceStoneSlabId);
+        this.dimension = dimension;
     }
 
     public static SurfaceStoneType random(RandomSource random) {
         return VALUES[random.nextInt(VALUES.length)];
+    }
+
+    public static SurfaceStoneType random(RandomSource random, DimensionCategory category) {
+        SurfaceStoneType[] filtered = Arrays.stream(VALUES)
+                .filter(type -> type.dimension == category)
+                .toArray(SurfaceStoneType[]::new);
+        
+        if (filtered.length == 0) {
+            return null;
+        }
+        
+        return filtered[random.nextInt(filtered.length)];
+    }
+
+    public DimensionCategory getDimension() {
+        return dimension;
     }
 
     public BlockState stoneState() {
