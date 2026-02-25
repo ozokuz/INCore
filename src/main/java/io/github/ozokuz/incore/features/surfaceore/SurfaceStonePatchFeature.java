@@ -104,6 +104,10 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
             }
 
             placedSpots.add(spotPos.immutable());
+
+            BlockState baseStoneState = getBaseStoneState(dimension);
+            level.setBlock(groundPos, baseStoneState, Block.UPDATE_ALL);
+            level.setBlock(groundPos.below(), baseStoneState, Block.UPDATE_ALL);
         }
 
         if (placedSpots.size() >= MIN_SPOTS_PER_PATCH) {
@@ -218,7 +222,7 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
                     if (!level.getFluidState(belowPos).isEmpty()) {
                         return false;
                     }
-                    plannedCoverage.put(belowPos, chooseSolidCoverageState(random, stoneType, dimension));
+                    plannedCoverage.put(belowPos, chooseSolidCoverageState(dimension));
                 }
             }
         }
@@ -254,13 +258,13 @@ public class SurfaceStonePatchFeature extends Feature<NoneFeatureConfiguration> 
         return slabBottom(stoneType.stoneSlabState());
     }
 
-    private static BlockState chooseSolidCoverageState(RandomSource random, SurfaceStoneType stoneType, ResourceKey<Level> dimension) {
+    private static BlockState chooseSolidCoverageState(ResourceKey<Level> dimension) {
+        return getBaseStoneState(dimension);
+    }
+
+    private static BlockState getBaseStoneState(ResourceKey<Level> dimension) {
         Block baseStone = DimensionCategory.fromLevel(dimension) == DimensionCategory.NETHER ? Blocks.BLACKSTONE : Blocks.STONE;
-        
-        if (random.nextInt(100) < 52) {
-            return baseStone.defaultBlockState();
-        }
-        return stoneType.stoneState();
+        return baseStone.defaultBlockState();
     }
 
     private static boolean canClearAboveForPatch(BlockState state) {
