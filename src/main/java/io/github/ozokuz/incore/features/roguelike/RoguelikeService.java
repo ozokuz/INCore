@@ -541,6 +541,7 @@ public final class RoguelikeService {
                     activePlayer.drop(reward, false);
                 }
                 activePlayer.sendSystemMessage(Component.translatable("incore.roguelike.portal.completed", rewardCount));
+                io.github.ozokuz.incore.features.tasks.DailyTaskEvents.onDungeonCompletion(activePlayer);
             }
 
             dungeon = dungeon.upsertProgress(playerId, progress.withRewarded());

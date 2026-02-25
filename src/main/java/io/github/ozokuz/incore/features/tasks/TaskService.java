@@ -61,6 +61,8 @@ public final class TaskService {
 
     public static void tick(ServerPlayer player) {
         ensurePeriods(player);
+        DailyTaskService.tick(player);
+        DailyTaskService.onLogin(player);
         refreshItemCollectionProgress(player);
         resolveCompletionsAndRewards(player);
     }
@@ -102,6 +104,14 @@ public final class TaskService {
             tiers.add(new TierView(tier, required, unlocked, claimed, buildRewardViews("weekly_tier_" + tier)));
         }
 
+        DailyTaskService.DailySyncView fixedDaily = DailyTaskService.buildSyncJson(player) != null
+                ? new Gson().fromJson(DailyTaskService.buildSyncJson(player), DailyTaskService.DailySyncView.class)
+                : null;
+        List<DailyTaskService.DailyTaskView> fixedDailyTasks = fixedDaily != null ? fixedDaily.tasks() : List.of();
+        int fixedDailyCompleted = fixedDaily != null ? fixedDaily.completedCount() : 0;
+        boolean fixedDailyAllCompleted = fixedDaily != null && fixedDaily.allCompleted();
+        boolean fixedDailyRewardClaimed = DailyTaskService.isRewardClaimed(player);
+
         return GSON.toJson(new TaskSyncView(
                 daily,
                 weekly,
@@ -109,7 +119,11 @@ public final class TaskService {
                 data.getBoolean(KEY_DAILY_COMPLETED),
                 data.getBoolean(KEY_DAILY_REWARD_CLAIMED),
                 dailyRewards,
-                tiers
+                tiers,
+                fixedDailyTasks,
+                fixedDailyCompleted,
+                fixedDailyAllCompleted,
+                fixedDailyRewardClaimed
         ));
     }
 
@@ -496,13 +510,11 @@ public final class TaskService {
         refreshItemCollectionProgress(player);
         resolveCompletionsAndRewards(player);
 
-        CompoundTag data = player.getPersistentData();
-        if (!data.getBoolean(KEY_DAILY_COMPLETED) || data.getBoolean(KEY_DAILY_REWARD_CLAIMED)) {
+        if (!DailyTaskService.claimReward(player)) {
             return false;
         }
 
         grantRewards(player, "daily_completion");
-        data.putBoolean(KEY_DAILY_REWARD_CLAIMED, true);
         return true;
     }
 
@@ -737,7 +749,11 @@ public final class TaskService {
             boolean dailyCompleted,
             boolean dailyRewardClaimed,
             List<RewardView> dailyRewards,
-            List<TierView> tiers
+            List<TierView> tiers,
+            List<DailyTaskService.DailyTaskView> fixedDailyTasks,
+            int fixedDailyCompleted,
+            boolean fixedDailyAllCompleted,
+            boolean fixedDailyRewardClaimed
     ) {
     }
 

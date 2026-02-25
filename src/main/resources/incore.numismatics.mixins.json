@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "package": "io.github.ozokuz.incore.mixin.numismatics",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "incore.refmap.json",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8",
+  "mixins": [
+    "VendorBlockEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

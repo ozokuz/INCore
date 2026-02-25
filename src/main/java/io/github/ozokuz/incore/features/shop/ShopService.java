@@ -184,6 +184,7 @@ public final class ShopService {
         consumeStock(data, playerState, category, offer, purchaseCount);
         giveItems(player, item, totalItems);
         data.setDirty();
+        io.github.ozokuz.incore.features.tasks.DailyTaskEvents.onShopPurchase(player);
         return true;
     }
 

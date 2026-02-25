@@ -145,40 +145,71 @@ public class TaskOverviewScreen extends Screen {
         int y = top + PANEL_PADDING;
         int availableWidth = Math.max(40, right - left - (PANEL_PADDING * 2));
 
-        String dailyState = snapshot.dailyCompleted()
+        String dailyState = snapshot.fixedDailyAllCompleted()
                 ? Component.translatable("screen.incore.tasks.daily_complete").getString()
                 : Component.translatable("screen.incore.tasks.daily_in_progress").getString();
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.tasks.daily_header", dailyState), x, y, COLOR_TEXT_SECONDARY);
+        String headerText = "Daily: " + snapshot.fixedDailyCompleted() + "/7";
+        guiGraphics.drawString(this.font, Component.literal(headerText), x, y, COLOR_TEXT_SECONDARY);
         y += 12;
 
         int rewardsLabelY = this.claimDailyButton != null ? this.claimDailyButton.getY() - 32 : bottom - 32;
         int listBottom = rewardsLabelY - 6;
-        int rowHeight = 26;
-        if (snapshot.daily().isEmpty()) {
-            guiGraphics.drawString(this.font, Component.translatable("screen.incore.tasks.no_daily"), x, y, COLOR_TEXT_SECONDARY);
+        int rowHeight = 22;
+        int progressBarWidth = 8;
+        int progressBarGap = 4;
+
+        int rowGap = 2;
+        int totalTasks = 7;
+        int completedTasks = snapshot.fixedDailyCompleted();
+        int progressBarHeight = totalTasks * rowHeight + (totalTasks - 1) * rowGap;
+        int filledHeight = Math.round((float) completedTasks / totalTasks * progressBarHeight);
+        int emptyProgressColor = 0xFF3A3F47;
+        int filledProgressColor = COLOR_ACCENT;
+
+        int barX = x;
+        guiGraphics.fill(barX, y, barX + progressBarWidth, y + progressBarHeight, emptyProgressColor);
+        if (filledHeight > 0) {
+            int filledY = y + progressBarHeight - filledHeight;
+            guiGraphics.fill(barX, filledY, barX + progressBarWidth, y + progressBarHeight, filledProgressColor);
+        }
+
+        int taskListX = x + progressBarWidth + progressBarGap;
+        int taskListWidth = availableWidth - progressBarWidth - progressBarGap;
+
+        if (snapshot.fixedDailyTasks().isEmpty()) {
+            guiGraphics.drawString(this.font, Component.translatable("screen.incore.tasks.no_daily"), taskListX, y, COLOR_TEXT_SECONDARY);
         } else {
-            for (TaskClientCache.TaskEntry entry : snapshot.daily()) {
+            List<TaskClientCache.DailyTaskEntry> sortedTasks = snapshot.fixedDailyTasks().stream()
+                .sorted((a, b) -> {
+                    boolean aComplete = a.progress() >= a.goal();
+                    boolean bComplete = b.progress() >= b.goal();
+                    return Boolean.compare(aComplete, bComplete);
+                })
+                .toList();
+            for (TaskClientCache.DailyTaskEntry entry : sortedTasks) {
                 int rowBottom = y + rowHeight;
                 if (rowBottom > listBottom) {
                     break;
                 }
 
-                guiGraphics.fill(x, y, right - PANEL_PADDING, rowBottom, 0x8A333A44);
-                guiGraphics.fill(x, rowBottom - 1, right - PANEL_PADDING, rowBottom, 0x55FFFFFF);
+                guiGraphics.fill(taskListX, y, right - PANEL_PADDING, rowBottom, 0x8A333A44);
+                guiGraphics.fill(taskListX, rowBottom - 1, right - PANEL_PADDING, rowBottom, 0x55FFFFFF);
 
                 int progress = Math.min(entry.progress(), entry.goal());
-                String titleText = ellipsize(entry.title(), availableWidth - 8);
-                guiGraphics.drawString(this.font, Component.literal(titleText), x + 4, y + 4, 0xFFFFFFFF);
+                boolean complete = progress >= entry.goal();
+                String titleText = ellipsize(entry.title(), taskListWidth - 8);
+                int titleColor = complete ? 0xFF6FD980 : 0xFFFFFFFF;
+                guiGraphics.drawString(this.font, Component.literal(titleText), taskListX + 4, y + 3, titleColor);
                 String progressText;
-                if (progress >= entry.goal()) {
-                  progressText = dailyState;
+                if (complete) {
+                    progressText = "\u2713";
                 } else {
-                  progressText = progress + "/" + entry.goal();
+                    progressText = progress + "/" + entry.goal();
                 }
-                guiGraphics.drawString(this.font, Component.literal(progressText), right - PANEL_PADDING - 2 - this.font.width(progressText), y + 4, 0xE5E5E5);
-                drawProgressBar(guiGraphics, x + 4, y + 16, availableWidth - 8, 5, progressRatio(progress, entry.goal()), 0xFF5B5F66, COLOR_ACCENT);
+                int progressTextWidth = this.font.width(progressText);
+                guiGraphics.drawString(this.font, Component.literal(progressText), right - PANEL_PADDING - 2 - progressTextWidth, y + 3, 0xE5E5E5);
 
-                y += rowHeight + 4;
+                y += rowHeight + 2;
             }
         }
 
@@ -306,11 +337,11 @@ public class TaskOverviewScreen extends Screen {
         this.claimDailyButton.setY(dailyButtonY);
         this.claimDailyButton.setWidth(dailyButtonWidth);
 
-        boolean dailyClaimable = snapshot.dailyCompleted() && !snapshot.dailyRewardClaimed();
+        boolean dailyClaimable = snapshot.fixedDailyAllCompleted() && !snapshot.fixedDailyRewardClaimed();
         this.claimDailyButton.active = dailyClaimable;
         if (dailyClaimable) {
             this.claimDailyButton.setMessage(Component.translatable("screen.incore.tasks.claim_daily"));
-        } else if (snapshot.dailyRewardClaimed()) {
+        } else if (snapshot.fixedDailyRewardClaimed()) {
             this.claimDailyButton.setMessage(Component.translatable("screen.incore.tasks.claimed_daily"));
         } else {
             this.claimDailyButton.setMessage(Component.translatable("screen.incore.tasks.claim_daily_locked"));

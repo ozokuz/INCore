@@ -113,6 +113,7 @@ public final class VendorService {
                 offer.name(),
                 Math.max(1, offer.productSpec().unitCount()) * quantity
         ));
+        io.github.ozokuz.incore.features.tasks.DailyTaskEvents.onVendorPurchase(player);
         return true;
     }
 

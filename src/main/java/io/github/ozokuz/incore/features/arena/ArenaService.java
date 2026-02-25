@@ -156,6 +156,7 @@ public final class ArenaService {
 
             player.sendSystemMessage(Component.translatable("incore.arena.run.success", entry.difficultyName()));
             player.sendSystemMessage(Component.translatable("incore.arena.orb.return_ready"));
+            io.github.ozokuz.incore.features.tasks.DailyTaskEvents.onArenaCompletion(player);
         }
     }
 
