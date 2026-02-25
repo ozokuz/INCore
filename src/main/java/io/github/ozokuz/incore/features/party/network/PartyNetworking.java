@@ -14,6 +14,9 @@ public final class PartyNetworking {
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToClient(PartyHudSyncPayload.TYPE, PartyHudSyncPayload.STREAM_CODEC, PartyHudSyncPayload::handle);
+        registrar.playToClient(PartySyncPayload.TYPE, PartySyncPayload.STREAM_CODEC, PartySyncPayload::handle);
+        registrar.playToClient(OnlinePlayersSyncPayload.TYPE, OnlinePlayersSyncPayload.STREAM_CODEC, OnlinePlayersSyncPayload::handle);
+        registrar.playToServer(PartyActionPayload.TYPE, PartyActionPayload.STREAM_CODEC, PartyActionPayload::handle);
     }
 
     public static void syncHudToPlayer(ServerPlayer player, List<PartyHudSyncPayload.MemberEntry> rows) {

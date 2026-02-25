@@ -7,6 +7,7 @@ import io.github.ozokuz.incore.client.features.roguelike.RoguelikePortalRenderer
 import io.github.ozokuz.incore.client.features.party.PartyHudFeature;
 import io.github.ozokuz.incore.client.features.sanity.SanityBarHudFeature;
 import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
+import io.github.ozokuz.incore.client.party.PartyManagementScreen;
 import io.github.ozokuz.incore.client.status.BattlePassScreen;
 import io.github.ozokuz.incore.client.status.PlayerStatusScreen;
 import io.github.ozokuz.incore.client.tasks.TaskOverviewScreen;
@@ -66,6 +67,7 @@ public class INCoreClient {
         event.register(INCoreKeyMappings.OPEN_NUMISMATICS_BANK);
         event.register(INCoreKeyMappings.OPEN_MARKET);
         event.register(INCoreKeyMappings.OPEN_SHOP);
+        event.register(INCoreKeyMappings.OPEN_PARTY);
     }
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
@@ -135,6 +137,10 @@ public class INCoreClient {
 
         while (INCoreKeyMappings.OPEN_SHOP.consumeClick()) {
             ShopNetworking.requestOpenShopScreen();
+        }
+
+        while (INCoreKeyMappings.OPEN_PARTY.consumeClick()) {
+            minecraft.setScreen(new PartyManagementScreen());
         }
     }
 }
