@@ -113,7 +113,8 @@ public final class DungeonInstanceManager {
                 BlockPos.ZERO,
                 BlockPos.ZERO,
                 boundPartyId,
-                player.getUUID()
+                player.getUUID(),
+                Set.of()
         );
 
         PlacementResult placement = generateAndPlaceLayout(dungeonLevel, instance, themeData);
@@ -191,6 +192,12 @@ public final class DungeonInstanceManager {
             return false;
         }
 
+        if (instance.hasPlayerEntered(playerId)) {
+            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.already_entered"));
+            player.setPortalCooldown();
+            return false;
+        }
+
         if (data.getRun(playerId).isPresent()) {
             player.sendSystemMessage(Component.translatable("incore.roguelike.portal.already_entered"));
             player.setPortalCooldown();
@@ -205,8 +212,10 @@ public final class DungeonInstanceManager {
 
         if (instance.endGameTime() <= 0L) {
             instance = instance.withEndGameTime(dungeonLevel.getGameTime() + RoguelikeConstants.DUNGEON_TIME_LIMIT_TICKS);
-            data.putInstance(instance);
         }
+
+        instance = instance.withPlayerEntered(playerId);
+        data.putInstance(instance);
 
         data.startRun(playerId, instance.id(), player.serverLevel().dimension(), portalPos);
         teleport(player, dungeonLevel, instance.entryPos());
@@ -240,11 +249,7 @@ public final class DungeonInstanceManager {
         data.clearRun(player.getUUID());
         teleport(player, returnLevel, run.returnPos());
 
-        if (instance.state() == DungeonInstanceData.State.ACTIVE) {
-            data.putInstance(instance
-                    .withState(DungeonInstanceData.State.COMPLETED)
-                    .withCleanup(DungeonInstanceData.CleanupStage.DENY_ENTRY, DungeonInstanceData.CleanupMode.EVICT));
-        }
+        checkInstanceEmptyAndCleanup(data, instance);
 
         player.sendSystemMessage(Component.translatable("incore.roguelike.return_portal.used"));
         return true;
@@ -283,11 +288,7 @@ public final class DungeonInstanceManager {
         data.clearRun(serverPlayer.getUUID());
         teleport(serverPlayer, returnLevel, run.returnPos());
 
-        if (instance.state() == DungeonInstanceData.State.ACTIVE) {
-            data.putInstance(instance
-                    .withState(DungeonInstanceData.State.COMPLETED)
-                    .withCleanup(DungeonInstanceData.CleanupStage.DENY_ENTRY, DungeonInstanceData.CleanupMode.EVICT));
-        }
+        checkInstanceEmptyAndCleanup(data, instance);
 
         serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.return_portal.used"));
         return true;
@@ -457,6 +458,11 @@ public final class DungeonInstanceManager {
         data.getRun(player.getUUID()).ifPresent(run -> {
             data.setPendingReturn(player.getUUID(), run.returnDimensionKey(), run.returnPos());
             data.clearRun(player.getUUID());
+
+            DungeonInstanceData instance = data.getInstance(run.instanceId());
+            if (instance != null) {
+                checkInstanceEmptyAndCleanup(data, instance);
+            }
         });
     }
 
@@ -478,6 +484,11 @@ public final class DungeonInstanceManager {
         data.getRun(player.getUUID()).ifPresent(run -> {
             data.setPendingReturn(player.getUUID(), run.returnDimensionKey(), run.returnPos());
             data.clearRun(player.getUUID());
+
+            DungeonInstanceData instance = data.getInstance(run.instanceId());
+            if (instance != null) {
+                checkInstanceEmptyAndCleanup(data, instance);
+            }
         });
     }
 
@@ -904,6 +915,19 @@ public final class DungeonInstanceManager {
             if (player != null) {
                 player.displayClientMessage(Component.translatable("incore.roguelike.timer", minutes, secondsText), true);
             }
+        }
+    }
+
+    private static void checkInstanceEmptyAndCleanup(RoguelikeSavedData data, DungeonInstanceData instance) {
+        if (instance.state() != DungeonInstanceData.State.ACTIVE) {
+            return;
+        }
+
+        List<RoguelikeSavedData.ActiveRun> remainingRuns = data.activeRunsForInstance(instance.id());
+        if (remainingRuns.isEmpty()) {
+            data.putInstance(instance
+                    .withState(DungeonInstanceData.State.COMPLETED)
+                    .withCleanup(DungeonInstanceData.CleanupStage.DENY_ENTRY, DungeonInstanceData.CleanupMode.EVICT));
         }
     }
 

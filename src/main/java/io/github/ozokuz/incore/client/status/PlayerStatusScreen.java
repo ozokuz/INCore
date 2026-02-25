@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.client.status;
 
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.client.INCoreKeyMappings;
+import io.github.ozokuz.incore.client.party.PartyManagementScreen;
 import io.github.ozokuz.incore.client.tasks.TaskOverviewScreen;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
@@ -327,6 +328,12 @@ public class PlayerStatusScreen extends Screen {
                         INCoreKeyMappings.OPEN_SHOP,
                         Registration.CARD_BOOSTER_BOX_ITEM.get().getDefaultInstance(),
                         ShopNetworking::requestOpenShopScreen
+                ),
+                new QuickNavTarget(
+                        Component.translatable("screen.incore.player_status.nav.party"),
+                        INCoreKeyMappings.OPEN_PARTY,
+                        new ItemStack(Items.PLAYER_HEAD),
+                        () -> this.minecraft.setScreen(new PartyManagementScreen())
                 )
         );
     }

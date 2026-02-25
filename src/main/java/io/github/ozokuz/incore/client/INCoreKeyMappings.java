@@ -59,6 +59,12 @@ public final class INCoreKeyMappings {
             GLFW.GLFW_KEY_L,
             "key.categories.incore"
     );
+    public static final KeyMapping OPEN_PARTY = new KeyMapping(
+            "key.incore.open_party",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_J,
+            "key.categories.incore"
+    );
 
     private INCoreKeyMappings() {
     }

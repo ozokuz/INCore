@@ -9,7 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public record DungeonInstanceData(
@@ -29,7 +31,8 @@ public record DungeonInstanceData(
         BlockPos startRoomOrigin,
         BlockPos entryPos,
         long partyId,
-        UUID ownerPlayerId
+        UUID ownerPlayerId,
+        Set<UUID> enteredPlayers
 ) {
     public DungeonInstanceData {
         slotIndex = Math.max(0, slotIndex);
@@ -43,6 +46,7 @@ public record DungeonInstanceData(
         startRoomOrigin = startRoomOrigin == null ? BlockPos.ZERO : startRoomOrigin.immutable();
         entryPos = entryPos == null ? BlockPos.ZERO : entryPos.immutable();
         partyId = Math.max(0L, partyId);
+        enteredPlayers = enteredPlayers == null ? Set.of() : Set.copyOf(enteredPlayers);
     }
 
     public DungeonInstanceData withState(State value) {
@@ -63,7 +67,8 @@ public record DungeonInstanceData(
                 startRoomOrigin,
                 entryPos,
                 partyId,
-                ownerPlayerId
+                ownerPlayerId,
+                enteredPlayers
         );
     }
 
@@ -85,7 +90,8 @@ public record DungeonInstanceData(
                 startRoomOrigin,
                 entryPos,
                 partyId,
-                ownerPlayerId
+                ownerPlayerId,
+                enteredPlayers
         );
     }
 
@@ -107,7 +113,8 @@ public record DungeonInstanceData(
                 startRoomOrigin,
                 entryPos,
                 partyId,
-                ownerPlayerId
+                ownerPlayerId,
+                enteredPlayers
         );
     }
 
@@ -129,7 +136,8 @@ public record DungeonInstanceData(
                 startRoomOrigin,
                 entryPos,
                 partyId,
-                ownerPlayerId
+                ownerPlayerId,
+                enteredPlayers
         );
     }
 
@@ -151,8 +159,26 @@ public record DungeonInstanceData(
                 startOrigin,
                 newEntryPos,
                 partyId,
-                ownerPlayerId
+                ownerPlayerId,
+                enteredPlayers
         );
+    }
+
+    public DungeonInstanceData withPlayerEntered(UUID playerId) {
+        if (playerId == null || enteredPlayers.contains(playerId)) {
+            return this;
+        }
+        Set<UUID> updated = new HashSet<>(enteredPlayers);
+        updated.add(playerId);
+        return new DungeonInstanceData(
+                id, slotIndex, originChunkX, originChunkZ, themeId, objectiveId, modifiers,
+                endGameTime, state, cleanupStage, cleanupMode, portalDimension, portalPos,
+                startRoomOrigin, entryPos, partyId, ownerPlayerId, updated
+        );
+    }
+
+    public boolean hasPlayerEntered(UUID playerId) {
+        return playerId != null && enteredPlayers.contains(playerId);
     }
 
     public int maxChunkX() {
@@ -215,6 +241,12 @@ public record DungeonInstanceData(
         if (ownerPlayerId != null) {
             tag.putUUID("ownerPlayerId", ownerPlayerId);
         }
+        
+        ListTag enteredPlayersTag = new ListTag();
+        for (UUID playerId : enteredPlayers) {
+            enteredPlayersTag.add(net.minecraft.nbt.StringTag.valueOf(playerId.toString()));
+        }
+        tag.put("enteredPlayers", enteredPlayersTag);
         return tag;
     }
 
@@ -262,6 +294,15 @@ public record DungeonInstanceData(
         long partyId = Math.max(0L, tag.getLong("partyId"));
         UUID ownerPlayerId = tag.hasUUID("ownerPlayerId") ? tag.getUUID("ownerPlayerId") : null;
 
+        Set<UUID> enteredPlayers = new HashSet<>();
+        ListTag enteredPlayersTag = tag.getList("enteredPlayers", Tag.TAG_STRING);
+        for (Tag entry : enteredPlayersTag) {
+            try {
+                enteredPlayers.add(UUID.fromString(entry.getAsString()));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+
         return new DungeonInstanceData(
                 new DungeonInstanceId(rawId),
                 Math.max(0, tag.getInt("slotIndex")),
@@ -279,7 +320,8 @@ public record DungeonInstanceData(
                 startRoomOrigin,
                 entryPos,
                 partyId,
-                ownerPlayerId
+                ownerPlayerId,
+                enteredPlayers
         );
     }
 
