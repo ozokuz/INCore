@@ -59,6 +59,7 @@ public record BattlePassSyncPayload(
             for (int i = 0; i < laneCount; i++) {
                 lanes.add(new LaneEntry(
                         buf.readUtf(64),
+                        buf.readUtf(64),
                         buf.readBoolean(),
                         buf.readVarInt()
                 ));
@@ -143,6 +144,7 @@ public record BattlePassSyncPayload(
             buf.writeVarInt(payload.lanes().size());
             for (LaneEntry lane : payload.lanes()) {
                 buf.writeUtf(lane.id(), 64);
+                buf.writeUtf(lane.displayName(), 64);
                 buf.writeBoolean(lane.unlocked());
                 buf.writeVarInt(lane.highestClaimedLevel());
             }
@@ -202,6 +204,7 @@ public record BattlePassSyncPayload(
                 payload.lanes().stream()
                         .map(lane -> new BattlePassClientCache.LaneEntry(
                                 lane.id(),
+                                lane.displayName(),
                                 lane.unlocked(),
                                 lane.highestClaimedLevel()
                         ))
@@ -239,7 +242,7 @@ public record BattlePassSyncPayload(
         ));
     }
 
-    public record LaneEntry(String id, boolean unlocked, int highestClaimedLevel) {
+    public record LaneEntry(String id, String displayName, boolean unlocked, int highestClaimedLevel) {
     }
 
     public record TaskEntry(

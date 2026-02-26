@@ -35,6 +35,7 @@ public final class BattlePassNetworking {
         List<BattlePassSyncPayload.LaneEntry> lanes = snapshot.lanes().stream()
                 .map(lane -> new BattlePassSyncPayload.LaneEntry(
                         lane.id(),
+                        lane.displayName(),
                         lane.unlocked(),
                         lane.highestClaimedLevel()
                 ))
