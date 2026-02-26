@@ -676,5 +676,6 @@
   "screen.incore.party.invite": "Invite",
   "screen.incore.party.kick": "Kick",
   "screen.incore.party.promote": "Promote",
-  "screen.incore.player_status.nav.party": "Party"
+  "screen.incore.player_status.nav.party": "Party",
+  "itemGroup.incore.debug": "INCore Debug"
 }

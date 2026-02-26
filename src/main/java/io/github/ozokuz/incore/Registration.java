@@ -7,7 +7,6 @@ import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateBlockItem;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBlock;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterWandItem;
-import io.github.ozokuz.incore.features.battlepass.BattlePassLane;
 import io.github.ozokuz.incore.features.battlepass.BattlePassLaneUnlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlock;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
@@ -82,7 +81,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -374,24 +372,17 @@ public class Registration {
                     "battlepass_lane",
                     builder -> builder.persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8)
             );
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN_TAB = CREATIVE_MODE_TABS.register("main_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.incore"))
-            .withTabsBefore(CreativeModeTabs.COMBAT)
-            .icon(() -> ENCOUNTER_WAND_ITEM.get().getDefaultInstance())
+            .icon(() -> DUNGEON_CRYSTAL_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
+                // Crystal Making
                 output.accept(ROGUELIKE_ALTAR_BLOCK_ITEM.get());
                 output.accept(CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK_ITEM.get());
-                output.accept(DUNGEON_OBJECTIVE_ALTAR_BLOCK_ITEM.get());
-                output.accept(ROGUELIKE_PORTAL_BLOCK_ITEM.get());
-                output.accept(DUNGEON_RETURN_PORTAL_BLOCK_ITEM.get());
                 output.accept(EMPTY_DUNGEON_CRYSTAL_ITEM.get());
-                output.accept(DUNGEON_CRYSTAL_ITEM.get());
-                output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());
-                output.accept(DUNGEON_SCAVENGER_TOKEN_ITEM.get());
-                if (!FMLEnvironment.production) {
-                    output.accept(SURFACE_ORE_DEBUG_COMPASS_ITEM.get());
-                    output.accept(SURFACE_STONE_DEBUG_COMPASS_ITEM.get());
-                }
+
+                // Ore Spots
+                // Specific Locators
                 output.accept(CRIMSITE_ORE_LOCATOR.get());
                 output.accept(VERIDIUM_ORE_LOCATOR.get());
                 output.accept(ASURINE_ORE_LOCATOR.get());
@@ -405,50 +396,102 @@ public class Registration {
                 output.accept(LIMESTONE_LOCATOR.get());
                 output.accept(BASALT_LOCATOR.get());
                 output.accept(SCORIA_LOCATOR.get());
+                // Universal Locators
                 output.accept(UNIVERSAL_ORE_LOCATOR.get());
                 output.accept(UNIVERSAL_STONE_LOCATOR.get());
-                output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
-                output.accept(GACHA_RIFT_BLOCK_ITEM.get());
-                output.accept(ARENA_ORB_BLOCK_ITEM.get());
-                output.accept(ARENA_REWARD_RIFT_BLOCK_ITEM.get());
-                output.accept(DECK_STATION_BLOCK_ITEM.get());
-                output.accept(CARD_DECRYPTOR_BLOCK_ITEM.get());
+                // Ore Stones
+                output.accept(CINNABAR_ORE_STONE_BLOCK_ITEM.get());
+                output.accept(CINNABAR_ORE_STONE_SLAB_BLOCK_ITEM.get());
+                output.accept(MIXED_METALS_ORE_STONE_BLOCK_ITEM.get());
+                output.accept(MIXED_METALS_ORE_STONE_SLAB_BLOCK_ITEM.get());
+                output.accept(GEM_CLUSTERS_ORE_STONE_BLOCK_ITEM.get());
+                output.accept(GEM_CLUSTERS_ORE_STONE_SLAB_BLOCK_ITEM.get());
+                output.accept(QUARTZ_ORE_STONE_BLOCK_ITEM.get());
+                output.accept(QUARTZ_ORE_STONE_SLAB_BLOCK_ITEM.get());
+
+                // Vendor
                 output.accept(VENDOR_BLOCK_ITEM.get());
+
+                // Market
                 output.accept(MARKET_TERMINAL_BLOCK_ITEM.get());
                 output.accept(SHIPMENT_TERMINAL_BLOCK_ITEM.get());
                 output.accept(SHIPMENT_TERMINAL_MK2_BLOCK_ITEM.get());
                 output.accept(MARKET_AUTOBUYER_BLOCK_ITEM.get());
                 output.accept(MARKET_AUTOBUYER_MK2_BLOCK_ITEM.get());
-                output.accept(CINNABAR_ORE_STONE_BLOCK_ITEM.get());
-                output.accept(MIXED_METALS_ORE_STONE_BLOCK_ITEM.get());
-                output.accept(GEM_CLUSTERS_ORE_STONE_BLOCK_ITEM.get());
-                output.accept(CINNABAR_ORE_STONE_SLAB_BLOCK_ITEM.get());
-                output.accept(MIXED_METALS_ORE_STONE_SLAB_BLOCK_ITEM.get());
-                output.accept(GEM_CLUSTERS_ORE_STONE_SLAB_BLOCK_ITEM.get());
-                output.accept(QUARTZ_ORE_STONE_BLOCK_ITEM.get());
-                output.accept(QUARTZ_ORE_STONE_SLAB_BLOCK_ITEM.get());
-                output.accept(BURNER_LAB_BLOCK_ITEM.get());
-                output.accept(MECHANICAL_LAB_BLOCK_ITEM.get());
-                output.accept(MODULAR_LAB_BLOCK_ITEM.get());
-                output.accept(ENCOUNTER_WAND_ITEM.get());
-                output.accept(SANITY_CRATE_ITEM.get());
+
+                // Sanity
                 output.accept(SANITY_BOOSTER_SMALL_ITEM.get());
                 output.accept(SANITY_BOOSTER_LARGE_ITEM.get());
                 output.accept(SANITY_VESSEL_ITEM.get());
-                output.accept(BATTLEPASS_LANE_UNLOCK_ITEM.get());
+
+                // Gacha
                 output.accept(BASIC_TIME_PIECE_ITEM.get());
                 output.accept(CHARTERED_TIME_PIECE_ITEM.get());
-                output.accept(TIME_PIECE_ITEM.get());
+
+                // Research
+                output.accept(BURNER_LAB_BLOCK_ITEM.get());
+                output.accept(MECHANICAL_LAB_BLOCK_ITEM.get());
+                output.accept(MODULAR_LAB_BLOCK_ITEM.get());
                 output.accept(SPEED_MODULE_CARD_ITEM.get());
                 output.accept(PRODUCTIVITY_MODULE_CARD_ITEM.get());
+
+                // Card Deck
+                output.accept(DECK_STATION_BLOCK_ITEM.get());
+                output.accept(CARD_DECRYPTOR_BLOCK_ITEM.get());
+                output.accept(CARD_SLEEVE_ITEM.get());
+                output.accept(CARD_TOKEN_ITEM.get());
+                output.accept(VENDOR_DISCOUNT_CHARM_ITEM.get());
+            }).build());
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> DEBUG_TAB = CREATIVE_MODE_TABS.register("debug_tab", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.incore.debug"))
+            .icon(() -> ENCOUNTER_WAND_ITEM.get().getDefaultInstance())
+            .displayItems((parameters, output) -> {
+                // Dungeon
+                output.accept(DUNGEON_OBJECTIVE_ALTAR_BLOCK_ITEM.get());
+                output.accept(ROGUELIKE_PORTAL_BLOCK_ITEM.get());
+                output.accept(DUNGEON_RETURN_PORTAL_BLOCK_ITEM.get());
+                output.accept(DUNGEON_CRYSTAL_ITEM.get());
+                output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());
+                output.accept(DUNGEON_SCAVENGER_TOKEN_ITEM.get());
+                output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
+                output.accept(ENCOUNTER_WAND_ITEM.get());
+
+                // Surface Spots
+                output.accept(SURFACE_ORE_DEBUG_COMPASS_ITEM.get());
+                output.accept(SURFACE_STONE_DEBUG_COMPASS_ITEM.get());
+                output.accept(CRIMSITE_SURFACE_ORE_SPOT_BLOCK_ITEM.get());
+                output.accept(VERIDIUM_SURFACE_ORE_SPOT_BLOCK_ITEM.get());
+                output.accept(ASURINE_SURFACE_ORE_SPOT_BLOCK_ITEM.get());
+                output.accept(OCHRUM_SURFACE_ORE_SPOT_BLOCK_ITEM.get());
+                output.accept(CINNABAR_SURFACE_ORE_SPOT_BLOCK_ITEM.get());
+                output.accept(MIXED_METALS_SURFACE_ORE_SPOT_BLOCK_ITEM.get());
+                output.accept(GEM_CLUSTERS_SURFACE_ORE_SPOT_BLOCK_ITEM.get());
+                output.accept(NETHER_QUARTZ_SURFACE_ORE_SPOT_BLOCK_ITEM.get());
+                output.accept(STONE_SURFACE_STONE_SPOT_BLOCK_ITEM.get());
+                output.accept(DEEPSLATE_SURFACE_STONE_SPOT_BLOCK_ITEM.get());
+                output.accept(LIMESTONE_SURFACE_STONE_SPOT_BLOCK_ITEM.get());
+                output.accept(BASALT_SURFACE_STONE_SPOT_BLOCK_ITEM.get());
+                output.accept(SCORIA_SURFACE_STONE_SPOT_BLOCK_ITEM.get());
+
+                // Gacha
+                output.accept(GACHA_RIFT_BLOCK_ITEM.get());
+
+                // Arena
+                output.accept(ARENA_ORB_BLOCK_ITEM.get());
+                output.accept(ARENA_REWARD_RIFT_BLOCK_ITEM.get());
+
+                // IDK
+                output.accept(SANITY_CRATE_ITEM.get());
+
+                // NBT Items
+                output.accept(BATTLEPASS_LANE_UNLOCK_ITEM.get());
+                output.accept(TIME_PIECE_ITEM.get());
                 output.accept(CARD_MODULE_ITEM.get());
                 output.accept(CARD_BOOSTER_ITEM.get());
                 output.accept(CARD_BOOSTER_BOX_ITEM.get());
                 output.accept(CARD_DECK_CORE_ITEM.get());
                 output.accept(CARD_DECK_BOX_ITEM.get());
                 output.accept(CARD_DECK_ITEM.get());
-                output.accept(CARD_SLEEVE_ITEM.get());
-                output.accept(CARD_TOKEN_ITEM.get());
-                output.accept(VENDOR_DISCOUNT_CHARM_ITEM.get());
             }).build());
 }
