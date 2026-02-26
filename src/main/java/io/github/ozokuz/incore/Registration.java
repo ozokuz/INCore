@@ -59,7 +59,12 @@ import io.github.ozokuz.incore.features.research.ProductivityModuleCardItem;
 import io.github.ozokuz.incore.features.research.SpeedModuleCardItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCompletionCrateItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalItem;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonObjectiveAltarBlock;
+import io.github.ozokuz.incore.features.roguelike.content.CustomDungeonCrystalForgeBlock;
+import io.github.ozokuz.incore.features.roguelike.content.CustomDungeonCrystalForgeBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.CustomDungeonCrystalForgeMenu;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonReturnPortalBlock;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonScavengerTokenItem;
 import io.github.ozokuz.incore.features.roguelike.content.EmptyDungeonCrystalItem;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
@@ -267,6 +272,22 @@ public class Registration {
     public static final DeferredBlock<Block> ROGUELIKE_ALTAR_BLOCK = BLOCKS.register("roguelike_altar", RoguelikeAltarBlock::new);
     public static final Supplier<BlockEntityType<RoguelikeAltarBlockEntity>> ROGUELIKE_ALTAR_BE = BLOCK_ENTITY_TYPES.register("roguelike_altar", () -> BlockEntityType.Builder.of(RoguelikeAltarBlockEntity::new, ROGUELIKE_ALTAR_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> ROGUELIKE_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("roguelike_altar", ROGUELIKE_ALTAR_BLOCK);
+    public static final DeferredBlock<Block> CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK = BLOCKS.register("custom_dungeon_crystal_forge", () -> new CustomDungeonCrystalForgeBlock());
+    public static final Supplier<BlockEntityType<CustomDungeonCrystalForgeBlockEntity>> CUSTOM_DUNGEON_CRYSTAL_FORGE_BE = BLOCK_ENTITY_TYPES.register(
+            "custom_dungeon_crystal_forge",
+            () -> BlockEntityType.Builder.of(CustomDungeonCrystalForgeBlockEntity::new, CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK.get()).build(null)
+    );
+    public static final Supplier<MenuType<CustomDungeonCrystalForgeMenu>> CUSTOM_DUNGEON_CRYSTAL_FORGE_MENU = MENU_TYPES.register(
+            "custom_dungeon_crystal_forge",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new CustomDungeonCrystalForgeMenu(
+                    id,
+                    inv,
+                    (CustomDungeonCrystalForgeBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
+    );
+    public static final DeferredItem<BlockItem> CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("custom_dungeon_crystal_forge", CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK);
+    public static final DeferredBlock<Block> DUNGEON_OBJECTIVE_ALTAR_BLOCK = BLOCKS.register("dungeon_objective_altar", DungeonObjectiveAltarBlock::new);
+    public static final DeferredItem<BlockItem> DUNGEON_OBJECTIVE_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_objective_altar", DUNGEON_OBJECTIVE_ALTAR_BLOCK);
     public static final DeferredBlock<Block> ROGUELIKE_PORTAL_BLOCK = BLOCKS.register("roguelike_portal", RoguelikePortalBlock::new);
     public static final Supplier<BlockEntityType<RoguelikePortalBlockEntity>> ROGUELIKE_PORTAL_BE = BLOCK_ENTITY_TYPES.register("roguelike_portal", () -> BlockEntityType.Builder.of(RoguelikePortalBlockEntity::new, ROGUELIKE_PORTAL_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> ROGUELIKE_PORTAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("roguelike_portal", ROGUELIKE_PORTAL_BLOCK);
@@ -277,6 +298,7 @@ public class Registration {
     public static final DeferredItem<Item> EMPTY_DUNGEON_CRYSTAL_ITEM = ITEMS.registerItem("empty_dungeon_crystal", EmptyDungeonCrystalItem::new);
     public static final DeferredItem<Item> DUNGEON_CRYSTAL_ITEM = ITEMS.registerItem("dungeon_crystal", DungeonCrystalItem::new);
     public static final DeferredItem<Item> DUNGEON_COMPLETION_CRATE_ITEM = ITEMS.registerItem("dungeon_completion_crate", DungeonCompletionCrateItem::new);
+    public static final DeferredItem<Item> DUNGEON_SCAVENGER_TOKEN_ITEM = ITEMS.registerItem("dungeon_scavenger_token", DungeonScavengerTokenItem::new);
     public static final DeferredItem<Item> SURFACE_ORE_DEBUG_COMPASS_ITEM = ITEMS.registerItem("surface_ore_debug_compass", SurfaceOreDebugCompassItem::new);
     public static final DeferredItem<Item> SURFACE_STONE_DEBUG_COMPASS_ITEM = ITEMS.registerItem("surface_stone_debug_compass", SurfaceStoneDebugCompassItem::new);
     public static final DeferredItem<Item> SANITY_CRATE_ITEM = ITEMS.registerItem("sanity_crate", SanityCrateItem::new);
@@ -322,11 +344,14 @@ public class Registration {
             .icon(() -> ENCOUNTER_WAND_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(ROGUELIKE_ALTAR_BLOCK_ITEM.get());
+                output.accept(CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK_ITEM.get());
+                output.accept(DUNGEON_OBJECTIVE_ALTAR_BLOCK_ITEM.get());
                 output.accept(ROGUELIKE_PORTAL_BLOCK_ITEM.get());
                 output.accept(DUNGEON_RETURN_PORTAL_BLOCK_ITEM.get());
                 output.accept(EMPTY_DUNGEON_CRYSTAL_ITEM.get());
                 output.accept(DUNGEON_CRYSTAL_ITEM.get());
                 output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());
+                output.accept(DUNGEON_SCAVENGER_TOKEN_ITEM.get());
                 if (!FMLEnvironment.production) {
                     output.accept(SURFACE_ORE_DEBUG_COMPASS_ITEM.get());
                     output.accept(SURFACE_STONE_DEBUG_COMPASS_ITEM.get());

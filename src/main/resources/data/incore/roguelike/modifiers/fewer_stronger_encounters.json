@@ -1,0 +1,6 @@
+{
+  "encounter_reduction_percent": 35,
+  "mob_health_multiplier": 1.5,
+  "mob_damage_multiplier": 1.35,
+  "weight": 1
+}

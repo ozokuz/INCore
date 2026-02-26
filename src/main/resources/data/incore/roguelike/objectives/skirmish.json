@@ -1,6 +1,6 @@
 {
-  "type": "kill_mobs",
-  "target": 12,
+  "type": "signal_emission",
+  "target": 4,
   "reward_crates": 2,
-  "weight": 5
+  "weight": 4
 }

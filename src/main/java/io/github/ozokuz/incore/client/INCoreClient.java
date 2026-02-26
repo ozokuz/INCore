@@ -3,7 +3,9 @@ package io.github.ozokuz.incore.client;
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.client.features.roguelike.RoguelikeAltarRenderer;
+import io.github.ozokuz.incore.client.features.roguelike.CustomDungeonCrystalForgeScreen;
 import io.github.ozokuz.incore.client.features.roguelike.RoguelikePortalRenderer;
+import io.github.ozokuz.incore.client.features.roguelike.RoguelikeMinimapHudFeature;
 import io.github.ozokuz.incore.client.features.party.PartyHudFeature;
 import io.github.ozokuz.incore.client.features.sanity.SanityBarHudFeature;
 import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
@@ -55,6 +57,7 @@ public class INCoreClient {
         StaminaBarHudFeature.register();
         SanityBarHudFeature.register();
         PartyHudFeature.register();
+        RoguelikeMinimapHudFeature.register();
     }
 
     private void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
@@ -77,6 +80,7 @@ public class INCoreClient {
         event.register(Registration.MARKET_TERMINAL_CARD_MENU.get(), MarketTerminalCardScreen::new);
         event.register(Registration.SHIPMENT_TERMINAL_MENU.get(), ShipmentTerminalScreen::new);
         event.register(Registration.MARKET_AUTOBUYER_MENU.get(), MarketAutoBuyerScreen::new);
+        event.register(Registration.CUSTOM_DUNGEON_CRYSTAL_FORGE_MENU.get(), CustomDungeonCrystalForgeScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
