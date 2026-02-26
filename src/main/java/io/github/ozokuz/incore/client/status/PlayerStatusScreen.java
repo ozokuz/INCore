@@ -313,7 +313,7 @@ public class PlayerStatusScreen extends Screen {
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.battle_pass"),
                         INCoreKeyMappings.OPEN_BATTLE_PASS,
-                        Registration.ORIGINIUM_SUPPLY_UNLOCK_ITEM.get().getDefaultInstance(),
+                        Registration.BATTLEPASS_LANE_UNLOCK_ITEM.get().getDefaultInstance(),
                         () -> this.minecraft.setScreen(new BattlePassScreen(this))
                 ),
                 new QuickNavTarget(

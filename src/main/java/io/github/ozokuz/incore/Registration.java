@@ -71,6 +71,7 @@ import io.github.ozokuz.incore.features.sanity.SanityVesselItem;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.MenuType;
@@ -93,6 +94,7 @@ import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.util.function.Supplier;
+import com.mojang.serialization.Codec;
 
 public class Registration {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(INCore.MODID);
@@ -283,13 +285,9 @@ public class Registration {
     public static final DeferredItem<Item> SANITY_BOOSTER_SMALL_ITEM = ITEMS.registerItem("sanity_booster_small", properties -> new SanityBoosterItem(properties, 50));
     public static final DeferredItem<Item> SANITY_BOOSTER_LARGE_ITEM = ITEMS.registerItem("sanity_booster_large", properties -> new SanityBoosterItem(properties, 100));
     public static final DeferredItem<Item> SANITY_VESSEL_ITEM = ITEMS.registerItem("sanity_vessel", SanityVesselItem::new);
-    public static final DeferredItem<Item> ORIGINIUM_SUPPLY_UNLOCK_ITEM = ITEMS.registerItem(
-            "originium_supply_unlock",
-            properties -> new BattlePassLaneUnlockItem(properties, BattlePassLane.ORIGINIUM)
-    );
-    public static final DeferredItem<Item> PROTOCOL_CUSTOMIZED_UNLOCK_ITEM = ITEMS.registerItem(
-            "protocol_customized_unlock",
-            properties -> new BattlePassLaneUnlockItem(properties, BattlePassLane.PROTOCOL)
+    public static final DeferredItem<Item> BATTLEPASS_LANE_UNLOCK_ITEM = ITEMS.registerItem(
+            "battlepass_lane_unlock",
+            properties -> new BattlePassLaneUnlockItem(properties)
     );
     public static final DeferredItem<Item> BASIC_BANNER_PERMIT_ITEM = ITEMS.registerItem("basic_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.BASIC));
     public static final DeferredItem<Item> CHARTERED_BANNER_PERMIT_ITEM = ITEMS.registerItem("chartered_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.CHARTERED));
@@ -315,6 +313,11 @@ public class Registration {
             DATA_COMPONENT_TYPES.registerComponentType(
                     "dungeon_crystal_objective",
                     builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC)
+            );
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> BATTLEPASS_LANE =
+            DATA_COMPONENT_TYPES.registerComponentType(
+                    "battlepass_lane",
+                    builder -> builder.persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8)
             );
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.incore"))
@@ -357,8 +360,7 @@ public class Registration {
                 output.accept(SANITY_BOOSTER_SMALL_ITEM.get());
                 output.accept(SANITY_BOOSTER_LARGE_ITEM.get());
                 output.accept(SANITY_VESSEL_ITEM.get());
-                output.accept(ORIGINIUM_SUPPLY_UNLOCK_ITEM.get());
-                output.accept(PROTOCOL_CUSTOMIZED_UNLOCK_ITEM.get());
+                output.accept(BATTLEPASS_LANE_UNLOCK_ITEM.get());
                 output.accept(BASIC_BANNER_PERMIT_ITEM.get());
                 output.accept(CHARTERED_BANNER_PERMIT_ITEM.get());
                 output.accept(BANNER_PERMIT_ITEM.get());

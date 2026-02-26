@@ -343,8 +343,8 @@ public final class BattlePassProgressManager {
         if (!active.lanes().contains(lane)) {
             return LaneManagementResult.failed("Lane is not configured for the active battle pass: " + lane + ".");
         }
-        if (BattlePassLane.BASIC.equals(lane)) {
-            return LaneManagementResult.failed("Basic lane is always unlocked.");
+        if (BattlePassLaneManager.getAlwaysAvailableLaneIds().contains(lane)) {
+            return LaneManagementResult.failed("This lane is always available.");
         }
 
         PlayerSetProgress progress = getProgress(player, active);
@@ -370,8 +370,8 @@ public final class BattlePassProgressManager {
         if (!active.lanes().contains(lane)) {
             return LaneManagementResult.failed("Lane is not configured for the active battle pass: " + lane + ".");
         }
-        if (BattlePassLane.BASIC.equals(lane)) {
-            return LaneManagementResult.failed("Basic lane cannot be locked.");
+        if (BattlePassLaneManager.getAlwaysAvailableLaneIds().contains(lane)) {
+            return LaneManagementResult.failed("This lane cannot be locked.");
         }
 
         PlayerSetProgress progress = getProgress(player, active);
@@ -550,8 +550,10 @@ public final class BattlePassProgressManager {
             }
         }
         unlockedLanes.retainAll(definition.lanes());
-        if (definition.lanes().contains(BattlePassLane.BASIC)) {
-            unlockedLanes.add(BattlePassLane.BASIC);
+        for (String alwaysAvailable : BattlePassLaneManager.getAlwaysAvailableLaneIds()) {
+            if (definition.lanes().contains(alwaysAvailable)) {
+                unlockedLanes.add(alwaysAvailable);
+            }
         }
 
         Map<String, Integer> highestRewardedByLane = new HashMap<>();

@@ -5,6 +5,7 @@ import io.github.ozokuz.incore.data.ICItemModelProvider;
 import io.github.ozokuz.incore.features.arena.data.ArenaCatalogManager;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
+import io.github.ozokuz.incore.features.battlepass.BattlePassLaneManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.command.BattlePassCommands;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
@@ -159,6 +160,7 @@ public class INCore {
         event.addListener(new GachaEventCategoryManager());
         event.addListener(new PlayerLevelRewardManager());
         event.addListener(new TaskDataManager());
+        event.addListener(new BattlePassLaneManager());
         event.addListener(new BattlePassManager());
         event.addListener(new ResearchMaterialManager());
         event.addListener(new ResearchRecipeLockManager());
