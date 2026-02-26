@@ -15,6 +15,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -30,6 +32,8 @@ public class EncounterSpawnerBE extends BlockEntity {
     private String encounterId = "";
     private EncounterData encounterData;
     private Vec3i spawnOffset = Vec3i.ZERO;
+    private double mobHealthMultiplier = 1.0D;
+    private double mobDamageMultiplier = 1.0D;
     private boolean triggered;
     private long spawnDueGameTime = -1L;
 
@@ -45,6 +49,12 @@ public class EncounterSpawnerBE extends BlockEntity {
     public void setEncounterId(String encounterId) {
         this.encounterId = encounterId == null ? "" : encounterId;
         encounterData = EncounterManager.ENCOUNTERS.get(ResourceLocation.tryParse(this.encounterId));
+        setChanged();
+    }
+
+    public void setEncounterStrengthMultipliers(double healthMultiplier, double damageMultiplier) {
+        mobHealthMultiplier = Math.max(0.1D, healthMultiplier);
+        mobDamageMultiplier = Math.max(0.1D, damageMultiplier);
         setChanged();
     }
 
@@ -66,6 +76,12 @@ public class EncounterSpawnerBE extends BlockEntity {
         spawnDueGameTime = tag.contains("spawn_due_game_time", Tag.TAG_LONG)
                 ? tag.getLong("spawn_due_game_time")
                 : -1L;
+        mobHealthMultiplier = tag.contains("mob_health_multiplier", Tag.TAG_DOUBLE)
+                ? Math.max(0.1D, tag.getDouble("mob_health_multiplier"))
+                : 1.0D;
+        mobDamageMultiplier = tag.contains("mob_damage_multiplier", Tag.TAG_DOUBLE)
+                ? Math.max(0.1D, tag.getDouble("mob_damage_multiplier"))
+                : 1.0D;
     }
 
     @Override
@@ -76,6 +92,8 @@ public class EncounterSpawnerBE extends BlockEntity {
         tag.putIntArray("spawn_offset", new int[]{spawnOffset.getX(), spawnOffset.getY(), spawnOffset.getZ()});
         tag.putBoolean("triggered", triggered);
         tag.putLong("spawn_due_game_time", spawnDueGameTime);
+        tag.putDouble("mob_health_multiplier", mobHealthMultiplier);
+        tag.putDouble("mob_damage_multiplier", mobDamageMultiplier);
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos pos, BlockState state, T blockEntity) {
@@ -127,8 +145,9 @@ public class EncounterSpawnerBE extends BlockEntity {
             return;
         }
 
+        String encounterGroup = worldPosition.asLong() + ":" + serverLevel.getGameTime();
         for (var mob : encounterData.mobs()) {
-            spawn(serverLevel, mob);
+            spawn(serverLevel, mob, encounterGroup);
         }
     }
 
@@ -137,7 +156,7 @@ public class EncounterSpawnerBE extends BlockEntity {
         return Math.floorMod(gameTime, CHECK_INTERVAL_TICKS) == phase;
     }
 
-    private void spawn(ServerLevel level, EncounterData.MobEntry entry) {
+    private void spawn(ServerLevel level, EncounterData.MobEntry entry, String encounterGroup) {
         if (entry == null || entry.type() == null || entry.count() <= 0) {
             return;
         }
@@ -155,8 +174,10 @@ public class EncounterSpawnerBE extends BlockEntity {
             double y = findGroundY(level, anchor, x, z);
 
             mob.moveTo(x, y, z, level.random.nextFloat() * 360F, 0);
+            applyEncounterStrength(mob);
 
             mob.getPersistentData().putString("incore:loot_table", encounterData.lootTable());
+            mob.getPersistentData().putString("incore:encounter_group", encounterGroup);
 
             mob.setCustomName(Component.translatable("incore.encounter_spawner.mob", mob.getDisplayName()));
 
@@ -172,5 +193,22 @@ public class EncounterSpawnerBE extends BlockEntity {
         }
 
         return pos.getY() + 1;
+    }
+
+    private void applyEncounterStrength(Mob mob) {
+        if (mobHealthMultiplier > 1.0D) {
+            AttributeInstance maxHealth = mob.getAttribute(Attributes.MAX_HEALTH);
+            if (maxHealth != null) {
+                maxHealth.setBaseValue(maxHealth.getBaseValue() * mobHealthMultiplier);
+                mob.setHealth((float) maxHealth.getValue());
+            }
+        }
+
+        if (mobDamageMultiplier > 1.0D) {
+            AttributeInstance attackDamage = mob.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (attackDamage != null) {
+                attackDamage.setBaseValue(attackDamage.getBaseValue() * mobDamageMultiplier);
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 {
-  "type": "kill_mobs",
-  "target": 20,
+  "type": "scavenger_hunt",
+  "target": 8,
   "reward_crates": 3,
   "weight": 3
 }

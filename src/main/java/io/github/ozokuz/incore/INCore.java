@@ -40,10 +40,12 @@ import io.github.ozokuz.incore.features.research.ResearchRecipeLockManager;
 import io.github.ozokuz.incore.features.research.command.ResearchCommands;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
+import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonSocketManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
+import io.github.ozokuz.incore.features.roguelike.network.RoguelikeNetworking;
 import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
 import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
 import io.github.ozokuz.incore.features.shop.ShopCategoryManager;
@@ -104,6 +106,7 @@ public class INCore {
         modEventBus.addListener(MarketNetworking::registerPayloads);
         modEventBus.addListener(ShopNetworking::registerPayloads);
         modEventBus.addListener(PartyNetworking::registerPayloads);
+        modEventBus.addListener(RoguelikeNetworking::registerPayloads);
         modEventBus.addListener(MarketMachineCapabilities::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
@@ -173,6 +176,7 @@ public class INCore {
         event.addListener(new DungeonThemeManager());
         event.addListener(new DungeonSocketManager());
         event.addListener(new DungeonObjectiveManager());
+        event.addListener(new DungeonModifierManager());
         event.addListener(new ArenaCatalogManager());
         event.addListener(new CardSetManager());
         event.addListener(new CardModuleManager());

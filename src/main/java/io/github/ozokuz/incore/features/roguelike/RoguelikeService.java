@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.roguelike;
 
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalDataUtil;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingData;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
@@ -9,6 +10,7 @@ import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveData;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeData;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
+import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.instance.DungeonInstanceManager;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
 import net.minecraft.ChatFormatting;
@@ -28,6 +30,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import org.jetbrains.annotations.Nullable;
@@ -221,8 +224,18 @@ public final class RoguelikeService {
     }
 
     public static ItemStack createDungeonCrystal(int count, ResourceLocation themeId, ResourceLocation objectiveId) {
+        return createDungeonCrystal(count, themeId, objectiveId, List.of(), themeId != null || objectiveId != null);
+    }
+
+    public static ItemStack createDungeonCrystal(
+            int count,
+            ResourceLocation themeId,
+            ResourceLocation objectiveId,
+            List<ResourceLocation> modifiers,
+            boolean customConfigured
+    ) {
         ItemStack stack = new ItemStack(Registration.DUNGEON_CRYSTAL_ITEM.get(), Math.max(1, count));
-        if (themeId == null && objectiveId == null) {
+        if (themeId == null && objectiveId == null && (modifiers == null || modifiers.isEmpty())) {
             return stack;
         }
 
@@ -232,6 +245,12 @@ public final class RoguelikeService {
         if (objectiveId != null) {
             stack.set(Registration.DUNGEON_CRYSTAL_OBJECTIVE.get(), objectiveId);
         }
+        List<ResourceLocation> normalizedModifiers = modifiers == null ? List.of() : modifiers.stream()
+                .filter(id -> id != null && DungeonModifierManager.MODIFIERS.containsKey(id))
+                .distinct()
+                .toList();
+        DungeonCrystalDataUtil.writeModifiers(stack, normalizedModifiers);
+        DungeonCrystalDataUtil.setCustomCrystal(stack, customConfigured || themeId != null || objectiveId != null || !normalizedModifiers.isEmpty());
 
         return stack;
     }
@@ -260,6 +279,7 @@ public final class RoguelikeService {
         RandomSource random = level.random;
         Optional<DungeonThemeManager.PickedTheme> themePick = pickThemeForCrystal(serverPlayer, crystalStack, random);
         Optional<DungeonObjectiveManager.PickedObjective> objectivePick = pickObjectiveForCrystal(serverPlayer, crystalStack, random);
+        List<ResourceLocation> modifiers = pickModifiersForCrystal(serverPlayer, crystalStack);
         if (themePick.isEmpty() || objectivePick.isEmpty()) {
             if (themePick.isEmpty() && objectivePick.isEmpty()) {
                 serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.portal.data_missing"));
@@ -273,6 +293,7 @@ public final class RoguelikeService {
                 crystalStack,
                 themePick.get().id(),
                 objectivePick.get().id(),
+                modifiers,
                 themePick.get().data()
         );
     }
@@ -310,11 +331,19 @@ public final class RoguelikeService {
     }
 
     public static void onDungeonMobDeath(LivingEntity ignored) {
-        DungeonInstanceManager.onDungeonMobDeath();
+        DungeonInstanceManager.onDungeonMobDeath(ignored);
     }
 
     public static void onSpawnPositionCheck(MobSpawnEvent.PositionCheck event) {
         DungeonInstanceManager.onSpawnPositionCheck(event);
+    }
+
+    public static void onDungeonBlockInteracted(ServerPlayer player, BlockPos pos, BlockState state) {
+        DungeonInstanceManager.onDungeonBlockInteracted(player, pos, state);
+    }
+
+    public static boolean trySubmitScavengerToken(Player player, @Nullable InteractionHand hand, BlockPos altarPos) {
+        return DungeonInstanceManager.trySubmitScavengerToken(player, hand, altarPos);
     }
 
     public static Component themeDisplayName(ResourceLocation themeId) {
@@ -398,6 +427,23 @@ public final class RoguelikeService {
         }
 
         return Optional.of(new DungeonObjectiveManager.PickedObjective(customObjectiveId, objectiveData));
+    }
+
+    private static List<ResourceLocation> pickModifiersForCrystal(ServerPlayer player, ItemStack crystalStack) {
+        List<ResourceLocation> selected = DungeonCrystalDataUtil.readModifiers(crystalStack);
+        if (selected.isEmpty()) {
+            return List.of();
+        }
+
+        List<ResourceLocation> valid = new ArrayList<>(selected.size());
+        for (ResourceLocation id : selected) {
+            if (!DungeonModifierManager.MODIFIERS.containsKey(id)) {
+                player.sendSystemMessage(Component.translatable("incore.roguelike.portal.invalid_modifier", id.toString()));
+                continue;
+            }
+            valid.add(id);
+        }
+        return List.copyOf(valid);
     }
 
     private static void ensureAltarRequirement(MinecraftServer server, RoguelikeSavedData data, UUID ownerId) {

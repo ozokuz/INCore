@@ -1,6 +1,6 @@
 {
-  "type": "kill_mobs",
-  "target": 30,
+  "type": "essence_gathering",
+  "target": 10,
   "reward_crates": 4,
-  "weight": 1
+  "weight": 2
 }

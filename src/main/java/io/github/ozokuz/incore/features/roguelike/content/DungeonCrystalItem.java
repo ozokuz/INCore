@@ -11,7 +11,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DungeonCrystalItem extends Item {
     public DungeonCrystalItem(Properties properties) {
@@ -38,6 +40,7 @@ public class DungeonCrystalItem extends Item {
 
         ResourceLocation themeId = stack.get(Registration.DUNGEON_CRYSTAL_THEME.get());
         ResourceLocation objectiveId = stack.get(Registration.DUNGEON_CRYSTAL_OBJECTIVE.get());
+        List<ResourceLocation> modifiers = DungeonCrystalDataUtil.readModifiers(stack);
 
         tooltipComponents.add(
                 Component.translatable(
@@ -53,5 +56,16 @@ public class DungeonCrystalItem extends Item {
                         )
                         .withStyle(ChatFormatting.GOLD)
         );
+        if (!modifiers.isEmpty()) {
+            List<Component> modifierNames = new ArrayList<>(modifiers.size());
+            for (ResourceLocation modifierId : modifiers) {
+                modifierNames.add(Component.translatable("incore.roguelike.modifier." + modifierId.getPath()));
+            }
+            String modifiersText = modifierNames.stream().map(Component::getString).collect(Collectors.joining(", "));
+            tooltipComponents.add(
+                    Component.translatable("incore.roguelike.crystal.tooltip.modifiers", modifiersText)
+                            .withStyle(ChatFormatting.LIGHT_PURPLE)
+            );
+        }
     }
 }
