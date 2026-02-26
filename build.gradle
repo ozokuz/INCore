@@ -220,35 +220,6 @@ dependencies {
     //implementation("io.wispforest:accessories-neoforge:${accessories_version}")
     //implementation "curse.maven:accessories-compat-layer-1315611:7585673"
 
-    implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
-    implementation "dev.kosmx.player-anim:player-animation-lib-forge:${player_animator_version}"
-
-    implementation "dev.shadowsoffire:Placebo:${minecraft_version}-${placeboVersion}"
-    implementation "dev.shadowsoffire:GatewaysToEternity:${minecraft_version}-${gatewaysVersion}"
-    implementation "dev.shadowsoffire:Apotheosis:${minecraft_version}-${apotheosisVersion}"
-    implementation "vazkii.patchouli:Patchouli:${patchouliVersion}"
-
-    compileOnly "io.redspace:atlas_api:${minecraft_version}-${atlas_api_version}:api"
-    localRuntime "io.redspace:atlas_api:${minecraft_version}-${atlas_api_version}"
-
-    implementation "io.redspace:irons_spellbooks:${minecraft_version}-${irons_spells_version}"
-    implementation "io.redspace:irons_jewelry:${minecraft_version}-${irons_jewelry_version}"
-
-    implementation("net.puffish:attributesmod:${pufferfishsAttributesVersion}:neoforge")
-    implementation("net.puffish:skillsmod:${pufferfishsSkillsVersion}:neoforge")
-
-    implementation "curse.maven:pufferfishs-unofficial-additions-935166:7389968"
-    implementation "curse.maven:additional-attributes-986624:6388896"
-
-    implementation "curse.maven:silent-lib-242998:6565251"
-    implementation "curse.maven:silent-gear-297039:7634317"
-    implementation "curse.maven:silents-gems-220311:7512691"
-
-    implementation "curse.maven:octo-lib-916747:6932487"
-    implementation "curse.maven:artifacts-312353:7468997"
-    implementation "curse.maven:relics-mod-445274:7586568"
-    implementation "curse.maven:rar-compat-1100379:6879980"
-
     implementation "xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaeroMinimapVersion}"
     implementation "xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaeroWorldMapVersion}"
 
@@ -263,8 +234,37 @@ dependencies {
     compileOnly("dev.ftb.mods:ftb-quests:${ftb_quests_version}")
     runtimeOnly("dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}")
 
-    implementation "curse.maven:ftb-teams-forge-404468:7369021"
-    implementation "curse.maven:ftb-quests-forge-289412:7429016"
+    implementation "dev.shadowsoffire:Placebo:${minecraft_version}-${placeboVersion}"
+    implementation "dev.shadowsoffire:GatewaysToEternity:${minecraft_version}-${gatewaysVersion}"
+    
+    if (extra_mods == "true") {
+        implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+        implementation "dev.kosmx.player-anim:player-animation-lib-forge:${player_animator_version}"
+
+        implementation "vazkii.patchouli:Patchouli:${patchouliVersion}"
+        implementation "dev.shadowsoffire:Apotheosis:${minecraft_version}-${apotheosisVersion}"
+
+        compileOnly "io.redspace:atlas_api:${minecraft_version}-${atlas_api_version}:api"
+        localRuntime "io.redspace:atlas_api:${minecraft_version}-${atlas_api_version}"
+
+        implementation "io.redspace:irons_spellbooks:${minecraft_version}-${irons_spells_version}"
+        implementation "io.redspace:irons_jewelry:${minecraft_version}-${irons_jewelry_version}"
+
+        implementation("net.puffish:attributesmod:${pufferfishsAttributesVersion}:neoforge")
+        implementation("net.puffish:skillsmod:${pufferfishsSkillsVersion}:neoforge")
+
+        implementation "curse.maven:pufferfishs-unofficial-additions-935166:7389968"
+        implementation "curse.maven:additional-attributes-986624:6388896"
+
+        implementation "curse.maven:silent-lib-242998:6565251"
+        implementation "curse.maven:silent-gear-297039:7634317"
+        implementation "curse.maven:silents-gems-220311:7512691"
+
+        implementation "curse.maven:octo-lib-916747:6932487"
+        implementation "curse.maven:artifacts-312353:7468997"
+        implementation "curse.maven:relics-mod-445274:7586568"
+        implementation "curse.maven:rar-compat-1100379:6879980"
+    }
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
