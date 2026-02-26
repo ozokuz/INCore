@@ -20,6 +20,7 @@ import io.github.ozokuz.incore.features.roguelike.network.RoguelikeNetworking;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
 import io.github.ozokuz.incore.features.party.PartyService;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
+import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -1226,6 +1227,7 @@ public final class DungeonInstanceManager {
                 }
             }
             player.sendSystemMessage(Component.translatable("incore.roguelike.objective.complete", crateCount).withStyle(ChatFormatting.GREEN));
+            DailyTaskEvents.onDungeonCompletion(player);
         }
 
         data.putInstance(instance
