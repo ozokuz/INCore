@@ -394,6 +394,7 @@ public final class BattlePassProgressManager {
         List<LaneSnapshot> lanes = active.lanes().stream()
                 .map(lane -> new LaneSnapshot(
                         lane,
+                        BattlePassLane.displayName(lane),
                         progress.unlockedLanes().contains(lane),
                         progress.highestRewardedByLane().getOrDefault(lane, -1)
                 ))
@@ -494,6 +495,7 @@ public final class BattlePassProgressManager {
         List<LaneSnapshot> laneSnapshots = active.lanes().stream()
                 .map(lane -> new LaneSnapshot(
                         lane,
+                        BattlePassLane.displayName(lane),
                         progress.unlockedLanes().contains(lane),
                         progress.highestRewardedByLane().getOrDefault(lane, -1)
                 ))
@@ -768,7 +770,7 @@ public final class BattlePassProgressManager {
     public record StatusResult(String setId, int level, int xp, int xpPerLevel, int currentWeek) {
     }
 
-    public record LaneSnapshot(String id, boolean unlocked, int highestClaimedLevel) {
+    public record LaneSnapshot(String id, String displayName, boolean unlocked, int highestClaimedLevel) {
     }
 
     public record TaskSnapshot(

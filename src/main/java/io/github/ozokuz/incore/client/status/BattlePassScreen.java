@@ -356,14 +356,12 @@ public class BattlePassScreen extends Screen {
         Component text;
         if ("basic".equals(laneId)) {
             color = 0xCC242A35;
-            text = Component.translatable("screen.incore.battle_pass.track_basic");
         } else if ("originium".equals(laneId)) {
             color = 0xCC8A6D14;
-            text = Component.translatable("screen.incore.battle_pass.track_premium");
         } else {
             color = 0xCC8E2323;
-            text = Component.translatable("screen.incore.battle_pass.track_elite");
         }
+        text = Component.literal(lane.displayName());
         if (!lane.unlocked()) {
             color = 0xCC4B1D25;
             text = Component.literal("\uD83D\uDD12 ").append(text);
@@ -985,9 +983,9 @@ public class BattlePassScreen extends Screen {
         }
 
         return List.of(
-                new BattlePassClientCache.LaneEntry("basic", true, -1),
-                new BattlePassClientCache.LaneEntry("originium", true, -1),
-                new BattlePassClientCache.LaneEntry("protocol", true, -1)
+                new BattlePassClientCache.LaneEntry("basic", "Basic Core", true, -1),
+                new BattlePassClientCache.LaneEntry("northium", "Northium Core", true, -1),
+                new BattlePassClientCache.LaneEntry("integrated", "Integrated Core", true, -1)
         );
     }
 

@@ -3,8 +3,8 @@
   "length_weeks": 2,
   "lanes": [
     "basic",
-    "originium",
-    "protocol"
+    "northium",
+    "integrated"
   ],
   "ends_at": "2026-03-01T00:00:00Z",
   "xp_per_level": 700,

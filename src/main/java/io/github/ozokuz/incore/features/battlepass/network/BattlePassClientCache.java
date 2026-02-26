@@ -62,6 +62,7 @@ public final class BattlePassClientCache {
         lanes = nextLanes.stream()
                 .map(lane -> new LaneEntry(
                         lane.id(),
+                        lane.displayName(),
                         lane.unlocked(),
                         lane.highestClaimedLevel()
                 ))
@@ -172,7 +173,7 @@ public final class BattlePassClientCache {
         return new ArrayList<>(rewardLevels);
     }
 
-    public record LaneEntry(String id, boolean unlocked, int highestClaimedLevel) {
+    public record LaneEntry(String id, String displayName, boolean unlocked, int highestClaimedLevel) {
     }
 
     public record TaskEntry(
