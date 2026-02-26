@@ -6,6 +6,7 @@ import io.github.ozokuz.incore.features.gacha.GachaEventRotation;
 import io.github.ozokuz.incore.features.market.MarketBanking;
 import io.github.ozokuz.incore.features.market.MarketTime;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
+import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -184,7 +185,7 @@ public final class ShopService {
         consumeStock(data, playerState, category, offer, purchaseCount);
         giveItems(player, item, totalItems);
         data.setDirty();
-        io.github.ozokuz.incore.features.tasks.DailyTaskEvents.onShopPurchase(player);
+        DailyTaskEvents.onShopPurchase(player);
         return true;
     }
 

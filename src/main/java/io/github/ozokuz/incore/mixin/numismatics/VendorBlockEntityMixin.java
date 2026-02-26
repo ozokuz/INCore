@@ -4,36 +4,34 @@ import dev.ithundxr.createnumismatics.content.vendor.VendorBlockEntity;
 import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.UUID;
 
 @Mixin(VendorBlockEntity.class)
 public abstract class VendorBlockEntityMixin {
+    @Shadow
+    protected UUID owner;
+
     @Shadow(remap = false)
-    public abstract UUID getOwner();
+    public abstract boolean isTrustedInternal(Player player);
 
     @Inject(
             method = "trySellTo",
-            at = @At("RETURN"),
+            at = @At(value = "INVOKE", target = "Ldev/ithundxr/createnumismatics/content/vendor/VendorBlockEntity;notifyUpdate()V"),
             remap = false
     )
-    private void onTrySellTo(net.minecraft.world.entity.player.Player buyer, int index, CallbackInfoReturnable<Boolean> cir) {
-        if (!cir.getReturnValueZ()) {
+    private void onTrySellTo(Player player, InteractionHand hand, CallbackInfo ci) {
+        if (!(player instanceof ServerPlayer serverBuyer)) {
             return;
         }
-        if (!(buyer instanceof ServerPlayer serverBuyer)) {
-            return;
-        }
-        UUID owner = getOwner();
-        if (owner == null) {
-            return;
-        }
-        if (serverBuyer.getUUID().equals(owner)) {
+        if (isTrustedInternal(serverBuyer)) {
             return;
         }
         DailyTaskEvents.onBuyFromPlayer(serverBuyer);
@@ -45,21 +43,14 @@ public abstract class VendorBlockEntityMixin {
 
     @Inject(
             method = "tryBuyFrom",
-            at = @At("RETURN"),
+            at = @At(value = "INVOKE", target = "Ldev/ithundxr/createnumismatics/content/vendor/VendorBlockEntity;notifyUpdate()V"),
             remap = false
     )
-    private void onTryBuyFrom(net.minecraft.world.entity.player.Player seller, int index, CallbackInfoReturnable<Boolean> cir) {
-        if (!cir.getReturnValueZ()) {
+    private void onTryBuyFrom(Player player, InteractionHand hand, CallbackInfo ci) {
+        if (!(player instanceof ServerPlayer serverSeller)) {
             return;
         }
-        if (!(seller instanceof ServerPlayer serverSeller)) {
-            return;
-        }
-        UUID owner = getOwner();
-        if (owner == null) {
-            return;
-        }
-        if (serverSeller.getUUID().equals(owner)) {
+        if (isTrustedInternal(serverSeller)) {
             return;
         }
         DailyTaskEvents.onSellToPlayer(serverSeller);

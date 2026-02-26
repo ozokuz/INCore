@@ -13,6 +13,7 @@ import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.instance.DungeonInstanceManager;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
+import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
