@@ -165,7 +165,7 @@ public final class MarketService {
         int payout = (int) Math.min(Integer.MAX_VALUE, payoutLong);
         MarketBanking.deposit(account, payout);
         MarketPricingService.applySell(player.getServer(), itemId, stackCount);
-        BattlePassTaskHooks.onMarketSell(player, selling);
+        BattlePassTaskHooks.onMarketSell(player, requestedItems);
         return true;
     }
 
