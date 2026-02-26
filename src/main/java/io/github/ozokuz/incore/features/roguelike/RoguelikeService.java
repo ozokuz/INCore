@@ -10,6 +10,7 @@ import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeData;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
+import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -541,7 +542,7 @@ public final class RoguelikeService {
                     activePlayer.drop(reward, false);
                 }
                 activePlayer.sendSystemMessage(Component.translatable("incore.roguelike.portal.completed", rewardCount));
-                io.github.ozokuz.incore.features.tasks.DailyTaskEvents.onDungeonCompletion(activePlayer);
+                DailyTaskEvents.onDungeonCompletion(activePlayer);
             }
 
             dungeon = dungeon.upsertProgress(playerId, progress.withRewarded());

@@ -10,6 +10,7 @@ import io.github.ozokuz.incore.features.arena.data.ArenaCatalogEntry;
 import io.github.ozokuz.incore.features.arena.data.ArenaCatalogManager;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.arena.state.ArenaSavedData;
+import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -156,7 +157,7 @@ public final class ArenaService {
 
             player.sendSystemMessage(Component.translatable("incore.arena.run.success", entry.difficultyName()));
             player.sendSystemMessage(Component.translatable("incore.arena.orb.return_ready"));
-            io.github.ozokuz.incore.features.tasks.DailyTaskEvents.onArenaCompletion(player);
+            DailyTaskEvents.onArenaCompletion(player);
         }
     }
 
