@@ -34,7 +34,7 @@ public final class ArenaRewardCrateData {
 
     public static ItemStack createCrateStack(ArenaCatalogEntry entry) {
         CrateContents contents = CrateContents.fromEntry(entry);
-        ItemStack stack = new ItemStack(Registration.ARENA_REWARD_CRATE_BLOCK_ITEM.get());
+        ItemStack stack = new ItemStack(Registration.ARENA_REWARD_RIFT_BLOCK_ITEM.get());
         write(stack, contents);
         return stack;
     }
@@ -114,27 +114,27 @@ public final class ArenaRewardCrateData {
     public static void appendTooltip(ItemStack stack, List<Component> tooltip) {
         CrateContents contents = read(stack);
         if (contents == null) {
-            tooltip.add(Component.translatable("block.incore.arena_reward_crate.tooltip.invalid"));
+            tooltip.add(Component.translatable("block.incore.arena_reward_rift.tooltip.invalid"));
             return;
         }
 
         tooltip.add(Component.translatable(
-                "block.incore.arena_reward_crate.tooltip.source",
+                "block.incore.arena_reward_rift.tooltip.source",
                 contents.categoryName(),
                 contents.difficultyName()
         ));
-        tooltip.add(Component.translatable("block.incore.arena_reward_crate.tooltip.cost", contents.sanityCost()));
-        tooltip.add(Component.translatable("block.incore.arena_reward_crate.tooltip.contains"));
+        tooltip.add(Component.translatable("block.incore.arena_reward_rift.tooltip.cost", contents.sanityCost()));
+        tooltip.add(Component.translatable("block.incore.arena_reward_rift.tooltip.contains"));
         for (ArenaRewardStack reward : contents.rewards()) {
             Item item = BuiltInRegistries.ITEM.get(reward.itemId());
             Component itemName = item == null ? Component.literal(reward.itemId().toString()) : item.getDescription();
-            tooltip.add(Component.translatable("block.incore.arena_reward_crate.tooltip.entry", reward.count(), itemName));
+            tooltip.add(Component.translatable("block.incore.arena_reward_rift.tooltip.entry", reward.count(), itemName));
         }
     }
 
     public static Component nameForStack(ItemStack stack) {
         CrateContents contents = read(stack);
-        return contents == null ? Component.translatable("block.incore.arena_reward_crate") : buildDisplayName(contents);
+        return contents == null ? Component.translatable("block.incore.arena_reward_rift") : buildDisplayName(contents);
     }
 
     public static boolean tryOpen(ServerPlayer player, CrateContents contents) {

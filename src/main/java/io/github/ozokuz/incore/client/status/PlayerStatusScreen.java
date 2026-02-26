@@ -295,7 +295,7 @@ public class PlayerStatusScreen extends Screen {
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.gacha"),
                         INCoreKeyMappings.OPEN_GACHA_BANNERS,
-                        Registration.GACHA_CRATE_BLOCK_ITEM.get().getDefaultInstance(),
+                        Registration.GACHA_RIFT_BLOCK_ITEM.get().getDefaultInstance(),
                         GachaNetworking::requestOpenBannerScreen
                 ),
                 new QuickNavTarget(

@@ -1,0 +1,16 @@
+{
+  "category_id": "time_pieces",
+  "category_name": "Time Pieces",
+  "difficulty_id": "level_5",
+  "difficulty_name": "Level 5",
+  "gateway_id": "incore:arena_tier_5",
+  "sort_order": 150,
+  "reward_summary": "Maximum time piece payout.",
+  "reward": {
+    "sanity_cost": 80,
+    "items": [
+      { "item": "incore:basic_time_piece", "count": 8 },
+      { "item": "incore:chartered_time_piece", "count": 4 }
+    ]
+  }
+}

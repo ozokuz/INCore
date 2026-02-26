@@ -1,15 +1,15 @@
 {
-  "category_id": "banner_permits",
-  "category_name": "Banner Permits",
+  "category_id": "time_pieces",
+  "category_name": "Time Pieces",
   "difficulty_id": "level_1",
   "difficulty_name": "Level 1",
   "gateway_id": "incore:arena_tier_1",
   "sort_order": 110,
-  "reward_summary": "Basic permit supply.",
+  "reward_summary": "Basic time piece supply.",
   "reward": {
     "sanity_cost": 20,
     "items": [
-      { "item": "incore:basic_banner_permit", "count": 2 }
+      { "item": "incore:basic_time_piece", "count": 2 }
     ]
   }
 }

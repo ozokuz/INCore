@@ -19,7 +19,7 @@ public class GachaCrateBlockItem extends BlockItem {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
         ResourceLocation bannerId = GachaCrateData.readBannerId(stack);
         if (bannerId != null) {
-            tooltipComponents.add(Component.translatable("block.incore.gacha_crate.tooltip.banner", bannerId.toString()));
+            tooltipComponents.add(Component.translatable("block.incore.gacha_rift.tooltip.banner", bannerId.toString()));
         }
     }
 }

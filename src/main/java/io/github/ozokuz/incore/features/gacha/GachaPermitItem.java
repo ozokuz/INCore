@@ -37,7 +37,7 @@ public class GachaPermitItem extends Item {
         tag.putString(KEY_BANNER, bannerId.toString());
         if (bannerName != null && !bannerName.isBlank()) {
             tag.putString(KEY_BANNER_NAME, bannerName);
-            stack.set(DataComponents.CUSTOM_NAME, Component.translatable("item.incore.banner_permit.named", bannerName));
+            stack.set(DataComponents.CUSTOM_NAME, Component.translatable("item.incore.time_piece.named", bannerName));
         }
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return stack;
@@ -84,13 +84,13 @@ public class GachaPermitItem extends Item {
 
         String bannerName = readBannerName(stack);
         if (bannerName != null && !bannerName.isBlank()) {
-            tooltipComponents.add(Component.translatable("item.incore.banner_permit.tooltip.banner_name", bannerName));
+            tooltipComponents.add(Component.translatable("item.incore.time_piece.tooltip.banner_name", bannerName));
             return;
         }
 
         ResourceLocation bannerId = readBannerPermit(stack);
         if (bannerId != null) {
-            tooltipComponents.add(Component.translatable("item.incore.banner_permit.tooltip.banner", bannerId.toString()));
+            tooltipComponents.add(Component.translatable("item.incore.time_piece.tooltip.banner", bannerId.toString()));
         }
     }
 

@@ -60,7 +60,7 @@ public final class GachaCommands {
                                         .then(Commands.argument("targets", EntityArgument.players())
                                                 .then(Commands.argument("count", IntegerArgumentType.integer(1))
                                                         .executes(GachaCommands::giveCharteredPermit))))
-                                .then(Commands.literal("give_banner_permit")
+                                .then(Commands.literal("give_time_piece")
                                         .then(Commands.argument("targets", EntityArgument.players())
                                                 .then(Commands.argument("banner", ResourceLocationArgument.id())
                                                         .suggests(BANNER_ID_SUGGESTIONS)
@@ -124,7 +124,7 @@ public final class GachaCommands {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         int count = IntegerArgumentType.getInteger(context, "count");
         for (ServerPlayer target : targets) {
-            giveOrDrop(target, new ItemStack(Registration.BASIC_BANNER_PERMIT_ITEM.get(), count));
+            giveOrDrop(target, new ItemStack(Registration.BASIC_TIME_PIECE_ITEM.get(), count));
         }
         context.getSource().sendSuccess(
                 () -> Component.literal("Gave basic permits x" + count + " to " + targets.size() + " player(s)."),
@@ -137,7 +137,7 @@ public final class GachaCommands {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         int count = IntegerArgumentType.getInteger(context, "count");
         for (ServerPlayer target : targets) {
-            giveOrDrop(target, new ItemStack(Registration.CHARTERED_BANNER_PERMIT_ITEM.get(), count));
+            giveOrDrop(target, new ItemStack(Registration.CHARTERED_TIME_PIECE_ITEM.get(), count));
         }
         context.getSource().sendSuccess(
                 () -> Component.literal("Gave chartered permits x" + count + " to " + targets.size() + " player(s)."),

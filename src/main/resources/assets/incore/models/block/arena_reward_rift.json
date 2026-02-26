@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "incore:block/gacha_crate"
+    "all": "incore:block/gacha_rift"
   }
 }

@@ -56,7 +56,7 @@ public class ArenaEvents {
             return;
         }
 
-        if (event.getLevel().getBlockState(event.getPos()).getBlock() != Registration.ARENA_REWARD_CRATE_BLOCK.get()) {
+        if (event.getLevel().getBlockState(event.getPos()).getBlock() != Registration.ARENA_REWARD_RIFT_BLOCK.get()) {
             return;
         }
 
