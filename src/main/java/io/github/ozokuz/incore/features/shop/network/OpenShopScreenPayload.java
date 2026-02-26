@@ -1,14 +1,13 @@
 package io.github.ozokuz.incore.features.shop.network;
 
-import io.github.ozokuz.incore.features.shop.client.ShopPayloadUpdatable;
-import io.github.ozokuz.incore.features.shop.client.ShopSelectionScreen;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.lang.reflect.InvocationTargetException;
 
 public record OpenShopScreenPayload(String json) implements CustomPacketPayload {
     private static final int MAX_JSON_BYTES = 4 * 1024 * 1024;
@@ -25,13 +24,14 @@ public record OpenShopScreenPayload(String json) implements CustomPacketPayload 
     }
 
     public static void handle(OpenShopScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.screen instanceof ShopPayloadUpdatable updatable) {
-                updatable.updatePayload(payload.json());
-                return;
-            }
-            minecraft.setScreen(new ShopSelectionScreen(payload.json()));
-        });
+        context.enqueueWork(() -> openClient(payload.json()));
+    }
+
+    private static void openClient(String json) {
+        try {
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.shop.client.ShopClientPayloadHandlers");
+            handler.getMethod("openShopScreen", String.class).invoke(null, json);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+        }
     }
 }

@@ -1,14 +1,13 @@
 package io.github.ozokuz.incore.features.market.network;
 
-import io.github.ozokuz.incore.features.market.client.MarketPayloadUpdatable;
-import io.github.ozokuz.incore.features.market.client.MarketSelectionScreen;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.lang.reflect.InvocationTargetException;
 
 public record OpenMarketScreenPayload(String json) implements CustomPacketPayload {
     private static final int MAX_JSON_BYTES = 4 * 1024 * 1024;
@@ -25,13 +24,14 @@ public record OpenMarketScreenPayload(String json) implements CustomPacketPayloa
     }
 
     public static void handle(OpenMarketScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.screen instanceof MarketPayloadUpdatable updatable) {
-                updatable.updatePayload(payload.json());
-                return;
-            }
-            minecraft.setScreen(new MarketSelectionScreen(payload.json()));
-        });
+        context.enqueueWork(() -> openClient(payload.json()));
+    }
+
+    private static void openClient(String json) {
+        try {
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.market.client.MarketClientPayloadHandlers");
+            handler.getMethod("openMarketScreen", String.class).invoke(null, json);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+        }
     }
 }
