@@ -13,7 +13,7 @@ public class ArenaRewardCrateBlockEntity extends BlockEntity {
     private ArenaRewardCrateData.CrateContents contents;
 
     public ArenaRewardCrateBlockEntity(BlockPos pos, BlockState blockState) {
-        super(Registration.ARENA_REWARD_CRATE_BE.get(), pos, blockState);
+        super(Registration.ARENA_REWARD_RIFT_BE.get(), pos, blockState);
     }
 
     public @Nullable ArenaRewardCrateData.CrateContents getContents() {

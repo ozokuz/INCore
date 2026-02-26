@@ -16,7 +16,7 @@ public class GachaCrateBlockEntity extends BlockEntity {
     private ResourceLocation bannerId;
 
     public GachaCrateBlockEntity(BlockPos pos, BlockState blockState) {
-        super(Registration.GACHA_CRATE_BE.get(), pos, blockState);
+        super(Registration.GACHA_RIFT_BE.get(), pos, blockState);
     }
 
     public @Nullable ResourceLocation getBannerId() {

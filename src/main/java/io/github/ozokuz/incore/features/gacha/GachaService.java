@@ -396,16 +396,16 @@ public final class GachaService {
 
         int remaining = PULLS_PER_CRATE;
         if (banner.bannerType() == BannerType.BASIC) {
-            remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.BANNER_PERMIT_ITEM.get()
+            remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.TIME_PIECE_ITEM.get()
                     && GachaPermitItem.matchesBanner(stack, banner.id()));
             if (remaining > 0) {
-                remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.BASIC_BANNER_PERMIT_ITEM.get());
+                remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.BASIC_TIME_PIECE_ITEM.get());
             }
         } else {
-            remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.BANNER_PERMIT_ITEM.get()
+            remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.TIME_PIECE_ITEM.get()
                     && GachaPermitItem.matchesBanner(stack, banner.id()));
             if (remaining > 0) {
-                remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.CHARTERED_BANNER_PERMIT_ITEM.get());
+                remaining = consumeMatching(player, remaining, stack -> stack.getItem() == Registration.CHARTERED_TIME_PIECE_ITEM.get());
             }
         }
 
@@ -420,15 +420,15 @@ public final class GachaService {
         }
 
         if (banner.bannerType() == BannerType.BASIC) {
-            int specific = countMatching(player, stack -> stack.getItem() == Registration.BANNER_PERMIT_ITEM.get()
+            int specific = countMatching(player, stack -> stack.getItem() == Registration.TIME_PIECE_ITEM.get()
                     && GachaPermitItem.matchesBanner(stack, banner.id()));
-            int basic = countMatching(player, stack -> stack.getItem() == Registration.BASIC_BANNER_PERMIT_ITEM.get());
+            int basic = countMatching(player, stack -> stack.getItem() == Registration.BASIC_TIME_PIECE_ITEM.get());
             return specific + basic;
         }
 
-        int specific = countMatching(player, stack -> stack.getItem() == Registration.BANNER_PERMIT_ITEM.get()
+        int specific = countMatching(player, stack -> stack.getItem() == Registration.TIME_PIECE_ITEM.get()
                 && GachaPermitItem.matchesBanner(stack, banner.id()));
-        int chartered = countMatching(player, stack -> stack.getItem() == Registration.CHARTERED_BANNER_PERMIT_ITEM.get());
+        int chartered = countMatching(player, stack -> stack.getItem() == Registration.CHARTERED_TIME_PIECE_ITEM.get());
         return specific + chartered;
     }
 
@@ -542,7 +542,7 @@ public final class GachaService {
     }
 
     public static ItemStack createSpecificPermit(ResourceLocation bannerId, int count) {
-        Item permitItem = Registration.BANNER_PERMIT_ITEM.get();
+        Item permitItem = Registration.TIME_PIECE_ITEM.get();
         GachaBannerData banner = GachaBannerManager.get(bannerId);
         if (banner == null) {
             return GachaPermitItem.createBannerPermit(permitItem, bannerId, count);

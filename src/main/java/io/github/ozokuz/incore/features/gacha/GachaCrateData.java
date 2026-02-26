@@ -16,7 +16,7 @@ public final class GachaCrateData {
     }
 
     public static ItemStack createBannerCrate(ResourceLocation bannerId, int count) {
-        ItemStack stack = new ItemStack(Registration.GACHA_CRATE_BLOCK_ITEM.get(), count);
+        ItemStack stack = new ItemStack(Registration.GACHA_RIFT_BLOCK_ITEM.get(), count);
         writeBannerId(stack, bannerId);
         return stack;
     }

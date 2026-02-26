@@ -27,7 +27,7 @@ public final class GachaEvents {
             return;
         }
 
-        if (event.getLevel().getBlockState(event.getPos()).getBlock() != Registration.GACHA_CRATE_BLOCK.get()) {
+        if (event.getLevel().getBlockState(event.getPos()).getBlock() != Registration.GACHA_RIFT_BLOCK.get()) {
             return;
         }
 

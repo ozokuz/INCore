@@ -400,7 +400,7 @@ public class GachaBannerScreen extends Screen {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             return new PermitUsage(List.of(
-                    new CostRenderLine(Registration.BASIC_BANNER_PERMIT_ITEM.get(), GachaService.PULLS_PER_CRATE, 0xFF5555)
+                    new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), GachaService.PULLS_PER_CRATE, 0xFF5555)
             ));
         }
 
@@ -417,17 +417,17 @@ public class GachaBannerScreen extends Screen {
                 continue;
             }
 
-            if (stack.getItem() == Registration.BASIC_BANNER_PERMIT_ITEM.get()) {
+            if (stack.getItem() == Registration.BASIC_TIME_PIECE_ITEM.get()) {
                 basicCount += stack.getCount();
                 continue;
             }
 
-            if (stack.getItem() == Registration.CHARTERED_BANNER_PERMIT_ITEM.get()) {
+            if (stack.getItem() == Registration.CHARTERED_TIME_PIECE_ITEM.get()) {
                 charteredCount += stack.getCount();
                 continue;
             }
 
-            if (stack.getItem() == Registration.BANNER_PERMIT_ITEM.get() && bannerId != null && GachaPermitItem.matchesBanner(stack, bannerId)) {
+            if (stack.getItem() == Registration.TIME_PIECE_ITEM.get() && bannerId != null && GachaPermitItem.matchesBanner(stack, bannerId)) {
                 specificCount += stack.getCount();
             }
         }
@@ -439,13 +439,13 @@ public class GachaBannerScreen extends Screen {
             int missing = required - useSpecific - useBasic;
             List<CostRenderLine> lines = new ArrayList<>();
             if (useSpecific > 0) {
-                lines.add(new CostRenderLine(Registration.BANNER_PERMIT_ITEM.get(), useSpecific, 0xBDE8BD));
+                lines.add(new CostRenderLine(Registration.TIME_PIECE_ITEM.get(), useSpecific, 0xBDE8BD));
             }
             if (useBasic > 0) {
-                lines.add(new CostRenderLine(Registration.BASIC_BANNER_PERMIT_ITEM.get(), useBasic, 0xBDE8BD));
+                lines.add(new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), useBasic, 0xBDE8BD));
             }
             if (missing > 0) {
-                lines.add(new CostRenderLine(Registration.BASIC_BANNER_PERMIT_ITEM.get(), missing, 0xFF5555));
+                lines.add(new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), missing, 0xFF5555));
             }
             return new PermitUsage(lines);
         }
@@ -456,13 +456,13 @@ public class GachaBannerScreen extends Screen {
         int missing = required - useSpecific - useChartered;
         List<CostRenderLine> lines = new ArrayList<>();
         if (useSpecific > 0) {
-            lines.add(new CostRenderLine(Registration.BANNER_PERMIT_ITEM.get(), useSpecific, 0xBDE8BD));
+            lines.add(new CostRenderLine(Registration.TIME_PIECE_ITEM.get(), useSpecific, 0xBDE8BD));
         }
         if (useChartered > 0) {
-            lines.add(new CostRenderLine(Registration.CHARTERED_BANNER_PERMIT_ITEM.get(), useChartered, 0xBDE8BD));
+            lines.add(new CostRenderLine(Registration.CHARTERED_TIME_PIECE_ITEM.get(), useChartered, 0xBDE8BD));
         }
         if (missing > 0) {
-            lines.add(new CostRenderLine(Registration.CHARTERED_BANNER_PERMIT_ITEM.get(), missing, 0xFF5555));
+            lines.add(new CostRenderLine(Registration.CHARTERED_TIME_PIECE_ITEM.get(), missing, 0xFF5555));
         }
         return new PermitUsage(lines);
     }

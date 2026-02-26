@@ -127,16 +127,16 @@ public class Registration {
     public static final DeferredBlock<Block> ENCOUNTER_SPAWNER_BLOCK = BLOCKS.register("encounter_spawner", EncounterSpawnerBlock::new);
     public static final Supplier<BlockEntityType<EncounterSpawnerBE>> ENCOUNTER_SPAWNER_BE = BLOCK_ENTITY_TYPES.register("encounter_spawner", () -> BlockEntityType.Builder.of(EncounterSpawnerBE::new, ENCOUNTER_SPAWNER_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> ENCOUNTER_SPAWNER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("encounter_spawner", ENCOUNTER_SPAWNER_BLOCK);
-    public static final DeferredBlock<Block> GACHA_CRATE_BLOCK = BLOCKS.register("gacha_crate", GachaCrateBlock::new);
-    public static final Supplier<BlockEntityType<GachaCrateBlockEntity>> GACHA_CRATE_BE = BLOCK_ENTITY_TYPES.register("gacha_crate", () -> BlockEntityType.Builder.of(GachaCrateBlockEntity::new, GACHA_CRATE_BLOCK.get()).build(null));
-    public static final DeferredItem<BlockItem> GACHA_CRATE_BLOCK_ITEM = ITEMS.registerItem("gacha_crate", properties -> new GachaCrateBlockItem(GACHA_CRATE_BLOCK.get(), properties));
+    public static final DeferredBlock<Block> GACHA_RIFT_BLOCK = BLOCKS.register("gacha_rift", GachaCrateBlock::new);
+    public static final Supplier<BlockEntityType<GachaCrateBlockEntity>> GACHA_RIFT_BE = BLOCK_ENTITY_TYPES.register("gacha_rift", () -> BlockEntityType.Builder.of(GachaCrateBlockEntity::new, GACHA_RIFT_BLOCK.get()).build(null));
+    public static final DeferredItem<BlockItem> GACHA_RIFT_BLOCK_ITEM = ITEMS.registerItem("gacha_rift", properties -> new GachaCrateBlockItem(GACHA_RIFT_BLOCK.get(), properties));
     public static final DeferredBlock<Block> ARENA_ORB_BLOCK = BLOCKS.register("arena_orb", ArenaOrbBlock::new);
     public static final DeferredItem<BlockItem> ARENA_ORB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("arena_orb", ARENA_ORB_BLOCK);
-    public static final DeferredBlock<Block> ARENA_REWARD_CRATE_BLOCK = BLOCKS.register("arena_reward_crate", ArenaRewardCrateBlock::new);
-    public static final Supplier<BlockEntityType<ArenaRewardCrateBlockEntity>> ARENA_REWARD_CRATE_BE =
-            BLOCK_ENTITY_TYPES.register("arena_reward_crate", () -> BlockEntityType.Builder.of(ArenaRewardCrateBlockEntity::new, ARENA_REWARD_CRATE_BLOCK.get()).build(null));
-    public static final DeferredItem<BlockItem> ARENA_REWARD_CRATE_BLOCK_ITEM =
-            ITEMS.registerItem("arena_reward_crate", properties -> new ArenaRewardCrateBlockItem(ARENA_REWARD_CRATE_BLOCK.get(), properties));
+    public static final DeferredBlock<Block> ARENA_REWARD_RIFT_BLOCK = BLOCKS.register("arena_reward_rift", ArenaRewardCrateBlock::new);
+    public static final Supplier<BlockEntityType<ArenaRewardCrateBlockEntity>> ARENA_REWARD_RIFT_BE =
+            BLOCK_ENTITY_TYPES.register("arena_reward_rift", () -> BlockEntityType.Builder.of(ArenaRewardCrateBlockEntity::new, ARENA_REWARD_RIFT_BLOCK.get()).build(null));
+    public static final DeferredItem<BlockItem> ARENA_REWARD_RIFT_BLOCK_ITEM =
+            ITEMS.registerItem("arena_reward_rift", properties -> new ArenaRewardCrateBlockItem(ARENA_REWARD_RIFT_BLOCK.get(), properties));
     public static final DeferredBlock<Block> DECK_STATION_BLOCK = BLOCKS.register("deck_station", () -> new DeckStationBlock());
     public static final Supplier<BlockEntityType<DeckStationBlockEntity>> DECK_STATION_BE = BLOCK_ENTITY_TYPES.register("deck_station", () -> BlockEntityType.Builder.of(DeckStationBlockEntity::new, DECK_STATION_BLOCK.get()).build(null));
     public static final Supplier<MenuType<DeckStationMenu>> DECK_STATION_MENU = MENU_TYPES.register("deck_station", () -> IMenuTypeExtension.create((id, inv, data) -> new DeckStationMenu(id, inv, (DeckStationBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
@@ -344,9 +344,9 @@ public class Registration {
             "battlepass_lane_unlock",
             properties -> new BattlePassLaneUnlockItem(properties)
     );
-    public static final DeferredItem<Item> BASIC_BANNER_PERMIT_ITEM = ITEMS.registerItem("basic_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.BASIC));
-    public static final DeferredItem<Item> CHARTERED_BANNER_PERMIT_ITEM = ITEMS.registerItem("chartered_banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.CHARTERED));
-    public static final DeferredItem<Item> BANNER_PERMIT_ITEM = ITEMS.registerItem("banner_permit", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
+    public static final DeferredItem<Item> BASIC_TIME_PIECE_ITEM = ITEMS.registerItem("basic_time_piece", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.BASIC));
+    public static final DeferredItem<Item> CHARTERED_TIME_PIECE_ITEM = ITEMS.registerItem("chartered_time_piece", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.CHARTERED));
+    public static final DeferredItem<Item> TIME_PIECE_ITEM = ITEMS.registerItem("time_piece", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
     public static final DeferredItem<Item> SPEED_MODULE_CARD_ITEM = ITEMS.registerItem("speed_module_card", properties -> new SpeedModuleCardItem(properties.stacksTo(16)));
     public static final DeferredItem<Item> PRODUCTIVITY_MODULE_CARD_ITEM = ITEMS.registerItem("productivity_module_card", properties -> new ProductivityModuleCardItem(properties.stacksTo(16)));
     public static final DeferredItem<Item> CARD_MODULE_ITEM = ITEMS.registerItem("card_module", CardModuleItem::new);
@@ -408,9 +408,9 @@ public class Registration {
                 output.accept(UNIVERSAL_ORE_LOCATOR.get());
                 output.accept(UNIVERSAL_STONE_LOCATOR.get());
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
-                output.accept(GACHA_CRATE_BLOCK_ITEM.get());
+                output.accept(GACHA_RIFT_BLOCK_ITEM.get());
                 output.accept(ARENA_ORB_BLOCK_ITEM.get());
-                output.accept(ARENA_REWARD_CRATE_BLOCK_ITEM.get());
+                output.accept(ARENA_REWARD_RIFT_BLOCK_ITEM.get());
                 output.accept(DECK_STATION_BLOCK_ITEM.get());
                 output.accept(CARD_DECRYPTOR_BLOCK_ITEM.get());
                 output.accept(VENDOR_BLOCK_ITEM.get());
@@ -436,9 +436,9 @@ public class Registration {
                 output.accept(SANITY_BOOSTER_LARGE_ITEM.get());
                 output.accept(SANITY_VESSEL_ITEM.get());
                 output.accept(BATTLEPASS_LANE_UNLOCK_ITEM.get());
-                output.accept(BASIC_BANNER_PERMIT_ITEM.get());
-                output.accept(CHARTERED_BANNER_PERMIT_ITEM.get());
-                output.accept(BANNER_PERMIT_ITEM.get());
+                output.accept(BASIC_TIME_PIECE_ITEM.get());
+                output.accept(CHARTERED_TIME_PIECE_ITEM.get());
+                output.accept(TIME_PIECE_ITEM.get());
                 output.accept(SPEED_MODULE_CARD_ITEM.get());
                 output.accept(PRODUCTIVITY_MODULE_CARD_ITEM.get());
                 output.accept(CARD_MODULE_ITEM.get());

@@ -83,8 +83,8 @@
       "type": "permanent",
       "tier": "silver",
       "goal": 10,
-      "description": "Use 10 banner permits",
-      "trigger_type": "banner_permit_use"
+      "trigger_type": "banner_permit_use",
+      "description": "Use 10 banner time pieces"
     },
     {
       "id": "alpha_permanent_sanity",
@@ -99,7 +99,7 @@
       "type": "permanent",
       "tier": "platinum",
       "goal": 5,
-      "description": "Open 5 gacha crates",
+      "description": "Open 5 gacha rifts",
       "trigger_type": "gacha_crate_open"
     },
     {

@@ -1,0 +1,16 @@
+{
+  "category_id": "time_pieces",
+  "category_name": "Time Pieces",
+  "difficulty_id": "level_4",
+  "difficulty_name": "Level 4",
+  "gateway_id": "incore:arena_tier_4",
+  "sort_order": 140,
+  "reward_summary": "Chartered time piece progression.",
+  "reward": {
+    "sanity_cost": 60,
+    "items": [
+      { "item": "incore:basic_time_piece", "count": 6 },
+      { "item": "incore:chartered_time_piece", "count": 2 }
+    ]
+  }
+}

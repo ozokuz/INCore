@@ -11,7 +11,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "incore:gacha_crate"
+          "name": "incore:gacha_rift"
         }
       ],
       "rolls": 1.0
