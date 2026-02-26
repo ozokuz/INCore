@@ -219,24 +219,33 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
     }
 
     private static List<String> parseLanes(JsonObject object) {
-        if (!object.has("lanes")) {
-            return BattlePassLane.defaultOrder();
-        }
-
         List<String> lanes = new ArrayList<>();
-        for (JsonElement laneElement : GsonHelper.getAsJsonArray(object, "lanes")) {
-            String lane = BattlePassLane.normalize(laneElement.getAsString());
-            if (!BattlePassLane.isValid(lane)) {
-                throw new IllegalArgumentException("Unknown battle pass lane: " + laneElement.getAsString());
-            }
-            if (!lanes.contains(lane)) {
+
+        List<String> alwaysAvailable = BattlePassLaneManager.getAlwaysAvailableLaneIds();
+        lanes.addAll(alwaysAvailable);
+
+        if (object.has("lanes")) {
+            for (JsonElement laneElement : GsonHelper.getAsJsonArray(object, "lanes")) {
+                String lane = BattlePassLane.normalize(laneElement.getAsString());
+                if (!BattlePassLane.isValid(lane)) {
+                    throw new IllegalArgumentException("Unknown battle pass lane: " + laneElement.getAsString());
+                }
+                lanes.remove(lane);
                 lanes.add(lane);
             }
         }
 
         if (lanes.isEmpty()) {
-            return BattlePassLane.defaultOrder();
+            return BattlePassLaneManager.getAllLaneIds();
         }
+
+        lanes.sort((a, b) -> {
+            var defA = BattlePassLaneManager.getLaneDefinition(a);
+            var defB = BattlePassLaneManager.getLaneDefinition(b);
+            int orderA = defA != null ? defA.order() : 0;
+            int orderB = defB != null ? defB.order() : 0;
+            return Integer.compare(orderA, orderB);
+        });
 
         return List.copyOf(lanes);
     }
@@ -272,7 +281,7 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
             return finalizeRewardsByLane(rewardsByLane);
         }
 
-        List<String> trackLanes = BattlePassLane.defaultOrder();
+        List<String> trackLanes = BattlePassLaneManager.getAllLaneIds();
         for (JsonElement levelRewardElement : GsonHelper.getAsJsonArray(object, "level_rewards")) {
             JsonObject levelObject = levelRewardElement.getAsJsonObject();
             int level = Math.max(0, GsonHelper.getAsInt(levelObject, "level"));

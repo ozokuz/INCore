@@ -31,7 +31,7 @@ public record BattlePassDefinition(
 
         List<String> sourceLanes = lanes == null ? List.of() : lanes;
         List<String> normalizedLanes = sourceLanes.isEmpty()
-                ? BattlePassLane.defaultOrder()
+                ? BattlePassLaneManager.getAllLaneIds()
                 : sourceLanes.stream().map(BattlePassLane::normalize).distinct().toList();
         lanes = List.copyOf(normalizedLanes);
 

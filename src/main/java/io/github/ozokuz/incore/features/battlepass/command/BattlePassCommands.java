@@ -10,6 +10,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.github.ozokuz.incore.features.battlepass.BattlePassDefinition;
 import io.github.ozokuz.incore.features.battlepass.BattlePassLane;
+import io.github.ozokuz.incore.features.battlepass.BattlePassLaneManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassProgressManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassWeekTime;
@@ -136,7 +137,7 @@ public final class BattlePassCommands {
     }
 
     private static CompletableFuture<Suggestions> suggestLaneIds(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
-        return SharedSuggestionProvider.suggest(BattlePassLane.defaultOrder(), builder);
+        return SharedSuggestionProvider.suggest(BattlePassLaneManager.getAllLaneIds(), builder);
     }
 
     private static int status(CommandSourceStack source, ServerPlayer player) {
