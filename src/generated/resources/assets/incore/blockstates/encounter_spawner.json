@@ -1,7 +1,7 @@
 {
-  "variants": {
-    "": {
-      "model": "incore:block/encounter_spawner"
+    "variants": {
+        "": {
+            "model": "incore:block/encounter_spawner"
+        }
     }
-  }
 }

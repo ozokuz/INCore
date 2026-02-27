@@ -1,4 +1,4 @@
-// 1.21.1	2026-02-13T03:35:42.104491326	Block States: incore
-95777eb73f505b194a17ed1a67c014ce19fea560 assets/incore/blockstates/encounter_spawner.json
-cbb43fe248a35166a3be49d0ecd4b22cb47f324f assets/incore/models/block/encounter_spawner.json
-3a296be7855f6737356d273a7c33851a98bc3663 assets/incore/models/item/encounter_spawner.json
+// 1.21.1	2026-02-27T04:46:03.321618079	Block States: incore
+841b84fe9ff7e6c6e214c1368c8f2c4fce0296d1 assets/incore/blockstates/encounter_spawner.json
+9df9875d756fa6251959bd1b5aa2d9d1dc4262a6 assets/incore/models/block/encounter_spawner.json
+5aa41a2923de2ca344d1b1f08ffc5c89cab14a40 assets/incore/models/item/encounter_spawner.json

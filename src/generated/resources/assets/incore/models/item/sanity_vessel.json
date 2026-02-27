@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "incore:item/sanity_vessel"
-  }
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "incore:item/sanity_vessel"
+    }
 }

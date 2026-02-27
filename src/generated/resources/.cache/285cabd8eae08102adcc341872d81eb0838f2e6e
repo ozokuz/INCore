@@ -1,2 +1,7 @@
-// 1.21.1	2026-02-13T02:56:12.549709373	Item Models: incore
-8490c3f093d395731e41940cc2a5a24328618bdd assets/incore/models/item/encounter_wand.json
+// 1.21.1	2026-02-27T04:46:03.32091706	Item Models: incore
+07ae457e3d88ccca516270ff62b61ebd93b58c39 assets/incore/models/item/encounter_wand.json
+5100436ea13a945c76a1cdb69ca0e30b9d319165 assets/incore/models/item/sanity_booster_large.json
+8da21b74cd97bdd0031072afdbd44b1a9dac34d9 assets/incore/models/item/sanity_booster_small.json
+569679f4f5826cf1ab61b0051e2ba1ffc65c0512 assets/incore/models/item/sanity_vessel.json
+e410c681c3eaa882a3a3d62fb38dc6dd39c4012e assets/incore/models/item/universal_ore_locator.json
+6416293bfdda8fc03646b38318f80168c25bf1ad assets/incore/models/item/universal_stone_locator.json

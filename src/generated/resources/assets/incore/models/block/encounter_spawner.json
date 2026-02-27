@@ -1,7 +1,7 @@
 {
-  "parent": "minecraft:block/cube_all_inner_faces",
-  "render_type": "minecraft:cutout",
-  "textures": {
-    "all": "incore:block/encounter_spawner"
-  }
+    "parent": "minecraft:block/cube_all_inner_faces",
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "all": "incore:block/encounter_spawner"
+    }
 }
