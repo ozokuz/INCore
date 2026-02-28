@@ -15,7 +15,7 @@ public final class StaminaBarHudFeature {
     private static final ResourceLocation PARAGLIDER_STAMINA_WHEEL_LAYER = ResourceLocation.fromNamespaceAndPath("paraglider", "stamina_wheel");
     private static final ResourceLocation STAMINA_BAR_BACKGROUND_SPRITE = ResourceLocation.parse("incore:hud/stamina_bar_background");
     private static final ResourceLocation STAMINA_BAR_PROGRESS_SPRITE = ResourceLocation.parse("incore:hud/stamina_bar_progress");
-    private static final int STAMINA_BAR_WIDTH = 9;
+    private static final int STAMINA_BAR_WIDTH = 10;
     private static final int STAMINA_BAR_HEIGHT = 40;
     private static final int STAMINA_BAR_X_OFFSET_FROM_CROSSHAIR = 22;
     private static final float DEPLETED_BRIGHTNESS = 0.85F;

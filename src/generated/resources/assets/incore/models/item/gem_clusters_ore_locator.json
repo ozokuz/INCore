@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "incore:item/gem_clusters_ore_locator"
+    }
+}

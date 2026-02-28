@@ -422,7 +422,6 @@ public class Registration {
                 // Sanity
                 output.accept(SANITY_BOOSTER_SMALL_ITEM.get());
                 output.accept(SANITY_BOOSTER_LARGE_ITEM.get());
-                output.accept(SANITY_VESSEL_ITEM.get());
 
                 // Gacha
                 output.accept(BASIC_TIME_PIECE_ITEM.get());
@@ -481,8 +480,9 @@ public class Registration {
                 output.accept(ARENA_ORB_BLOCK_ITEM.get());
                 output.accept(ARENA_REWARD_RIFT_BLOCK_ITEM.get());
 
-                // IDK
+                // Sanity Something
                 output.accept(SANITY_CRATE_ITEM.get());
+                output.accept(SANITY_VESSEL_ITEM.get());
 
                 // NBT Items
                 output.accept(BATTLEPASS_LANE_UNLOCK_ITEM.get());

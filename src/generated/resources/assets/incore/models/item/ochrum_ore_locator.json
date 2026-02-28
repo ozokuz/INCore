@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "incore:item/ochrum_ore_locator"
+    }
+}
