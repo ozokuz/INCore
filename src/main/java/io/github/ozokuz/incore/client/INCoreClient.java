@@ -22,6 +22,7 @@ import io.github.ozokuz.incore.client.features.market.MarketAutoTraderScreen;
 import io.github.ozokuz.incore.client.features.market.MarketTerminalCardScreen;
 import io.github.ozokuz.incore.client.features.market.MarketTerminalMeCardScreen;
 import io.github.ozokuz.incore.client.features.market.ShipmentTerminalScreen;
+import io.github.ozokuz.incore.features.researchv2.client.CrudeResearchStationScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
@@ -81,6 +82,7 @@ public class INCoreClient {
         event.register(Registration.MARKET_AUTOTRADER_MENU.get(), MarketAutoTraderScreen::new);
         event.register(Registration.DUNGEON_CRYSTAL_MODIFICATION_STATION_MENU.get(), DungeonCrystalModificationStationScreen::new);
         event.register(Registration.ME_CRYSTAL_AUTOMATION_TERMINAL_MENU.get(), MeCrystalAutomationTerminalScreen::new);
+        event.register(Registration.CRUDE_RESEARCH_STATION_MENU.get(), CrudeResearchStationScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {

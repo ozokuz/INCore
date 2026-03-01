@@ -27,6 +27,8 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class ResearchManager {
+    private static final Set<ResourceLocation> TIER0_CATEGORY_WHITELIST = Set.of(ResourceLocation.parse("incore:foundations"));
+
     private ResearchManager() {
     }
 
@@ -66,6 +68,9 @@ public final class ResearchManager {
         if (node == null) {
             return false;
         }
+        if (!isTier0BasicNode(node)) {
+            return false;
+        }
 
         if (!state.discoveredNodes().contains(nodeId) || state.completedNodes().contains(nodeId)) {
             return false;
@@ -97,6 +102,9 @@ public final class ResearchManager {
         ResearchNodeDefinition node = ResearchRegistry.nodes().get(nodeId);
         if (node == null) {
             return "unknown research node";
+        }
+        if (!isTier0BasicNode(node)) {
+            return "node is not Tier 0 basic research";
         }
         if (!state.discoveredNodes().contains(nodeId)) {
             return "node is not discovered";
@@ -475,6 +483,10 @@ public final class ResearchManager {
         }
         Set<ResourceLocation> nodes = network.nodeIds();
         return nodes.contains(nodeId);
+    }
+
+    private static boolean isTier0BasicNode(ResearchNodeDefinition node) {
+        return node != null && TIER0_CATEGORY_WHITELIST.contains(node.categoryId());
     }
 
     private static int resolveRequiredTime(ResearchQueueEntry entry, ResearchNodeDefinition node) {

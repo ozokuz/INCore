@@ -26,6 +26,7 @@
     "incore:market_terminal_me",
     "incore:shipment_terminal",
     "incore:market_autotrader",
-    "incore:dungeon_altar_automator"
+    "incore:dungeon_altar_automator",
+    "incore:crude_research_station"
   ]
 }

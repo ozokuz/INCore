@@ -5,6 +5,7 @@ import io.github.ozokuz.incore.features.researchv2.team.ResearchTeamResolver;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,7 +40,10 @@ public record ResearchV2QueueResearchPayload(String nodeId) implements CustomPac
                 return;
             }
 
-            ResearchManager.queueResearch(player.serverLevel().getServer(), teamId, requestedNodeId);
+            if (!ResearchManager.queueResearch(player.serverLevel().getServer(), teamId, requestedNodeId)) {
+                String reason = ResearchManager.explainQueueFailure(player.serverLevel().getServer(), teamId, requestedNodeId);
+                player.sendSystemMessage(Component.translatable("incore.research_v2.queue_rejected", reason));
+            }
         });
     }
 }

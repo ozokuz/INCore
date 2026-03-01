@@ -18,6 +18,9 @@ import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockEntity;
 import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
 import io.github.ozokuz.incore.features.research.BurnerLabBlock;
+import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlock;
+import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlockEntity;
+import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationMenu;
 import io.github.ozokuz.incore.features.cards.CardBoosterBoxItem;
 import io.github.ozokuz.incore.features.cards.CardBoosterItem;
 import io.github.ozokuz.incore.features.cards.CardModuleItem;
@@ -309,6 +312,7 @@ public class Registration {
     public static final DeferredBlock<Block> BURNER_LAB_BLOCK = BLOCKS.register("burner_lab", () -> new BurnerLabBlock());
     public static final DeferredBlock<Block> MECHANICAL_LAB_BLOCK = BLOCKS.register("mechanical_lab", MechanicalLabBlock::new);
     public static final DeferredBlock<Block> MODULAR_LAB_BLOCK = BLOCKS.register("modular_lab", ModularLabBlock::new);
+    public static final DeferredBlock<Block> CRUDE_RESEARCH_STATION_BLOCK = BLOCKS.register("crude_research_station", () -> new CrudeResearchStationBlock());
     public static final Supplier<BlockEntityType<LabBlockEntity>> LAB_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
             "burner_lab",
             () -> BlockEntityType.Builder.of(
@@ -319,9 +323,22 @@ public class Registration {
             ).build(null)
     );
     public static final Supplier<MenuType<LabMenu>> BURNER_LAB_MENU = MENU_TYPES.register("burner_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
+    public static final Supplier<BlockEntityType<CrudeResearchStationBlockEntity>> CRUDE_RESEARCH_STATION_BE = BLOCK_ENTITY_TYPES.register(
+            "crude_research_station",
+            () -> BlockEntityType.Builder.of(CrudeResearchStationBlockEntity::new, CRUDE_RESEARCH_STATION_BLOCK.get()).build(null)
+    );
+    public static final Supplier<MenuType<CrudeResearchStationMenu>> CRUDE_RESEARCH_STATION_MENU = MENU_TYPES.register(
+            "crude_research_station",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new CrudeResearchStationMenu(
+                    id,
+                    inv,
+                    (CrudeResearchStationBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
+    );
     public static final DeferredItem<BlockItem> BURNER_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_lab", BURNER_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
+    public static final DeferredItem<BlockItem> CRUDE_RESEARCH_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("crude_research_station", CRUDE_RESEARCH_STATION_BLOCK);
 
     public static final DeferredBlock<Block> DUNGEON_ALTAR_BLOCK = BLOCKS.register("dungeon_altar", DungeonAltarBlock::new);
     public static final Supplier<BlockEntityType<DungeonAltarBlockEntity>> DUNGEON_ALTAR_BE = BLOCK_ENTITY_TYPES.register("dungeon_altar", () -> BlockEntityType.Builder.of(DungeonAltarBlockEntity::new, DUNGEON_ALTAR_BLOCK.get()).build(null));
@@ -423,6 +440,8 @@ public class Registration {
     public static final DeferredItem<Item> TIME_PIECE_ITEM = ITEMS.registerItem("time_piece", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
     public static final DeferredItem<Item> SPEED_MODULE_CARD_ITEM = ITEMS.registerItem("speed_module_card", properties -> new SpeedModuleCardItem(properties.stacksTo(16)));
     public static final DeferredItem<Item> PRODUCTIVITY_MODULE_CARD_ITEM = ITEMS.registerItem("productivity_module_card", properties -> new ProductivityModuleCardItem(properties.stacksTo(16)));
+    public static final DeferredItem<Item> BASIC_LOGIC_MODULE_ITEM = ITEMS.registerSimpleItem("basic_logic_module");
+    public static final DeferredItem<Item> STARTER_DATA_ITEM = ITEMS.registerSimpleItem("starter_data");
     public static final DeferredItem<Item> CARD_MODULE_ITEM = ITEMS.registerItem("card_module", CardModuleItem::new);
     public static final DeferredItem<Item> CARD_BOOSTER_ITEM = ITEMS.registerItem("card_booster", CardBoosterItem::new);
     public static final DeferredItem<Item> CARD_BOOSTER_BOX_ITEM = ITEMS.registerItem("card_booster_box", CardBoosterBoxItem::new);
@@ -517,6 +536,9 @@ public class Registration {
                 output.accept(BURNER_LAB_BLOCK_ITEM.get());
                 output.accept(MECHANICAL_LAB_BLOCK_ITEM.get());
                 output.accept(MODULAR_LAB_BLOCK_ITEM.get());
+                output.accept(CRUDE_RESEARCH_STATION_BLOCK_ITEM.get());
+                output.accept(BASIC_LOGIC_MODULE_ITEM.get());
+                output.accept(STARTER_DATA_ITEM.get());
                 output.accept(SPEED_MODULE_CARD_ITEM.get());
                 output.accept(PRODUCTIVITY_MODULE_CARD_ITEM.get());
 

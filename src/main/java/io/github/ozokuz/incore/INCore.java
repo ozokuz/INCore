@@ -39,7 +39,9 @@ import io.github.ozokuz.incore.features.party.network.PartyNetworking;
 import io.github.ozokuz.incore.features.research.LabTier;
 import io.github.ozokuz.incore.features.researchv2.command.ResearchV2Commands;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
+import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
+import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationResourceProvider;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
@@ -87,6 +89,7 @@ import net.neoforged.neoforge.common.NeoForge;
 public class INCore {
     public static final String MODID = "incore";
     public static final Logger LOGGER = LogUtils.getLogger();
+    private static final CrudeResearchStationResourceProvider CRUDE_RESEARCH_PROVIDER = new CrudeResearchStationResourceProvider();
 
     public INCore(IEventBus modEventBus, ModContainer modContainer) {
         Registration.register(modEventBus);
@@ -135,6 +138,11 @@ public class INCore {
                 Registration.MECHANICAL_LAB_BLOCK.get(),
                 () -> Config.MECHANICAL_LAB_STRESS_PER_RPM.get().doubleValue()
         ));
+        event.enqueueWork(() -> {
+            ResearchProviderManager.setResearchPowerProvider(CRUDE_RESEARCH_PROVIDER);
+            ResearchProviderManager.setLogicModuleProvider(CRUDE_RESEARCH_PROVIDER);
+            ResearchProviderManager.setResearchMaterialProvider(CRUDE_RESEARCH_PROVIDER);
+        });
         event.enqueueWork(() -> {
             BlockStressValues.IMPACTS.register(Registration.SHIPMENT_TERMINAL_BLOCK.get(), () -> 1024.0D);
             BlockStressValues.IMPACTS.register(Registration.MARKET_AUTOTRADER_BLOCK.get(), () -> 1024.0D);
