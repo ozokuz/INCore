@@ -4,6 +4,11 @@
       "id": "incore:core_tree",
       "name": "Core Research",
       "planet_theme": "overworld"
+    },
+    {
+      "id": "incore:expedition_tree",
+      "name": "Expedition Research",
+      "planet_theme": "moon"
     }
   ],
   "categories": [
@@ -11,11 +16,17 @@
       "id": "incore:foundations",
       "name": "Foundations",
       "icon": "minecraft:book"
+    },
+    {
+      "id": "incore:expedition",
+      "name": "Expedition",
+      "icon": "minecraft:compass"
     }
   ],
   "nodes": [
     {
       "id": "incore:signal_calibration",
+      "name": "Signal Calibration",
       "tree_id": "incore:core_tree",
       "category_id": "incore:foundations",
       "prerequisites": [],
@@ -47,6 +58,7 @@
     },
     {
       "id": "incore:relay_protocols",
+      "name": "Relay Protocols",
       "tree_id": "incore:core_tree",
       "category_id": "incore:foundations",
       "prerequisites": [
@@ -77,6 +89,72 @@
       "outputs": [
         "incore:unlock_relay_tools"
       ]
+    },
+    {
+      "id": "incore:terrain_scanning",
+      "name": "Terrain Scanning",
+      "tree_id": "incore:expedition_tree",
+      "category_id": "incore:expedition",
+      "prerequisites": [],
+      "discovery_rules": "none",
+      "research_cost": {
+        "required_logic_modules": [
+          {
+            "module_tier": "basic",
+            "count": 1
+          }
+        ],
+        "required_research_materials": [
+          {
+            "material_id": "incore:starter_data",
+            "count": 1
+          }
+        ],
+        "modifiers": []
+      },
+      "research_power": {
+        "base_rp_per_tick": 1.0,
+        "curve_scale_rp_per_tick": 0.4,
+        "curve_exponent": 1.0
+      },
+      "research_time": 220,
+      "outputs": [
+        "incore:unlock_terrain_tools"
+      ]
+    },
+    {
+      "id": "incore:hazard_mapping",
+      "name": "Hazard Mapping",
+      "tree_id": "incore:expedition_tree",
+      "category_id": "incore:expedition",
+      "prerequisites": [
+        "incore:terrain_scanning"
+      ],
+      "discovery_rules": "none",
+      "research_cost": {
+        "required_logic_modules": [
+          {
+            "module_tier": "basic",
+            "count": 2
+          }
+        ],
+        "required_research_materials": [
+          {
+            "material_id": "incore:starter_data",
+            "count": 2
+          }
+        ],
+        "modifiers": []
+      },
+      "research_power": {
+        "base_rp_per_tick": 2.0,
+        "curve_scale_rp_per_tick": 0.8,
+        "curve_exponent": 1.1
+      },
+      "research_time": 420,
+      "outputs": [
+        "incore:unlock_hazard_tools"
+      ]
     }
   ],
   "networks": [
@@ -85,7 +163,9 @@
       "name": "Default Research Network",
       "node_ids": [
         "incore:signal_calibration",
-        "incore:relay_protocols"
+        "incore:relay_protocols",
+        "incore:terrain_scanning",
+        "incore:hazard_mapping"
       ]
     }
   ]
