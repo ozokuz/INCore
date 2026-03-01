@@ -6,10 +6,12 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.model.ResearchNodeDefinition;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchNetworkSavedData;
+import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueEntry;
 import io.github.ozokuz.incore.features.researchv2.team.ResearchTeamResolver;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -22,7 +24,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,7 +66,7 @@ public final class ResearchV2Commands {
                                                 .then(Commands.argument("amount", IntegerArgumentType.integer(0))
                                                         .executes(ResearchV2Commands::setPower)))
                                         .then(Commands.literal("setMaterials")
-                                                .then(Commands.argument("materialId", StringArgumentType.word())
+                                                .then(Commands.argument("materialId", ResourceLocationArgument.id())
                                                         .then(Commands.argument("count", IntegerArgumentType.integer(0))
                                                                 .executes(ResearchV2Commands::setMaterials))))
                                         .then(Commands.literal("setModules")
@@ -87,13 +91,50 @@ public final class ResearchV2Commands {
 
     private static int getSnapshot(CommandContext<CommandSourceStack> context, ServerPlayer target) {
         String teamId = ResearchTeamResolver.resolveTeamId(target);
-        if (teamId == null || teamId.isBlank()) {
-            context.getSource().sendFailure(Component.literal("Target has no research team."));
-            return 0;
+        MinecraftServer server = context.getSource().getServer();
+        var state = ResearchManager.ensureTeamState(server, teamId);
+        String networkId = state.activeNetworkId() == null ? "none" : state.activeNetworkId().toString();
+
+        context.getSource().sendSuccess(() -> Component.literal(
+                "Research team=" + teamId
+                        + ", network=" + networkId
+                        + ", discovered=" + state.discoveredNodes().size()
+                        + ", completed=" + state.completedNodes().size()
+                        + ", queue=" + state.researchQueue().size()
+        ), false);
+
+        context.getSource().sendSuccess(() -> Component.literal(
+                "Power=" + state.storedResearchPowerBuffer()
+                        + ", materials={" + formatIntMap(state.devResearchMaterials()) + "}"
+                        + ", modules={" + formatIntMap(state.devLogicModules()) + "}"
+        ), false);
+
+        if (state.researchQueue().isEmpty()) {
+            context.getSource().sendSuccess(() -> Component.literal("Queue: empty"), false);
+            return Command.SINGLE_SUCCESS;
         }
 
-        String json = ResearchManager.snapshotJson(context.getSource().getServer(), teamId);
-        context.getSource().sendSuccess(() -> Component.literal(json), false);
+        for (int i = 0; i < state.researchQueue().size(); i++) {
+            ResearchQueueEntry entry = state.researchQueue().get(i);
+            ResearchNodeDefinition node = ResearchRegistry.nodes().get(entry.nodeId());
+            int requiredTime = entry.requiredTime() > 0 ? entry.requiredTime() : (node == null ? 1 : Math.max(1, node.researchTime()));
+            int progress = Math.max(0, Math.min(entry.timeProgress(), requiredTime));
+            double percent = requiredTime <= 0 ? 0.0D : (100.0D * progress / requiredTime);
+            int powerPerTick = estimatePowerPerTick(node, progress, requiredTime);
+
+            final int index = i + 1;
+            final String line = String.format(
+                    "#%d %s status=%s progress=%d/%d (%.1f%%), rp/t=%d",
+                    index,
+                    entry.nodeId(),
+                    entry.status(),
+                    progress,
+                    requiredTime,
+                    percent,
+                    powerPerTick
+            );
+            context.getSource().sendSuccess(() -> Component.literal(line), false);
+        }
         return Command.SINGLE_SUCCESS;
     }
 
@@ -107,15 +148,27 @@ public final class ResearchV2Commands {
             return 0;
         }
 
+        Set<String> teamIds = resolveTargetTeamIds(targets);
         int changed = 0;
-        for (String teamId : resolveTargetTeamIds(targets)) {
+        String firstFailure = null;
+        for (String teamId : teamIds) {
             if (ResearchManager.queueResearch(server, teamId, nodeId)) {
                 changed++;
+            } else if (firstFailure == null) {
+                firstFailure = ResearchManager.explainQueueFailure(server, teamId, nodeId);
             }
         }
 
         int changedCount = changed;
-        context.getSource().sendSuccess(() -> Component.literal("Queued node " + nodeId + " for " + changedCount + " target team(s)."), true);
+        int totalTeams = teamIds.size();
+        if (changedCount <= 0) {
+            String reason = firstFailure == null ? "no eligible team target found" : firstFailure;
+            context.getSource().sendFailure(Component.literal("Failed to queue node " + nodeId + ": " + reason + "."));
+            return 0;
+        }
+
+        String suffix = firstFailure == null ? "" : " First failure: " + firstFailure + ".";
+        context.getSource().sendSuccess(() -> Component.literal("Queued node " + nodeId + " for " + changedCount + "/" + totalTeams + " target team(s)." + suffix), true);
         return changedCount;
     }
 
@@ -182,11 +235,6 @@ public final class ResearchV2Commands {
     private static int setPower(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer sourcePlayer = context.getSource().getPlayerOrException();
         String teamId = ResearchTeamResolver.resolveTeamId(sourcePlayer);
-        if (teamId == null || teamId.isBlank()) {
-            context.getSource().sendFailure(Component.literal("You are not in a research team."));
-            return 0;
-        }
-
         int amount = IntegerArgumentType.getInteger(context, "amount");
         MinecraftServer server = context.getSource().getServer();
         ResearchProviderManager.devProvider().setPower(server, teamId, amount);
@@ -200,12 +248,7 @@ public final class ResearchV2Commands {
     private static int setMaterials(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer sourcePlayer = context.getSource().getPlayerOrException();
         String teamId = ResearchTeamResolver.resolveTeamId(sourcePlayer);
-        if (teamId == null || teamId.isBlank()) {
-            context.getSource().sendFailure(Component.literal("You are not in a research team."));
-            return 0;
-        }
-
-        String materialId = StringArgumentType.getString(context, "materialId");
+        String materialId = ResourceLocationArgument.getId(context, "materialId").toString();
         int count = IntegerArgumentType.getInteger(context, "count");
         MinecraftServer server = context.getSource().getServer();
         ResearchProviderManager.devProvider().setMaterial(server, teamId, materialId, count);
@@ -219,11 +262,6 @@ public final class ResearchV2Commands {
     private static int setModules(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer sourcePlayer = context.getSource().getPlayerOrException();
         String teamId = ResearchTeamResolver.resolveTeamId(sourcePlayer);
-        if (teamId == null || teamId.isBlank()) {
-            context.getSource().sendFailure(Component.literal("You are not in a research team."));
-            return 0;
-        }
-
         String tier = StringArgumentType.getString(context, "tier");
         int count = IntegerArgumentType.getInteger(context, "count");
         MinecraftServer server = context.getSource().getServer();
@@ -244,5 +282,29 @@ public final class ResearchV2Commands {
             }
         }
         return teamIds;
+    }
+
+    private static String formatIntMap(Map<String, Integer> values) {
+        if (values.isEmpty()) {
+            return "";
+        }
+        return values.entrySet().stream()
+                .filter(entry -> entry.getValue() != null && entry.getValue() > 0)
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.joining(", "));
+    }
+
+    private static int estimatePowerPerTick(ResearchNodeDefinition node, int progress, int requiredTime) {
+        if (node == null) {
+            return 0;
+        }
+        var power = node.researchPower();
+        if (power == null) {
+            return 0;
+        }
+        double ratio = requiredTime <= 0 ? 0.0D : Math.max(0.0D, (double) progress / (double) requiredTime);
+        double value = power.baseRpPerTick() + (power.curveScaleRpPerTick() * Math.pow(ratio, power.curveExponent()));
+        return Math.max(0, (int) Math.ceil(value));
     }
 }

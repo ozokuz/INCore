@@ -79,6 +79,45 @@ public final class ResearchManager {
                 && ResearchProviderManager.hasRequiredMaterials(server, teamId, cost);
     }
 
+    public static String explainQueueFailure(MinecraftServer server, String teamId, ResourceLocation nodeId) {
+        TeamResearchState state = getTeamState(server, teamId);
+        if (state == null) {
+            return "missing team state";
+        }
+        if (!hasValidNetwork(state)) {
+            return "team has no active research network";
+        }
+        if (!isNodeInActiveNetwork(state, nodeId)) {
+            return "node is not in the team's active network";
+        }
+
+        ResearchNodeDefinition node = ResearchRegistry.nodes().get(nodeId);
+        if (node == null) {
+            return "unknown research node";
+        }
+        if (!state.discoveredNodes().contains(nodeId)) {
+            return "node is not discovered";
+        }
+        if (state.completedNodes().contains(nodeId)) {
+            return "node is already completed";
+        }
+        if (!state.completedNodes().containsAll(node.prerequisites())) {
+            return "prerequisites are not completed";
+        }
+        if (state.researchQueue().stream().map(ResearchQueueEntry::nodeId).anyMatch(nodeId::equals)) {
+            return "node is already queued";
+        }
+
+        ResearchCostDefinition cost = node.researchCost();
+        if (!ResearchProviderManager.hasRequiredModules(server, teamId, cost)) {
+            return "required logic modules are not available";
+        }
+        if (!ResearchProviderManager.hasRequiredMaterials(server, teamId, cost)) {
+            return "required research materials are not available";
+        }
+        return "unknown reason";
+    }
+
     public static boolean queueResearch(MinecraftServer server, String teamId, ResourceLocation nodeId) {
         if (!canQueue(server, teamId, nodeId)) {
             return false;

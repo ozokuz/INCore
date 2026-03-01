@@ -14,18 +14,22 @@ public final class ResearchTeamResolver {
         try {
             FTBTeamsAPI.API api = FTBTeamsAPI.api();
             if (api == null || !api.isManagerLoaded()) {
-                return null;
+                return personalTeamId(player);
             }
 
             var optionalTeam = api.getManager().getTeamForPlayerID(player.getUUID());
             if (optionalTeam.isEmpty()) {
-                return null;
+                return personalTeamId(player);
             }
 
             UUID teamId = optionalTeam.get().getTeamId();
-            return teamId == null ? null : teamId.toString();
+            return teamId == null ? personalTeamId(player) : teamId.toString();
         } catch (Throwable ignored) {
-            return null;
+            return personalTeamId(player);
         }
+    }
+
+    private static String personalTeamId(ServerPlayer player) {
+        return "player:" + player.getUUID();
     }
 }
