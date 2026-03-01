@@ -13,8 +13,8 @@ import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
-import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.entropy.EntropyClientCache;
+import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import io.github.ozokuz.incore.features.status.network.PlayerStatusCurrencyClientCache;
 import io.github.ozokuz.incore.features.status.network.PlayerStatusNetworking;
@@ -335,7 +335,7 @@ public class PlayerStatusScreen extends Screen {
                         null,
                         () -> {
                             StatusScreenReturnTracker.prepare(this);
-                            ResearchNetworking.requestOpen();
+                            ResearchV2Networking.requestSnapshot();
                         }
                 ),
                 new QuickNavTarget(

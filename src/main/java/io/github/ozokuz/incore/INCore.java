@@ -36,13 +36,10 @@ import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworkin
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.party.command.PartyCommands;
 import io.github.ozokuz.incore.features.party.network.PartyNetworking;
-import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
-import io.github.ozokuz.incore.features.research.ResearchEntryManager;
 import io.github.ozokuz.incore.features.research.LabTier;
-import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
-import io.github.ozokuz.incore.features.research.ResearchRecipeLockManager;
-import io.github.ozokuz.incore.features.research.command.ResearchCommands;
-import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
+import io.github.ozokuz.incore.features.researchv2.command.ResearchV2Commands;
+import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
+import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
@@ -99,7 +96,7 @@ public class INCore {
         modEventBus.addListener(PlayerLevelNetworking::registerPayloads);
         modEventBus.addListener(TaskNetworking::registerPayloads);
         modEventBus.addListener(BattlePassNetworking::registerPayloads);
-        modEventBus.addListener(ResearchNetworking::registerPayloads);
+        modEventBus.addListener(ResearchV2Networking::registerPayloads);
         modEventBus.addListener(ArenaNetworking::registerPayloads);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(CardNetworking::registerPayloads);
@@ -121,7 +118,7 @@ public class INCore {
         NeoForge.EVENT_BUS.addListener(GachaCommands::register);
         NeoForge.EVENT_BUS.addListener(TaskCommands::register);
         NeoForge.EVENT_BUS.addListener(BattlePassCommands::register);
-        NeoForge.EVENT_BUS.addListener(ResearchCommands::register);
+        NeoForge.EVENT_BUS.addListener(ResearchV2Commands::register);
         NeoForge.EVENT_BUS.addListener(RoguelikeCommands::register);
         NeoForge.EVENT_BUS.addListener(CardCommands::register);
         NeoForge.EVENT_BUS.addListener(MarketCommands::register);
@@ -192,10 +189,7 @@ public class INCore {
         event.addListener(new TaskDataManager());
         event.addListener(new BattlePassLaneManager());
         event.addListener(new BattlePassManager());
-        event.addListener(new ResearchMaterialManager());
-        event.addListener(new ResearchRecipeLockManager());
-        event.addListener(new ResearchEntryManager());
-        event.addListener(new ManualResearchTaskManager());
+        event.addListener(new ResearchRegistry());
         event.addListener(new AltarOfferingManager());
         event.addListener(new DungeonThemeManager());
         event.addListener(new DungeonSocketManager());

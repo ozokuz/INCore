@@ -1,7 +1,6 @@
 package io.github.ozokuz.incore.features.research;
 
 import com.simibubi.create.content.equipment.blueprint.BlueprintEntity;
-import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -13,7 +12,6 @@ import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -25,7 +23,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-@EventBusSubscriber(modid = INCore.MODID)
 public class ResearchEvents {
     private static final long LOCKED_CRAFT_MESSAGE_INTERVAL_TICKS = 20L;
     private static final ResourceLocation CREATE_WRENCH_ID = ResourceLocation.fromNamespaceAndPath("create", "wrench");

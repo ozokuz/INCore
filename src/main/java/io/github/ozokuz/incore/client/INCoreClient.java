@@ -26,13 +26,7 @@ import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
-import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
-import io.github.ozokuz.incore.features.research.ResearchEntryManager;
-import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
-import io.github.ozokuz.incore.features.research.ResearchRecipeLockManager;
-import io.github.ozokuz.incore.features.research.client.LabScreen;
-import io.github.ozokuz.incore.features.research.client.ResearchRecipeLockClientCache;
-import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
+import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -52,8 +46,6 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 @Mod(value = INCore.MODID, dist = Dist.CLIENT)
 public class INCoreClient {
-    private boolean hadClientPlayer;
-
     public INCoreClient(IEventBus modEventBus, ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         modEventBus.addListener(this::onRegisterKeyMappings);
@@ -81,9 +73,7 @@ public class INCoreClient {
     }
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
-        event.register(Registration.BURNER_LAB_MENU.get(), LabScreen::new);
         event.register(Registration.DECK_STATION_MENU.get(), CardDeckStationScreen::new);
-        event.register(Registration.RESEARCH_LAB_MENU.get(), LabScreen::new);
         event.register(Registration.MARKET_TERMINAL_CARD_MENU.get(), MarketTerminalCardScreen::new);
         event.register(Registration.MARKET_TERMINAL_ME_CARD_MENU.get(), MarketTerminalMeCardScreen::new);
         event.register(Registration.SHIPMENT_TERMINAL_MENU.get(), ShipmentTerminalScreen::new);
@@ -93,10 +83,6 @@ public class INCoreClient {
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener(new ResearchMaterialManager());
-        event.registerReloadListener(new ResearchRecipeLockManager());
-        event.registerReloadListener(new ResearchEntryManager());
-        event.registerReloadListener(new ManualResearchTaskManager());
     }
 
     private void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -107,12 +93,7 @@ public class INCoreClient {
     private void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         boolean hasPlayer = minecraft.player != null;
-        if (hasPlayer && !hadClientPlayer) {
-            ResearchRecipeLockClientCache.onWorldJoined();
-        }
-        hadClientPlayer = hasPlayer;
         StatusScreenReturnTracker.onClientTick(minecraft);
-
         if (!hasPlayer || minecraft.screen != null) {
             return;
         }
@@ -140,7 +121,7 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_RESEARCH_TREE.consumeClick()) {
-            ResearchNetworking.requestOpen();
+            ResearchV2Networking.requestSnapshot();
         }
 
         while (INCoreKeyMappings.OPEN_COMBAT_CATALOG.consumeClick()) {
