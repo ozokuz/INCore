@@ -17,7 +17,10 @@ import io.github.ozokuz.incore.features.researchv2.state.TeamResearchState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 
+import java.util.ArrayDeque;
 import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -236,6 +239,61 @@ public final class ResearchManager {
         return changed;
     }
 
+    public static boolean cancelQueuedResearchCascade(MinecraftServer server, String teamId, ResourceLocation nodeId) {
+        TeamResearchState state = getTeamState(server, teamId);
+        if (state == null) {
+            return false;
+        }
+
+        boolean hasTarget = state.researchQueue().stream().anyMatch(entry -> nodeId.equals(entry.nodeId()));
+        if (!hasTarget) {
+            return false;
+        }
+
+        Set<ResourceLocation> cancelledNodeIds = new HashSet<>();
+        Deque<ResourceLocation> queue = new ArrayDeque<>();
+        queue.add(nodeId);
+
+        while (!queue.isEmpty()) {
+            ResourceLocation cancelledNodeId = queue.removeFirst();
+            if (!cancelledNodeIds.add(cancelledNodeId)) {
+                continue;
+            }
+
+            for (ResearchQueueEntry entry : state.researchQueue()) {
+                ResourceLocation candidateId = entry.nodeId();
+                if (cancelledNodeIds.contains(candidateId)) {
+                    continue;
+                }
+
+                ResearchNodeDefinition node = ResearchRegistry.nodes().get(candidateId);
+                if (node != null && node.prerequisites().contains(cancelledNodeId)) {
+                    queue.addLast(candidateId);
+                }
+            }
+        }
+
+        boolean changed = state.researchQueue().removeIf(entry -> cancelledNodeIds.contains(entry.nodeId()));
+        if (changed) {
+            ResearchNetworkSavedData.get(server).setDirty();
+            ResearchV2Networking.syncTeam(server, teamId);
+        }
+        return changed;
+    }
+
+    public static boolean setControllerTier(MinecraftServer server, String teamId, int controllerTier) {
+        TeamResearchState state = ensureTeamState(server, teamId);
+        int nextControllerTier = Math.max(0, controllerTier);
+        if (state.controllerTier() == nextControllerTier) {
+            return false;
+        }
+
+        state.setControllerTier(nextControllerTier);
+        ResearchNetworkSavedData.get(server).setDirty();
+        ResearchV2Networking.syncTeam(server, teamId);
+        return true;
+    }
+
     public static boolean clearResearch(MinecraftServer server, String teamId) {
         TeamResearchState state = getTeamState(server, teamId);
         if (state == null) {
@@ -246,6 +304,7 @@ public final class ResearchManager {
                 || !state.completedNodes().isEmpty()
                 || !state.researchQueue().isEmpty()
                 || state.storedResearchPowerBuffer() > 0
+                || state.controllerTier() > 0
                 || !state.devResearchMaterials().isEmpty()
                 || !state.devLogicModules().isEmpty();
 
@@ -253,6 +312,7 @@ public final class ResearchManager {
         state.completedNodes().clear();
         state.researchQueue().clear();
         state.setStoredResearchPowerBuffer(0);
+        state.setControllerTier(0);
         state.devResearchMaterials().clear();
         state.devLogicModules().clear();
 
@@ -269,6 +329,7 @@ public final class ResearchManager {
         root.addProperty("teamId", teamId);
         root.addProperty("activeNetworkId", state.activeNetworkId() == null ? "" : state.activeNetworkId().toString());
         root.addProperty("researchEnabled", hasValidNetwork(state));
+        root.addProperty("controllerTier", state.controllerTier());
 
         JsonArray discovered = new JsonArray();
         state.discoveredNodes().stream().map(ResourceLocation::toString).sorted().forEach(discovered::add);
@@ -305,8 +366,27 @@ public final class ResearchManager {
         root.add("devLogicModules", modules);
 
         JsonArray trees = new JsonArray();
-        ResearchRegistry.trees().keySet().stream().map(ResourceLocation::toString).sorted().forEach(trees::add);
+        ResearchRegistry.trees().values().stream()
+                .sorted(Comparator.comparing(tree -> tree.id().toString()))
+                .forEach(tree -> {
+                    JsonObject row = new JsonObject();
+                    row.addProperty("id", tree.id().toString());
+                    row.addProperty("name", tree.name());
+                    trees.add(row);
+                });
         root.add("trees", trees);
+
+        JsonArray categories = new JsonArray();
+        ResearchRegistry.categories().values().stream()
+                .sorted(Comparator.comparing(category -> category.id().toString()))
+                .forEach(category -> {
+                    JsonObject row = new JsonObject();
+                    row.addProperty("id", category.id().toString());
+                    row.addProperty("name", category.name());
+                    row.addProperty("icon", category.icon() == null ? "" : category.icon().toString());
+                    categories.add(row);
+                });
+        root.add("categories", categories);
 
         JsonArray nodes = new JsonArray();
         ResearchRegistry.nodes().values().stream()
@@ -314,12 +394,35 @@ public final class ResearchManager {
                 .forEach(node -> {
                     JsonObject row = new JsonObject();
                     row.addProperty("id", node.id().toString());
+                    row.addProperty("name", node.name());
                     row.addProperty("treeId", node.treeId().toString());
                     row.addProperty("categoryId", node.categoryId().toString());
                     JsonArray prerequisites = new JsonArray();
                     node.prerequisites().stream().map(ResourceLocation::toString).sorted().forEach(prerequisites::add);
                     row.add("prerequisites", prerequisites);
                     row.addProperty("researchTime", node.researchTime());
+
+                    JsonArray requiredLogicModules = new JsonArray();
+                    node.researchCost().requiredLogicModules().forEach(requirement -> {
+                        JsonObject requirementObject = new JsonObject();
+                        requirementObject.addProperty("moduleTier", requirement.moduleTier());
+                        requirementObject.addProperty("count", requirement.count());
+                        requiredLogicModules.add(requirementObject);
+                    });
+                    row.add("requiredLogicModules", requiredLogicModules);
+
+                    JsonArray requiredResearchMaterials = new JsonArray();
+                    node.researchCost().requiredResearchMaterials().forEach(requirement -> {
+                        JsonObject requirementObject = new JsonObject();
+                        requirementObject.addProperty("materialId", requirement.materialId());
+                        requirementObject.addProperty("count", requirement.count());
+                        requiredResearchMaterials.add(requirementObject);
+                    });
+                    row.add("requiredResearchMaterials", requiredResearchMaterials);
+
+                    JsonArray outputs = new JsonArray();
+                    node.outputs().forEach(outputs::add);
+                    row.add("outputs", outputs);
                     nodes.add(row);
                 });
         root.add("nodes", nodes);

@@ -14,6 +14,7 @@ import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworkin
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.entropy.EntropyClientCache;
+import io.github.ozokuz.incore.features.researchv2.client.ResearchV2TreeScreen;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import io.github.ozokuz.incore.features.status.network.PlayerStatusCurrencyClientCache;
@@ -335,6 +336,7 @@ public class PlayerStatusScreen extends Screen {
                         null,
                         () -> {
                             StatusScreenReturnTracker.prepare(this);
+                            this.minecraft.setScreen(new ResearchV2TreeScreen());
                             ResearchV2Networking.requestSnapshot();
                         }
                 ),

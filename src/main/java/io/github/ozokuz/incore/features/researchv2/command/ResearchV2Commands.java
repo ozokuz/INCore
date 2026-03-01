@@ -72,7 +72,10 @@ public final class ResearchV2Commands {
                                         .then(Commands.literal("setModules")
                                                 .then(Commands.argument("tier", StringArgumentType.word())
                                                         .then(Commands.argument("count", IntegerArgumentType.integer(0))
-                                                                .executes(ResearchV2Commands::setModules)))))
+                                                                .executes(ResearchV2Commands::setModules))))
+                                        .then(Commands.literal("setControllerTier")
+                                                .then(Commands.argument("tier", IntegerArgumentType.integer(0))
+                                                        .executes(ResearchV2Commands::setControllerTier))))
                         )
         );
     }
@@ -98,6 +101,7 @@ public final class ResearchV2Commands {
         context.getSource().sendSuccess(() -> Component.literal(
                 "Research team=" + teamId
                         + ", network=" + networkId
+                        + ", controllerTier=" + state.controllerTier()
                         + ", discovered=" + state.discoveredNodes().size()
                         + ", completed=" + state.completedNodes().size()
                         + ", queue=" + state.researchQueue().size()
@@ -270,6 +274,21 @@ public final class ResearchV2Commands {
         ResearchV2Networking.syncTeam(server, teamId);
 
         context.getSource().sendSuccess(() -> Component.literal("Set team module tier '" + tier + "' to " + count + "."), true);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setControllerTier(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer sourcePlayer = context.getSource().getPlayerOrException();
+        String teamId = ResearchTeamResolver.resolveTeamId(sourcePlayer);
+        int tier = IntegerArgumentType.getInteger(context, "tier");
+        MinecraftServer server = context.getSource().getServer();
+        boolean changed = ResearchManager.setControllerTier(server, teamId, tier);
+        if (!changed) {
+            context.getSource().sendSuccess(() -> Component.literal("Controller tier is already set to " + tier + "."), false);
+            return Command.SINGLE_SUCCESS;
+        }
+
+        context.getSource().sendSuccess(() -> Component.literal("Set team controller tier to " + tier + "."), true);
         return Command.SINGLE_SUCCESS;
     }
 
