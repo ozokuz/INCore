@@ -35,6 +35,11 @@
         ],
         "modifiers": []
       },
+      "research_power": {
+        "base_rp_per_tick": 1.0,
+        "curve_scale_rp_per_tick": 0.5,
+        "curve_exponent": 1.0
+      },
       "research_time": 200,
       "outputs": [
         "incore:unlock_signal_tools"
@@ -62,6 +67,11 @@
           }
         ],
         "modifiers": []
+      },
+      "research_power": {
+        "base_rp_per_tick": 2.0,
+        "curve_scale_rp_per_tick": 1.0,
+        "curve_exponent": 1.1
       },
       "research_time": 400,
       "outputs": [

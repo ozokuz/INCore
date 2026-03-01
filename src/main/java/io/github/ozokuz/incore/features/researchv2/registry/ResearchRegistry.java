@@ -9,6 +9,7 @@ import io.github.ozokuz.incore.features.researchv2.model.ResearchCategoryDefinit
 import io.github.ozokuz.incore.features.researchv2.model.ResearchCostDefinition;
 import io.github.ozokuz.incore.features.researchv2.model.ResearchNetworkDefinition;
 import io.github.ozokuz.incore.features.researchv2.model.ResearchNodeDefinition;
+import io.github.ozokuz.incore.features.researchv2.model.ResearchPowerDefinition;
 import io.github.ozokuz.incore.features.researchv2.model.ResearchTreeDefinition;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -68,6 +69,7 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
                     prereqs,
                     node.discoveryRules(),
                     node.researchCost(),
+                    node.researchPower(),
                     node.researchTime(),
                     node.outputs()
             );
@@ -163,9 +165,10 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
             String discoveryRules = row.has("discovery_rules") ? row.get("discovery_rules").getAsString() : null;
             int researchTime = row.has("research_time") ? Math.max(1, row.get("research_time").getAsInt()) : 200;
             ResearchCostDefinition cost = parseCost(row.getAsJsonObject("research_cost"));
+            ResearchPowerDefinition power = parsePower(row.getAsJsonObject("research_power"));
             List<String> outputs = parseStringList(row.getAsJsonArray("outputs"));
 
-            output.put(id, new ResearchNodeDefinition(id, treeId, categoryId, List.copyOf(prerequisites), discoveryRules, cost, researchTime, List.copyOf(outputs)));
+            output.put(id, new ResearchNodeDefinition(id, treeId, categoryId, List.copyOf(prerequisites), discoveryRules, cost, power, researchTime, List.copyOf(outputs)));
         }
     }
 
@@ -244,6 +247,17 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
         }
 
         return new ResearchCostDefinition(List.copyOf(logicModules), List.copyOf(materials), List.copyOf(modifiers));
+    }
+
+    private static ResearchPowerDefinition parsePower(JsonObject powerObject) {
+        if (powerObject == null) {
+            return ResearchPowerDefinition.defaults();
+        }
+
+        double base = powerObject.has("base_rp_per_tick") ? Math.max(0.0D, powerObject.get("base_rp_per_tick").getAsDouble()) : 1.0D;
+        double scale = powerObject.has("curve_scale_rp_per_tick") ? Math.max(0.0D, powerObject.get("curve_scale_rp_per_tick").getAsDouble()) : 0.0D;
+        double exponent = powerObject.has("curve_exponent") ? Math.max(0.0D, powerObject.get("curve_exponent").getAsDouble()) : 1.0D;
+        return new ResearchPowerDefinition(base, scale, exponent);
     }
 
     private static List<ResourceLocation> parseIdList(JsonArray array) {
