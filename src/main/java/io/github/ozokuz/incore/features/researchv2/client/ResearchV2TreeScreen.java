@@ -6,8 +6,12 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
@@ -20,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 public class ResearchV2TreeScreen extends Screen {
     private static final int WINDOW_MARGIN = 18;
@@ -31,6 +34,9 @@ public class ResearchV2TreeScreen extends Screen {
     private static final int NODE_Y_STEP = 72;
     private static final int GRAPH_PADDING = 16;
     private static final int LIST_ROW_HEIGHT = 18;
+    private static final int QUEUE_CARD_W = 30;
+    private static final int QUEUE_CARD_H = 34;
+    private static final int QUEUE_CARD_GAP = 2;
 
     private ResearchV2ClientCache.Snapshot snapshot = ResearchV2ClientCache.snapshot();
     private String searchQuery = "";
@@ -46,7 +52,8 @@ public class ResearchV2TreeScreen extends Screen {
     private @Nullable EditBox searchBox;
     private @Nullable Button queueResearchButton;
     private final Map<FilterMode, Button> filterButtons = new EnumMap<>(FilterMode.class);
-    private final List<Button> queueCancelButtons = new ArrayList<>();
+    private final Map<String, NodeBounds> queueCardBounds = new LinkedHashMap<>();
+    private final Map<String, NodeBounds> queueRemoveBounds = new LinkedHashMap<>();
     private final Map<String, NodeBounds> graphNodeBounds = new LinkedHashMap<>();
     private final Map<String, NodeBounds> listNodeBounds = new LinkedHashMap<>();
 
@@ -103,6 +110,29 @@ public class ResearchV2TreeScreen extends Screen {
         }
 
         Layout layout = layout();
+        buildQueueCardLayout(layout);
+        if (button == 0) {
+            for (var entry : queueRemoveBounds.entrySet()) {
+                if (!entry.getValue().contains(mouseX, mouseY)) {
+                    continue;
+                }
+                ResourceLocation nodeId = ResourceLocation.tryParse(entry.getKey());
+                if (nodeId != null) {
+                    ResearchV2Networking.cancelQueueItem(nodeId);
+                }
+                return true;
+            }
+
+            for (var entry : queueCardBounds.entrySet()) {
+                if (!entry.getValue().contains(mouseX, mouseY)) {
+                    continue;
+                }
+                selectedNodeId = entry.getKey();
+                updateQueueButtonState();
+                return true;
+            }
+        }
+
         if (button == 0 && inGraphViewport(mouseX, mouseY, layout)) {
             for (var entry : graphNodeBounds.entrySet()) {
                 NodeBounds shifted = shifted(entry.getValue(), graphPanX, graphPanY);
@@ -123,17 +153,6 @@ public class ResearchV2TreeScreen extends Screen {
                     updateQueueButtonState();
                     return true;
                 }
-            }
-        }
-
-        if (button == 0 && inQueueRows(mouseX, mouseY, layout)) {
-            List<ResearchV2ClientCache.QueueEntry> queue = snapshot.researchQueue();
-            int firstRowY = layout.topRightY() + 28;
-            int row = (int) ((mouseY - firstRowY) / 22);
-            if (row >= 0 && row < visibleQueueEntries(layout)) {
-                selectedNodeId = queue.get(row).nodeId();
-                updateQueueButtonState();
-                return true;
             }
         }
 
@@ -176,29 +195,31 @@ public class ResearchV2TreeScreen extends Screen {
 
         drawPanel(guiGraphics, layout.windowX(), layout.windowY(), layout.windowWidth(), layout.windowHeight(), 0xCA101722, 0xFF5F7086);
         drawPanel(guiGraphics, layout.topLeftX(), layout.topLeftY(), layout.topLeftWidth(), layout.topLeftHeight(), 0xB3192230, 0x805A6B80);
+        drawPanel(guiGraphics, layout.topCenterX(), layout.topCenterY(), layout.topCenterWidth(), layout.topCenterHeight(), 0xB3192230, 0x805A6B80);
         drawPanel(guiGraphics, layout.topRightX(), layout.topRightY(), layout.topRightWidth(), layout.topRightHeight(), 0xB3192230, 0x805A6B80);
         drawPanel(guiGraphics, layout.bottomLeftX(), layout.bottomLeftY(), layout.bottomLeftWidth(), layout.bottomLeftHeight(), 0xB3192230, 0x805A6B80);
         drawPanel(guiGraphics, layout.bottomRightX(), layout.bottomRightY(), layout.bottomRightWidth(), layout.bottomRightHeight(), 0xB3192230, 0x805A6B80);
 
         guiGraphics.drawString(font, title, layout.windowX() + 10, layout.windowY() + 8, 0xFFE9F2FF, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.research_v2.tree_selector"), layout.topLeftX() + 10, layout.topLeftY() + 8, 0xFFD6E7FF, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.research_v2.status"), layout.topCenterX() + 10, layout.topCenterY() + 8, 0xFFD6E7FF, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.research_v2.queue"), layout.topRightX() + 10, layout.topRightY() + 8, 0xFFD6E7FF, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.research_v2.list"), layout.bottomLeftX() + 10, layout.bottomLeftY() + 8, 0xFFD6E7FF, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.research_v2.graph"), layout.bottomRightX() + 10, layout.bottomRightY() + 8, 0xFFD6E7FF, false);
 
-        drawTopLeftDetails(guiGraphics, layout);
-        drawQueue(guiGraphics, layout);
+        drawStatusPanel(guiGraphics, layout);
+        drawQueue(guiGraphics, layout, mouseX, mouseY);
         drawList(guiGraphics, layout);
         drawGraph(guiGraphics, layout);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
-    private void drawTopLeftDetails(GuiGraphics guiGraphics, Layout layout) {
+    private void drawStatusPanel(GuiGraphics guiGraphics, Layout layout) {
         ResearchV2ClientCache.NodeEntry selected = selectedNode();
-        int x = layout.topLeftX() + 10;
-        int y = layout.topLeftY() + 50;
-        int right = layout.topLeftX() + layout.topLeftWidth() - 12;
+        int x = layout.topCenterX() + 10;
+        int y = layout.topCenterY() + 24;
+        int right = layout.topCenterX() + layout.topCenterWidth() - 10;
 
         guiGraphics.drawString(
                 font,
@@ -214,7 +235,7 @@ public class ResearchV2TreeScreen extends Screen {
             return;
         }
 
-        String title = trimToWidth(nodeDisplayName(selected), right - x);
+        String title = trimToWidth(nodeDisplayName(selected), right - x - 4);
         guiGraphics.drawString(font, Component.literal(title), x, y + 16, 0xFFF2F6FF, false);
         guiGraphics.drawString(font, Component.literal(nodeStatusLabel(selected)), x, y + 30, 0xFF9DB7D9, false);
 
@@ -243,43 +264,62 @@ public class ResearchV2TreeScreen extends Screen {
                 font,
                 Component.translatable("screen.incore.research_v2.requirement_materials", formatMaterialRequirements(selected)),
                 x,
-                y + 72,
+                y + 70,
                 0xFFCBDBF0,
                 false
         );
     }
 
-    private void drawQueue(GuiGraphics guiGraphics, Layout layout) {
+    private void drawQueue(GuiGraphics guiGraphics, Layout layout, int mouseX, int mouseY) {
+        buildQueueCardLayout(layout);
         List<ResearchV2ClientCache.QueueEntry> queue = snapshot.researchQueue();
         if (queue.isEmpty()) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.research_v2.queue_empty"), layout.topRightX() + 10, layout.topRightY() + 28, 0xFFAFC1D8, false);
+            guiGraphics.drawString(font, Component.literal("-"), layout.topRightX() + 10, layout.topRightY() + 24, 0xFFAFC1D8, false);
             return;
         }
 
-        int visible = visibleQueueEntries(layout);
-        for (int i = 0; i < visible; i++) {
+        int visible = Math.min(queueVisibleColumns(layout), queue.size());
+        for (int i = 0; i < queue.size() && i < visible; i++) {
             ResearchV2ClientCache.QueueEntry entry = queue.get(i);
-            int rowX = layout.topRightX() + 8;
-            int rowY = layout.topRightY() + 28 + i * 22;
-            int rowW = layout.topRightWidth() - 16;
+            NodeBounds bounds = queueCardBounds.get(entry.nodeId());
+            if (bounds == null) {
+                continue;
+            }
 
-            drawPanel(guiGraphics, rowX, rowY, rowW, 20, i == 0 ? 0xAA1F3E68 : 0xAA283244, 0x805E7495);
+            int fill = i == 0 ? 0xFF256EAB : 0xFF7A6A2D;
+            int border = i == 0 ? 0xFF9FD2F6 : 0xFFE5D189;
+            drawPanel(guiGraphics, bounds.x(), bounds.y(), bounds.width(), bounds.height(), fill, border);
 
             ResearchV2ClientCache.NodeEntry node = snapshot.nodeById().get(entry.nodeId());
-            String label = node == null ? entry.nodeId() : nodeDisplayName(node);
-            guiGraphics.drawString(font, Component.literal(trimToWidth(label, rowW - 86)), rowX + 6, rowY + 6, 0xFFE6F0FF, false);
+            ItemStack icon = queueIcon(node);
+            if (!icon.isEmpty()) {
+                guiGraphics.renderItem(icon, bounds.x() + 7, bounds.y() + 6);
+            } else {
+                guiGraphics.drawString(font, "?", bounds.x() + 11, bounds.y() + 8, 0xFFFFFFFF, false);
+            }
+            drawQueueProgressBar(guiGraphics, bounds, entry.timeProgress(), entry.requiredTime());
 
-            String progress = Math.max(0, entry.timeProgress()) + "/" + Math.max(1, entry.requiredTime());
-            guiGraphics.drawString(font, Component.literal(progress), rowX + rowW - 76, rowY + 6, 0xFFBCD2EE, false);
+            if (entry.nodeId().equals(selectedNodeId)) {
+                drawSelectionOutline(guiGraphics, bounds);
+            }
+
+            NodeBounds removeBounds = queueRemoveBounds.get(entry.nodeId());
+            if (removeBounds != null) {
+                boolean hover = removeBounds.contains(mouseX, mouseY);
+                int removeFill = hover ? 0xFF9B2A2A : 0xFF2A2F39;
+                int removeBorder = hover ? 0xFFFF9A9A : 0xFF5E6878;
+                drawPanel(guiGraphics, removeBounds.x(), removeBounds.y(), removeBounds.width(), removeBounds.height(), removeFill, removeBorder);
+                guiGraphics.drawCenteredString(font, Component.literal("x"), removeBounds.centerX(), removeBounds.y() + 1, 0xFFFFFFFF);
+            }
         }
 
-        if (queue.size() > visible) {
-            int hidden = queue.size() - visible;
+        int hidden = queue.size() - visible;
+        if (hidden > 0) {
             guiGraphics.drawString(
                     font,
                     Component.translatable("screen.incore.research_v2.queue_more", hidden),
                     layout.topRightX() + 10,
-                    layout.topRightY() + 28 + visible * 22,
+                    layout.topRightY() + 24 + QUEUE_CARD_H + 4,
                     0xFF95AECF,
                     false
             );
@@ -386,7 +426,8 @@ public class ResearchV2TreeScreen extends Screen {
         Layout layout = layout();
         clearWidgets();
         filterButtons.clear();
-        queueCancelButtons.clear();
+        queueCardBounds.clear();
+        queueRemoveBounds.clear();
         treeSelector = null;
         searchBox = null;
         queueResearchButton = null;
@@ -398,9 +439,9 @@ public class ResearchV2TreeScreen extends Screen {
                     .withInitialValue(selectedTreeId())
                     .create(
                             layout.topLeftX() + 10,
-                            layout.topLeftY() + 20,
+                            layout.topLeftY() + 22,
                             layout.topLeftWidth() - 20,
-                            20,
+                            16,
                             Component.empty(),
                             (button, value) -> {
                                 ResearchV2ClientCache.setSelectedTreeId(value);
@@ -421,10 +462,10 @@ public class ResearchV2TreeScreen extends Screen {
                         Component.translatable("screen.incore.research_v2.queue_research"),
                         button -> queueSelectedNode()
                 ).bounds(
-                        layout.topLeftX() + 10,
-                        layout.topLeftY() + layout.topLeftHeight() - 26,
-                        layout.topLeftWidth() - 20,
-                        20
+                        layout.topCenterX() + layout.topCenterWidth() - 106,
+                        layout.topCenterY() + 5,
+                        96,
+                        16
                 )
                 .build());
 
@@ -462,19 +503,6 @@ public class ResearchV2TreeScreen extends Screen {
             x += buttonWidth + spacing;
         }
         updateFilterButtons();
-
-        int cancelX = layout.topRightX() + layout.topRightWidth() - 28;
-        for (int i = 0; i < visibleQueueEntries(layout); i++) {
-            ResearchV2ClientCache.QueueEntry entry = snapshot.researchQueue().get(i);
-            int rowY = layout.topRightY() + 30 + i * 22;
-            Button cancel = addRenderableWidget(Button.builder(Component.literal("X"), button -> {
-                ResourceLocation nodeId = ResourceLocation.tryParse(entry.nodeId());
-                if (nodeId != null) {
-                    ResearchV2Networking.cancelQueueItem(nodeId);
-                }
-            }).bounds(cancelX, rowY, 16, 16).build());
-            queueCancelButtons.add(cancel);
-        }
 
         updateQueueButtonState();
     }
@@ -807,9 +835,8 @@ public class ResearchV2TreeScreen extends Screen {
         return Math.max(1, (layout.bottomLeftHeight() - 62) / LIST_ROW_HEIGHT);
     }
 
-    private int visibleQueueEntries(Layout layout) {
-        int rows = Math.max(1, (layout.topRightHeight() - 32) / 22);
-        return Math.min(rows, snapshot.researchQueue().size());
+    private int queueVisibleColumns(Layout layout) {
+        return Math.max(1, (layout.topRightWidth() - 20) / (QUEUE_CARD_W + QUEUE_CARD_GAP));
     }
 
     private boolean inGraphViewport(double mouseX, double mouseY, Layout layout) {
@@ -828,14 +855,6 @@ public class ResearchV2TreeScreen extends Screen {
         return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
     }
 
-    private boolean inQueueRows(double mouseX, double mouseY, Layout layout) {
-        int x = layout.topRightX() + 8;
-        int y = layout.topRightY() + 28;
-        int w = layout.topRightWidth() - 16;
-        int h = visibleQueueEntries(layout) * 22;
-        return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
-    }
-
     private GraphViewport graphViewport(Layout layout) {
         return new GraphViewport(
                 layout.bottomRightX() + 8,
@@ -851,34 +870,80 @@ public class ResearchV2TreeScreen extends Screen {
         int windowX = (width - windowWidth) / 2;
         int windowY = (height - windowHeight) / 2;
 
-        int topHeight = Math.max(120, Math.min(170, (windowHeight * 32) / 100));
+        int topHeight = Math.max(100, Math.min(118, (windowHeight * 22) / 100));
         int bottomHeight = windowHeight - topHeight - PANEL_GAP;
 
-        int leftWidth = Math.max(250, Math.min(360, (windowWidth * 38) / 100));
-        int rightWidth = windowWidth - leftWidth - PANEL_GAP;
+        int selectorWidth = Math.max(160, Math.min(220, (windowWidth * 18) / 100));
+        int queueWidth = Math.max(210, Math.min(280, (windowWidth * 22) / 100));
+        int statusWidth = windowWidth - selectorWidth - queueWidth - (PANEL_GAP * 2);
+        if (statusWidth < 220) {
+            int deficit = 220 - statusWidth;
+            queueWidth = Math.max(190, queueWidth - deficit);
+            statusWidth = windowWidth - selectorWidth - queueWidth - (PANEL_GAP * 2);
+        }
+
+        int bottomLeftWidth = Math.max(220, Math.min(320, (windowWidth * 30) / 100));
+        int bottomRightWidth = windowWidth - bottomLeftWidth - PANEL_GAP;
+
+        int topLeftX = windowX;
+        int topCenterX = topLeftX + selectorWidth + PANEL_GAP;
+        int topRightX = topCenterX + statusWidth + PANEL_GAP;
+
+        int bottomLeftX = windowX;
+        int bottomRightX = bottomLeftX + bottomLeftWidth + PANEL_GAP;
+        int topY = windowY + 20;
+        int bottomY = topY + topHeight + PANEL_GAP;
 
         return new Layout(
                 windowX,
                 windowY,
                 windowWidth,
                 windowHeight,
-                windowX,
-                windowY + 20,
-                leftWidth,
+                topLeftX,
+                topY,
+                selectorWidth,
                 topHeight,
-                windowX + leftWidth + PANEL_GAP,
-                windowY + 20,
-                rightWidth,
+                topCenterX,
+                topY,
+                statusWidth,
                 topHeight,
-                windowX,
-                windowY + 20 + topHeight + PANEL_GAP,
-                leftWidth,
+                topRightX,
+                topY,
+                queueWidth,
+                topHeight,
+                bottomLeftX,
+                bottomY,
+                bottomLeftWidth,
                 bottomHeight,
-                windowX + leftWidth + PANEL_GAP,
-                windowY + 20 + topHeight + PANEL_GAP,
-                rightWidth,
+                bottomRightX,
+                bottomY,
+                bottomRightWidth,
                 bottomHeight
         );
+    }
+
+    private void buildQueueCardLayout(Layout layout) {
+        queueCardBounds.clear();
+        queueRemoveBounds.clear();
+        List<ResearchV2ClientCache.QueueEntry> queue = snapshot.researchQueue();
+        if (queue.isEmpty()) {
+            return;
+        }
+
+        int columns = queueVisibleColumns(layout);
+        int startX = layout.topRightX() + 10;
+        int y = layout.topRightY() + 24;
+        for (int i = 0; i < queue.size() && i < columns; i++) {
+            ResearchV2ClientCache.QueueEntry entry = queue.get(i);
+            int x = startX + i * (QUEUE_CARD_W + QUEUE_CARD_GAP);
+            queueCardBounds.put(entry.nodeId(), new NodeBounds(x, y, QUEUE_CARD_W, QUEUE_CARD_H));
+
+            int removeW = 10;
+            int removeH = 8;
+            int removeX = x + (QUEUE_CARD_W - removeW) / 2;
+            int removeY = y + QUEUE_CARD_H - removeH - 1;
+            queueRemoveBounds.put(entry.nodeId(), new NodeBounds(removeX, removeY, removeW, removeH));
+        }
     }
 
     private static NodeBounds shifted(NodeBounds bounds, int offsetX, int offsetY) {
@@ -950,6 +1015,46 @@ public class ResearchV2TreeScreen extends Screen {
         guiGraphics.hLine(Math.min(midX, targetX), Math.max(midX, targetX), targetY, color);
     }
 
+    private static void drawQueueProgressBar(GuiGraphics guiGraphics, NodeBounds bounds, int progress, int requiredTime) {
+        int cost = Math.max(1, requiredTime);
+        int normalizedProgress = Math.clamp(progress, 0, cost);
+        if (normalizedProgress <= 0 || normalizedProgress >= cost) {
+            return;
+        }
+
+        int barX = bounds.x() + 2;
+        int barY = bounds.y() + bounds.height() - 11;
+        int barW = bounds.width() - 4;
+        int fillW = Math.clamp((normalizedProgress * barW) / cost, 1, barW);
+        guiGraphics.fill(barX, barY, barX + barW, barY + 2, 0xFF20242C);
+        guiGraphics.fill(barX, barY, barX + fillW, barY + 2, 0xFF42C86F);
+    }
+
+    private ItemStack queueIcon(@Nullable ResearchV2ClientCache.NodeEntry node) {
+        if (node == null) {
+            return ItemStack.EMPTY;
+        }
+        ResearchV2ClientCache.CategoryEntry category = snapshot.categoriesById().get(node.categoryId());
+        if (category == null) {
+            return ItemStack.EMPTY;
+        }
+        return itemStackFromId(category.iconId());
+    }
+
+    private static ItemStack itemStackFromId(String itemIdString) {
+        if (itemIdString == null || itemIdString.isBlank()) {
+            return ItemStack.EMPTY;
+        }
+
+        ResourceLocation itemId = ResourceLocation.tryParse(itemIdString);
+        if (itemId == null) {
+            return ItemStack.EMPTY;
+        }
+
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        return item == Items.AIR ? ItemStack.EMPTY : item.getDefaultInstance();
+    }
+
     private enum FilterMode {
         ALL("screen.incore.research_v2.filter.all"),
         UNDISCOVERED("screen.incore.research_v2.filter.undiscovered"),
@@ -977,6 +1082,10 @@ public class ResearchV2TreeScreen extends Screen {
             int topLeftY,
             int topLeftWidth,
             int topLeftHeight,
+            int topCenterX,
+            int topCenterY,
+            int topCenterWidth,
+            int topCenterHeight,
             int topRightX,
             int topRightY,
             int topRightWidth,

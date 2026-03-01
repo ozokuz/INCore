@@ -498,6 +498,7 @@
   "screen.incore.research.tasks": "Manual Tasks",
   "screen.incore.research_v2.title": "Research Tree",
   "screen.incore.research_v2.tree_selector": "Research Tree",
+  "screen.incore.research_v2.status": "Research Status",
   "screen.incore.research_v2.no_trees": "No Trees",
   "screen.incore.research_v2.queue": "Research Queue",
   "screen.incore.research_v2.queue_empty": "Queue is empty.",
