@@ -1,0 +1,82 @@
+{
+  "trees": [
+    {
+      "id": "incore:core_tree",
+      "name": "Core Research",
+      "planet_theme": "overworld"
+    }
+  ],
+  "categories": [
+    {
+      "id": "incore:foundations",
+      "name": "Foundations",
+      "icon": "minecraft:book"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "incore:signal_calibration",
+      "tree_id": "incore:core_tree",
+      "category_id": "incore:foundations",
+      "prerequisites": [],
+      "discovery_rules": "none",
+      "research_cost": {
+        "required_logic_modules": [
+          {
+            "module_tier": "basic",
+            "count": 1
+          }
+        ],
+        "required_research_materials": [
+          {
+            "material_id": "incore:starter_data",
+            "count": 1
+          }
+        ],
+        "modifiers": []
+      },
+      "research_time": 200,
+      "outputs": [
+        "incore:unlock_signal_tools"
+      ]
+    },
+    {
+      "id": "incore:relay_protocols",
+      "tree_id": "incore:core_tree",
+      "category_id": "incore:foundations",
+      "prerequisites": [
+        "incore:signal_calibration"
+      ],
+      "discovery_rules": "none",
+      "research_cost": {
+        "required_logic_modules": [
+          {
+            "module_tier": "basic",
+            "count": 2
+          }
+        ],
+        "required_research_materials": [
+          {
+            "material_id": "incore:starter_data",
+            "count": 2
+          }
+        ],
+        "modifiers": []
+      },
+      "research_time": 400,
+      "outputs": [
+        "incore:unlock_relay_tools"
+      ]
+    }
+  ],
+  "networks": [
+    {
+      "id": "incore:default_network",
+      "name": "Default Research Network",
+      "node_ids": [
+        "incore:signal_calibration",
+        "incore:relay_protocols"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+package io.github.ozokuz.incore.features.researchv2.state;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public final class TeamResearchState {
+    private final String teamId;
+    private @Nullable ResourceLocation activeNetworkId;
+    private final Set<ResourceLocation> discoveredNodes = new HashSet<>();
+    private final Set<ResourceLocation> completedNodes = new HashSet<>();
+    private final List<ResearchQueueEntry> researchQueue = new ArrayList<>();
+    private int storedResearchPowerBuffer;
+
+    public TeamResearchState(String teamId) {
+        this.teamId = teamId;
+    }
+
+    public String teamId() {
+        return teamId;
+    }
+
+    public @Nullable ResourceLocation activeNetworkId() {
+        return activeNetworkId;
+    }
+
+    public void setActiveNetworkId(@Nullable ResourceLocation activeNetworkId) {
+        this.activeNetworkId = activeNetworkId;
+    }
+
+    public Set<ResourceLocation> discoveredNodes() {
+        return discoveredNodes;
+    }
+
+    public Set<ResourceLocation> completedNodes() {
+        return completedNodes;
+    }
+
+    public List<ResearchQueueEntry> researchQueue() {
+        return researchQueue;
+    }
+
+    public int storedResearchPowerBuffer() {
+        return storedResearchPowerBuffer;
+    }
+
+    public void setStoredResearchPowerBuffer(int storedResearchPowerBuffer) {
+        this.storedResearchPowerBuffer = Math.max(0, storedResearchPowerBuffer);
+    }
+
+    public CompoundTag toTag() {
+        CompoundTag tag = new CompoundTag();
+        tag.putString("teamId", teamId);
+        if (activeNetworkId != null) {
+            tag.putString("activeNetworkId", activeNetworkId.toString());
+        }
+
+        tag.put("discoveredNodes", toIdList(discoveredNodes));
+        tag.put("completedNodes", toIdList(completedNodes));
+
+        ListTag queueTag = new ListTag();
+        for (ResearchQueueEntry entry : researchQueue) {
+            queueTag.add(entry.toTag());
+        }
+        tag.put("researchQueue", queueTag);
+        tag.putInt("storedResearchPowerBuffer", storedResearchPowerBuffer);
+        return tag;
+    }
+
+    public static TeamResearchState fromTag(CompoundTag tag) {
+        String teamId = tag.getString("teamId");
+        TeamResearchState state = new TeamResearchState(teamId);
+
+        ResourceLocation activeNetwork = ResourceLocation.tryParse(tag.getString("activeNetworkId"));
+        state.setActiveNetworkId(activeNetwork);
+
+        readIdList(tag.getList("discoveredNodes", Tag.TAG_STRING), state.discoveredNodes);
+        readIdList(tag.getList("completedNodes", Tag.TAG_STRING), state.completedNodes);
+
+        ListTag queueTag = tag.getList("researchQueue", Tag.TAG_COMPOUND);
+        for (Tag queueEntryTag : queueTag) {
+            ResearchQueueEntry entry = ResearchQueueEntry.fromTag((CompoundTag) queueEntryTag);
+            if (entry != null) {
+                state.researchQueue.add(entry);
+            }
+        }
+
+        state.setStoredResearchPowerBuffer(tag.getInt("storedResearchPowerBuffer"));
+        return state;
+    }
+
+    private static ListTag toIdList(Set<ResourceLocation> ids) {
+        ListTag listTag = new ListTag();
+        ids.stream().sorted().forEach(id -> listTag.add(StringTag.valueOf(id.toString())));
+        return listTag;
+    }
+
+    private static void readIdList(ListTag listTag, Set<ResourceLocation> output) {
+        for (Tag tag : listTag) {
+            ResourceLocation id = ResourceLocation.tryParse(tag.getAsString());
+            if (id != null) {
+                output.add(id);
+            }
+        }
+    }
+}
