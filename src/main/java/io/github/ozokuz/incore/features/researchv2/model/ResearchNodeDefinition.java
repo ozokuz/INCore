@@ -12,6 +12,7 @@ public record ResearchNodeDefinition(
         List<ResourceLocation> prerequisites,
         @Nullable String discoveryRules,
         ResearchCostDefinition researchCost,
+        ResearchPowerDefinition researchPower,
         int researchTime,
         List<String> outputs
 ) {

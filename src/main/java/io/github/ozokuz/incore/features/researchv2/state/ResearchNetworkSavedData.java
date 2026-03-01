@@ -11,7 +11,9 @@ import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ResearchNetworkSavedData extends SavedData {
     private static final String DATA_NAME = "incore_research_v2";
@@ -58,5 +60,9 @@ public class ResearchNetworkSavedData extends SavedData {
 
     public @Nullable TeamResearchState getTeamState(String teamId) {
         return stateByTeam.get(teamId);
+    }
+
+    public Set<String> teamIds() {
+        return Set.copyOf(new HashSet<>(stateByTeam.keySet()));
     }
 }

@@ -8,8 +8,10 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public final class TeamResearchState {
@@ -19,6 +21,8 @@ public final class TeamResearchState {
     private final Set<ResourceLocation> completedNodes = new HashSet<>();
     private final List<ResearchQueueEntry> researchQueue = new ArrayList<>();
     private int storedResearchPowerBuffer;
+    private final Map<String, Integer> devResearchMaterials = new HashMap<>();
+    private final Map<String, Integer> devLogicModules = new HashMap<>();
 
     public TeamResearchState(String teamId) {
         this.teamId = teamId;
@@ -56,6 +60,14 @@ public final class TeamResearchState {
         this.storedResearchPowerBuffer = Math.max(0, storedResearchPowerBuffer);
     }
 
+    public Map<String, Integer> devResearchMaterials() {
+        return devResearchMaterials;
+    }
+
+    public Map<String, Integer> devLogicModules() {
+        return devLogicModules;
+    }
+
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.putString("teamId", teamId);
@@ -72,6 +84,8 @@ public final class TeamResearchState {
         }
         tag.put("researchQueue", queueTag);
         tag.putInt("storedResearchPowerBuffer", storedResearchPowerBuffer);
+        tag.put("devResearchMaterials", toStringIntMapTag(devResearchMaterials));
+        tag.put("devLogicModules", toStringIntMapTag(devLogicModules));
         return tag;
     }
 
@@ -94,6 +108,8 @@ public final class TeamResearchState {
         }
 
         state.setStoredResearchPowerBuffer(tag.getInt("storedResearchPowerBuffer"));
+        readStringIntMapTag(tag.getCompound("devResearchMaterials"), state.devResearchMaterials);
+        readStringIntMapTag(tag.getCompound("devLogicModules"), state.devLogicModules);
         return state;
     }
 
@@ -108,6 +124,25 @@ public final class TeamResearchState {
             ResourceLocation id = ResourceLocation.tryParse(tag.getAsString());
             if (id != null) {
                 output.add(id);
+            }
+        }
+    }
+
+    private static CompoundTag toStringIntMapTag(Map<String, Integer> values) {
+        CompoundTag tag = new CompoundTag();
+        values.forEach((key, value) -> {
+            if (key != null && !key.isBlank() && value != null && value > 0) {
+                tag.putInt(key, value);
+            }
+        });
+        return tag;
+    }
+
+    private static void readStringIntMapTag(CompoundTag mapTag, Map<String, Integer> output) {
+        for (String key : mapTag.getAllKeys()) {
+            int value = Math.max(0, mapTag.getInt(key));
+            if (!key.isBlank() && value > 0) {
+                output.put(key, value);
             }
         }
     }
