@@ -7,6 +7,7 @@ import java.util.List;
 
 public record ResearchNodeDefinition(
         ResourceLocation id,
+        String name,
         ResourceLocation treeId,
         ResourceLocation categoryId,
         List<ResourceLocation> prerequisites,

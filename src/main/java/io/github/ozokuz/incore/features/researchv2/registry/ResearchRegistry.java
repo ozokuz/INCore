@@ -64,6 +64,7 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
                     .toList();
             return new ResearchNodeDefinition(
                     node.id(),
+                    node.name(),
                     node.treeId(),
                     node.categoryId(),
                     prereqs,
@@ -161,6 +162,7 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
                 continue;
             }
 
+            String name = stringOr(row, "name", humanizePath(id.getPath()));
             List<ResourceLocation> prerequisites = parseIdList(row.getAsJsonArray("prerequisites"));
             String discoveryRules = row.has("discovery_rules") ? row.get("discovery_rules").getAsString() : null;
             int researchTime = row.has("research_time") ? Math.max(1, row.get("research_time").getAsInt()) : 200;
@@ -168,7 +170,7 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
             ResearchPowerDefinition power = parsePower(row.getAsJsonObject("research_power"));
             List<String> outputs = parseStringList(row.getAsJsonArray("outputs"));
 
-            output.put(id, new ResearchNodeDefinition(id, treeId, categoryId, List.copyOf(prerequisites), discoveryRules, cost, power, researchTime, List.copyOf(outputs)));
+            output.put(id, new ResearchNodeDefinition(id, name, treeId, categoryId, List.copyOf(prerequisites), discoveryRules, cost, power, researchTime, List.copyOf(outputs)));
         }
     }
 
@@ -299,5 +301,32 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
             return fallback;
         }
         return object.get(key).getAsString();
+    }
+
+    private static String humanizePath(String path) {
+        if (path == null || path.isBlank()) {
+            return "Unknown";
+        }
+
+        String[] parts = path.split("_");
+        StringBuilder builder = new StringBuilder(path.length() + 8);
+        for (String part : parts) {
+            if (part == null || part.isBlank()) {
+                continue;
+            }
+            if (builder.length() > 0) {
+                builder.append(' ');
+            }
+            char first = part.charAt(0);
+            builder.append(Character.toUpperCase(first));
+            if (part.length() > 1) {
+                builder.append(part.substring(1));
+            }
+        }
+
+        if (builder.length() == 0) {
+            return "Unknown";
+        }
+        return builder.toString();
     }
 }

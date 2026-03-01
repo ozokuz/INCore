@@ -21,6 +21,7 @@ public final class TeamResearchState {
     private final Set<ResourceLocation> completedNodes = new HashSet<>();
     private final List<ResearchQueueEntry> researchQueue = new ArrayList<>();
     private int storedResearchPowerBuffer;
+    private int controllerTier;
     private final Map<String, Integer> devResearchMaterials = new HashMap<>();
     private final Map<String, Integer> devLogicModules = new HashMap<>();
 
@@ -60,6 +61,14 @@ public final class TeamResearchState {
         this.storedResearchPowerBuffer = Math.max(0, storedResearchPowerBuffer);
     }
 
+    public int controllerTier() {
+        return controllerTier;
+    }
+
+    public void setControllerTier(int controllerTier) {
+        this.controllerTier = Math.max(0, controllerTier);
+    }
+
     public Map<String, Integer> devResearchMaterials() {
         return devResearchMaterials;
     }
@@ -84,6 +93,7 @@ public final class TeamResearchState {
         }
         tag.put("researchQueue", queueTag);
         tag.putInt("storedResearchPowerBuffer", storedResearchPowerBuffer);
+        tag.putInt("controllerTier", controllerTier);
         tag.put("devResearchMaterials", toStringIntMapTag(devResearchMaterials));
         tag.put("devLogicModules", toStringIntMapTag(devLogicModules));
         return tag;
@@ -108,6 +118,7 @@ public final class TeamResearchState {
         }
 
         state.setStoredResearchPowerBuffer(tag.getInt("storedResearchPowerBuffer"));
+        state.setControllerTier(tag.getInt("controllerTier"));
         readStringIntMapTag(tag.getCompound("devResearchMaterials"), state.devResearchMaterials);
         readStringIntMapTag(tag.getCompound("devLogicModules"), state.devLogicModules);
         return state;

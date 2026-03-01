@@ -26,6 +26,7 @@ import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
+import io.github.ozokuz.incore.features.researchv2.client.ResearchV2TreeScreen;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import net.minecraft.client.Minecraft;
@@ -121,6 +122,7 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_RESEARCH_TREE.consumeClick()) {
+            minecraft.setScreen(new ResearchV2TreeScreen());
             ResearchV2Networking.requestSnapshot();
         }
 
