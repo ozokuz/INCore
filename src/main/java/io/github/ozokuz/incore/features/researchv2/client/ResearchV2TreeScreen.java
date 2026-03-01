@@ -217,54 +217,73 @@ public class ResearchV2TreeScreen extends Screen {
 
     private void drawStatusPanel(GuiGraphics guiGraphics, Layout layout) {
         ResearchV2ClientCache.NodeEntry selected = selectedNode();
-        int x = layout.topCenterX() + 10;
-        int y = layout.topCenterY() + 24;
-        int right = layout.topCenterX() + layout.topCenterWidth() - 10;
+        int panelX = layout.topCenterX() + 10;
+        int panelY = layout.topCenterY() + 24;
+        int panelW = layout.topCenterWidth() - 20;
+        int leftW = Math.max(130, (panelW * 45) / 100);
+        int rightW = Math.max(120, panelW - leftW - 8);
+        int leftX = panelX;
+        int rightX = leftX + leftW + 8;
+        int rowY = panelY;
 
         guiGraphics.drawString(
                 font,
                 Component.translatable("screen.incore.research_v2.controller_tier", snapshot.controllerTier()),
-                x,
-                y,
+                leftX,
+                rowY,
                 0xFFAFC5E4,
                 false
         );
 
         if (selected == null) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.research_v2.no_selection"), x, y + 16, 0xFFB8C4D6, false);
+            guiGraphics.drawString(
+                    font,
+                    Component.translatable("screen.incore.research_v2.no_selection"),
+                    leftX,
+                    rowY + 16,
+                    0xFFB8C4D6,
+                    false
+            );
             return;
         }
 
-        String title = trimToWidth(nodeDisplayName(selected), right - x - 4);
-        guiGraphics.drawString(font, Component.literal(title), x, y + 16, 0xFFF2F6FF, false);
-        guiGraphics.drawString(font, Component.literal(nodeStatusLabel(selected)), x, y + 30, 0xFF9DB7D9, false);
+        String title = trimToWidth(nodeDisplayName(selected), leftW - 8);
+        guiGraphics.drawString(font, Component.literal(title), leftX, rowY + 16, 0xFFF2F6FF, false);
+        guiGraphics.drawString(font, Component.literal(nodeStatusLabel(selected)), leftX, rowY + 30, 0xFF9DB7D9, false);
 
         if (!canShowRequirements(selected)) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.research_v2.hidden_requirements"), x, y + 44, 0xFF9AA8BC, false);
+            guiGraphics.drawString(
+                    font,
+                    Component.translatable("screen.incore.research_v2.hidden_requirements"),
+                    rightX,
+                    rowY + 4,
+                    0xFF9AA8BC,
+                    false
+            );
             return;
         }
 
         guiGraphics.drawString(
                 font,
                 Component.translatable("screen.incore.research_v2.requirement_time", selected.researchTime()),
-                x,
-                y + 44,
+                rightX,
+                rowY + 4,
                 0xFFE0ECFF,
                 false
         );
         guiGraphics.drawString(
                 font,
-                Component.translatable("screen.incore.research_v2.requirement_modules", formatModuleRequirements(selected)),
-                x,
-                y + 58,
+                Component.translatable("screen.incore.research_v2.requirement_modules", trimToWidth(formatModuleRequirements(selected), rightW - 52)),
+                rightX,
+                rowY + 18,
                 0xFFCBDBF0,
                 false
         );
         guiGraphics.drawString(
                 font,
-                Component.translatable("screen.incore.research_v2.requirement_materials", formatMaterialRequirements(selected)),
-                x,
-                y + 70,
+                Component.translatable("screen.incore.research_v2.requirement_materials", trimToWidth(formatMaterialRequirements(selected), rightW - 56)),
+                rightX,
+                rowY + 32,
                 0xFFCBDBF0,
                 false
         );
@@ -870,7 +889,7 @@ public class ResearchV2TreeScreen extends Screen {
         int windowX = (width - windowWidth) / 2;
         int windowY = (height - windowHeight) / 2;
 
-        int topHeight = Math.max(100, Math.min(118, (windowHeight * 22) / 100));
+        int topHeight = Math.max(84, Math.min(96, (windowHeight * 18) / 100));
         int bottomHeight = windowHeight - topHeight - PANEL_GAP;
 
         int selectorWidth = Math.max(160, Math.min(220, (windowWidth * 18) / 100));
