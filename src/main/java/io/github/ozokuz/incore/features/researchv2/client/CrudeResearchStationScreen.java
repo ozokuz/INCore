@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.researchv2.client;
 
 import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationMenu;
+import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -34,6 +35,16 @@ public class CrudeResearchStationScreen extends AbstractContainerScreen<CrudeRes
         if (burnProgress > 0) {
             guiGraphics.fill(burnX, burnY, burnX + Math.min(16, burnProgress), burnY + 3, 0xFFEE9B34);
         }
+
+        int runBarX = x + 10;
+        int runBarY = y + 72;
+        int runBarW = imageWidth - 20;
+        int runFill = menu.runProgressScaled(runBarW);
+        guiGraphics.fill(runBarX, runBarY, runBarX + runBarW, runBarY + 5, 0xFF243143);
+        guiGraphics.fill(runBarX + 1, runBarY + 1, runBarX + runBarW - 1, runBarY + 4, 0xFF101722);
+        if (runFill > 0) {
+            guiGraphics.fill(runBarX + 1, runBarY + 1, runBarX + Math.min(runBarW - 1, runFill), runBarY + 4, 0xFF55A9E6);
+        }
     }
 
     @Override
@@ -58,6 +69,24 @@ public class CrudeResearchStationScreen extends AbstractContainerScreen<CrudeRes
         int linkedColor = menu.hasTeamBinding() ? 0x8CC5F3 : 0xFF7A7A;
         guiGraphics.drawString(font, Component.translatable(linkedKey), 10, 64, linkedColor, false);
 
+        int queueStatusOrdinal = menu.queueStatusOrdinal();
+        int completedRuns = menu.completedRuns();
+        int requiredRuns = menu.requiredRuns();
+        Component runLabel = queueStatusOrdinal < 0
+                ? Component.translatable("screen.incore.crude_research_station.run_idle")
+                : Component.translatable("screen.incore.crude_research_station.run", Math.min(requiredRuns, completedRuns + 1), requiredRuns);
+        guiGraphics.drawString(
+                font,
+                runLabel,
+                10,
+                79,
+                0xBFE2FF,
+                false
+        );
+
+        Component runStatus = runStatusText(queueStatusOrdinal);
+        guiGraphics.drawString(font, runStatus, 96, 79, 0xC8D8EA, false);
+
         guiGraphics.drawString(font, playerInventoryTitle, 8, 86, 0xD6E0EF, false);
     }
 
@@ -78,5 +107,19 @@ public class CrudeResearchStationScreen extends AbstractContainerScreen<CrudeRes
 
     private static void drawSlot(GuiGraphics guiGraphics, int x, int y) {
         drawPanel(guiGraphics, x - 1, y - 1, 18, 18, 0xFF181F2A, 0xFF46566F);
+    }
+
+    private static Component runStatusText(int statusOrdinal) {
+        if (statusOrdinal < 0 || statusOrdinal >= ResearchQueueStatus.values().length) {
+            return Component.translatable("screen.incore.crude_research_station.status.idle");
+        }
+
+        ResearchQueueStatus status = ResearchQueueStatus.values()[statusOrdinal];
+        return switch (status) {
+            case RUNNING -> Component.translatable("screen.incore.crude_research_station.status.running");
+            case PAUSED_MISSING_INPUTS -> Component.translatable("screen.incore.crude_research_station.status.missing_inputs");
+            case PAUSED_NO_POWER -> Component.translatable("screen.incore.crude_research_station.status.no_power");
+            default -> Component.translatable("screen.incore.crude_research_station.status.queued");
+        };
     }
 }

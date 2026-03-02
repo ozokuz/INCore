@@ -55,7 +55,7 @@ public final class ResearchManager {
         if (state.discoveredNodes().contains(nodeId) || state.completedNodes().contains(nodeId)) {
             return false;
         }
-        return state.completedNodes().containsAll(node.prerequisites());
+        return state.discoveredNodes().containsAll(node.prerequisites());
     }
 
     public static boolean canQueue(MinecraftServer server, String teamId, ResourceLocation nodeId) {
@@ -81,10 +81,7 @@ public final class ResearchManager {
         if (state.researchQueue().stream().map(ResearchQueueEntry::nodeId).anyMatch(nodeId::equals)) {
             return false;
         }
-
-        ResearchCostDefinition cost = node.researchCost();
-        return ResearchProviderManager.hasRequiredModules(server, teamId, cost)
-                && ResearchProviderManager.hasRequiredMaterials(server, teamId, cost);
+        return true;
     }
 
     public static String explainQueueFailure(MinecraftServer server, String teamId, ResourceLocation nodeId) {
@@ -118,14 +115,6 @@ public final class ResearchManager {
         if (state.researchQueue().stream().map(ResearchQueueEntry::nodeId).anyMatch(nodeId::equals)) {
             return "node is already queued";
         }
-
-        ResearchCostDefinition cost = node.researchCost();
-        if (!ResearchProviderManager.hasRequiredModules(server, teamId, cost)) {
-            return "required logic modules are not available";
-        }
-        if (!ResearchProviderManager.hasRequiredMaterials(server, teamId, cost)) {
-            return "required research materials are not available";
-        }
         return "unknown reason";
     }
 
@@ -141,7 +130,16 @@ public final class ResearchManager {
 
         ResearchNetworkSavedData data = ResearchNetworkSavedData.get(server);
         TeamResearchState state = ensureTeamState(server, teamId);
-        state.researchQueue().add(new ResearchQueueEntry(nodeId, 0, node.researchTime(), ResearchQueueStatus.QUEUED, List.of()));
+        state.researchQueue().add(new ResearchQueueEntry(
+                nodeId,
+                0,
+                Math.max(1, node.researchTime()),
+                0,
+                Math.max(1, node.requiredRuns()),
+                false,
+                ResearchQueueStatus.QUEUED,
+                List.of()
+        ));
         data.setDirty();
         ResearchV2Networking.syncTeam(server, teamId);
         return true;
@@ -170,39 +168,120 @@ public final class ResearchManager {
             return true;
         }
 
-        int requiredTime = resolveRequiredTime(head, node);
-        int progress = Math.min(requiredTime, Math.max(0, head.timeProgress()));
-        ResearchQueueStatus status = head.status();
+        int runTickRequired = resolveRunTickRequired(head, node);
+        int runTickProgress = Math.min(runTickRequired, Math.max(0, head.runTickProgress()));
+        int requiredRuns = resolveRequiredRuns(head, node);
+        int completedRuns = Math.max(0, Math.min(head.completedRuns(), requiredRuns));
+        boolean runInputsCommitted = head.runInputsCommitted();
 
         if (!state.discoveredNodes().contains(nodeId)
                 || !state.completedNodes().containsAll(node.prerequisites())) {
-            return updateQueueHead(state, node, progress, requiredTime, ResearchQueueStatus.PAUSED_MISSING_INPUTS, false, data);
+            return updateQueueHead(
+                    state,
+                    node,
+                    runTickProgress,
+                    runTickRequired,
+                    completedRuns,
+                    requiredRuns,
+                    runInputsCommitted,
+                    ResearchQueueStatus.PAUSED_MISSING_INPUTS,
+                    false,
+                    data
+            );
         }
 
-        if (status == ResearchQueueStatus.QUEUED || status == ResearchQueueStatus.PAUSED_MISSING_INPUTS) {
+        if (completedRuns >= requiredRuns) {
+            state.discoveredNodes().add(nodeId);
+            state.completedNodes().add(nodeId);
+            state.researchQueue().remove(0);
+            data.setDirty();
+            ResearchV2LifecycleCallbacks.onResearchCompleted(teamId, nodeId);
+            return true;
+        }
+
+        if (!runInputsCommitted) {
             ResearchCostDefinition cost = node.researchCost();
             if (!ResearchProviderManager.hasRequiredModules(server, teamId, cost)
                     || !ResearchProviderManager.hasRequiredMaterials(server, teamId, cost)
                     || !ResearchProviderManager.consumeRequiredModules(server, teamId, cost)
                     || !ResearchProviderManager.consumeRequiredMaterials(server, teamId, cost)) {
-                return updateQueueHead(state, node, progress, requiredTime, ResearchQueueStatus.PAUSED_MISSING_INPUTS, false, data);
+                return updateQueueHead(
+                        state,
+                        node,
+                        runTickProgress,
+                        runTickRequired,
+                        completedRuns,
+                        requiredRuns,
+                        false,
+                        ResearchQueueStatus.PAUSED_MISSING_INPUTS,
+                        false,
+                        data
+                );
             }
 
-            updateQueueHead(state, node, progress, requiredTime, ResearchQueueStatus.RUNNING, true, data);
-            ResearchV2LifecycleCallbacks.onResearchStarted(teamId, nodeId, requiredTime);
-            status = ResearchQueueStatus.RUNNING;
+            updateQueueHead(
+                    state,
+                    node,
+                    runTickProgress,
+                    runTickRequired,
+                    completedRuns,
+                    requiredRuns,
+                    true,
+                    ResearchQueueStatus.RUNNING,
+                    true,
+                    data
+            );
+            ResearchV2LifecycleCallbacks.onResearchStarted(teamId, nodeId, runTickRequired);
+            runInputsCommitted = true;
         }
 
-        int rpPerTick = computePowerCostPerTick(node.researchPower(), progress, requiredTime);
+        int rpPerTick = computePowerCostPerTick(node.researchPower(), runTickProgress, runTickRequired);
         if (!ResearchProviderManager.consumePower(server, teamId, rpPerTick)) {
-            return updateQueueHead(state, node, progress, requiredTime, ResearchQueueStatus.PAUSED_NO_POWER, false, data);
+            return updateQueueHead(
+                    state,
+                    node,
+                    runTickProgress,
+                    runTickRequired,
+                    completedRuns,
+                    requiredRuns,
+                    runInputsCommitted,
+                    ResearchQueueStatus.PAUSED_NO_POWER,
+                    false,
+                    data
+            );
         }
 
-        int nextProgress = Math.min(requiredTime, progress + 1);
-        updateQueueHead(state, node, nextProgress, requiredTime, ResearchQueueStatus.RUNNING, true, data);
-        ResearchV2LifecycleCallbacks.onResearchProgress(teamId, nodeId, nextProgress, requiredTime, rpPerTick);
+        int nextRunTickProgress = Math.min(runTickRequired, runTickProgress + 1);
+        updateQueueHead(
+                state,
+                node,
+                nextRunTickProgress,
+                runTickRequired,
+                completedRuns,
+                requiredRuns,
+                runInputsCommitted,
+                ResearchQueueStatus.RUNNING,
+                true,
+                data
+        );
+        ResearchV2LifecycleCallbacks.onResearchProgress(teamId, nodeId, nextRunTickProgress, runTickRequired, rpPerTick);
 
-        if (nextProgress >= requiredTime) {
+        if (nextRunTickProgress >= runTickRequired) {
+            int nextCompletedRuns = completedRuns + 1;
+            if (nextCompletedRuns < requiredRuns) {
+                return updateQueueHead(
+                        state,
+                        node,
+                        0,
+                        runTickRequired,
+                        nextCompletedRuns,
+                        requiredRuns,
+                        false,
+                        ResearchQueueStatus.QUEUED,
+                        true,
+                        data
+                );
+            }
             state.discoveredNodes().add(nodeId);
             state.completedNodes().add(nodeId);
             state.researchQueue().remove(0);
@@ -351,9 +430,11 @@ public final class ResearchManager {
         state.researchQueue().forEach(entry -> {
             JsonObject row = new JsonObject();
             row.addProperty("nodeId", entry.nodeId().toString());
-            row.addProperty("timeProgress", entry.timeProgress());
-            row.addProperty("progress", entry.timeProgress());
-            row.addProperty("requiredTime", entry.requiredTime());
+            row.addProperty("runTickProgress", entry.runTickProgress());
+            row.addProperty("runTickRequired", entry.runTickRequired());
+            row.addProperty("completedRuns", entry.completedRuns());
+            row.addProperty("requiredRuns", entry.requiredRuns());
+            row.addProperty("runInputsCommitted", entry.runInputsCommitted());
             row.addProperty("status", entry.status().name());
             JsonArray stations = new JsonArray();
             entry.assignedStationIds().forEach(stations::add);
@@ -409,12 +490,13 @@ public final class ResearchManager {
                     node.prerequisites().stream().map(ResourceLocation::toString).sorted().forEach(prerequisites::add);
                     row.add("prerequisites", prerequisites);
                     row.addProperty("researchTime", node.researchTime());
+                    row.addProperty("requiredRuns", node.requiredRuns());
 
                     JsonArray requiredLogicModules = new JsonArray();
                     node.researchCost().requiredLogicModules().forEach(requirement -> {
                         JsonObject requirementObject = new JsonObject();
                         requirementObject.addProperty("moduleTier", requirement.moduleTier());
-                        requirementObject.addProperty("count", requirement.count());
+                        requirementObject.addProperty("durabilityCost", requirement.durabilityCost());
                         requiredLogicModules.add(requirementObject);
                     });
                     row.add("requiredLogicModules", requiredLogicModules);
@@ -489,11 +571,18 @@ public final class ResearchManager {
         return node != null && TIER0_CATEGORY_WHITELIST.contains(node.categoryId());
     }
 
-    private static int resolveRequiredTime(ResearchQueueEntry entry, ResearchNodeDefinition node) {
-        if (entry.requiredTime() > 0) {
-            return entry.requiredTime();
+    private static int resolveRunTickRequired(ResearchQueueEntry entry, ResearchNodeDefinition node) {
+        if (entry.runTickRequired() > 0) {
+            return entry.runTickRequired();
         }
         return Math.max(1, node.researchTime());
+    }
+
+    private static int resolveRequiredRuns(ResearchQueueEntry entry, ResearchNodeDefinition node) {
+        if (entry.requiredRuns() > 0) {
+            return entry.requiredRuns();
+        }
+        return Math.max(1, node.requiredRuns());
     }
 
     private static int computePowerCostPerTick(ResearchPowerDefinition power, int timeProgress, int requiredTime) {
@@ -508,8 +597,11 @@ public final class ResearchManager {
     private static boolean updateQueueHead(
             TeamResearchState state,
             ResearchNodeDefinition node,
-            int progress,
-            int requiredTime,
+            int runTickProgress,
+            int runTickRequired,
+            int completedRuns,
+            int requiredRuns,
+            boolean runInputsCommitted,
             ResearchQueueStatus status,
             boolean forceDirty,
             ResearchNetworkSavedData data
@@ -519,11 +611,17 @@ public final class ResearchManager {
         }
 
         ResearchQueueEntry existing = state.researchQueue().get(0);
-        int normalizedProgress = Math.max(0, Math.min(progress, requiredTime));
+        int normalizedRunTickRequired = runTickRequired <= 0 ? Math.max(1, node.researchTime()) : runTickRequired;
+        int normalizedRunTickProgress = Math.max(0, Math.min(runTickProgress, normalizedRunTickRequired));
+        int normalizedRequiredRuns = requiredRuns <= 0 ? Math.max(1, node.requiredRuns()) : requiredRuns;
+        int normalizedCompletedRuns = Math.max(0, Math.min(completedRuns, normalizedRequiredRuns));
         ResearchQueueEntry replacement = new ResearchQueueEntry(
                 existing.nodeId(),
-                normalizedProgress,
-                requiredTime <= 0 ? Math.max(1, node.researchTime()) : requiredTime,
+                normalizedRunTickProgress,
+                normalizedRunTickRequired,
+                normalizedCompletedRuns,
+                normalizedRequiredRuns,
+                runInputsCommitted,
                 status,
                 existing.assignedStationIds()
         );

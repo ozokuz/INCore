@@ -12,13 +12,13 @@ public final class DevResearchResourceProvider implements ILogicModuleProvider, 
     @Override
     public boolean hasRequiredModules(MinecraftServer server, String teamId, List<ResearchCostDefinition.LogicModuleRequirement> requirements) {
         TeamResearchState state = ResearchManager.ensureTeamState(server, teamId);
-        return hasAll(state.devLogicModules(), requirements.stream().map(req -> Map.entry(req.moduleTier(), req.count())).toList());
+        return hasAll(state.devLogicModules(), requirements.stream().map(req -> Map.entry(req.moduleTier(), req.durabilityCost())).toList());
     }
 
     @Override
     public boolean consumeRequiredModules(MinecraftServer server, String teamId, List<ResearchCostDefinition.LogicModuleRequirement> requirements) {
         TeamResearchState state = ResearchManager.ensureTeamState(server, teamId);
-        List<Map.Entry<String, Integer>> entries = requirements.stream().map(req -> Map.entry(req.moduleTier(), req.count())).toList();
+        List<Map.Entry<String, Integer>> entries = requirements.stream().map(req -> Map.entry(req.moduleTier(), req.durabilityCost())).toList();
         if (!hasAll(state.devLogicModules(), entries)) {
             return false;
         }

@@ -273,9 +273,17 @@ public class ResearchV2TreeScreen extends Screen {
         );
         guiGraphics.drawString(
                 font,
+                Component.translatable("screen.incore.research_v2.requirement_runs", selected.requiredRuns()),
+                rightX,
+                rowY + 14,
+                0xFFE0ECFF,
+                false
+        );
+        guiGraphics.drawString(
+                font,
                 Component.translatable("screen.incore.research_v2.requirement_modules", trimToWidth(formatModuleRequirements(selected), rightW - 52)),
                 rightX,
-                rowY + 18,
+                rowY + 26,
                 0xFFCBDBF0,
                 false
         );
@@ -283,7 +291,7 @@ public class ResearchV2TreeScreen extends Screen {
                 font,
                 Component.translatable("screen.incore.research_v2.requirement_materials", trimToWidth(formatMaterialRequirements(selected), rightW - 56)),
                 rightX,
-                rowY + 32,
+                rowY + 40,
                 0xFFCBDBF0,
                 false
         );
@@ -316,7 +324,7 @@ public class ResearchV2TreeScreen extends Screen {
             } else {
                 guiGraphics.drawString(font, "?", bounds.x() + 11, bounds.y() + 8, 0xFFFFFFFF, false);
             }
-            drawQueueProgressBar(guiGraphics, bounds, entry.timeProgress(), entry.requiredTime());
+            drawQueueProgressBar(guiGraphics, bounds, overallProgress(entry), overallRequired(entry));
 
             if (entry.nodeId().equals(selectedNodeId)) {
                 drawSelectionOutline(guiGraphics, bounds);
@@ -428,7 +436,7 @@ public class ResearchV2TreeScreen extends Screen {
             ResearchV2ClientCache.QueueEntry queueEntry = queueEntry(node.id());
             if (queueEntry != null) {
                 int progressWidth = shifted.width() - 8;
-                int filled = Math.min(progressWidth, (Math.max(0, queueEntry.timeProgress()) * progressWidth) / Math.max(1, queueEntry.requiredTime()));
+                int filled = Math.min(progressWidth, (overallProgress(queueEntry) * progressWidth) / Math.max(1, overallRequired(queueEntry)));
                 int barX = shifted.x() + 4;
                 int barY = shifted.y() + shifted.height() - 11;
                 guiGraphics.fill(barX, barY, barX + progressWidth, barY + 4, 0xFF1C2733);
@@ -795,7 +803,7 @@ public class ResearchV2TreeScreen extends Screen {
             return "-";
         }
         return node.requiredLogicModules().stream()
-                .map(requirement -> requirement.moduleTier() + " x" + requirement.count())
+                .map(requirement -> requirement.moduleTier() + " x" + requirement.durabilityCost())
                 .limit(3)
                 .reduce((left, right) -> left + ", " + right)
                 .orElse("-");
@@ -1047,6 +1055,21 @@ public class ResearchV2TreeScreen extends Screen {
         int fillW = Math.clamp((normalizedProgress * barW) / cost, 1, barW);
         guiGraphics.fill(barX, barY, barX + barW, barY + 2, 0xFF20242C);
         guiGraphics.fill(barX, barY, barX + fillW, barY + 2, 0xFF42C86F);
+    }
+
+    private static int overallRequired(ResearchV2ClientCache.QueueEntry entry) {
+        int tickRequired = Math.max(1, entry.runTickRequired());
+        int runsRequired = Math.max(1, entry.requiredRuns());
+        return tickRequired * runsRequired;
+    }
+
+    private static int overallProgress(ResearchV2ClientCache.QueueEntry entry) {
+        int tickRequired = Math.max(1, entry.runTickRequired());
+        int runsRequired = Math.max(1, entry.requiredRuns());
+        int completedRuns = Math.max(0, Math.min(entry.completedRuns(), runsRequired));
+        int runTickProgress = Math.max(0, Math.min(entry.runTickProgress(), tickRequired));
+        int totalProgress = (completedRuns * tickRequired) + runTickProgress;
+        return Math.min(overallRequired(entry), totalProgress);
     }
 
     private ItemStack queueIcon(@Nullable ResearchV2ClientCache.NodeEntry node) {

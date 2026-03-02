@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.researchv2.station;
 
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.state.TeamResearchState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -32,21 +33,35 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
     private static final int DATA_BURN_TIME = 1;
     private static final int DATA_BURN_TOTAL = 2;
     private static final int DATA_HAS_TEAM = 3;
+    private static final int DATA_RUN_TICK_PROGRESS = 4;
+    private static final int DATA_RUN_TICK_REQUIRED = 5;
+    private static final int DATA_COMPLETED_RUNS = 6;
+    private static final int DATA_REQUIRED_RUNS = 7;
+    private static final int DATA_QUEUE_STATUS = 8;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private String teamId = "";
     private int burnTimeRemaining;
     private int burnTimeTotal;
-    private int researchPowerBuffer;
+    private int runTickProgressDisplay;
+    private int runTickRequiredDisplay;
+    private int completedRunsDisplay;
+    private int requiredRunsDisplay;
+    private int queueStatusDisplay = -1;
 
     public final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
-                case DATA_RP_BUFFER -> Math.max(0, researchPowerBuffer);
+                case DATA_RP_BUFFER -> availableResearchPower();
                 case DATA_BURN_TIME -> Math.max(0, burnTimeRemaining);
                 case DATA_BURN_TOTAL -> Math.max(0, burnTimeTotal);
                 case DATA_HAS_TEAM -> teamId.isBlank() ? 0 : 1;
+                case DATA_RUN_TICK_PROGRESS -> Math.max(0, runTickProgressDisplay);
+                case DATA_RUN_TICK_REQUIRED -> Math.max(1, runTickRequiredDisplay);
+                case DATA_COMPLETED_RUNS -> Math.max(0, completedRunsDisplay);
+                case DATA_REQUIRED_RUNS -> Math.max(1, requiredRunsDisplay);
+                case DATA_QUEUE_STATUS -> queueStatusDisplay;
                 default -> 0;
             };
         }
@@ -54,9 +69,13 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
         @Override
         public void set(int index, int value) {
             switch (index) {
-                case DATA_RP_BUFFER -> researchPowerBuffer = Math.max(0, value);
                 case DATA_BURN_TIME -> burnTimeRemaining = Math.max(0, value);
                 case DATA_BURN_TOTAL -> burnTimeTotal = Math.max(0, value);
+                case DATA_RUN_TICK_PROGRESS -> runTickProgressDisplay = Math.max(0, value);
+                case DATA_RUN_TICK_REQUIRED -> runTickRequiredDisplay = Math.max(1, value);
+                case DATA_COMPLETED_RUNS -> completedRunsDisplay = Math.max(0, value);
+                case DATA_REQUIRED_RUNS -> requiredRunsDisplay = Math.max(1, value);
+                case DATA_QUEUE_STATUS -> queueStatusDisplay = value;
                 default -> {
                 }
             }
@@ -64,7 +83,7 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
 
         @Override
         public int getCount() {
-            return 4;
+            return 9;
         }
     };
 
@@ -102,13 +121,7 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
             ResearchManager.ensureTeamState(level.getServer(), teamId);
         }
 
-        if (burnTimeRemaining > 0) {
-            burnTimeRemaining--;
-            if (researchPowerBuffer < Integer.MAX_VALUE) {
-                researchPowerBuffer++;
-            }
-            changed = true;
-        } else if (tryStartBurningFuel()) {
+        if (refreshResearchDisplayData()) {
             changed = true;
         }
 
@@ -151,30 +164,100 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
     }
 
     public int researchPowerBuffer() {
-        return Math.max(0, researchPowerBuffer);
+        return availableResearchPower();
     }
 
     public int consumeResearchPower(int amount) {
         int requested = Math.max(0, amount);
-        if (requested <= 0 || researchPowerBuffer <= 0) {
+        if (requested <= 0) {
             return 0;
         }
 
-        int consumed = Math.min(requested, researchPowerBuffer);
-        researchPowerBuffer -= consumed;
+        int remaining = requested;
+        int consumed = 0;
+        while (remaining > 0) {
+            if (burnTimeRemaining <= 0) {
+                if (!tryStartBurningFuel()) {
+                    break;
+                }
+            }
+
+            int step = Math.min(remaining, Math.max(0, burnTimeRemaining));
+            if (step <= 0) {
+                break;
+            }
+            burnTimeRemaining -= step;
+            remaining -= step;
+            consumed += step;
+            if (burnTimeRemaining <= 0) {
+                burnTimeTotal = 0;
+            }
+        }
+
+        if (consumed <= 0) {
+            return 0;
+        }
         setChanged();
         return consumed;
     }
 
-    public int countBasicLogicModules() {
+    public int availableResearchPower() {
+        long total = Math.max(0, burnTimeRemaining);
+
+        ItemStack fuel = items.get(FUEL_SLOT);
+        if (!fuel.isEmpty()) {
+            int burnPerItem = fuel.getBurnTime(null);
+            if (burnPerItem > 0) {
+                total += (long) burnPerItem * (long) fuel.getCount();
+            }
+        }
+        if (total >= Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return (int) Math.max(0L, total);
+    }
+
+    public int burnTimeRemainingForDisplay() {
+        return Math.max(0, burnTimeRemaining);
+    }
+
+    public int burnTimeTotalForDisplay() {
+        return Math.max(0, burnTimeTotal);
+    }
+
+    public int runTickProgressForDisplay() {
+        return Math.max(0, runTickProgressDisplay);
+    }
+
+    public int runTickRequiredForDisplay() {
+        return Math.max(1, runTickRequiredDisplay);
+    }
+
+    public int completedRunsForDisplay() {
+        return Math.max(0, completedRunsDisplay);
+    }
+
+    public int requiredRunsForDisplay() {
+        return Math.max(1, requiredRunsDisplay);
+    }
+
+    public int queueStatusForDisplay() {
+        return queueStatusDisplay;
+    }
+
+    public int availableBasicLogicDurability() {
         ItemStack stack = items.get(LOGIC_SLOT);
         if (!stack.is(Registration.BASIC_LOGIC_MODULE_ITEM.get())) {
             return 0;
         }
-        return stack.getCount();
+        int maxDamage = stack.getMaxDamage();
+        if (maxDamage <= 0) {
+            return 0;
+        }
+        return Math.max(0, maxDamage - stack.getDamageValue());
     }
 
-    public int consumeBasicLogicModules(int amount) {
+    public int consumeBasicLogicDurability(int amount) {
         int requested = Math.max(0, amount);
         if (requested <= 0) {
             return 0;
@@ -185,10 +268,24 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
             return 0;
         }
 
-        int consumed = Math.min(requested, stack.getCount());
-        stack.shrink(consumed);
-        if (stack.isEmpty()) {
+        int maxDamage = stack.getMaxDamage();
+        if (maxDamage <= 0) {
+            return 0;
+        }
+
+        int available = Math.max(0, maxDamage - stack.getDamageValue());
+        if (available <= 0) {
             items.set(LOGIC_SLOT, ItemStack.EMPTY);
+            setChanged();
+            return 0;
+        }
+
+        int consumed = Math.min(requested, available);
+        int nextDamage = stack.getDamageValue() + consumed;
+        if (nextDamage >= maxDamage) {
+            items.set(LOGIC_SLOT, ItemStack.EMPTY);
+        } else {
+            stack.setDamageValue(nextDamage);
         }
         if (consumed > 0) {
             setChanged();
@@ -230,6 +327,48 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
         return NonNullList.of(ItemStack.EMPTY, items.toArray(ItemStack[]::new));
     }
 
+    private boolean refreshResearchDisplayData() {
+        if (level == null || level.getServer() == null || teamId.isBlank()) {
+            return setDisplayData(0, 1, 0, 1, -1);
+        }
+
+        TeamResearchState state = ResearchManager.ensureTeamState(level.getServer(), teamId);
+        if (state.researchQueue().isEmpty()) {
+            return setDisplayData(0, 1, 0, 1, -1);
+        }
+
+        var head = state.researchQueue().get(0);
+        return setDisplayData(
+                Math.max(0, head.runTickProgress()),
+                Math.max(1, head.runTickRequired()),
+                Math.max(0, head.completedRuns()),
+                Math.max(1, head.requiredRuns()),
+                head.status().ordinal()
+        );
+    }
+
+    private boolean setDisplayData(int runTickProgress, int runTickRequired, int completedRuns, int requiredRuns, int queueStatus) {
+        int normalizedProgress = Math.max(0, runTickProgress);
+        int normalizedTickRequired = Math.max(1, runTickRequired);
+        int normalizedRequiredRuns = Math.max(1, requiredRuns);
+        int normalizedCompletedRuns = Math.max(0, Math.min(completedRuns, normalizedRequiredRuns));
+
+        if (runTickProgressDisplay == normalizedProgress
+                && runTickRequiredDisplay == normalizedTickRequired
+                && completedRunsDisplay == normalizedCompletedRuns
+                && requiredRunsDisplay == normalizedRequiredRuns
+                && queueStatusDisplay == queueStatus) {
+            return false;
+        }
+
+        runTickProgressDisplay = normalizedProgress;
+        runTickRequiredDisplay = normalizedTickRequired;
+        completedRunsDisplay = normalizedCompletedRuns;
+        requiredRunsDisplay = normalizedRequiredRuns;
+        queueStatusDisplay = queueStatus;
+        return true;
+    }
+
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
@@ -248,7 +387,6 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
         teamId = tag.getString("teamId");
         burnTimeRemaining = Math.max(0, tag.getInt("burnTimeRemaining"));
         burnTimeTotal = Math.max(0, tag.getInt("burnTimeTotal"));
-        researchPowerBuffer = Math.max(0, tag.getInt("researchPowerBuffer"));
     }
 
     @Override
@@ -274,7 +412,6 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
         }
         tag.putInt("burnTimeRemaining", Math.max(0, burnTimeRemaining));
         tag.putInt("burnTimeTotal", Math.max(0, burnTimeTotal));
-        tag.putInt("researchPowerBuffer", Math.max(0, researchPowerBuffer));
     }
 
     @Override

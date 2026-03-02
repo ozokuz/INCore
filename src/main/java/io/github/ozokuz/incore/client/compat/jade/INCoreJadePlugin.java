@@ -14,6 +14,10 @@ import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMk2BlockE
 import io.github.ozokuz.incore.features.research.BurnerLabBlock;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabTier;
+import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
+import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlock;
+import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlockEntity;
 import io.github.ozokuz.incore.features.research.MechanicalLabBlock;
 import io.github.ozokuz.incore.features.research.ModularLabBlock;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarAutomatorBlock;
@@ -50,6 +54,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
     private static final DungeonAltarAutomatorProvider DUNGEON_ALTAR_AUTOMATOR_PROVIDER = new DungeonAltarAutomatorProvider();
     private static final SurfaceOreSpotProvider SURFACE_ORE_SPOT_PROVIDER = new SurfaceOreSpotProvider();
     private static final SurfaceStoneSpotProvider SURFACE_STONE_SPOT_PROVIDER = new SurfaceStoneSpotProvider();
+    private static final CrudeResearchStationProvider CRUDE_RESEARCH_STATION_PROVIDER = new CrudeResearchStationProvider();
 
     @Override
     public void register(IWailaCommonRegistration registration) {
@@ -63,6 +68,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(SHIPMENT_TERMINAL_MK2_PROVIDER, ShipmentTerminalMk2BlockEntity.class);
         registration.registerBlockDataProvider(DUNGEON_ALTAR_AUTOMATOR_PROVIDER, DungeonAltarAutomatorBlockEntity.class);
         registration.registerBlockDataProvider(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlockEntity.class);
+        registration.registerBlockDataProvider(CRUDE_RESEARCH_STATION_PROVIDER, CrudeResearchStationBlockEntity.class);
     }
 
     @Override
@@ -78,6 +84,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(DUNGEON_ALTAR_AUTOMATOR_PROVIDER, DungeonAltarAutomatorBlock.class);
         registration.registerBlockComponent(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlock.class);
         registration.registerBlockComponent(SURFACE_STONE_SPOT_PROVIDER, SurfaceStoneSpotBlock.class);
+        registration.registerBlockComponent(CRUDE_RESEARCH_STATION_PROVIDER, CrudeResearchStationBlock.class);
     }
 
     private abstract static class BaseProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
@@ -566,6 +573,79 @@ public class INCoreJadePlugin implements IWailaPlugin {
         }
     }
 
+    private static class CrudeResearchStationProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "crude_research_station");
+
+        @Override
+        public ResourceLocation getUid() {
+            return uid;
+        }
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof CrudeResearchStationBlockEntity station)) {
+                return;
+            }
+
+            data.putBoolean("team_linked", !station.teamId().isBlank());
+            data.putInt("rp_buffer", station.researchPowerBuffer());
+            data.putInt("burn_time", station.burnTimeRemainingForDisplay());
+            data.putInt("burn_total", station.burnTimeTotalForDisplay());
+            data.putInt("queue_status", station.queueStatusForDisplay());
+            data.putInt("run_tick_progress", station.runTickProgressForDisplay());
+            data.putInt("run_tick_required", station.runTickRequiredForDisplay());
+            data.putInt("completed_runs", station.completedRunsForDisplay());
+            data.putInt("required_runs", station.requiredRunsForDisplay());
+
+            if (accessor.getLevel() != null && accessor.getLevel().getServer() != null && !station.teamId().isBlank()) {
+                var state = ResearchManager.ensureTeamState(accessor.getLevel().getServer(), station.teamId());
+                if (!state.researchQueue().isEmpty()) {
+                    data.putString("active_node", state.researchQueue().get(0).nodeId().toString());
+                }
+            }
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (data.isEmpty()) {
+                return;
+            }
+
+            Component linkedText = data.getBoolean("team_linked")
+                    ? Component.translatable("jade.incore.crude_station.team.linked")
+                    : Component.translatable("jade.incore.crude_station.team.unlinked");
+            tooltip.add(Component.translatable("jade.incore.crude_station.team", linkedText));
+            tooltip.add(Component.translatable("jade.incore.crude_station.rp", data.getInt("rp_buffer")));
+            tooltip.add(Component.translatable("jade.incore.crude_station.burn", data.getInt("burn_time"), data.getInt("burn_total")));
+
+            int queueStatus = data.getInt("queue_status");
+            if (queueStatus < 0) {
+                tooltip.add(Component.translatable("jade.incore.crude_station.idle"));
+                return;
+            }
+
+            int requiredRuns = Math.max(1, data.getInt("required_runs"));
+            int completedRuns = Math.max(0, Math.min(data.getInt("completed_runs"), requiredRuns));
+            tooltip.add(Component.translatable(
+                    "jade.incore.crude_station.run",
+                    Math.min(requiredRuns, completedRuns + 1),
+                    requiredRuns
+            ));
+            tooltip.add(Component.translatable(
+                    "jade.incore.crude_station.progress",
+                    data.getInt("run_tick_progress"),
+                    data.getInt("run_tick_required")
+            ));
+
+            if (data.contains("active_node")) {
+                tooltip.add(Component.translatable("jade.incore.crude_station.node", data.getString("active_node")));
+            }
+
+            tooltip.add(Component.translatable("jade.incore.crude_station.status", crudeStationStatusText(queueStatus)));
+        }
+    }
+
     private static Component shipmentStatusText(int status) {
         return switch (status) {
             case ShipmentTerminalBlockEntity.STATUS_DISABLED -> Component.translatable("screen.incore.market.shipment.status.disabled");
@@ -619,6 +699,18 @@ public class INCoreJadePlugin implements IWailaPlugin {
         return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
     }
 
+    private static Component crudeStationStatusText(int statusOrdinal) {
+        if (statusOrdinal < 0 || statusOrdinal >= ResearchQueueStatus.values().length) {
+            return Component.translatable("screen.incore.crude_research_station.status.idle");
+        }
+        ResearchQueueStatus status = ResearchQueueStatus.values()[statusOrdinal];
+        return switch (status) {
+            case RUNNING -> Component.translatable("screen.incore.crude_research_station.status.running");
+            case PAUSED_MISSING_INPUTS -> Component.translatable("screen.incore.crude_research_station.status.missing_inputs");
+            case PAUSED_NO_POWER -> Component.translatable("screen.incore.crude_research_station.status.no_power");
+            default -> Component.translatable("screen.incore.crude_research_station.status.queued");
+        };
+    }
     private static String humanizeName(String serializedName) {
         if (serializedName == null || serializedName.isBlank()) {
             return "Unknown";

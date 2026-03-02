@@ -121,19 +121,27 @@ public final class ResearchV2Commands {
         for (int i = 0; i < state.researchQueue().size(); i++) {
             ResearchQueueEntry entry = state.researchQueue().get(i);
             ResearchNodeDefinition node = ResearchRegistry.nodes().get(entry.nodeId());
-            int requiredTime = entry.requiredTime() > 0 ? entry.requiredTime() : (node == null ? 1 : Math.max(1, node.researchTime()));
-            int progress = Math.max(0, Math.min(entry.timeProgress(), requiredTime));
-            double percent = requiredTime <= 0 ? 0.0D : (100.0D * progress / requiredTime);
-            int powerPerTick = estimatePowerPerTick(node, progress, requiredTime);
+            int runTickRequired = entry.runTickRequired() > 0 ? entry.runTickRequired() : (node == null ? 1 : Math.max(1, node.researchTime()));
+            int runTickProgress = Math.max(0, Math.min(entry.runTickProgress(), runTickRequired));
+            int requiredRuns = entry.requiredRuns() > 0 ? entry.requiredRuns() : (node == null ? 1 : Math.max(1, node.requiredRuns()));
+            int completedRuns = Math.max(0, Math.min(entry.completedRuns(), requiredRuns));
+            int totalRequired = runTickRequired * requiredRuns;
+            int totalProgress = Math.max(0, Math.min(totalRequired, (completedRuns * runTickRequired) + runTickProgress));
+            double percent = totalRequired <= 0 ? 0.0D : (100.0D * totalProgress / totalRequired);
+            int powerPerTick = estimatePowerPerTick(node, runTickProgress, runTickRequired);
 
             final int index = i + 1;
             final String line = String.format(
-                    "#%d %s status=%s progress=%d/%d (%.1f%%), rp/t=%d",
+                    "#%d %s status=%s run=%d/%d tick=%d/%d total=%d/%d (%.1f%%), rp/t=%d",
                     index,
                     entry.nodeId(),
                     entry.status(),
-                    progress,
-                    requiredTime,
+                    Math.min(requiredRuns, completedRuns + 1),
+                    requiredRuns,
+                    runTickProgress,
+                    runTickRequired,
+                    totalProgress,
+                    totalRequired,
                     percent,
                     powerPerTick
             );

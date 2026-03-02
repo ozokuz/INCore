@@ -167,6 +167,7 @@ public final class ResearchV2ClientCache {
                     stringOr(row, "categoryId", ""),
                     List.copyOf(readStringSet(row.getAsJsonArray("prerequisites"))),
                     Math.max(1, intOr(row, "researchTime", 1)),
+                    Math.max(1, intOr(row, "requiredRuns", 3)),
                     readLogicRequirements(row.getAsJsonArray("requiredLogicModules")),
                     readMaterialRequirements(row.getAsJsonArray("requiredResearchMaterials")),
                     List.copyOf(readStringSet(row.getAsJsonArray("outputs")))
@@ -194,8 +195,11 @@ public final class ResearchV2ClientCache {
             }
             queue.add(new QueueEntry(
                     nodeId,
-                    Math.max(0, intOr(row, "timeProgress", intOr(row, "progress", 0))),
-                    Math.max(1, intOr(row, "requiredTime", 1)),
+                    Math.max(0, intOr(row, "runTickProgress", 0)),
+                    Math.max(1, intOr(row, "runTickRequired", 1)),
+                    Math.max(0, intOr(row, "completedRuns", 0)),
+                    Math.max(1, intOr(row, "requiredRuns", 1)),
+                    boolOr(row, "runInputsCommitted", false),
                     stringOr(row, "status", "QUEUED")
             ));
         }
@@ -214,9 +218,9 @@ public final class ResearchV2ClientCache {
             }
             JsonObject row = element.getAsJsonObject();
             String tier = stringOr(row, "moduleTier", "");
-            int count = Math.max(0, intOr(row, "count", 0));
-            if (!tier.isBlank() && count > 0) {
-                requirements.add(new LogicModuleRequirement(tier, count));
+            int durabilityCost = Math.max(0, intOr(row, "durabilityCost", 0));
+            if (!tier.isBlank() && durabilityCost > 0) {
+                requirements.add(new LogicModuleRequirement(tier, durabilityCost));
             }
         }
         return List.copyOf(requirements);
@@ -361,7 +365,15 @@ public final class ResearchV2ClientCache {
     public record CategoryEntry(String id, String name, String iconId) {
     }
 
-    public record QueueEntry(String nodeId, int timeProgress, int requiredTime, String status) {
+    public record QueueEntry(
+            String nodeId,
+            int runTickProgress,
+            int runTickRequired,
+            int completedRuns,
+            int requiredRuns,
+            boolean runInputsCommitted,
+            String status
+    ) {
     }
 
     public record NodeEntry(
@@ -371,13 +383,14 @@ public final class ResearchV2ClientCache {
             String categoryId,
             List<String> prerequisites,
             int researchTime,
+            int requiredRuns,
             List<LogicModuleRequirement> requiredLogicModules,
             List<ResearchMaterialRequirement> requiredResearchMaterials,
             List<String> outputs
     ) {
     }
 
-    public record LogicModuleRequirement(String moduleTier, int count) {
+    public record LogicModuleRequirement(String moduleTier, int durabilityCost) {
     }
 
     public record ResearchMaterialRequirement(String materialId, int count) {
