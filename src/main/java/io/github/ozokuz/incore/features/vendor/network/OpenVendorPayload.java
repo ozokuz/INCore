@@ -28,7 +28,7 @@ public record OpenVendorPayload(String json) implements CustomPacketPayload {
 
     private static void openClient(String json) {
         try {
-            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.vendor.client.VendorClientPayloadHandlers");
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.client.features.vendor.VendorClientPayloadHandlers");
             handler.getMethod("openVendorScreen", String.class).invoke(null, json);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
         }

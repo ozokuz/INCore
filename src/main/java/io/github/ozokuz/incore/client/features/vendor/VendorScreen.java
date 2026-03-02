@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.vendor.client;
+package io.github.ozokuz.incore.client.features.vendor;
 
 import io.github.ozokuz.incore.features.vendor.VendorCurrencyView;
 import io.github.ozokuz.incore.features.vendor.VendorService;

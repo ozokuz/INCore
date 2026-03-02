@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.vendor.client;
+package io.github.ozokuz.incore.client.features.vendor;
 
 import com.google.gson.Gson;
 import io.github.ozokuz.incore.features.vendor.VendorService;
