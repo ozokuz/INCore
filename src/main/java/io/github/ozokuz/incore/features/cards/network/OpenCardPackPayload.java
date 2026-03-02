@@ -28,7 +28,7 @@ public record OpenCardPackPayload(String json) implements CustomPacketPayload {
 
     private static void openClient(String json) {
         try {
-            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.cards.client.CardClientPayloadHandlers");
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.client.features.cards.CardClientPayloadHandlers");
             handler.getMethod("openPackScreen", String.class).invoke(null, json);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
         }

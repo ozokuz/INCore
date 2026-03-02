@@ -1,6 +1,5 @@
 package io.github.ozokuz.incore.client.features.party;
 
-import io.github.ozokuz.incore.features.party.client.PartyHudClientCache;
 import io.github.ozokuz.incore.features.roguelike.RoguelikeConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

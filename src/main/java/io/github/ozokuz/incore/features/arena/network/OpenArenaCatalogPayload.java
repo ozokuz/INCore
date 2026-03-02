@@ -28,7 +28,7 @@ public record OpenArenaCatalogPayload(String json) implements CustomPacketPayloa
 
     private static void openClient(String json) {
         try {
-            Class<?> handler = Class.forName("io.github.ozokuz.incore.client.arena.ArenaClientPayloadHandlers");
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.client.features.arena.ArenaClientPayloadHandlers");
             handler.getMethod("openCatalogScreen", String.class).invoke(null, json);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
         }

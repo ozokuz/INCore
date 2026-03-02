@@ -1,6 +1,6 @@
 package io.github.ozokuz.incore.features.party.network;
 
-import io.github.ozokuz.incore.features.party.client.PartyClientCache;
+import io.github.ozokuz.incore.client.features.party.PartyClientCache;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

@@ -28,7 +28,7 @@ public record OpenGachaBannersPayload(String json) implements CustomPacketPayloa
 
     private static void openClient(String json) {
         try {
-            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.gacha.client.GachaClientPayloadHandlers");
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.client.features.gacha.GachaClientPayloadHandlers");
             handler.getMethod("openBannersScreen", String.class).invoke(null, json);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
         }

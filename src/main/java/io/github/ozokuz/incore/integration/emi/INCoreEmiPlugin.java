@@ -7,7 +7,7 @@ import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.Bounds;
-import io.github.ozokuz.incore.features.market.client.MarketAutoBuyerScreen;
+import io.github.ozokuz.incore.client.features.market.MarketAutoBuyerScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 

@@ -29,7 +29,7 @@ public record OpenShopScreenPayload(String json) implements CustomPacketPayload 
 
     private static void openClient(String json) {
         try {
-            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.shop.client.ShopClientPayloadHandlers");
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.client.features.shop.ShopClientPayloadHandlers");
             handler.getMethod("openShopScreen", String.class).invoke(null, json);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
         }

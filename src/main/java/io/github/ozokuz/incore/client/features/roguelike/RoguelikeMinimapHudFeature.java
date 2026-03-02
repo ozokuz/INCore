@@ -1,7 +1,6 @@
 package io.github.ozokuz.incore.client.features.roguelike;
 
 import io.github.ozokuz.incore.features.roguelike.RoguelikeConstants;
-import io.github.ozokuz.incore.features.roguelike.client.RoguelikeMinimapClientCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.neoforge.client.event.ClientTickEvent;

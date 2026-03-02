@@ -1,6 +1,6 @@
 package io.github.ozokuz.incore.features.roguelike.network;
 
-import io.github.ozokuz.incore.features.roguelike.client.RoguelikeMinimapClientCache;
+import io.github.ozokuz.incore.client.features.roguelike.RoguelikeMinimapClientCache;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

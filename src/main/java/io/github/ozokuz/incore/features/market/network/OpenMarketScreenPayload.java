@@ -29,7 +29,7 @@ public record OpenMarketScreenPayload(String json) implements CustomPacketPayloa
 
     private static void openClient(String json) {
         try {
-            Class<?> handler = Class.forName("io.github.ozokuz.incore.features.market.client.MarketClientPayloadHandlers");
+            Class<?> handler = Class.forName("io.github.ozokuz.incore.client.features.market.MarketClientPayloadHandlers");
             handler.getMethod("openMarketScreen", String.class).invoke(null, json);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
         }
