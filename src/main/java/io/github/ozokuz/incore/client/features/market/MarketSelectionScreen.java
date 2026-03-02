@@ -22,6 +22,8 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
     private static final int TILE_WIDTH = 136;
     private static final int TILE_HEIGHT = 42;
     private static final int TILE_GAP = 6;
+    private static final int GRID_PADDING_LEFT = 6;
+    private static final int GRID_PADDING_TOP = 6;
     private static final float COST_SCALE = 0.75F;
     private static final ResourceLocation SPUR_ICON_ITEM = ResourceLocation.parse("numismatics:spur");
 
@@ -84,11 +86,11 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
             return super.mouseClicked(mouseX, mouseY, button);
         }
 
-        int columns = Math.max(1, (panelWidth() + TILE_GAP) / (TILE_WIDTH + TILE_GAP));
-        int rowsVisible = Math.max(1, (panelHeight() + TILE_GAP) / (TILE_HEIGHT + TILE_GAP));
+        int columns = visibleColumns();
+        int rowsVisible = visibleRows();
         int startIndex = scrollRow * columns;
-        int drawX = PANEL_X;
-        int drawY = PANEL_Y;
+        int drawX = gridStartX();
+        int drawY = gridStartY();
 
         for (int row = 0; row < rowsVisible; row++) {
             for (int col = 0; col < columns; col++) {
@@ -136,12 +138,12 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
 
         List<MarketService.ItemView> ordered = MarketScreenDataUtil.orderedItems(data);
         if (ordered.isEmpty()) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.market.no_data"), PANEL_X + 6, PANEL_Y + 6, 0xDD8D8D, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.market.no_data"), gridStartX(), gridStartY(), 0xDD8D8D, false);
             return;
         }
 
-        int columns = Math.max(1, (panelWidth() + TILE_GAP) / (TILE_WIDTH + TILE_GAP));
-        int rowsVisible = Math.max(1, (panelHeight() + TILE_GAP) / (TILE_HEIGHT + TILE_GAP));
+        int columns = visibleColumns();
+        int rowsVisible = visibleRows();
         int startIndex = scrollRow * columns;
 
         for (int row = 0; row < rowsVisible; row++) {
@@ -152,8 +154,8 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 }
 
                 MarketService.ItemView item = ordered.get(index);
-                int tileX = PANEL_X + col * (TILE_WIDTH + TILE_GAP);
-                int tileY = PANEL_Y + row * (TILE_HEIGHT + TILE_GAP);
+                int tileX = gridStartX() + col * (TILE_WIDTH + TILE_GAP);
+                int tileY = gridStartY() + row * (TILE_HEIGHT + TILE_GAP);
                 boolean selected = item.itemId().equals(selectedItemId);
 
                 int borderColor = selected ? 0xFF89C9FF : 0xFF3D4558;
@@ -219,10 +221,34 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
 
     private int maxScrollRows() {
         List<MarketService.ItemView> ordered = MarketScreenDataUtil.orderedItems(data);
-        int columns = Math.max(1, (panelWidth() + TILE_GAP) / (TILE_WIDTH + TILE_GAP));
-        int rowsVisible = Math.max(1, (panelHeight() + TILE_GAP) / (TILE_HEIGHT + TILE_GAP));
+        int columns = visibleColumns();
+        int rowsVisible = visibleRows();
         int totalRows = (ordered.size() + columns - 1) / columns;
         return Math.max(0, totalRows - rowsVisible);
+    }
+
+    private int gridStartX() {
+        return PANEL_X + GRID_PADDING_LEFT;
+    }
+
+    private int gridStartY() {
+        return PANEL_Y + GRID_PADDING_TOP;
+    }
+
+    private int gridWidth() {
+        return panelWidth() - GRID_PADDING_LEFT;
+    }
+
+    private int gridHeight() {
+        return panelHeight() - GRID_PADDING_TOP;
+    }
+
+    private int visibleColumns() {
+        return Math.max(1, (gridWidth() + TILE_GAP) / (TILE_WIDTH + TILE_GAP));
+    }
+
+    private int visibleRows() {
+        return Math.max(1, (gridHeight() + TILE_GAP) / (TILE_HEIGHT + TILE_GAP));
     }
 
     private void clampScroll() {

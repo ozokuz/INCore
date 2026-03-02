@@ -79,7 +79,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
                     if (itemId != null) {
                         minecraft.setScreen(new MarketTradeConfirmScreen(this, data, selectedItemId, true));
                     }
-                }).bounds(width / 2 - 172, height - 26, 82, 20)
+                }).bounds(width - 180, height - 30, 82, 20)
                 .build());
 
         addRenderableWidget(Button.builder(Component.translatable("screen.incore.market.sell"), button -> {
@@ -87,7 +87,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
                     if (itemId != null) {
                         minecraft.setScreen(new MarketTradeConfirmScreen(this, data, selectedItemId, false));
                     }
-                }).bounds(width / 2 - 86, height - 26, 82, 20)
+                }).bounds(width - 92, height - 30, 82, 20)
                 .build());
     }
 
