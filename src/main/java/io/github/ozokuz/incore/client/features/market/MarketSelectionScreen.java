@@ -24,12 +24,17 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
     private static final int TILE_GAP = 6;
     private static final int GRID_PADDING_LEFT = 6;
     private static final int GRID_PADDING_TOP = 6;
+    private static final int GRID_PADDING_RIGHT = 14;
+    private static final int SCROLLBAR_WIDTH = 6;
+    private static final int SCROLLBAR_MIN_THUMB_HEIGHT = 16;
     private static final float COST_SCALE = 0.75F;
     private static final ResourceLocation SPUR_ICON_ITEM = ResourceLocation.parse("numismatics:spur");
 
     private MarketService.ScreenData data;
     private int scrollRow;
     private @Nullable String selectedItemId;
+    private boolean draggingScrollbar;
+    private double scrollbarDragOffsetY;
 
     public MarketSelectionScreen(String json) {
         this(MarketScreenDataUtil.parse(json), 0, null);
@@ -82,6 +87,21 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
         }
 
         List<MarketService.ItemView> ordered = MarketScreenDataUtil.orderedItems(data);
+        int itemCount = ordered.size();
+        int maxRows = maxScrollRows(itemCount);
+        if (maxRows > 0 && isMouseOverScrollbar(mouseX, mouseY)) {
+            int thumbY = scrollbarThumbY(itemCount, maxRows);
+            int thumbHeight = scrollbarThumbHeight(itemCount);
+            if (mouseY >= thumbY && mouseY < thumbY + thumbHeight) {
+                draggingScrollbar = true;
+                scrollbarDragOffsetY = mouseY - thumbY;
+            } else {
+                draggingScrollbar = false;
+                setScrollFromThumbTop(mouseY - (thumbHeight / 2.0D), maxRows, thumbHeight);
+            }
+            return true;
+        }
+
         if (ordered.isEmpty()) {
             return super.mouseClicked(mouseX, mouseY, button);
         }
@@ -114,6 +134,32 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (button != 0 || !draggingScrollbar) {
+            return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        }
+
+        int itemCount = MarketScreenDataUtil.orderedItems(data).size();
+        int maxRows = maxScrollRows(itemCount);
+        if (maxRows <= 0) {
+            draggingScrollbar = false;
+            return true;
+        }
+
+        int thumbHeight = scrollbarThumbHeight(itemCount);
+        setScrollFromThumbTop(mouseY - scrollbarDragOffsetY, maxRows, thumbHeight);
+        return true;
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0) {
+            draggingScrollbar = false;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
@@ -183,6 +229,8 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
             }
         }
 
+        renderScrollbar(guiGraphics, ordered.size());
+
         int totalRows = (ordered.size() + columns - 1) / columns;
         int currentRow = Math.min(totalRows, scrollRow + 1);
         guiGraphics.drawString(font, Component.literal(currentRow + "/" + Math.max(1, totalRows)), width - 52, height - 38, 0xB7C1D0, false);
@@ -220,10 +268,13 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
     }
 
     private int maxScrollRows() {
-        List<MarketService.ItemView> ordered = MarketScreenDataUtil.orderedItems(data);
+        return maxScrollRows(MarketScreenDataUtil.orderedItems(data).size());
+    }
+
+    private int maxScrollRows(int itemCount) {
         int columns = visibleColumns();
         int rowsVisible = visibleRows();
-        int totalRows = (ordered.size() + columns - 1) / columns;
+        int totalRows = (itemCount + columns - 1) / columns;
         return Math.max(0, totalRows - rowsVisible);
     }
 
@@ -236,11 +287,11 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
     }
 
     private int gridWidth() {
-        return panelWidth() - GRID_PADDING_LEFT;
+        return Math.max(1, panelWidth() - GRID_PADDING_LEFT - GRID_PADDING_RIGHT);
     }
 
     private int gridHeight() {
-        return panelHeight() - GRID_PADDING_TOP;
+        return Math.max(1, panelHeight() - GRID_PADDING_TOP);
     }
 
     private int visibleColumns() {
@@ -253,6 +304,74 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
 
     private void clampScroll() {
         scrollRow = Math.max(0, Math.min(scrollRow, maxScrollRows()));
+    }
+
+    private int scrollbarX() {
+        return PANEL_X + panelWidth() - GRID_PADDING_RIGHT + Math.max(0, (GRID_PADDING_RIGHT - SCROLLBAR_WIDTH) / 2);
+    }
+
+    private int scrollbarTrackTop() {
+        return gridStartY();
+    }
+
+    private int scrollbarTrackHeight() {
+        return gridHeight();
+    }
+
+    private boolean isMouseOverScrollbar(double mouseX, double mouseY) {
+        int x = scrollbarX();
+        int y = scrollbarTrackTop();
+        return mouseX >= x && mouseX < x + SCROLLBAR_WIDTH && mouseY >= y && mouseY < y + scrollbarTrackHeight();
+    }
+
+    private int scrollbarThumbHeight(int itemCount) {
+        int rowsVisible = visibleRows();
+        int totalRows = (itemCount + visibleColumns() - 1) / visibleColumns();
+        if (totalRows <= 0) {
+            return scrollbarTrackHeight();
+        }
+        int rawHeight = (int) Math.round((double) rowsVisible / (double) totalRows * scrollbarTrackHeight());
+        return Math.min(scrollbarTrackHeight(), Math.max(SCROLLBAR_MIN_THUMB_HEIGHT, rawHeight));
+    }
+
+    private int scrollbarThumbY(int itemCount, int maxRows) {
+        int trackTop = scrollbarTrackTop();
+        if (maxRows <= 0) {
+            return trackTop;
+        }
+        int thumbHeight = scrollbarThumbHeight(itemCount);
+        int range = Math.max(1, scrollbarTrackHeight() - thumbHeight);
+        return trackTop + (int) Math.round((double) scrollRow / (double) maxRows * range);
+    }
+
+    private void setScrollFromThumbTop(double thumbTop, int maxRows, int thumbHeight) {
+        if (maxRows <= 0) {
+            scrollRow = 0;
+            return;
+        }
+        int trackTop = scrollbarTrackTop();
+        int range = Math.max(1, scrollbarTrackHeight() - thumbHeight);
+        double clampedTop = Math.max(trackTop, Math.min(thumbTop, trackTop + range));
+        double progress = (clampedTop - trackTop) / range;
+        scrollRow = (int) Math.round(progress * maxRows);
+        clampScroll();
+    }
+
+    private void renderScrollbar(GuiGraphics guiGraphics, int itemCount) {
+        int x = scrollbarX();
+        int y = scrollbarTrackTop();
+        int trackHeight = scrollbarTrackHeight();
+        drawPanel(guiGraphics, x, y, SCROLLBAR_WIDTH, trackHeight, 0xAA10161D, 0xFF3D4558);
+
+        int maxRows = maxScrollRows(itemCount);
+        if (maxRows <= 0) {
+            return;
+        }
+
+        int thumbHeight = scrollbarThumbHeight(itemCount);
+        int thumbY = scrollbarThumbY(itemCount, maxRows);
+        int thumbColor = draggingScrollbar ? 0xFF8FC8FF : 0xFF6F8FB3;
+        drawPanel(guiGraphics, x + 1, thumbY, Math.max(1, SCROLLBAR_WIDTH - 2), thumbHeight, thumbColor, 0xFFB7D6F6);
     }
 
     private void renderItemIcon(GuiGraphics guiGraphics, String itemId, int x, int y) {
