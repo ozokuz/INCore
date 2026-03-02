@@ -1,6 +1,5 @@
 package io.github.ozokuz.incore.client.tasks;
 
-import io.github.ozokuz.incore.client.status.AdvancementWindowRenderer;
 import io.github.ozokuz.incore.features.tasks.client.TaskClientCache;
 import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
 import net.minecraft.ChatFormatting;
@@ -35,14 +34,25 @@ public class TaskOverviewScreen extends Screen {
     private static final int MIN_SCROLLBAR_THUMB_HEIGHT = 12;
     private static final int REWARD_ICON_SIZE = 16;
     private static final int REWARD_ICON_GAP = 2;
-    private static final int COLOR_BACKDROP = 0xB014171D;
-    private static final int COLOR_PANEL = 0x7A101419;
-    private static final int COLOR_PANEL_BORDER = 0x8FE6E6E6;
-    private static final int COLOR_ACCENT = 0xFFE6CC33;
-    private static final int COLOR_TEXT_PRIMARY = 0xF3F3F3;
-    private static final int COLOR_TEXT_SECONDARY = 0xC8C8C8;
-    private static final int COLOR_CARD_TEXT_DARK = 0xFFF1F2F4;
-    private static final int COLOR_CARD_TEXT_MID = 0xFFD2D7DE;
+    private static final int CONTENT_PADDING_X = 15;
+    private static final int CONTENT_PADDING_TOP = 24;
+    private static final int CONTENT_PADDING_BOTTOM = 15;
+    private static final int MIN_WINDOW_WIDTH = 252;
+    private static final int MIN_WINDOW_HEIGHT = 140;
+    private static final int COLOR_WINDOW_FILL = 0xD114161A;
+    private static final int COLOR_WINDOW_BORDER_LIGHT = 0xFF474B52;
+    private static final int COLOR_WINDOW_BORDER_DARK = 0xFF000000;
+    private static final int COLOR_BACKDROP = 0xCC0E1015;
+    private static final int COLOR_PANEL = 0xCC0E1015;
+    private static final int COLOR_PANEL_BORDER = 0x66454D5B;
+    private static final int COLOR_CARD = 0xBB1A2029;
+    private static final int COLOR_CARD_COMPLETE = 0xBB1E2A24;
+    private static final int COLOR_ACCENT = 0xFFFFD31A;
+    private static final int COLOR_ACCENT_COMPLETE = 0xFF62D48A;
+    private static final int COLOR_TEXT_PRIMARY = 0xFFF2F4F8;
+    private static final int COLOR_TEXT_SECONDARY = 0xFFC3C9D3;
+    private static final int COLOR_CARD_TEXT_DARK = 0xFFECEFF5;
+    private static final int COLOR_CARD_TEXT_MID = 0xFFBCC3CF;
 
     private Integer previousMenuBlur;
     private Button claimDailyButton;
@@ -93,31 +103,34 @@ public class TaskOverviewScreen extends Screen {
         int windowWidth = this.windowWidth();
         int windowHeight = this.windowHeight();
 
-        int insideLeft = windowLeft + AdvancementWindowRenderer.BORDER_LEFT;
-        int insideTop = windowTop + AdvancementWindowRenderer.BORDER_TOP;
-        int insideRight = windowLeft + windowWidth - AdvancementWindowRenderer.BORDER_RIGHT;
-        int insideBottom = windowTop + windowHeight - AdvancementWindowRenderer.BORDER_BOTTOM;
+        ContentLayout layout = this.contentLayout();
+        this.updateClaimButtons(snapshot, layout.sidebarLeft(), layout.sidebarRight(), layout.contentTop(), layout.mainLeft(), layout.mainRight(), layout.contentBottom());
 
-        int contentLeft = insideLeft + 6;
-        int contentTop = insideTop + 6;
-        int contentRight = insideRight - 6;
-        int contentBottom = insideBottom - 6;
+        guiGraphics.fillGradient(0, 0, this.width, this.height, 0xD5090B10, 0xE0010206);
+        drawWindowPanel(guiGraphics, windowLeft, windowTop, windowLeft + windowWidth, windowTop + windowHeight);
+        guiGraphics.fill(layout.contentLeft(), layout.contentTop(), layout.contentRight(), layout.contentBottom(), COLOR_BACKDROP);
+        guiGraphics.drawString(this.font, this.title, windowLeft + 12, windowTop + 8, COLOR_TEXT_PRIMARY, false);
 
-        int sidebarWidth = Math.min(SIDEBAR_TARGET_WIDTH, Math.max(132, (contentRight - contentLeft) / 3));
-        int sidebarLeft = contentLeft;
-        int sidebarRight = sidebarLeft + sidebarWidth;
-        int mainLeft = sidebarRight + 8;
-        int mainRight = contentRight;
-        this.updateClaimButtons(snapshot, sidebarLeft, sidebarRight, contentTop, mainLeft, mainRight, contentBottom);
-
-        AdvancementWindowRenderer.draw(guiGraphics, windowLeft, windowTop, windowWidth, windowHeight);
-        guiGraphics.fill(insideLeft, insideTop, insideRight, insideBottom, COLOR_BACKDROP);
-
-        int titleY = windowTop + (AdvancementWindowRenderer.BORDER_TOP - this.font.lineHeight) / 2 + 1;
-        guiGraphics.drawString(this.font, this.title, windowLeft + AdvancementWindowRenderer.BORDER_LEFT + 8, titleY, COLOR_TEXT_PRIMARY);
-
-        HoveredReward hovered = this.drawSidebar(guiGraphics, snapshot, sidebarLeft, contentTop, sidebarRight, contentBottom, mouseX, mouseY);
-        HoveredReward hoveredInMain = this.drawMainPanel(guiGraphics, snapshot, mainLeft, contentTop, mainRight, contentBottom, mouseX, mouseY);
+        HoveredReward hovered = this.drawSidebar(
+                guiGraphics,
+                snapshot,
+                layout.sidebarLeft(),
+                layout.contentTop(),
+                layout.sidebarRight(),
+                layout.contentBottom(),
+                mouseX,
+                mouseY
+        );
+        HoveredReward hoveredInMain = this.drawMainPanel(
+                guiGraphics,
+                snapshot,
+                layout.mainLeft(),
+                layout.contentTop(),
+                layout.mainRight(),
+                layout.contentBottom(),
+                mouseX,
+                mouseY
+        );
         if (hoveredInMain != null) {
             hovered = hoveredInMain;
         }
@@ -145,11 +158,8 @@ public class TaskOverviewScreen extends Screen {
         int y = top + PANEL_PADDING;
         int availableWidth = Math.max(40, right - left - (PANEL_PADDING * 2));
 
-        String dailyState = snapshot.fixedDailyAllCompleted()
-                ? Component.translatable("screen.incore.tasks.daily_complete").getString()
-                : Component.translatable("screen.incore.tasks.daily_in_progress").getString();
         String headerText = "Daily: " + snapshot.fixedDailyCompleted() + "/7";
-        guiGraphics.drawString(this.font, Component.literal(headerText), x, y, COLOR_TEXT_SECONDARY);
+        guiGraphics.drawString(this.font, Component.literal(headerText), x, y, COLOR_TEXT_PRIMARY, false);
         y += 12;
 
         int rewardsLabelY = this.claimDailyButton != null ? this.claimDailyButton.getY() - 32 : bottom - 32;
@@ -163,7 +173,7 @@ public class TaskOverviewScreen extends Screen {
         int completedTasks = snapshot.fixedDailyCompleted();
         int progressBarHeight = totalTasks * rowHeight + (totalTasks - 1) * rowGap;
         int filledHeight = Math.round((float) completedTasks / totalTasks * progressBarHeight);
-        int emptyProgressColor = 0xFF3A3F47;
+        int emptyProgressColor = 0xFF3A4454;
         int filledProgressColor = COLOR_ACCENT;
 
         int barX = x;
@@ -192,14 +202,16 @@ public class TaskOverviewScreen extends Screen {
                     break;
                 }
 
-                guiGraphics.fill(taskListX, y, right - PANEL_PADDING, rowBottom, 0x8A333A44);
-                guiGraphics.fill(taskListX, rowBottom - 1, right - PANEL_PADDING, rowBottom, 0x55FFFFFF);
-
                 int progress = Math.min(entry.progress(), entry.goal());
                 boolean complete = progress >= entry.goal();
+                int rowFill = complete ? 0xAA243127 : COLOR_CARD;
+                int rowBorder = complete ? 0x8062D48A : COLOR_PANEL_BORDER;
+                guiGraphics.fill(taskListX, y, right - PANEL_PADDING, rowBottom, rowFill);
+                drawRectBorder(guiGraphics, taskListX, y, right - PANEL_PADDING, rowBottom, rowBorder);
+
                 String titleText = ellipsize(entry.title(), taskListWidth - 8);
-                int titleColor = complete ? 0xFF6FD980 : 0xFFFFFFFF;
-                guiGraphics.drawString(this.font, Component.literal(titleText), taskListX + 4, y + 3, titleColor);
+                int titleColor = complete ? COLOR_ACCENT_COMPLETE : COLOR_CARD_TEXT_DARK;
+                guiGraphics.drawString(this.font, Component.literal(titleText), taskListX + 4, y + 3, titleColor, false);
                 String progressText;
                 if (complete) {
                     progressText = "\u2713";
@@ -207,7 +219,7 @@ public class TaskOverviewScreen extends Screen {
                     progressText = progress + "/" + entry.goal();
                 }
                 int progressTextWidth = this.font.width(progressText);
-                guiGraphics.drawString(this.font, Component.literal(progressText), right - PANEL_PADDING - 2 - progressTextWidth, y + 3, 0xE5E5E5);
+                guiGraphics.drawString(this.font, Component.literal(progressText), right - PANEL_PADDING - 2 - progressTextWidth, y + 3, COLOR_CARD_TEXT_MID, false);
 
                 y += rowHeight + 2;
             }
@@ -272,38 +284,49 @@ public class TaskOverviewScreen extends Screen {
     }
 
     private void drawWeeklyCard(GuiGraphics guiGraphics, TaskClientCache.TaskEntry entry, int left, int top, int right, int bottom) {
-        guiGraphics.fill(left, top, right, bottom, 0xDA363C46);
-        guiGraphics.fill(left, top, left + 1, bottom, 0xA0F7F7F7);
-        guiGraphics.fill(left, top, right, top + 1, 0xA0F7F7F7);
-        guiGraphics.fill(left, bottom - 1, right, bottom, 0x99000000);
+        int progress = Math.min(entry.progress(), entry.goal());
+        boolean complete = progress >= entry.goal();
+        int cardFill = complete ? COLOR_CARD_COMPLETE : COLOR_CARD;
+        int cardBorder = complete ? 0xAA62D48A : COLOR_PANEL_BORDER;
+        guiGraphics.fill(left, top, right, bottom, cardFill);
+        drawRectBorder(guiGraphics, left, top, right, bottom, cardBorder);
 
         int badgeWidth = 52;
         int badgeRight = Math.min(right - 8, left + badgeWidth);
-        guiGraphics.fill(left, top, badgeRight, bottom, 0xE22A3038);
-        guiGraphics.fill(badgeRight - 1, top + 2, badgeRight, bottom - 2, 0x88FFFFFF);
+        int badgeFill = complete ? 0xCC253A30 : 0xCC242A35;
+        guiGraphics.fill(left + 1, top + 1, badgeRight, bottom - 1, badgeFill);
+        guiGraphics.fill(badgeRight - 1, top + 1, badgeRight, bottom - 1, complete ? 0xAA62D48A : 0x80454D5B);
 
         String pointsText = "▲ " + entry.points();
         int pointsTextWidth = this.font.width(pointsText);
         int pointsY = top + ((bottom - top - this.font.lineHeight) / 2);
-        guiGraphics.drawString(this.font, Component.literal(pointsText), left + (badgeWidth - pointsTextWidth) / 2, pointsY, COLOR_ACCENT);
+        guiGraphics.drawString(this.font, Component.literal(pointsText), left + (badgeWidth - pointsTextWidth) / 2, pointsY, COLOR_ACCENT, false);
 
         int contentLeft = badgeRight + 6;
         int pillWidth = 80;
-        int contentRight = right - pillWidth - 10;
-        int progress = Math.min(entry.progress(), entry.goal());
-        boolean complete = progress >= entry.goal();
+        int contentRight = Math.max(contentLeft + 24, right - pillWidth - 10);
         String titleText = ellipsize(entry.title(), Math.max(20, contentRight - contentLeft));
-        guiGraphics.drawString(this.font, Component.literal(titleText), contentLeft, top + 4, COLOR_CARD_TEXT_DARK, true);
-        drawProgressBar(guiGraphics, contentLeft, bottom - 9, Math.max(24, contentRight - contentLeft), 5, progressRatio(progress, entry.goal()), 0xFF5C6572, COLOR_ACCENT);
+        guiGraphics.drawString(this.font, Component.literal(titleText), contentLeft, top + 4, COLOR_CARD_TEXT_DARK, false);
+        drawProgressBar(
+                guiGraphics,
+                contentLeft,
+                bottom - 9,
+                Math.max(24, contentRight - contentLeft),
+                5,
+                progressRatio(progress, entry.goal()),
+                0xFF3A4454,
+                complete ? COLOR_ACCENT_COMPLETE : COLOR_ACCENT
+        );
         String progressText = progress + "/" + entry.goal();
-        guiGraphics.drawString(this.font, Component.literal(progressText), contentLeft, top + 15, COLOR_CARD_TEXT_MID, true);
+        guiGraphics.drawString(this.font, Component.literal(progressText), contentLeft, top + 15, COLOR_CARD_TEXT_MID, false);
 
         int pillLeft = right - pillWidth - 8;
         int pillTop = top + (bottom - top - 14) / 2;
         int pillBottom = pillTop + 14;
-        int pillColor = complete ? 0xAA3A7A45 : 0xAA4B4B54;
+        int pillColor = complete ? 0xAA2B4A34 : 0xAA2D3440;
+        int pillBorder = complete ? 0xAA62D48A : 0xAA5A6372;
         guiGraphics.fill(pillLeft, pillTop, pillLeft + pillWidth, pillBottom, pillColor);
-        guiGraphics.fill(pillLeft, pillTop, pillLeft + pillWidth, pillTop + 1, 0x66FFFFFF);
+        drawRectBorder(guiGraphics, pillLeft, pillTop, pillLeft + pillWidth, pillBottom, pillBorder);
         String stateText = complete
                 ? Component.translatable("screen.incore.tasks.status_complete").getString()
                 : Component.translatable("screen.incore.tasks.status_in_progress").getString();
@@ -313,7 +336,7 @@ public class TaskOverviewScreen extends Screen {
                 pillLeft + 4,
                 pillTop + 3,
                 COLOR_TEXT_PRIMARY,
-                true
+                false
         );
     }
 
@@ -409,20 +432,18 @@ public class TaskOverviewScreen extends Screen {
     }
 
     private void drawWeeklyScrollbar(GuiGraphics guiGraphics, WeeklyListMetrics metrics) {
-        guiGraphics.fill(metrics.trackLeft(), metrics.trackTop(), metrics.trackRight(), metrics.trackBottom(), 0x500F1318);
-        guiGraphics.fill(metrics.trackLeft(), metrics.trackTop(), metrics.trackRight(), metrics.trackTop() + 1, 0x70FFFFFF);
-        guiGraphics.fill(metrics.trackLeft(), metrics.trackBottom() - 1, metrics.trackRight(), metrics.trackBottom(), 0x70101010);
+        guiGraphics.fill(metrics.trackLeft(), metrics.trackTop(), metrics.trackRight(), metrics.trackBottom(), 0x4C101926);
+        drawRectBorder(guiGraphics, metrics.trackLeft(), metrics.trackTop(), metrics.trackRight(), metrics.trackBottom(), COLOR_PANEL_BORDER);
 
         if (metrics.maxScroll() <= 0) {
-            guiGraphics.fill(metrics.trackLeft() + 1, metrics.trackTop() + 1, metrics.trackRight() - 1, metrics.trackBottom() - 1, 0x55353940);
+            guiGraphics.fill(metrics.trackLeft() + 1, metrics.trackTop() + 1, metrics.trackRight() - 1, metrics.trackBottom() - 1, 0x661A2029);
             return;
         }
 
         int thumbTop = this.weeklyThumbTop(metrics);
         int thumbBottom = thumbTop + this.weeklyThumbHeight(metrics);
-        guiGraphics.fill(metrics.trackLeft() + 1, thumbTop, metrics.trackRight() - 1, thumbBottom, 0xAAE2E6EB);
-        guiGraphics.fill(metrics.trackLeft() + 1, thumbTop, metrics.trackRight() - 1, thumbTop + 1, 0xD0FFFFFF);
-        guiGraphics.fill(metrics.trackLeft() + 1, thumbBottom - 1, metrics.trackRight() - 1, thumbBottom, 0x80404040);
+        guiGraphics.fill(metrics.trackLeft() + 1, thumbTop, metrics.trackRight() - 1, thumbBottom, 0xCCBFC7D3);
+        drawRectBorder(guiGraphics, metrics.trackLeft() + 1, thumbTop, metrics.trackRight() - 1, thumbBottom, 0xFF5A6372);
     }
 
     private int weeklyThumbHeight(WeeklyListMetrics metrics) {
@@ -462,19 +483,15 @@ public class TaskOverviewScreen extends Screen {
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
 
-        int insideLeft = this.windowLeft() + AdvancementWindowRenderer.BORDER_LEFT;
-        int insideTop = this.windowTop() + AdvancementWindowRenderer.BORDER_TOP;
-        int insideRight = this.windowLeft() + this.windowWidth() - AdvancementWindowRenderer.BORDER_RIGHT;
-        int insideBottom = this.windowTop() + this.windowHeight() - AdvancementWindowRenderer.BORDER_BOTTOM;
-        int contentLeft = insideLeft + 6;
-        int contentTop = insideTop + 6;
-        int contentRight = insideRight - 6;
-        int contentBottom = insideBottom - 6;
-        int sidebarWidth = Math.min(SIDEBAR_TARGET_WIDTH, Math.max(132, (contentRight - contentLeft) / 3));
-        int mainLeft = contentLeft + sidebarWidth + 8;
-        int mainRight = contentRight;
+        ContentLayout layout = this.contentLayout();
         List<TaskClientCache.TaskEntry> sortedWeekly = sortedWeeklyEntries(TaskClientCache.snapshot().weekly());
-        WeeklyListMetrics metrics = this.weeklyListMetrics(mainLeft, contentTop, mainRight, contentBottom, sortedWeekly.size());
+        WeeklyListMetrics metrics = this.weeklyListMetrics(
+                layout.mainLeft(),
+                layout.contentTop(),
+                layout.mainRight(),
+                layout.contentBottom(),
+                sortedWeekly.size()
+        );
         if (metrics.maxScroll() <= 0) {
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
@@ -490,19 +507,15 @@ public class TaskOverviewScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            int insideLeft = this.windowLeft() + AdvancementWindowRenderer.BORDER_LEFT;
-            int insideTop = this.windowTop() + AdvancementWindowRenderer.BORDER_TOP;
-            int insideRight = this.windowLeft() + this.windowWidth() - AdvancementWindowRenderer.BORDER_RIGHT;
-            int insideBottom = this.windowTop() + this.windowHeight() - AdvancementWindowRenderer.BORDER_BOTTOM;
-            int contentLeft = insideLeft + 6;
-            int contentTop = insideTop + 6;
-            int contentRight = insideRight - 6;
-            int contentBottom = insideBottom - 6;
-            int sidebarWidth = Math.min(SIDEBAR_TARGET_WIDTH, Math.max(132, (contentRight - contentLeft) / 3));
-            int mainLeft = contentLeft + sidebarWidth + 8;
-            int mainRight = contentRight;
+            ContentLayout layout = this.contentLayout();
             List<TaskClientCache.TaskEntry> sortedWeekly = sortedWeeklyEntries(TaskClientCache.snapshot().weekly());
-            WeeklyListMetrics metrics = this.weeklyListMetrics(mainLeft, contentTop, mainRight, contentBottom, sortedWeekly.size());
+            WeeklyListMetrics metrics = this.weeklyListMetrics(
+                    layout.mainLeft(),
+                    layout.contentTop(),
+                    layout.mainRight(),
+                    layout.contentBottom(),
+                    sortedWeekly.size()
+            );
 
             if (metrics.maxScroll() > 0
                     && mouseX >= metrics.trackLeft() && mouseX <= metrics.trackRight()
@@ -526,19 +539,15 @@ public class TaskOverviewScreen extends Screen {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (button == 0 && this.draggingWeeklyScrollbar) {
-            int insideLeft = this.windowLeft() + AdvancementWindowRenderer.BORDER_LEFT;
-            int insideTop = this.windowTop() + AdvancementWindowRenderer.BORDER_TOP;
-            int insideRight = this.windowLeft() + this.windowWidth() - AdvancementWindowRenderer.BORDER_RIGHT;
-            int insideBottom = this.windowTop() + this.windowHeight() - AdvancementWindowRenderer.BORDER_BOTTOM;
-            int contentLeft = insideLeft + 6;
-            int contentTop = insideTop + 6;
-            int contentRight = insideRight - 6;
-            int contentBottom = insideBottom - 6;
-            int sidebarWidth = Math.min(SIDEBAR_TARGET_WIDTH, Math.max(132, (contentRight - contentLeft) / 3));
-            int mainLeft = contentLeft + sidebarWidth + 8;
-            int mainRight = contentRight;
+            ContentLayout layout = this.contentLayout();
             List<TaskClientCache.TaskEntry> sortedWeekly = sortedWeeklyEntries(TaskClientCache.snapshot().weekly());
-            WeeklyListMetrics metrics = this.weeklyListMetrics(mainLeft, contentTop, mainRight, contentBottom, sortedWeekly.size());
+            WeeklyListMetrics metrics = this.weeklyListMetrics(
+                    layout.mainLeft(),
+                    layout.contentTop(),
+                    layout.mainRight(),
+                    layout.contentBottom(),
+                    sortedWeekly.size()
+            );
 
             int proposedThumbTop = (int) mouseY - this.weeklyScrollbarDragOffset;
             this.weeklyScroll = Math.clamp(this.weeklyScrollFromThumb(metrics, proposedThumbTop), 0, metrics.maxScroll());
@@ -599,13 +608,11 @@ public class TaskOverviewScreen extends Screen {
             int slotRight = Math.min(right, slotLeft + slotWidth);
             if (i < snapshot.tiers().size()) {
                 TaskClientCache.TierEntry tier = snapshot.tiers().get(i);
-                int fill = tier.claimed() ? 0xAA2A5F3A : (tier.unlocked() ? 0xAA8C7418 : 0xAA353A40);
-                int border = tier.claimed() ? 0xFF6FD980 : (tier.unlocked() ? COLOR_ACCENT : 0xFF8E9197);
+                int fill = tier.claimed() ? 0xAA243127 : (tier.unlocked() ? 0xAA302813 : COLOR_CARD);
+                int border = tier.claimed() ? COLOR_ACCENT_COMPLETE : (tier.unlocked() ? COLOR_ACCENT : COLOR_PANEL_BORDER);
+                int pointsColor = tier.claimed() ? 0xFFD8EEE0 : (tier.unlocked() ? 0xFFF8E8A3 : COLOR_TEXT_SECONDARY);
                 guiGraphics.fill(slotLeft, rowTop, slotRight, rowBottom, fill);
-                guiGraphics.fill(slotLeft, rowTop, slotRight, rowTop + 1, border);
-                guiGraphics.fill(slotLeft, rowBottom - 1, slotRight, rowBottom, border);
-                guiGraphics.fill(slotLeft, rowTop, slotLeft + 1, rowBottom, border);
-                guiGraphics.fill(slotRight - 1, rowTop, slotRight, rowBottom, border);
+                drawRectBorder(guiGraphics, slotLeft, rowTop, slotRight, rowBottom, border);
 
                 String tierText = "T" + tier.tier();
                 guiGraphics.drawString(this.font, Component.literal(tierText), slotLeft + 3, rowTop + 2, COLOR_TEXT_PRIMARY);
@@ -615,7 +622,7 @@ public class TaskOverviewScreen extends Screen {
                         Component.literal(pointsText),
                         slotRight - 3 - this.font.width(pointsText),
                         rowTop + 2,
-                        0xE2E2E2
+                        pointsColor
                 );
 
                 HoveredReward candidate = this.drawRewardIcons(
@@ -632,7 +639,8 @@ public class TaskOverviewScreen extends Screen {
                     hovered = candidate;
                 }
             } else {
-                guiGraphics.fill(slotLeft, rowTop, slotRight, rowBottom, 0xAA30343A);
+                guiGraphics.fill(slotLeft, rowTop, slotRight, rowBottom, 0xAA141820);
+                drawRectBorder(guiGraphics, slotLeft, rowTop, slotRight, rowBottom, 0x33454D5B);
             }
             slotLeft = slotRight + 4;
         }
@@ -649,7 +657,7 @@ public class TaskOverviewScreen extends Screen {
                     barWidth,
                     barHeight,
                     progressRatio(clampedPoints, maxRequiredPoints),
-                    0xFF4F5560,
+                    0xFF3A4454,
                     COLOR_ACCENT
             );
         }
@@ -667,7 +675,7 @@ public class TaskOverviewScreen extends Screen {
             int maxIcons
     ) {
         if (rewards == null || rewards.isEmpty()) {
-            guiGraphics.drawString(this.font, Component.literal("-"), left, top + 4, 0xA0A0A0);
+            guiGraphics.drawString(this.font, Component.literal("-"), left, top + 4, COLOR_TEXT_SECONDARY, false);
             return null;
         }
 
@@ -776,10 +784,25 @@ public class TaskOverviewScreen extends Screen {
 
     private static void drawPanel(GuiGraphics guiGraphics, int left, int top, int right, int bottom, int fillColor, int borderColor) {
         guiGraphics.fill(left, top, right, bottom, fillColor);
-        guiGraphics.fill(left, top, right, top + 1, borderColor);
-        guiGraphics.fill(left, bottom - 1, right, bottom, borderColor);
-        guiGraphics.fill(left, top, left + 1, bottom, borderColor);
-        guiGraphics.fill(right - 1, top, right, bottom, borderColor);
+        drawRectBorder(guiGraphics, left, top, right, bottom, borderColor);
+    }
+
+    private static void drawRectBorder(GuiGraphics guiGraphics, int left, int top, int right, int bottom, int color) {
+        if (right - left <= 0 || bottom - top <= 0) {
+            return;
+        }
+        guiGraphics.fill(left, top, right, top + 1, color);
+        guiGraphics.fill(left, bottom - 1, right, bottom, color);
+        guiGraphics.fill(left, top, left + 1, bottom, color);
+        guiGraphics.fill(right - 1, top, right, bottom, color);
+    }
+
+    private static void drawWindowPanel(GuiGraphics guiGraphics, int left, int top, int right, int bottom) {
+        guiGraphics.fill(left, top, right, bottom, COLOR_WINDOW_FILL);
+        guiGraphics.fill(left, top, right, top + 1, COLOR_WINDOW_BORDER_LIGHT);
+        guiGraphics.fill(left, top, left + 1, bottom, COLOR_WINDOW_BORDER_LIGHT);
+        guiGraphics.fill(left, bottom - 1, right, bottom, COLOR_WINDOW_BORDER_DARK);
+        guiGraphics.fill(right - 1, top, right, bottom, COLOR_WINDOW_BORDER_DARK);
     }
 
     private static void drawProgressBar(
@@ -832,6 +855,19 @@ public class TaskOverviewScreen extends Screen {
         return text.substring(0, end) + suffix;
     }
 
+    private ContentLayout contentLayout() {
+        int contentLeft = this.windowLeft() + CONTENT_PADDING_X;
+        int contentTop = this.windowTop() + CONTENT_PADDING_TOP;
+        int contentRight = this.windowLeft() + this.windowWidth() - CONTENT_PADDING_X;
+        int contentBottom = this.windowTop() + this.windowHeight() - CONTENT_PADDING_BOTTOM;
+        int sidebarWidth = Math.min(SIDEBAR_TARGET_WIDTH, Math.max(132, (contentRight - contentLeft) / 3));
+        int sidebarLeft = contentLeft;
+        int sidebarRight = sidebarLeft + sidebarWidth;
+        int mainLeft = sidebarRight + 8;
+        int mainRight = contentRight;
+        return new ContentLayout(contentLeft, contentTop, contentRight, contentBottom, sidebarLeft, sidebarRight, mainLeft, mainRight);
+    }
+
     private int windowLeft() {
         return (this.width - this.windowWidth()) / 2;
     }
@@ -841,11 +877,11 @@ public class TaskOverviewScreen extends Screen {
     }
 
     private int windowWidth() {
-        return Math.min(TARGET_WINDOW_WIDTH, Math.max(AdvancementWindowRenderer.BASE_WIDTH, this.width - 16));
+        return Math.min(TARGET_WINDOW_WIDTH, Math.max(MIN_WINDOW_WIDTH, this.width - 16));
     }
 
     private int windowHeight() {
-        return Math.min(TARGET_WINDOW_HEIGHT, Math.max(AdvancementWindowRenderer.BASE_HEIGHT, this.height - 16));
+        return Math.min(TARGET_WINDOW_HEIGHT, Math.max(MIN_WINDOW_HEIGHT, this.height - 16));
     }
 
     @Override
@@ -868,5 +904,17 @@ public class TaskOverviewScreen extends Screen {
     }
 
     private record HoveredReward(TaskClientCache.RewardEntry reward, ItemStack stack) {
+    }
+
+    private record ContentLayout(
+            int contentLeft,
+            int contentTop,
+            int contentRight,
+            int contentBottom,
+            int sidebarLeft,
+            int sidebarRight,
+            int mainLeft,
+            int mainRight
+    ) {
     }
 }
