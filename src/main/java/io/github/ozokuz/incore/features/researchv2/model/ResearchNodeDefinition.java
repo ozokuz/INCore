@@ -15,6 +15,7 @@ public record ResearchNodeDefinition(
         ResearchCostDefinition researchCost,
         ResearchPowerDefinition researchPower,
         int researchTime,
+        int requiredRuns,
         List<String> outputs
 ) {
 }

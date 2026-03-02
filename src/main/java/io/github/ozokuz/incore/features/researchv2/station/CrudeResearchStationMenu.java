@@ -121,6 +121,34 @@ public class CrudeResearchStationMenu extends AbstractContainerMenu {
         return blockEntity.data.get(3) > 0;
     }
 
+    public int runTickProgress() {
+        return Math.max(0, blockEntity.data.get(4));
+    }
+
+    public int runTickRequired() {
+        return Math.max(1, blockEntity.data.get(5));
+    }
+
+    public int completedRuns() {
+        return Math.max(0, blockEntity.data.get(6));
+    }
+
+    public int requiredRuns() {
+        return Math.max(1, blockEntity.data.get(7));
+    }
+
+    public int queueStatusOrdinal() {
+        return blockEntity.data.get(8);
+    }
+
+    public int runProgressScaled(int width) {
+        int total = runTickRequired();
+        if (total <= 0) {
+            return 0;
+        }
+        return Math.clamp((runTickProgress() * width) / total, 0, width);
+    }
+
     private static class FuelSlot extends Slot {
         private FuelSlot(CrudeResearchStationBlockEntity blockEntity, int slot, int x, int y) {
             super(blockEntity, slot, x, y);

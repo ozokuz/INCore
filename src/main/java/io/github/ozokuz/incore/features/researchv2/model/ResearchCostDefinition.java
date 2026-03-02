@@ -7,7 +7,7 @@ public record ResearchCostDefinition(
         List<ResearchMaterialRequirement> requiredResearchMaterials,
         List<CostModifier> modifiers
 ) {
-    public record LogicModuleRequirement(String moduleTier, int count) {
+    public record LogicModuleRequirement(String moduleTier, int durabilityCost) {
     }
 
     public record ResearchMaterialRequirement(String materialId, int count) {

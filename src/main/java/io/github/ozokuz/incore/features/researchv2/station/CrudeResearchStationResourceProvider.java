@@ -28,7 +28,7 @@ public final class CrudeResearchStationResourceProvider implements ILogicModuleP
         for (var entry : requiredByTier.entrySet()) {
             String tier = entry.getKey();
             int required = entry.getValue();
-            int available = Math.max(0, state.devLogicModules().getOrDefault(tier, 0)) + countTierFromStations(stations, tier);
+            int available = Math.max(0, state.devLogicModules().getOrDefault(tier, 0)) + countTierDurabilityFromStations(stations, tier);
             if (available < required) {
                 return false;
             }
@@ -77,7 +77,7 @@ public final class CrudeResearchStationResourceProvider implements ILogicModuleP
                 if (remaining <= 0) {
                     break;
                 }
-                remaining -= station.consumeBasicLogicModules(remaining);
+                remaining -= station.consumeBasicLogicDurability(remaining);
             }
 
             if (remaining > 0) {
@@ -175,18 +175,7 @@ public final class CrudeResearchStationResourceProvider implements ILogicModuleP
             return false;
         }
 
-        TeamResearchState state = ResearchManager.ensureTeamState(server, teamId);
-        int stored = Math.max(0, state.storedResearchPowerBuffer());
-        int consumeStored = Math.min(stored, required);
-        if (consumeStored > 0) {
-            state.setStoredResearchPowerBuffer(stored - consumeStored);
-        }
-
-        int remaining = required - consumeStored;
-        if (remaining <= 0) {
-            return true;
-        }
-
+        int remaining = required;
         for (CrudeResearchStationBlockEntity station : CrudeResearchStationRegistry.stationsForTeam(server, teamId)) {
             if (remaining <= 0) {
                 break;
@@ -199,10 +188,9 @@ public final class CrudeResearchStationResourceProvider implements ILogicModuleP
 
     @Override
     public int availablePower(MinecraftServer server, String teamId) {
-        TeamResearchState state = ResearchManager.ensureTeamState(server, teamId);
-        long total = Math.max(0, state.storedResearchPowerBuffer());
+        long total = 0L;
         for (CrudeResearchStationBlockEntity station : CrudeResearchStationRegistry.stationsForTeam(server, teamId)) {
-            total += station.researchPowerBuffer();
+            total += station.availableResearchPower();
             if (total >= Integer.MAX_VALUE) {
                 return Integer.MAX_VALUE;
             }
@@ -217,11 +205,11 @@ public final class CrudeResearchStationResourceProvider implements ILogicModuleP
                 continue;
             }
             String tier = requirement.moduleTier() == null ? "" : requirement.moduleTier().strip();
-            int count = Math.max(0, requirement.count());
-            if (tier.isBlank() || count <= 0) {
+            int durabilityCost = Math.max(0, requirement.durabilityCost());
+            if (tier.isBlank() || durabilityCost <= 0) {
                 continue;
             }
-            folded.merge(tier, count, Integer::sum);
+            folded.merge(tier, durabilityCost, Integer::sum);
         }
         return folded;
     }
@@ -242,14 +230,14 @@ public final class CrudeResearchStationResourceProvider implements ILogicModuleP
         return folded;
     }
 
-    private static int countTierFromStations(List<CrudeResearchStationBlockEntity> stations, String tier) {
+    private static int countTierDurabilityFromStations(List<CrudeResearchStationBlockEntity> stations, String tier) {
         if (!BASIC_TIER.equalsIgnoreCase(tier)) {
             return 0;
         }
 
         int total = 0;
         for (CrudeResearchStationBlockEntity station : stations) {
-            total += station.countBasicLogicModules();
+            total += station.availableBasicLogicDurability();
         }
         return total;
     }

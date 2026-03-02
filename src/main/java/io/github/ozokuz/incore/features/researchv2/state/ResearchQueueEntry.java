@@ -12,16 +12,22 @@ import java.util.List;
 
 public record ResearchQueueEntry(
         ResourceLocation nodeId,
-        int timeProgress,
-        int requiredTime,
+        int runTickProgress,
+        int runTickRequired,
+        int completedRuns,
+        int requiredRuns,
+        boolean runInputsCommitted,
         ResearchQueueStatus status,
         List<String> assignedStationIds
 ) {
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.putString("nodeId", nodeId.toString());
-        tag.putInt("timeProgress", Math.max(0, timeProgress));
-        tag.putInt("requiredTime", Math.max(0, requiredTime));
+        tag.putInt("runTickProgress", Math.max(0, runTickProgress));
+        tag.putInt("runTickRequired", Math.max(1, runTickRequired));
+        tag.putInt("completedRuns", Math.max(0, completedRuns));
+        tag.putInt("requiredRuns", Math.max(1, requiredRuns));
+        tag.putBoolean("runInputsCommitted", runInputsCommitted);
         tag.putString("status", status.name());
         ListTag stations = new ListTag();
         assignedStationIds.forEach(id -> stations.add(StringTag.valueOf(id)));
@@ -35,18 +41,14 @@ public record ResearchQueueEntry(
             return null;
         }
 
-        int timeProgress;
-        if (tag.contains("timeProgress", Tag.TAG_INT)) {
-            timeProgress = Math.max(0, tag.getInt("timeProgress"));
-        } else {
-            // Backward-compatible read for the old queue schema.
-            timeProgress = Math.max(0, tag.getInt("progress"));
-        }
-
-        int requiredTime = Math.max(0, tag.getInt("requiredTime"));
+        int runTickProgress = Math.max(0, tag.getInt("runTickProgress"));
+        int runTickRequired = Math.max(1, tag.getInt("runTickRequired"));
+        int completedRuns = Math.max(0, tag.getInt("completedRuns"));
+        int requiredRuns = Math.max(1, tag.getInt("requiredRuns"));
+        boolean runInputsCommitted = tag.getBoolean("runInputsCommitted");
         ResearchQueueStatus status = ResearchQueueStatus.fromSerialized(
                 tag.contains("status", Tag.TAG_STRING) ? tag.getString("status") : null,
-                timeProgress
+                runTickProgress
         );
 
         List<String> stations = new ArrayList<>();
@@ -54,6 +56,15 @@ public record ResearchQueueEntry(
         for (Tag stationTag : listTag) {
             stations.add(stationTag.getAsString());
         }
-        return new ResearchQueueEntry(nodeId, timeProgress, requiredTime, status, List.copyOf(stations));
+        return new ResearchQueueEntry(
+                nodeId,
+                runTickProgress,
+                runTickRequired,
+                completedRuns,
+                requiredRuns,
+                runInputsCommitted,
+                status,
+                List.copyOf(stations)
+        );
     }
 }

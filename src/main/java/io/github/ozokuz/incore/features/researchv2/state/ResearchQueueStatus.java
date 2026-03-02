@@ -8,13 +8,13 @@ public enum ResearchQueueStatus {
     PAUSED_MISSING_INPUTS,
     PAUSED_NO_POWER;
 
-    public static ResearchQueueStatus fromSerialized(@Nullable String value, int timeProgress) {
+    public static ResearchQueueStatus fromSerialized(@Nullable String value, int ignoredProgress) {
         if (value != null) {
             try {
                 return ResearchQueueStatus.valueOf(value);
             } catch (IllegalArgumentException ignored) {
             }
         }
-        return timeProgress > 0 ? RUNNING : QUEUED;
+        return QUEUED;
     }
 }

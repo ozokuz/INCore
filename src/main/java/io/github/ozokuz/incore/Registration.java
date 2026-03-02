@@ -440,7 +440,10 @@ public class Registration {
     public static final DeferredItem<Item> TIME_PIECE_ITEM = ITEMS.registerItem("time_piece", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
     public static final DeferredItem<Item> SPEED_MODULE_CARD_ITEM = ITEMS.registerItem("speed_module_card", properties -> new SpeedModuleCardItem(properties.stacksTo(16)));
     public static final DeferredItem<Item> PRODUCTIVITY_MODULE_CARD_ITEM = ITEMS.registerItem("productivity_module_card", properties -> new ProductivityModuleCardItem(properties.stacksTo(16)));
-    public static final DeferredItem<Item> BASIC_LOGIC_MODULE_ITEM = ITEMS.registerSimpleItem("basic_logic_module");
+    public static final DeferredItem<Item> BASIC_LOGIC_MODULE_ITEM = ITEMS.registerItem(
+            "basic_logic_module",
+            properties -> new Item(properties.stacksTo(1).durability(64))
+    );
     public static final DeferredItem<Item> STARTER_DATA_ITEM = ITEMS.registerSimpleItem("starter_data");
     public static final DeferredItem<Item> CARD_MODULE_ITEM = ITEMS.registerItem("card_module", CardModuleItem::new);
     public static final DeferredItem<Item> CARD_BOOSTER_ITEM = ITEMS.registerItem("card_booster", CardBoosterItem::new);

@@ -35,7 +35,7 @@
         "required_logic_modules": [
           {
             "module_tier": "basic",
-            "count": 1
+            "durability_cost": 1
           }
         ],
         "required_research_materials": [
@@ -52,6 +52,7 @@
         "curve_exponent": 1.0
       },
       "research_time": 200,
+      "required_runs": 3,
       "outputs": [
         "incore:unlock_signal_tools"
       ]
@@ -69,7 +70,7 @@
         "required_logic_modules": [
           {
             "module_tier": "basic",
-            "count": 2
+            "durability_cost": 2
           }
         ],
         "required_research_materials": [
@@ -86,6 +87,7 @@
         "curve_exponent": 1.1
       },
       "research_time": 400,
+      "required_runs": 3,
       "outputs": [
         "incore:unlock_relay_tools"
       ]
@@ -101,7 +103,7 @@
         "required_logic_modules": [
           {
             "module_tier": "basic",
-            "count": 1
+            "durability_cost": 1
           }
         ],
         "required_research_materials": [
@@ -118,6 +120,7 @@
         "curve_exponent": 1.0
       },
       "research_time": 220,
+      "required_runs": 3,
       "outputs": [
         "incore:unlock_terrain_tools"
       ]
@@ -135,7 +138,7 @@
         "required_logic_modules": [
           {
             "module_tier": "basic",
-            "count": 2
+            "durability_cost": 2
           }
         ],
         "required_research_materials": [
@@ -152,6 +155,7 @@
         "curve_exponent": 1.1
       },
       "research_time": 420,
+      "required_runs": 3,
       "outputs": [
         "incore:unlock_hazard_tools"
       ]

@@ -72,6 +72,7 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
                     node.researchCost(),
                     node.researchPower(),
                     node.researchTime(),
+                    node.requiredRuns(),
                     node.outputs()
             );
         });
@@ -166,11 +167,24 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
             List<ResourceLocation> prerequisites = parseIdList(row.getAsJsonArray("prerequisites"));
             String discoveryRules = row.has("discovery_rules") ? row.get("discovery_rules").getAsString() : null;
             int researchTime = row.has("research_time") ? Math.max(1, row.get("research_time").getAsInt()) : 200;
+            int requiredRuns = row.has("required_runs") ? Math.max(1, row.get("required_runs").getAsInt()) : 3;
             ResearchCostDefinition cost = parseCost(row.getAsJsonObject("research_cost"));
             ResearchPowerDefinition power = parsePower(row.getAsJsonObject("research_power"));
             List<String> outputs = parseStringList(row.getAsJsonArray("outputs"));
 
-            output.put(id, new ResearchNodeDefinition(id, name, treeId, categoryId, List.copyOf(prerequisites), discoveryRules, cost, power, researchTime, List.copyOf(outputs)));
+            output.put(id, new ResearchNodeDefinition(
+                    id,
+                    name,
+                    treeId,
+                    categoryId,
+                    List.copyOf(prerequisites),
+                    discoveryRules,
+                    cost,
+                    power,
+                    researchTime,
+                    requiredRuns,
+                    List.copyOf(outputs)
+            ));
         }
     }
 
@@ -209,9 +223,9 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
                 }
                 JsonObject row = element.getAsJsonObject();
                 String tier = stringOr(row, "module_tier", "");
-                int count = row.has("count") ? Math.max(0, row.get("count").getAsInt()) : 0;
-                if (!tier.isBlank() && count > 0) {
-                    logicModules.add(new ResearchCostDefinition.LogicModuleRequirement(tier, count));
+                int durabilityCost = row.has("durability_cost") ? Math.max(0, row.get("durability_cost").getAsInt()) : 0;
+                if (!tier.isBlank() && durabilityCost > 0) {
+                    logicModules.add(new ResearchCostDefinition.LogicModuleRequirement(tier, durabilityCost));
                 }
             }
         }
