@@ -95,7 +95,7 @@ public class VendorScreen extends Screen {
                     page = Math.max(0, page - 1);
                     rebuildVendorWidgets();
                 })
-                .bounds(left + 8, this.height - 52, 58, 18)
+                .bounds(left + 2, this.height - 60, 48, 20)
                 .build());
         prevButton.active = page > 0;
 
@@ -103,12 +103,12 @@ public class VendorScreen extends Screen {
                     page = Math.min(maxPages - 1, page + 1);
                     rebuildVendorWidgets();
                 })
-                .bounds(left + 70, this.height - 52, 58, 18)
+                .bounds(left + 52, this.height - 60, 48, 20)
                 .build());
         nextButton.active = page < maxPages - 1;
 
         this.addRenderableWidget(Button.builder(Component.translatable("gui.done"), button -> onClose())
-                .bounds(this.width / 2 - 40, this.height - 28, 80, 20)
+                .bounds(this.width / 2 - 40, this.height - 60, 80, 20)
                 .build());
     }
 
@@ -158,19 +158,18 @@ public class VendorScreen extends Screen {
                 guiGraphics.renderItem(preview, left + 10, y + 12);
             }
 
-            String typeLabel = typeLabel(offer.productType());
-            guiGraphics.drawString(this.font, offer.name(), left + 32, y + 6, 0xF0F0F0, false);
-            guiGraphics.drawString(this.font, Component.literal("x" + offer.count() + "  (" + typeLabel + ")"), left + 32, y + 18, 0xA2BFD8, false);
+            guiGraphics.drawString(this.font, offer.name(), left + 48, y + 6, 0xF0F0F0, false);
+            guiGraphics.drawString(this.font, Component.literal("x" + offer.count()), left + 32, y + 6, 0xA2BFD8, false);
             renderDiscountBadge(guiGraphics, offer, right - 252, y + 2, right - 138);
 
             if (offer.stockRemaining() > 0) {
-                guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.stock", offer.stockRemaining()), left + 32, y + 30, 0xBDE8BD, false);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.stock", offer.stockRemaining()), left + 32, y + 21, 0xBDE8BD, false);
             } else {
-                guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.sold_out"), left + 32, y + 30, 0xFF7777, false);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.sold_out"), left + 32, y + 21, 0xFF7777, false);
             }
 
             renderOfferCostPanel(guiGraphics, right - 252, y + 14, right - 138, y + 34, offer, quantity);
-            int quantityX = right - 112;
+            int quantityX = right - 106;
             guiGraphics.drawCenteredString(this.font, Component.literal("x" + quantity), quantityX, y + 19, 0xDDE7F2);
             y += ROW_HEIGHT;
         }

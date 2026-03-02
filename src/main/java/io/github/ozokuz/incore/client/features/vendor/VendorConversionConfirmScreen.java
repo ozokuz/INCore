@@ -119,8 +119,8 @@ public class VendorConversionConfirmScreen extends Screen {
 
         guiGraphics.drawCenteredString(this.font, Component.literal(conversionLabel), sourceCenterX, top + 32, 0xD9DCE3);
         guiGraphics.drawCenteredString(this.font, Component.literal(primaryLabel), targetCenterX, top + 32, 0xD9DCE3);
-        drawScaledCenteredString(guiGraphics, Integer.toString(requiredConversion), sourceCenterX, amountY, 2.0F, 0xFFFFFF);
-        drawScaledCenteredString(guiGraphics, Integer.toString(missingPrimary), targetCenterX, amountY, 2.0F, 0xFFFFFF);
+        drawScaledCenteredString(guiGraphics, Integer.toString(requiredConversion), sourceCenterX, amountY + 4, 2.0F, 0xFFFFFF);
+        drawScaledCenteredString(guiGraphics, Integer.toString(missingPrimary), targetCenterX, amountY + 4, 2.0F, 0xFFFFFF);
         guiGraphics.drawCenteredString(this.font, Component.literal(">>"), this.width / 2, top + 50, 0xF5F5F5);
 
         guiGraphics.renderItem(iconFromId(conversionIconItemId), sourceCenterX + 26, amountY + 3);
