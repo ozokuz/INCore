@@ -178,7 +178,6 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 : Component.translatable("screen.incore.market.mode.read_only");
         guiGraphics.drawString(font, mode, PANEL_X, 16, data.canTrade() ? 0x9AE29A : 0xE2C777, false);
         renderBalancePanel(guiGraphics, width - 200, 14, width - 16, 32);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.market.selection.hint"), 14, 26, 0xCFD6E2, false);
 
         drawPanel(guiGraphics, PANEL_X - 2, PANEL_Y - 2, panelWidth() + 4, panelHeight() + 4, 0xAA151920, 0xFF454F63);
 
@@ -230,10 +229,6 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
         }
 
         renderScrollbar(guiGraphics, ordered.size());
-
-        int totalRows = (ordered.size() + columns - 1) / columns;
-        int currentRow = Math.min(totalRows, scrollRow + 1);
-        guiGraphics.drawString(font, Component.literal(currentRow + "/" + Math.max(1, totalRows)), width - 52, height - 38, 0xB7C1D0, false);
     }
 
     @Override
