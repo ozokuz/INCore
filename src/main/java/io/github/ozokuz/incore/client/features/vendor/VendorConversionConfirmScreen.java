@@ -111,32 +111,32 @@ public class VendorConversionConfirmScreen extends Screen {
         int sourceCenterX = left + 112;
         int targetCenterX = right - 112;
         int amountY = top + 42;
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, 0xF1F3F8);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, UIScreenTheme.Confirmation.TITLE_TEXT);
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.translatable("screen.incore.vendor.conversion.offer", offerName + " x" + quantity),
                 this.width / 2,
                 top + 20,
-                0xC9CDD6
+                UIScreenTheme.Confirmation.BODY_MUTED_TEXT
         );
 
-        guiGraphics.drawCenteredString(this.font, Component.literal(conversionLabel), sourceCenterX, top + 32, 0xD9DCE3);
-        guiGraphics.drawCenteredString(this.font, Component.literal(primaryLabel), targetCenterX, top + 32, 0xD9DCE3);
-        drawScaledCenteredString(guiGraphics, Integer.toString(requiredConversion), sourceCenterX, amountY + 4, 2.0F, 0xFFFFFF);
-        drawScaledCenteredString(guiGraphics, Integer.toString(missingPrimary), targetCenterX, amountY + 4, 2.0F, 0xFFFFFF);
-        guiGraphics.drawCenteredString(this.font, Component.literal(">>"), this.width / 2, top + 50, 0xF5F5F5);
+        guiGraphics.drawCenteredString(this.font, Component.literal(conversionLabel), sourceCenterX, top + 32, UIScreenTheme.Confirmation.LABEL_TEXT);
+        guiGraphics.drawCenteredString(this.font, Component.literal(primaryLabel), targetCenterX, top + 32, UIScreenTheme.Confirmation.LABEL_TEXT);
+        drawScaledCenteredString(guiGraphics, Integer.toString(requiredConversion), sourceCenterX, amountY + 4, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
+        drawScaledCenteredString(guiGraphics, Integer.toString(missingPrimary), targetCenterX, amountY + 4, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
+        guiGraphics.drawCenteredString(this.font, Component.literal(">>"), this.width / 2, top + 50, UIScreenTheme.Confirmation.ARROW_TEXT);
 
         guiGraphics.renderItem(iconFromId(conversionIconItemId), sourceCenterX + 26, amountY + 3);
         guiGraphics.renderItem(iconFromId(primaryIconItemId), targetCenterX + 24, amountY + 3);
 
-        drawChip(guiGraphics, sourceCenterX, top + 78, Component.translatable("screen.incore.vendor.conversion.owned", availableConversion), 0xDD1D2127, 0xE6EDF9);
-        drawChip(guiGraphics, targetCenterX, top + 78, Component.translatable("screen.incore.vendor.conversion.receive", missingPrimary), 0xDD1D2127, 0xE6EDF9);
+        drawChip(guiGraphics, sourceCenterX, top + 78, Component.translatable("screen.incore.vendor.conversion.owned", availableConversion), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
+        drawChip(guiGraphics, targetCenterX, top + 78, Component.translatable("screen.incore.vendor.conversion.receive", missingPrimary), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.translatable("screen.incore.vendor.conversion.rate", requiredConversion, missingPrimary),
                 this.width / 2,
                 exchangeBottom + 12,
-                0xAAB2BF
+                UIScreenTheme.Confirmation.DELTA_MUTED_TEXT
         );
     }
 

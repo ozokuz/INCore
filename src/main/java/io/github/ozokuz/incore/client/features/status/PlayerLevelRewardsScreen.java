@@ -36,9 +36,9 @@ public class PlayerLevelRewardsScreen extends Screen {
     private static final ResourceLocation XP_BAR_PROGRESS = ResourceLocation.parse("incore:hud/experience_bar_progress_white");
     private static final int XP_BAR_HEIGHT = 5;
 
-    private static final int COLOR_TEXT_PRIMARY = 0xFFF3F8FF;
-    private static final int COLOR_TEXT_SECONDARY = 0xFFD4E3F0;
-    private static final int COLOR_TEXT_MUTED = 0xFFA6BED2;
+    private static final int COLOR_TEXT_PRIMARY = UIScreenTheme.Info.TITLE_TEXT;
+    private static final int COLOR_TEXT_SECONDARY = UIScreenTheme.Info.PLR_TEXT_SECONDARY;
+    private static final int COLOR_TEXT_MUTED = UIScreenTheme.Info.PLR_TEXT_MUTED;
 
     private final Screen parent;
     private Integer previousMenuBlur;
@@ -117,11 +117,11 @@ public class PlayerLevelRewardsScreen extends Screen {
         int width = layout.heroWidth() - 20;
 
         int glowAlpha = 36 + Math.round(26 * pulse);
-        guiGraphics.fill(layout.heroX() + 1, layout.heroY() + 1, layout.heroX() + layout.heroWidth() - 1, layout.heroY() + 2, withAlpha(0x7DE9FF, glowAlpha));
+        guiGraphics.fill(layout.heroX() + 1, layout.heroY() + 1, layout.heroX() + layout.heroWidth() - 1, layout.heroY() + 2, withAlpha(UIScreenTheme.Info.PLR_HERO_GLOW, glowAlpha));
 
         guiGraphics.drawString(this.font, this.title, x, y, COLOR_TEXT_PRIMARY, false);
         Component levelChip = Component.translatable("screen.incore.player_level_rewards.current_level", currentLevel);
-        drawChip(guiGraphics, x, y + 12, levelChip, 0xA7243648, 0xFFEAF6FF);
+        drawChip(guiGraphics, x, y + 12, levelChip, UIScreenTheme.Info.PLR_CHIP_FILL_DEFAULT, UIScreenTheme.Info.PLR_CHIP_TEXT_LIGHT);
 
         int progressTextY = y + 30;
         guiGraphics.drawString(
@@ -144,7 +144,7 @@ public class PlayerLevelRewardsScreen extends Screen {
         }
         int focusWidth = this.font.width(focusLine);
         int focusX = layout.heroX() + layout.heroWidth() - focusWidth - 12;
-        guiGraphics.drawString(this.font, focusLine, focusX, y + 12, 0xFFD3ECFF, false);
+        guiGraphics.drawString(this.font, focusLine, focusX, y + 12, UIScreenTheme.Info.PLR_FOCUS_LINE_TEXT, false);
     }
 
     private void drawLevelRail(
@@ -179,27 +179,27 @@ public class PlayerLevelRewardsScreen extends Screen {
             boolean hovered = mouseX >= rowX && mouseX < rowRight && mouseY >= rowY && mouseY < rowBottom;
             boolean selected = preview.level() == this.selectedLevel;
 
-            int rowFill = selected ? 0xB1263E58 : 0x98202A36;
+            int rowFill = selected ? UIScreenTheme.Info.PLR_ROW_FILL_SELECTED : UIScreenTheme.Info.PLR_ROW_FILL_IDLE;
             if (hovered && !selected) {
-                rowFill = 0xAE253446;
+                rowFill = UIScreenTheme.Info.PLR_ROW_FILL_CLAIMED;
             }
             guiGraphics.fill(rowX, rowY, rowRight, rowBottom, rowFill);
 
-            int borderColor = selected ? withAlpha(0x89EFFF, 140 + Math.round(70 * pulse)) : (hovered ? 0xAA6ABFDF : 0x66516D86);
+            int borderColor = selected ? withAlpha(UIScreenTheme.Info.PLR_ROW_BORDER_SELECTED_GLOW, 140 + Math.round(70 * pulse)) : (hovered ? UIScreenTheme.Info.PLR_ROW_BORDER_HOVER : UIScreenTheme.Info.PLR_ROW_BORDER_IDLE);
             drawCardOutline(guiGraphics, rowX, rowY, rowRight, rowBottom, borderColor);
 
-            int accent = selected ? 0xFF7AEFFF : 0xAA4B9AB8;
+            int accent = selected ? UIScreenTheme.Info.PLR_ROW_ACCENT_SELECTED : UIScreenTheme.Info.PLR_ROW_ACCENT_IDLE;
             guiGraphics.fill(rowX, rowY, rowX + 3, rowBottom, accent);
 
             Component levelText = Component.translatable("screen.incore.player_level_rewards.sidebar_level", preview.level());
-            guiGraphics.drawString(this.font, levelText, rowX + 8, rowY + 6, selected ? 0xFFF3FBFF : 0xFFE1EDF8, false);
+            guiGraphics.drawString(this.font, levelText, rowX + 8, rowY + 6, selected ? UIScreenTheme.Info.PLR_ROW_TEXT_SELECTED : UIScreenTheme.Info.PLR_ROW_TEXT_IDLE, false);
 
             Component xpText = Component.translatable("screen.incore.player_level_rewards.sidebar_xp", preview.requiredExperience());
             int xpWidth = this.font.width(xpText) + 8;
             int xpX = rowRight - xpWidth - 5;
             int xpY = rowY + 5;
-            guiGraphics.fill(xpX, xpY, xpX + xpWidth, xpY + 11, selected ? 0xB03A607D : 0x8A2F4255);
-            guiGraphics.drawString(this.font, xpText, xpX + 4, xpY + 2, 0xFFE6F6FF, false);
+            guiGraphics.fill(xpX, xpY, xpX + xpWidth, xpY + 11, selected ? UIScreenTheme.Info.PLR_XP_PILL_FILL_SELECTED : UIScreenTheme.Info.PLR_XP_PILL_FILL_IDLE);
+            guiGraphics.drawString(this.font, xpText, xpX + 4, xpY + 2, UIScreenTheme.Info.PLR_XP_PILL_TEXT, false);
         }
 
         drawSidebarScrollbar(guiGraphics, sidebar, ordered.size());
@@ -230,11 +230,11 @@ public class PlayerLevelRewardsScreen extends Screen {
 
         Component levelChip = Component.translatable("screen.incore.player_level_rewards.details_level", selectedPreview.level());
         Component xpChip = Component.translatable("screen.incore.player_level_rewards.details_required_xp", selectedPreview.requiredExperience());
-        drawChip(guiGraphics, x, y + 12, levelChip, 0xA9283B4E, 0xFFEAF6FF);
+        drawChip(guiGraphics, x, y + 12, levelChip, UIScreenTheme.Info.PLR_CHIP_FILL_LEVEL, UIScreenTheme.Info.PLR_CHIP_TEXT_LIGHT);
 
         int xpChipWidth = this.font.width(xpChip) + 10;
         int xpX = layout.galleryX() + layout.galleryWidth() - xpChipWidth - 10;
-        drawChip(guiGraphics, xpX, y + 12, xpChip, 0xA82B425A, 0xFFDBEEFF);
+        drawChip(guiGraphics, xpX, y + 12, xpChip, UIScreenTheme.Info.PLR_CHIP_FILL_XP, UIScreenTheme.Info.PLR_CHIP_TEXT_XP);
 
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_level_rewards.details_rewards"), x, y + 30, COLOR_TEXT_SECONDARY, false);
 
@@ -272,7 +272,7 @@ public class PlayerLevelRewardsScreen extends Screen {
             guiGraphics.fill(cardX, cardY, cardRight, cardBottom, fill);
 
             int borderAlpha = hovered ? 200 : (120 + Math.round(40 * pulse));
-            drawCardOutline(guiGraphics, cardX, cardY, cardRight, cardBottom, withAlpha(0x79E9FF, borderAlpha));
+            drawCardOutline(guiGraphics, cardX, cardY, cardRight, cardBottom, withAlpha(UIScreenTheme.Info.PLR_CARD_OUTLINE_GLOW, borderAlpha));
 
             ItemStack iconStack = iconStackFor(reward);
             int iconX = cardX + (REWARD_CARD_SIZE - 16) / 2;
@@ -284,8 +284,8 @@ public class PlayerLevelRewardsScreen extends Screen {
                 int qtyWidth = this.font.width(qty);
                 int qtyX = cardRight - qtyWidth - 3;
                 int qtyY = cardBottom - this.font.lineHeight - 2;
-                guiGraphics.fill(qtyX - 2, qtyY - 1, qtyX + qtyWidth + 2, qtyY + this.font.lineHeight, 0xC0141F2A);
-                guiGraphics.drawString(this.font, qty, qtyX, qtyY, 0xFFF0F6FF, false);
+                guiGraphics.fill(qtyX - 2, qtyY - 1, qtyX + qtyWidth + 2, qtyY + this.font.lineHeight, UIScreenTheme.Info.PLR_QTY_CHIP_FILL);
+                guiGraphics.drawString(this.font, qty, qtyX, qtyY, UIScreenTheme.Info.PLR_QTY_CHIP_TEXT, false);
             }
 
             if (hovered) {
@@ -506,13 +506,13 @@ public class PlayerLevelRewardsScreen extends Screen {
         int trackBottom = sidebar.rowsBottom();
         int trackHeight = Math.max(1, trackBottom - trackTop);
 
-        guiGraphics.fill(trackLeft, trackTop, trackRight, trackBottom, 0x4C101926);
-        guiGraphics.fill(trackLeft, trackTop, trackRight, trackTop + 1, 0x8060CAE8);
-        guiGraphics.fill(trackLeft, trackBottom - 1, trackRight, trackBottom, 0x80131A22);
+        guiGraphics.fill(trackLeft, trackTop, trackRight, trackBottom, UIScreenTheme.Info.PLR_SCROLL_TRACK_FILL);
+        guiGraphics.fill(trackLeft, trackTop, trackRight, trackTop + 1, UIScreenTheme.Info.PLR_SCROLL_TRACK_TOP);
+        guiGraphics.fill(trackLeft, trackBottom - 1, trackRight, trackBottom, UIScreenTheme.Info.PLR_SCROLL_TRACK_BOTTOM);
 
         int maxScroll = Math.max(0, totalRows - sidebar.visibleRows());
         if (maxScroll <= 0) {
-            guiGraphics.fill(trackLeft + 1, trackTop + 1, trackRight - 1, trackBottom - 1, 0x334C6B80);
+            guiGraphics.fill(trackLeft + 1, trackTop + 1, trackRight - 1, trackBottom - 1, UIScreenTheme.Info.PLR_SCROLL_TRACK_EMPTY_FILL);
             return;
         }
 
@@ -523,9 +523,9 @@ public class PlayerLevelRewardsScreen extends Screen {
         int thumbTop = trackTop + thumbOffset;
         int thumbBottom = thumbTop + thumbHeight;
 
-        guiGraphics.fill(trackLeft + 1, thumbTop, trackRight - 1, thumbBottom, 0xAA7DE9FF);
-        guiGraphics.fill(trackLeft + 1, thumbTop, trackRight - 1, thumbTop + 1, 0xFFB7F2FF);
-        guiGraphics.fill(trackLeft + 1, thumbBottom - 1, trackRight - 1, thumbBottom, 0x805A8CA1);
+        guiGraphics.fill(trackLeft + 1, thumbTop, trackRight - 1, thumbBottom, UIScreenTheme.Info.PLR_SCROLL_THUMB_FILL);
+        guiGraphics.fill(trackLeft + 1, thumbTop, trackRight - 1, thumbTop + 1, UIScreenTheme.Info.PLR_SCROLL_THUMB_TOP);
+        guiGraphics.fill(trackLeft + 1, thumbBottom - 1, trackRight - 1, thumbBottom, UIScreenTheme.Info.PLR_SCROLL_THUMB_BOTTOM);
     }
 
     private static void drawProgressBar(GuiGraphics guiGraphics, int x, int y, int width, int currentExperience, int experienceToNextLevel) {
@@ -582,15 +582,15 @@ public class PlayerLevelRewardsScreen extends Screen {
 
     private static int rewardCardFill(int kind) {
         return switch (kind) {
-            case PlayerLevelSyncPayload.REWARD_KIND_SANITY_CAP -> 0xB0193A3A;
-            case PlayerLevelSyncPayload.REWARD_KIND_COMMAND -> 0xB03A301B;
-            default -> 0xB01A2735;
+            case PlayerLevelSyncPayload.REWARD_KIND_SANITY_CAP -> UIScreenTheme.Info.PLR_REWARD_SANITY_FILL;
+            case PlayerLevelSyncPayload.REWARD_KIND_COMMAND -> UIScreenTheme.Info.PLR_REWARD_COMMAND_FILL;
+            default -> UIScreenTheme.Info.PLR_REWARD_DEFAULT_FILL;
         };
     }
 
     private static int withAlpha(int rgb, int alpha) {
         int clamped = Math.clamp(alpha, 0, 255);
-        return (clamped << 24) | (rgb & 0x00FFFFFF);
+        return (clamped << 24) | (rgb & UIScreenTheme.Info.RGB_MASK);
     }
 
     private static int brighten(int color, int amount) {

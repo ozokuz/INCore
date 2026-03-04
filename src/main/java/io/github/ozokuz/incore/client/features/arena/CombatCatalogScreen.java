@@ -165,9 +165,9 @@ public class CombatCatalogScreen extends Screen {
         int detailsRight = this.width - 12;
 
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, THEME.theme().text().primary());
-        guiGraphics.fill(categoryLeft, categoryTop, categoryLeft + categoryWidth, listBottom, 0x991A1A1A);
-        guiGraphics.fill(entryLeft, categoryTop, entryLeft + entryWidth, listBottom, 0x991A1A1A);
-        guiGraphics.fill(detailsLeft, categoryTop, detailsRight, listBottom, 0x99202020);
+        guiGraphics.fill(categoryLeft, categoryTop, categoryLeft + categoryWidth, listBottom, UIScreenTheme.OtherContent.CATALOG_COLUMN_FILL);
+        guiGraphics.fill(entryLeft, categoryTop, entryLeft + entryWidth, listBottom, UIScreenTheme.OtherContent.CATALOG_COLUMN_FILL);
+        guiGraphics.fill(detailsLeft, categoryTop, detailsRight, listBottom, UIScreenTheme.OtherContent.CATALOG_DETAILS_FILL);
 
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.categories"), categoryLeft + 6, categoryTop - 10, THEME.theme().text().secondary(), false);
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.difficulties"), entryLeft + 6, categoryTop - 10, THEME.theme().text().secondary(), false);
@@ -180,11 +180,11 @@ public class CombatCatalogScreen extends Screen {
             }
 
             boolean selected = category.id().equals(selectedCategoryId);
-            int border = selected ? 0xFF89C9FF : 0xFF3D4558;
-            int fill = selected ? 0xBB2A2A2A : 0x99232323;
+            int border = selected ? UIScreenTheme.OtherContent.CATALOG_ROW_BORDER_SELECTED : UIScreenTheme.OtherContent.CATALOG_ROW_BORDER;
+            int fill = selected ? UIScreenTheme.OtherContent.CATALOG_ROW_SELECTED_FILL : UIScreenTheme.OtherContent.CATALOG_ROW_FILL;
             guiGraphics.fill(categoryLeft + 1, y + 1, categoryLeft + categoryWidth - 1, y + ROW_HEIGHT - 3, fill);
             themed(guiGraphics).drawBorder(categoryLeft, y, categoryLeft + categoryWidth, y + ROW_HEIGHT - 2, border);
-            guiGraphics.drawString(this.font, Component.literal(category.name()), categoryLeft + 8, y + 10, selected ? 0xFFFFFF : 0xE8E8E8, false);
+            guiGraphics.drawString(this.font, Component.literal(category.name()), categoryLeft + 8, y + 10, selected ? UIScreenTheme.OtherContent.GACHA_TEXT_SELECTED : UIScreenTheme.OtherContent.CATALOG_TEXT_PRIMARY, false);
         }
 
         List<ArenaService.ScreenEntry> entries = entriesForSelectedCategory();
@@ -196,11 +196,11 @@ public class CombatCatalogScreen extends Screen {
             }
 
             boolean selected = entry.id().equals(selectedEntryId);
-            int border = selected ? 0xFF89C9FF : 0xFF3D4558;
-            int fill = selected ? 0xBB2A2A2A : 0x99232323;
+            int border = selected ? UIScreenTheme.OtherContent.CATALOG_ROW_BORDER_SELECTED : UIScreenTheme.OtherContent.CATALOG_ROW_BORDER;
+            int fill = selected ? UIScreenTheme.OtherContent.CATALOG_ROW_SELECTED_FILL : UIScreenTheme.OtherContent.CATALOG_ROW_FILL;
             guiGraphics.fill(entryLeft + 1, y + 1, entryLeft + entryWidth - 1, y + ROW_HEIGHT - 3, fill);
             themed(guiGraphics).drawBorder(entryLeft, y, entryLeft + entryWidth, y + ROW_HEIGHT - 2, border);
-            guiGraphics.drawString(this.font, Component.literal(entry.difficultyName()), entryLeft + 8, y + 10, selected ? 0xFFFFFF : 0xE8E8E8, false);
+            guiGraphics.drawString(this.font, Component.literal(entry.difficultyName()), entryLeft + 8, y + 10, selected ? UIScreenTheme.OtherContent.GACHA_TEXT_SELECTED : UIScreenTheme.OtherContent.CATALOG_TEXT_PRIMARY, false);
         }
 
         ArenaService.ScreenEntry selected = selectedEntry();
@@ -211,17 +211,17 @@ public class CombatCatalogScreen extends Screen {
 
         int detailsX = detailsLeft + 8;
         int y = categoryTop + 8;
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.details"), detailsX, y, 0xF0F0F0, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.details"), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_HEADING, false);
         y += 16;
-        guiGraphics.drawString(this.font, Component.literal(selected.categoryName()), detailsX, y, 0xD9D9D9, false);
+        guiGraphics.drawString(this.font, Component.literal(selected.categoryName()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_META, false);
         y += 12;
-        guiGraphics.drawString(this.font, Component.literal(selected.difficultyName()), detailsX, y, 0xD9D9D9, false);
+        guiGraphics.drawString(this.font, Component.literal(selected.difficultyName()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_META, false);
         y += 12;
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.gateway", selected.gatewayId()), detailsX, y, 0xD9D9D9, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.gateway", selected.gatewayId()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_META, false);
         y += 12;
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.sanity", selected.rewardSanityCost()), detailsX, y, 0xFFE6CC, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.sanity", selected.rewardSanityCost()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_WARNING, false);
         y += 16;
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.rewards"), detailsX, y, 0xF0F0F0, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.rewards"), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_HEADING, false);
         y += 10;
 
         ItemStack hoveredStack = renderRewardIcons(guiGraphics, selected, detailsX, y, mouseX, mouseY);
@@ -232,7 +232,7 @@ public class CombatCatalogScreen extends Screen {
         if (!selected.rewardSummary().isEmpty()) {
             int rows = Math.max(1, (selected.rewardItems().size() + 1) / 2);
             int summaryY = y + (rows * 22) + 6;
-            guiGraphics.drawString(this.font, Component.literal(selected.rewardSummary()), detailsX, summaryY, 0xE8E8E8, false);
+            guiGraphics.drawString(this.font, Component.literal(selected.rewardSummary()), detailsX, summaryY, UIScreenTheme.OtherContent.CATALOG_TEXT_PRIMARY, false);
         }
     }
 
@@ -277,7 +277,7 @@ public class CombatCatalogScreen extends Screen {
 
             ItemStack displayStack = new ItemStack(item, reward.count());
             guiGraphics.renderItem(displayStack, x, y);
-            guiGraphics.drawString(this.font, Component.literal("x" + reward.count()), x + iconSize + 4, y + 4, 0xD9D9D9, false);
+            guiGraphics.drawString(this.font, Component.literal("x" + reward.count()), x + iconSize + 4, y + 4, UIScreenTheme.OtherContent.CATALOG_TEXT_META, false);
 
             if (mouseX >= x && mouseX <= x + iconSize && mouseY >= y && mouseY <= y + iconSize) {
                 hovered = displayStack;

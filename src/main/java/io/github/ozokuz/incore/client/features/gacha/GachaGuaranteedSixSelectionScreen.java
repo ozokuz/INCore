@@ -88,7 +88,7 @@ public class GachaGuaranteedSixSelectionScreen extends Screen {
         themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xF6F6F6);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, UIScreenTheme.OtherContent.GACHA_TITLE_TEXT);
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.translatable(
@@ -98,14 +98,14 @@ public class GachaGuaranteedSixSelectionScreen extends Screen {
                 ),
                 this.width / 2,
                 28,
-                0xC2E9FF
+                UIScreenTheme.OtherContent.INFO_RATE_LABEL_TEXT
         );
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.translatable("screen.incore.gacha_guaranteed_six.select_hint"),
                 this.width / 2,
                 42,
-                0xD9D9D9
+                UIScreenTheme.OtherContent.CATALOG_TEXT_META
         );
 
         if (selectableItems.isEmpty()) {
@@ -114,7 +114,7 @@ public class GachaGuaranteedSixSelectionScreen extends Screen {
                     Component.translatable("screen.incore.gacha_guaranteed_six.none_available"),
                     this.width / 2,
                     this.height / 2,
-                    0xE87E7E
+                    UIScreenTheme.OtherContent.GUARANTEE_ERROR_TEXT
             );
             return;
         }
@@ -127,8 +127,8 @@ public class GachaGuaranteedSixSelectionScreen extends Screen {
                 hovered = layout;
             }
 
-            int border = selected ? 0xFF6BD5FF : (isHovered ? 0xFF8F8F8F : 0xFF4D4D4D);
-            int fill = selected ? 0xA0223A4A : 0xA01D1D1D;
+            int border = selected ? UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_SELECTED : (isHovered ? UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_HOVER : UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER);
+            int fill = selected ? UIScreenTheme.OtherContent.GUARANTEE_ROW_FILL_SELECTED : UIScreenTheme.OtherContent.GUARANTEE_ROW_FILL;
             guiGraphics.fill(layout.left(), layout.top(), layout.right(), layout.bottom(), fill);
             guiGraphics.fill(layout.left(), layout.top(), layout.right(), layout.top() + 1, border);
             guiGraphics.fill(layout.left(), layout.bottom() - 1, layout.right(), layout.bottom(), border);
@@ -147,19 +147,19 @@ public class GachaGuaranteedSixSelectionScreen extends Screen {
             Component name = item == Items.AIR ? Component.literal(itemId.toString()) : item.getName(item.getDefaultInstance());
             String clippedName = this.font.plainSubstrByWidth(name.getString(), layout.right() - layout.left() - 12);
             int nameX = layout.left() + (layout.right() - layout.left() - this.font.width(clippedName)) / 2;
-            guiGraphics.drawString(this.font, clippedName, nameX, layout.top() + 34, 0xF0F0F0, false);
+            guiGraphics.drawString(this.font, clippedName, nameX, layout.top() + 34, UIScreenTheme.OtherContent.CATALOG_TEXT_HEADING, false);
 
             Component rawId = Component.literal(itemId.toString());
             String clippedId = this.font.plainSubstrByWidth(rawId.getString(), layout.right() - layout.left() - 12);
             int idX = layout.left() + (layout.right() - layout.left() - this.font.width(clippedId)) / 2;
-            guiGraphics.drawString(this.font, clippedId, idX, layout.top() + 50, 0xAFAFAF, false);
+            guiGraphics.drawString(this.font, clippedId, idX, layout.top() + 50, UIScreenTheme.OtherContent.GUARANTEE_ID_TEXT, false);
 
             guiGraphics.drawCenteredString(
                     this.font,
                     Component.literal("6★"),
                     (layout.left() + layout.right()) / 2,
                     layout.bottom() - 16,
-                    0xFF8C8C
+                    UIScreenTheme.OtherContent.GACHA_SHOWCASE_SIX_TEXT
             );
         }
 
@@ -173,7 +173,7 @@ public class GachaGuaranteedSixSelectionScreen extends Screen {
             } else {
                 tooltip.add(Component.literal(itemId.toString()));
             }
-            tooltip.add(Component.literal("6★").withColor(0xFF8C8C));
+            tooltip.add(Component.literal("6★").withColor(UIScreenTheme.OtherContent.GACHA_SHOWCASE_SIX_TEXT));
             guiGraphics.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
         }
     }

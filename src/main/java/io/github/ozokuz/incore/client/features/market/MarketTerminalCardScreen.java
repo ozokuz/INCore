@@ -25,9 +25,9 @@ public class MarketTerminalCardScreen extends AbstractContainerScreen<MarketTerm
         ThemedUi ui = themed(guiGraphics);
 
         ui.drawWindow(x, y, imageWidth, imageHeight);
-        drawPanel(guiGraphics, x + 5, y + 5, imageWidth - 10, 14, 0xFF20252C, 0xFF3D4350);
-        drawPanel(guiGraphics, x + 8, y + 24, imageWidth - 16, 68, 0xFF1A1F26, 0xFF363D49);
-        drawPanel(guiGraphics, x + 8, y + 94, imageWidth - 16, 86, 0xFF1A1F26, 0xFF363D49);
+        drawPanel(guiGraphics, x + 5, y + 5, imageWidth - 10, 14, UIScreenTheme.Machine.HEADER_FILL, UIScreenTheme.Machine.HEADER_BORDER);
+        drawPanel(guiGraphics, x + 8, y + 24, imageWidth - 16, 68, UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
+        drawPanel(guiGraphics, x + 8, y + 94, imageWidth - 16, 86, UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
 
         drawSlotFrame(guiGraphics, x + MarketTerminalCardMenu.CARD_X, y + MarketTerminalCardMenu.CARD_Y);
         for (int row = 0; row < 3; row++) {
@@ -50,7 +50,7 @@ public class MarketTerminalCardScreen extends AbstractContainerScreen<MarketTerm
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(this.font, this.title, 11, 9, 0xE6EBF4, false);
+        guiGraphics.drawString(this.font, this.title, 11, 9, UIScreenTheme.Machine.TITLE_TEXT, false);
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.card.slot"), 12, 50, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, this.playerInventoryTitle, 12, 100, TEXT_COLOR, false);
     }

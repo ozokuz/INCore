@@ -13,18 +13,18 @@ import java.util.List;
 
 public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMenu> {
     private static final UIScreenTheme THEME = UIScreenTheme.CRAFTING;
-    private static final int TEXT_COLOR = 0xD6E0EF;
-    private static final int GUI_FILL = 0xCC111724;
-    private static final int PANEL_FILL = 0x99202A3A;
-    private static final int PANEL_BORDER = 0xFF4B596F;
-    private static final int SLOT_FILL = 0xFF181F2A;
-    private static final int SLOT_BORDER = 0xFF46566F;
-    private static final int TITLE_COLOR = 0xE8EEF8;
-    private static final int ACCENT_COLOR = 0x8CC5F3;
-    private static final int SUCCESS_COLOR = 0x8EF7A0;
-    private static final int ERROR_COLOR = 0xFF7A7A;
-    private static final int MUTED_COLOR = 0x98A6B8;
-    private static final int WARNING_COLOR = 0xD9A7FF;
+    private static final int TEXT_COLOR = UIScreenTheme.Crafting.BODY_TEXT;
+    private static final int GUI_FILL = UIScreenTheme.Crafting.WINDOW_FILL;
+    private static final int PANEL_FILL = UIScreenTheme.Crafting.PANEL_FILL;
+    private static final int PANEL_BORDER = UIScreenTheme.Crafting.PANEL_BORDER;
+    private static final int SLOT_FILL = UIScreenTheme.Crafting.SLOT_FILL;
+    private static final int SLOT_BORDER = UIScreenTheme.Crafting.SLOT_BORDER;
+    private static final int TITLE_COLOR = UIScreenTheme.Crafting.TITLE_TEXT;
+    private static final int ACCENT_COLOR = UIScreenTheme.Crafting.ACCENT_TEXT;
+    private static final int SUCCESS_COLOR = UIScreenTheme.Crafting.SUCCESS_TEXT;
+    private static final int ERROR_COLOR = UIScreenTheme.Crafting.DANGER_TEXT;
+    private static final int MUTED_COLOR = UIScreenTheme.Crafting.MUTED_TEXT;
+    private static final int WARNING_COLOR = UIScreenTheme.Crafting.WARNING_TEXT;
 
     private static final int RIGHT_PANEL_X = 206;
     private static final int RIGHT_PANEL_Y = 20;
@@ -48,7 +48,7 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
         ThemedUi ui = themed(guiGraphics);
 
         ui.drawWindow(x, y, imageWidth, imageHeight);
-        drawPanel(guiGraphics, x + 6, y + 6, imageWidth - 12, 12, 0xFF1B2230, 0xFF38465D);
+        drawPanel(guiGraphics, x + 6, y + 6, imageWidth - 12, 12, UIScreenTheme.Crafting.HEADER_FILL, UIScreenTheme.Crafting.HEADER_BORDER);
         drawPanel(guiGraphics, x + 8, y + 20, 186, 114, PANEL_FILL, PANEL_BORDER);
         drawPanel(guiGraphics, x + RIGHT_PANEL_X, y + RIGHT_PANEL_Y, RIGHT_PANEL_W, RIGHT_PANEL_H, PANEL_FILL, PANEL_BORDER);
         drawPanel(guiGraphics, x + INVENTORY_PANEL_X, y + INVENTORY_PANEL_Y, INVENTORY_PANEL_W, INVENTORY_PANEL_H, PANEL_FILL, PANEL_BORDER);
@@ -115,10 +115,10 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
         } else {
             String reason = Component.translatable(menu.failureKey().isBlank() ? "incore.cards.deck.missing_core" : menu.failureKey()).getString();
             guiGraphics.drawString(font, "Status: Invalid", RIGHT_PANEL_X + 6, RIGHT_PANEL_Y + 56, ERROR_COLOR, false);
-            drawWrapped(guiGraphics, reason, RIGHT_PANEL_X + 6, RIGHT_PANEL_Y + 68, RIGHT_PANEL_W - 12, 2, 0xFFAFB5);
+            drawWrapped(guiGraphics, reason, RIGHT_PANEL_X + 6, RIGHT_PANEL_Y + 68, RIGHT_PANEL_W - 12, 2, UIScreenTheme.Crafting.REASON_TEXT);
         }
 
-        guiGraphics.drawString(font, "Modifiers", RIGHT_PANEL_X + 6, RIGHT_PANEL_Y + 92, 0xB0D6F2, false);
+        guiGraphics.drawString(font, "Modifiers", RIGHT_PANEL_X + 6, RIGHT_PANEL_Y + 92, UIScreenTheme.Crafting.MODIFIER_LABEL_TEXT, false);
         List<String> lines = menu.previewModifierLines();
         if (lines.isEmpty()) {
             guiGraphics.drawString(font, "No active modifiers.", RIGHT_PANEL_X + 6, RIGHT_PANEL_Y + 104, MUTED_COLOR, false);

@@ -105,7 +105,7 @@ public class PlayerStatusScreen extends Screen {
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawString(this.font, this.title, layout.windowLeft() + 12, layout.windowTop() + 8, 0xFFF3F8FF, false);
+        guiGraphics.drawString(this.font, this.title, layout.windowLeft() + 12, layout.windowTop() + 8, UIScreenTheme.Info.TITLE_TEXT, false);
         drawHeaderCurrencies(guiGraphics, layout);
 
         drawCard(guiGraphics, layout.levelX(), layout.levelY(), layout.levelWidth(), layout.levelHeight());
@@ -120,7 +120,7 @@ public class PlayerStatusScreen extends Screen {
                 Component.translatable("screen.incore.player_status.section_navigation"),
                 layout.quickNavX() + 8,
                 layout.quickNavY() + 8,
-                0xFFD6F1FF,
+                UIScreenTheme.Info.PRIMARY_TEXT,
                 false
         );
 
@@ -135,7 +135,7 @@ public class PlayerStatusScreen extends Screen {
             int labelY = button.getY() + (button.getHeight() - this.font.lineHeight) / 2 + 1;
             int labelMaxWidth = Math.max(24, button.getWidth() - 30);
             Component label = Component.literal(this.font.plainSubstrByWidth(navButton.label().getString(), labelMaxWidth));
-            guiGraphics.drawString(this.font, label, labelX, labelY, 0xFFEAF4FF, false);
+            guiGraphics.drawString(this.font, label, labelX, labelY, UIScreenTheme.Info.STATUS_SECTION_TEXT, false);
 
             if (mouseX >= button.getX()
                     && mouseX < button.getX() + button.getWidth()
@@ -162,7 +162,7 @@ public class PlayerStatusScreen extends Screen {
     private void drawHeaderCurrencies(GuiGraphics guiGraphics, Layout layout) {
         PlayerStatusCurrencyClientCache.Snapshot snapshot = PlayerStatusCurrencyClientCache.snapshot();
         List<CostRenderLine> lines = snapshot.entries().stream()
-                .map(entry -> new CostRenderLine(iconFromId(entry.iconItemId()), "x" + Math.max(0, entry.amount()), 0xBDE8BD))
+                .map(entry -> new CostRenderLine(iconFromId(entry.iconItemId()), "x" + Math.max(0, entry.amount()), UIScreenTheme.Info.STATUS_BALANCE_TEXT))
                 .toList();
 
         int rightX = layout.windowLeft() + layout.windowWidth() - 12;
@@ -174,7 +174,7 @@ public class PlayerStatusScreen extends Screen {
                     ? Component.translatable("screen.incore.player_status.currencies_none")
                     : Component.translatable("screen.incore.player_status.currencies_loading");
             int textX = Math.max(minX, rightX - this.font.width(text));
-            guiGraphics.drawString(this.font, text, textX, y + 1, 0xB2C6D8, false);
+            guiGraphics.drawString(this.font, text, textX, y + 1, UIScreenTheme.Info.STATUS_LINE_TEXT, false);
             return;
         }
 
@@ -195,7 +195,7 @@ public class PlayerStatusScreen extends Screen {
         Component label = Component.translatable("screen.incore.player_status.section_currencies");
         int labelWidth = this.font.width(label);
         if (cursorRight - labelWidth >= minX) {
-            guiGraphics.drawString(this.font, label, cursorRight - labelWidth, y + 4, 0xFFD6F1FF, false);
+            guiGraphics.drawString(this.font, label, cursorRight - labelWidth, y + 4, UIScreenTheme.Info.PRIMARY_TEXT, false);
             cursorRight -= labelWidth + 4;
         }
 
@@ -203,7 +203,7 @@ public class PlayerStatusScreen extends Screen {
             Component overflow = Component.translatable("screen.incore.player_status.currencies_overflow", lines.size() - rendered);
             int overflowWidth = this.font.width(overflow);
             int overflowX = Math.max(minX, cursorRight - overflowWidth);
-            guiGraphics.drawString(this.font, overflow, overflowX, y + 4, 0xFF9BB8C8, false);
+            guiGraphics.drawString(this.font, overflow, overflowX, y + 4, UIScreenTheme.Info.STATUS_OVERFLOW_TEXT, false);
         }
     }
 
@@ -216,7 +216,7 @@ public class PlayerStatusScreen extends Screen {
         int cap = Math.max(1, SanityClientCache.getCap());
         sanity = Math.min(sanity, cap);
 
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.sanity"), cardX + 8, cardY + 8, 0xFFD6F1FF, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.sanity"), cardX + 8, cardY + 8, UIScreenTheme.Info.PRIMARY_TEXT, false);
 
         int meterX = cardX + 8;
         int meterY = cardY + 24;
@@ -232,13 +232,13 @@ public class PlayerStatusScreen extends Screen {
         }
 
         int infoY = meterY + 10;
-        guiGraphics.drawString(this.font, Component.literal(sanity + " / " + cap), cardX + 8, infoY, 0xFFFFFFFF, false);
+        guiGraphics.drawString(this.font, Component.literal(sanity + " / " + cap), cardX + 8, infoY, UIScreenTheme.Info.WHITE_TEXT, false);
         guiGraphics.drawString(
                 this.font,
                 Component.translatable("screen.incore.player_status.next_gain", formatCountdown(SanityClientCache.getMillisUntilNextIncrease())),
                 cardX + 8,
                 infoY + 14,
-                0xE2EBF5,
+                UIScreenTheme.Info.SECONDARY_TEXT,
                 false
         );
         guiGraphics.drawString(
@@ -246,7 +246,7 @@ public class PlayerStatusScreen extends Screen {
                 Component.translatable("screen.incore.player_status.full_in", formatCountdown(SanityClientCache.getMillisUntilFull())),
                 cardX + 8,
                 infoY + 28,
-                0xCCD5E1,
+                UIScreenTheme.Info.STATUS_TRACK_TEXT,
                 false
         );
     }
@@ -258,17 +258,17 @@ public class PlayerStatusScreen extends Screen {
 
         int textX = layout.levelX() + 8;
         int top = layout.levelY();
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.section_level"), textX, top + 8, 0xFFD6F1FF, false);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.level", level), textX, top + 22, 0xFFFFFFFF, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.section_level"), textX, top + 8, UIScreenTheme.Info.PRIMARY_TEXT, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.level", level), textX, top + 22, UIScreenTheme.Info.WHITE_TEXT, false);
         guiGraphics.drawString(
                 this.font,
                 Component.translatable("screen.incore.player_status.level_progress", levelExperience, nextLevelCost),
                 textX,
                 top + 36,
-                0xE2EBF5,
+                UIScreenTheme.Info.SECONDARY_TEXT,
                 false
         );
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.hint"), textX, top + 50, 0xB8C8D9, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.hint"), textX, top + 50, UIScreenTheme.Info.MUTED_TEXT, false);
     }
 
     private void addQuickNavButtons(Layout layout) {

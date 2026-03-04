@@ -41,20 +41,20 @@ public class TaskOverviewScreen extends Screen {
     private static final int CONTENT_PADDING_BOTTOM = 15;
     private static final int MIN_WINDOW_WIDTH = 252;
     private static final int MIN_WINDOW_HEIGHT = 140;
-    private static final int COLOR_WINDOW_FILL = 0xD114161A;
-    private static final int COLOR_WINDOW_BORDER_LIGHT = 0xFF474B52;
-    private static final int COLOR_WINDOW_BORDER_DARK = 0xFF000000;
-    private static final int COLOR_BACKDROP = 0xCC0E1015;
-    private static final int COLOR_PANEL = 0xCC0E1015;
-    private static final int COLOR_PANEL_BORDER = 0x66454D5B;
-    private static final int COLOR_CARD = 0xBB1A2029;
-    private static final int COLOR_CARD_COMPLETE = 0xBB1E2A24;
-    private static final int COLOR_ACCENT = 0xFFFFD31A;
-    private static final int COLOR_ACCENT_COMPLETE = 0xFF62D48A;
-    private static final int COLOR_TEXT_PRIMARY = 0xFFF2F4F8;
-    private static final int COLOR_TEXT_SECONDARY = 0xFFC3C9D3;
-    private static final int COLOR_CARD_TEXT_DARK = 0xFFECEFF5;
-    private static final int COLOR_CARD_TEXT_MID = 0xFFBCC3CF;
+    private static final int COLOR_WINDOW_FILL = UIScreenTheme.BattlepassTasks.WINDOW_FILL;
+    private static final int COLOR_WINDOW_BORDER_LIGHT = UIScreenTheme.BattlepassTasks.WINDOW_BORDER_LIGHT;
+    private static final int COLOR_WINDOW_BORDER_DARK = UIScreenTheme.BattlepassTasks.WINDOW_BORDER_DARK;
+    private static final int COLOR_BACKDROP = UIScreenTheme.BattlepassTasks.PANEL_FILL;
+    private static final int COLOR_PANEL = UIScreenTheme.BattlepassTasks.PANEL_FILL;
+    private static final int COLOR_PANEL_BORDER = UIScreenTheme.BattlepassTasks.BORDER_MUTED;
+    private static final int COLOR_CARD = UIScreenTheme.BattlepassTasks.CARD_FILL_DEFAULT;
+    private static final int COLOR_CARD_COMPLETE = UIScreenTheme.BattlepassTasks.CARD_FILL_COMPLETE;
+    private static final int COLOR_ACCENT = UIScreenTheme.BattlepassTasks.ACCENT_GOLD;
+    private static final int COLOR_ACCENT_COMPLETE = UIScreenTheme.BattlepassTasks.PROGRESS_FILL_COMPLETE;
+    private static final int COLOR_TEXT_PRIMARY = UIScreenTheme.BattlepassTasks.TEXT_PRIMARY;
+    private static final int COLOR_TEXT_SECONDARY = UIScreenTheme.BattlepassTasks.TEXT_SECONDARY;
+    private static final int COLOR_CARD_TEXT_DARK = UIScreenTheme.BattlepassTasks.TEXT_SOFT;
+    private static final int COLOR_CARD_TEXT_MID = UIScreenTheme.BattlepassTasks.TEXT_MUTED;
 
     private Integer previousMenuBlur;
     private Button claimDailyButton;
@@ -175,7 +175,7 @@ public class TaskOverviewScreen extends Screen {
         int completedTasks = snapshot.fixedDailyCompleted();
         int progressBarHeight = totalTasks * rowHeight + (totalTasks - 1) * rowGap;
         int filledHeight = Math.round((float) completedTasks / totalTasks * progressBarHeight);
-        int emptyProgressColor = 0xFF3A4454;
+        int emptyProgressColor = UIScreenTheme.BattlepassTasks.PROGRESS_BORDER;
         int filledProgressColor = COLOR_ACCENT;
 
         int barX = x;
@@ -206,8 +206,8 @@ public class TaskOverviewScreen extends Screen {
 
                 int progress = Math.min(entry.progress(), entry.goal());
                 boolean complete = progress >= entry.goal();
-                int rowFill = complete ? 0xAA243127 : COLOR_CARD;
-                int rowBorder = complete ? 0x8062D48A : COLOR_PANEL_BORDER;
+                int rowFill = complete ? UIScreenTheme.BattlepassTasks.ROW_FILL_COMPLETE : COLOR_CARD;
+                int rowBorder = complete ? UIScreenTheme.BattlepassTasks.ROW_BORDER_COMPLETE : COLOR_PANEL_BORDER;
                 guiGraphics.fill(taskListX, y, right - PANEL_PADDING, rowBottom, rowFill);
                 drawRectBorder(guiGraphics, taskListX, y, right - PANEL_PADDING, rowBottom, rowBorder);
 
@@ -289,15 +289,15 @@ public class TaskOverviewScreen extends Screen {
         int progress = Math.min(entry.progress(), entry.goal());
         boolean complete = progress >= entry.goal();
         int cardFill = complete ? COLOR_CARD_COMPLETE : COLOR_CARD;
-        int cardBorder = complete ? 0xAA62D48A : COLOR_PANEL_BORDER;
+        int cardBorder = complete ? UIScreenTheme.BattlepassTasks.CHIP_BORDER_COMPLETE : COLOR_PANEL_BORDER;
         guiGraphics.fill(left, top, right, bottom, cardFill);
         drawRectBorder(guiGraphics, left, top, right, bottom, cardBorder);
 
         int badgeWidth = 52;
         int badgeRight = Math.min(right - 8, left + badgeWidth);
-        int badgeFill = complete ? 0xCC253A30 : 0xCC242A35;
+        int badgeFill = complete ? UIScreenTheme.BattlepassTasks.BADGE_FILL_COMPLETE : UIScreenTheme.BattlepassTasks.BADGE_FILL_DEFAULT;
         guiGraphics.fill(left + 1, top + 1, badgeRight, bottom - 1, badgeFill);
-        guiGraphics.fill(badgeRight - 1, top + 1, badgeRight, bottom - 1, complete ? 0xAA62D48A : 0x80454D5B);
+        guiGraphics.fill(badgeRight - 1, top + 1, badgeRight, bottom - 1, complete ? UIScreenTheme.BattlepassTasks.CHIP_BORDER_COMPLETE : UIScreenTheme.BattlepassTasks.BADGE_EDGE_INACTIVE);
 
         String pointsText = "▲ " + entry.points();
         int pointsTextWidth = this.font.width(pointsText);
@@ -316,7 +316,7 @@ public class TaskOverviewScreen extends Screen {
                 Math.max(24, contentRight - contentLeft),
                 5,
                 progressRatio(progress, entry.goal()),
-                0xFF3A4454,
+                UIScreenTheme.BattlepassTasks.PROGRESS_BORDER,
                 complete ? COLOR_ACCENT_COMPLETE : COLOR_ACCENT
         );
         String progressText = progress + "/" + entry.goal();
@@ -325,8 +325,8 @@ public class TaskOverviewScreen extends Screen {
         int pillLeft = right - pillWidth - 8;
         int pillTop = top + (bottom - top - 14) / 2;
         int pillBottom = pillTop + 14;
-        int pillColor = complete ? 0xAA2B4A34 : 0xAA2D3440;
-        int pillBorder = complete ? 0xAA62D48A : 0xAA5A6372;
+        int pillColor = complete ? UIScreenTheme.BattlepassTasks.CHIP_FILL_COMPLETE : UIScreenTheme.BattlepassTasks.CHIP_FILL_DEFAULT;
+        int pillBorder = complete ? UIScreenTheme.BattlepassTasks.CHIP_BORDER_COMPLETE : UIScreenTheme.BattlepassTasks.CHIP_BORDER_DEFAULT;
         guiGraphics.fill(pillLeft, pillTop, pillLeft + pillWidth, pillBottom, pillColor);
         drawRectBorder(guiGraphics, pillLeft, pillTop, pillLeft + pillWidth, pillBottom, pillBorder);
         String stateText = complete
@@ -434,18 +434,18 @@ public class TaskOverviewScreen extends Screen {
     }
 
     private void drawWeeklyScrollbar(GuiGraphics guiGraphics, WeeklyListMetrics metrics) {
-        guiGraphics.fill(metrics.trackLeft(), metrics.trackTop(), metrics.trackRight(), metrics.trackBottom(), 0x4C101926);
+        guiGraphics.fill(metrics.trackLeft(), metrics.trackTop(), metrics.trackRight(), metrics.trackBottom(), UIScreenTheme.BattlepassTasks.SCROLL_TRACK_FILL);
         drawRectBorder(guiGraphics, metrics.trackLeft(), metrics.trackTop(), metrics.trackRight(), metrics.trackBottom(), COLOR_PANEL_BORDER);
 
         if (metrics.maxScroll() <= 0) {
-            guiGraphics.fill(metrics.trackLeft() + 1, metrics.trackTop() + 1, metrics.trackRight() - 1, metrics.trackBottom() - 1, 0x661A2029);
+            guiGraphics.fill(metrics.trackLeft() + 1, metrics.trackTop() + 1, metrics.trackRight() - 1, metrics.trackBottom() - 1, UIScreenTheme.BattlepassTasks.SCROLL_TRACK_EMPTY_FILL);
             return;
         }
 
         int thumbTop = this.weeklyThumbTop(metrics);
         int thumbBottom = thumbTop + this.weeklyThumbHeight(metrics);
-        guiGraphics.fill(metrics.trackLeft() + 1, thumbTop, metrics.trackRight() - 1, thumbBottom, 0xCCBFC7D3);
-        drawRectBorder(guiGraphics, metrics.trackLeft() + 1, thumbTop, metrics.trackRight() - 1, thumbBottom, 0xFF5A6372);
+        guiGraphics.fill(metrics.trackLeft() + 1, thumbTop, metrics.trackRight() - 1, thumbBottom, UIScreenTheme.BattlepassTasks.SCROLL_THUMB_FILL);
+        drawRectBorder(guiGraphics, metrics.trackLeft() + 1, thumbTop, metrics.trackRight() - 1, thumbBottom, UIScreenTheme.BattlepassTasks.SCROLL_THUMB_BORDER);
     }
 
     private int weeklyThumbHeight(WeeklyListMetrics metrics) {
@@ -610,9 +610,9 @@ public class TaskOverviewScreen extends Screen {
             int slotRight = Math.min(right, slotLeft + slotWidth);
             if (i < snapshot.tiers().size()) {
                 TaskClientCache.TierEntry tier = snapshot.tiers().get(i);
-                int fill = tier.claimed() ? 0xAA243127 : (tier.unlocked() ? 0xAA302813 : COLOR_CARD);
+                int fill = tier.claimed() ? UIScreenTheme.BattlepassTasks.ROW_FILL_COMPLETE : (tier.unlocked() ? UIScreenTheme.BattlepassTasks.TIER_ROW_UNLOCKED : COLOR_CARD);
                 int border = tier.claimed() ? COLOR_ACCENT_COMPLETE : (tier.unlocked() ? COLOR_ACCENT : COLOR_PANEL_BORDER);
-                int pointsColor = tier.claimed() ? 0xFFD8EEE0 : (tier.unlocked() ? 0xFFF8E8A3 : COLOR_TEXT_SECONDARY);
+                int pointsColor = tier.claimed() ? UIScreenTheme.BattlepassTasks.TIER_POINTS_COMPLETE : (tier.unlocked() ? UIScreenTheme.BattlepassTasks.TIER_POINTS_UNLOCKED : COLOR_TEXT_SECONDARY);
                 guiGraphics.fill(slotLeft, rowTop, slotRight, rowBottom, fill);
                 drawRectBorder(guiGraphics, slotLeft, rowTop, slotRight, rowBottom, border);
 
@@ -641,8 +641,8 @@ public class TaskOverviewScreen extends Screen {
                     hovered = candidate;
                 }
             } else {
-                guiGraphics.fill(slotLeft, rowTop, slotRight, rowBottom, 0xAA141820);
-                drawRectBorder(guiGraphics, slotLeft, rowTop, slotRight, rowBottom, 0x33454D5B);
+                guiGraphics.fill(slotLeft, rowTop, slotRight, rowBottom, UIScreenTheme.BattlepassTasks.TIER_SLOT_FILL);
+                drawRectBorder(guiGraphics, slotLeft, rowTop, slotRight, rowBottom, UIScreenTheme.BattlepassTasks.TIER_SLOT_BORDER);
             }
             slotLeft = slotRight + 4;
         }
@@ -659,7 +659,7 @@ public class TaskOverviewScreen extends Screen {
                     barWidth,
                     barHeight,
                     progressRatio(clampedPoints, maxRequiredPoints),
-                    0xFF3A4454,
+                    UIScreenTheme.BattlepassTasks.PROGRESS_BORDER,
                     COLOR_ACCENT
             );
         }

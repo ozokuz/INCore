@@ -29,10 +29,10 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
         ThemedUi ui = themed(guiGraphics);
 
         ui.drawWindow(x, y, imageWidth, imageHeight);
-        drawPanel(guiGraphics, x + 5, y + 5, imageWidth - 10, 14, 0xFF20252C, 0xFF3D4350);
-        drawPanel(guiGraphics, x + 8, y + 24, imageWidth - 16, 36, 0xFF1A1F26, 0xFF363D49);
-        drawPanel(guiGraphics, x + 8, y + 62, imageWidth - 16, 62, 0xFF1A1F26, 0xFF363D49);
-        drawPanel(guiGraphics, x + 8, y + 124, imageWidth - 16, 82, 0xFF1A1F26, 0xFF363D49);
+        drawPanel(guiGraphics, x + 5, y + 5, imageWidth - 10, 14, UIScreenTheme.Machine.HEADER_FILL, UIScreenTheme.Machine.HEADER_BORDER);
+        drawPanel(guiGraphics, x + 8, y + 24, imageWidth - 16, 36, UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
+        drawPanel(guiGraphics, x + 8, y + 62, imageWidth - 16, 62, UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
+        drawPanel(guiGraphics, x + 8, y + 124, imageWidth - 16, 82, UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
@@ -65,23 +65,23 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
         int progressX = x + 12;
         int progressY = y + 49;
         int progressWidth = 180;
-        drawPanel(guiGraphics, progressX - 1, progressY - 1, progressWidth + 2, 8, 0xFF101318, 0xFF2F3540);
-        guiGraphics.fill(progressX, progressY, progressX + progressWidth, progressY + 6, 0xFF242B34);
-        guiGraphics.fill(progressX, progressY, progressX + menu.progressScaled(progressWidth), progressY + 6, 0xFF5ED084);
+        drawPanel(guiGraphics, progressX - 1, progressY - 1, progressWidth + 2, 8, UIScreenTheme.Machine.PROGRESS_FRAME_FILL, UIScreenTheme.Machine.PROGRESS_FRAME_BORDER);
+        guiGraphics.fill(progressX, progressY, progressX + progressWidth, progressY + 6, UIScreenTheme.Machine.PROGRESS_TRACK_FILL);
+        guiGraphics.fill(progressX, progressY, progressX + menu.progressScaled(progressWidth), progressY + 6, UIScreenTheme.Machine.PROGRESS_FILL_SUCCESS);
 
         int statusColor = switch (menu.status()) {
             case ShipmentTerminalBlockEntity.STATUS_NO_CARD, ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM,
-                 ShipmentTerminalBlockEntity.STATUS_NO_STRESS, ShipmentTerminalBlockEntity.STATUS_NO_POWER -> 0xFFD17C7C;
+                 ShipmentTerminalBlockEntity.STATUS_NO_STRESS, ShipmentTerminalBlockEntity.STATUS_NO_POWER -> UIScreenTheme.Machine.STATUS_ERROR_TEXT;
             case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS, ShipmentTerminalBlockEntity.STATUS_NEED_FULL_STACK,
-                 ShipmentTerminalBlockEntity.STATUS_NO_RPM -> 0xFFE2C777;
-            default -> 0xFF7DD6A7;
+                 ShipmentTerminalBlockEntity.STATUS_NO_RPM -> UIScreenTheme.Machine.STATUS_WARNING_TEXT;
+            default -> UIScreenTheme.Machine.STATUS_READY_TEXT;
         };
         guiGraphics.fill(x + 198, y + 31, x + 206, y + 39, statusColor);
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(this.font, this.title, 11, 9, 0xE6EBF4, false);
+        guiGraphics.drawString(this.font, this.title, 11, 9, UIScreenTheme.Machine.TITLE_TEXT, false);
         guiGraphics.drawString(this.font, Component.literal("Status"), 12, 29, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, this.playerInventoryTitle, 12, 128, TEXT_COLOR, false);
 

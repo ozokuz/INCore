@@ -98,18 +98,18 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
         themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawCenteredString(font, title, width / 2, 14, 0xF2F2F2);
+        guiGraphics.drawCenteredString(font, title, width / 2, 14, UIScreenTheme.MarketShop.TITLE_TEXT);
         guiGraphics.drawString(
                 font,
                 Component.translatable("screen.incore.shop.balance", data.balanceSpur()),
                 LEFT_MARGIN,
                 16,
-                0x9AE29A,
+                UIScreenTheme.MarketShop.MODE_ACTIVE_TEXT,
                 false
         );
 
-        drawPanel(guiGraphics, categoryPanelX(), TOP - 2, CATEGORY_WIDTH + 4, panelHeight() + 4, 0xAA151920, 0xFF454F63);
-        drawPanel(guiGraphics, offersPanelX(), TOP - 2, offersPanelWidth() + 4, panelHeight() + 4, 0xAA151920, 0xFF454F63);
+        drawPanel(guiGraphics, categoryPanelX(), TOP - 2, CATEGORY_WIDTH + 4, panelHeight() + 4, UIScreenTheme.MarketShop.OUTER_PANEL_FILL, UIScreenTheme.MarketShop.OUTER_PANEL_BORDER);
+        drawPanel(guiGraphics, offersPanelX(), TOP - 2, offersPanelWidth() + 4, panelHeight() + 4, UIScreenTheme.MarketShop.OUTER_PANEL_FILL, UIScreenTheme.MarketShop.OUTER_PANEL_BORDER);
 
         renderCategoryList(guiGraphics, mouseX, mouseY);
         renderOfferList(guiGraphics, mouseX, mouseY);
@@ -196,7 +196,7 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
         int y = TOP;
 
         if (categories.isEmpty()) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.no_categories"), x + 4, y + 4, 0xDD8D8D, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.no_categories"), x + 4, y + 4, UIScreenTheme.MarketShop.NO_DATA_TEXT, false);
             return;
         }
 
@@ -204,18 +204,18 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
             boolean selected = category.categoryId().equals(selectedCategoryId);
             boolean hovered = mouseX >= x && mouseX < x + CATEGORY_WIDTH && mouseY >= y && mouseY < y + CATEGORY_ROW_HEIGHT;
 
-            int borderColor = selected ? 0xFF89C9FF : 0xFF3D4558;
-            int fillColor = selected ? 0xFF283446 : (hovered ? 0xFF202A37 : 0xFF1B212C);
+            int borderColor = selected ? UIScreenTheme.MarketShop.ITEM_TILE_BORDER_SELECTED : UIScreenTheme.MarketShop.ITEM_TILE_BORDER;
+            int fillColor = selected ? UIScreenTheme.MarketShop.ITEM_TILE_FILL_SELECTED : (hovered ? UIScreenTheme.MarketShop.ITEM_TILE_FILL_HOVER : UIScreenTheme.MarketShop.ITEM_TILE_FILL);
             drawPanel(guiGraphics, x, y, CATEGORY_WIDTH, CATEGORY_ROW_HEIGHT, fillColor, borderColor);
 
-            int nameColor = category.locked() ? 0xFF9A9A9A : 0xECF2FF;
+            int nameColor = category.locked() ? UIScreenTheme.MarketShop.TEXT_LOCKED : UIScreenTheme.MarketShop.TEXT_PRIMARY;
             String name = font.plainSubstrByWidth(category.displayName(), CATEGORY_WIDTH - 10);
             guiGraphics.drawString(font, name, x + 5, y + 4, nameColor, false);
 
             String stockText = category.availableStock() < 0
                     ? Component.translatable("screen.incore.shop.stock.unlimited").getString()
                     : Component.translatable("screen.incore.shop.stock.remaining", category.availableStock()).getString();
-            guiGraphics.drawString(font, font.plainSubstrByWidth(stockText, CATEGORY_WIDTH - 10), x + 5, y + 14, 0xB8C2D3, false);
+            guiGraphics.drawString(font, font.plainSubstrByWidth(stockText, CATEGORY_WIDTH - 10), x + 5, y + 14, UIScreenTheme.MarketShop.TEXT_SOFT, false);
             y += CATEGORY_ROW_HEIGHT;
         }
     }
@@ -223,7 +223,7 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
     private void renderOfferList(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         List<ShopService.OfferView> offers = ShopScreenDataUtil.offersForCategory(data, selectedCategoryId);
         if (offers.isEmpty()) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.no_offers"), offersPanelX() + 6, TOP + 6, 0xDD8D8D, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.no_offers"), offersPanelX() + 6, TOP + 6, UIScreenTheme.MarketShop.NO_DATA_TEXT, false);
             return;
         }
 
@@ -240,25 +240,25 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
 
             ShopService.OfferView offer = offers.get(index);
             boolean hovered = mouseX >= x && mouseX < x + offersPanelWidth() && mouseY >= y && mouseY < y + OFFER_ROW_HEIGHT;
-            int borderColor = hovered ? 0xFF79A9DF : 0xFF3D4558;
-            int fillColor = hovered ? 0xFF202A37 : 0xFF1B212C;
+            int borderColor = hovered ? UIScreenTheme.MarketShop.ITEM_TILE_BORDER_HOVER : UIScreenTheme.MarketShop.ITEM_TILE_BORDER;
+            int fillColor = hovered ? UIScreenTheme.MarketShop.ITEM_TILE_FILL_HOVER : UIScreenTheme.MarketShop.ITEM_TILE_FILL;
             drawPanel(guiGraphics, x, y, offersPanelWidth(), OFFER_ROW_HEIGHT, fillColor, borderColor);
 
             renderOfferIcon(guiGraphics, offer, x + 3, y + 4);
 
-            int textColor = offer.locked() ? 0xFF9A9A9A : 0xECF2FF;
+            int textColor = offer.locked() ? UIScreenTheme.MarketShop.TEXT_LOCKED : UIScreenTheme.MarketShop.TEXT_PRIMARY;
             guiGraphics.drawString(font, font.plainSubstrByWidth(offer.displayName(), offersPanelWidth() - 190), x + 23, y + 4, textColor, false);
-            guiGraphics.drawString(font, Component.literal(offer.priceSpur() + " spur"), x + offersPanelWidth() - 116, y + 4, 0xCFE4FF, false);
+            guiGraphics.drawString(font, Component.literal(offer.priceSpur() + " spur"), x + offersPanelWidth() - 116, y + 4, UIScreenTheme.MarketShop.TEXT_ACCENT, false);
 
             String stock = offer.availableStock() < 0
                     ? Component.translatable("screen.incore.shop.stock.unlimited").getString()
                     : Component.translatable("screen.incore.shop.stock.remaining", offer.availableStock()).getString();
-            guiGraphics.drawString(font, font.plainSubstrByWidth(stock, 86), x + offersPanelWidth() - 116, y + 14, 0xB7C1D0, false);
+            guiGraphics.drawString(font, font.plainSubstrByWidth(stock, 86), x + offersPanelWidth() - 116, y + 14, UIScreenTheme.MarketShop.TEXT_MUTED, false);
 
             if (offer.locked()) {
-                guiGraphics.drawString(font, Component.translatable("screen.incore.shop.locked_short"), x + 23, y + 14, 0xFF8A8A, false);
+                guiGraphics.drawString(font, Component.translatable("screen.incore.shop.locked_short"), x + 23, y + 14, UIScreenTheme.MarketShop.TEXT_NEGATIVE, false);
             } else {
-                guiGraphics.drawString(font, Component.translatable("screen.incore.shop.bundle", offer.itemCount()), x + 23, y + 14, 0xB7C1D0, false);
+                guiGraphics.drawString(font, Component.translatable("screen.incore.shop.bundle", offer.itemCount()), x + 23, y + 14, UIScreenTheme.MarketShop.TEXT_MUTED, false);
             }
             y += OFFER_ROW_HEIGHT;
         }
@@ -270,7 +270,7 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
                 Component.literal(currentRow + "/" + Math.max(1, totalRows)),
                 width - 52,
                 height - 38,
-                0xB7C1D0,
+                UIScreenTheme.MarketShop.TEXT_MUTED,
                 false
         );
     }

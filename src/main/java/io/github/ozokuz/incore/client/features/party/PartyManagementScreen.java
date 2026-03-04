@@ -199,7 +199,7 @@ public class PartyManagementScreen extends Screen {
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawString(this.font, this.title, layout.windowLeft() + 12, layout.windowTop() + 8, 0xFFF3F8FF, false);
+        guiGraphics.drawString(this.font, this.title, layout.windowLeft() + 12, layout.windowTop() + 8, UIScreenTheme.Info.TITLE_TEXT, false);
         
         int y = layout.contentY();
         y = renderPendingInviteSection(guiGraphics, y);
@@ -218,7 +218,7 @@ public class PartyManagementScreen extends Screen {
 
         guiGraphics.drawString(this.font,
                 Component.translatable("screen.incore.party.section_pending_invite"),
-                x, y, 0xFFD6F1FF, false);
+                x, y, UIScreenTheme.Info.PRIMARY_TEXT, false);
         y += LINE_HEIGHT + PADDING;
 
         String inviterName = PartyClientCache.getInviteInviterName();
@@ -226,12 +226,12 @@ public class PartyManagementScreen extends Screen {
         
         guiGraphics.drawString(this.font, 
                 Component.translatable("screen.incore.party.invite_from", inviterName), 
-                x, y, 0xFFF3F8FF, false);
+                x, y, UIScreenTheme.Info.TITLE_TEXT, false);
         y += LINE_HEIGHT;
         
         guiGraphics.drawString(this.font,
                 Component.translatable("screen.incore.party.party_id", partyId),
-                x, y, 0xB8C8D9, false);
+                x, y, UIScreenTheme.Info.MUTED_TEXT, false);
         y += LINE_HEIGHT + PADDING;
 
         return y + BUTTON_HEIGHT + SECTION_GAP;
@@ -244,13 +244,13 @@ public class PartyManagementScreen extends Screen {
 
         guiGraphics.drawString(this.font,
                 Component.translatable("screen.incore.party.section_party"),
-                x, y, 0xFFD6F1FF, false);
+                x, y, UIScreenTheme.Info.PRIMARY_TEXT, false);
         y += LINE_HEIGHT + PADDING;
 
         if (!PartyClientCache.isInParty()) {
             guiGraphics.drawString(this.font,
                     Component.translatable("screen.incore.party.not_in_party"),
-                    x, y, 0xB8C8D9, false);
+                    x, y, UIScreenTheme.Info.MUTED_TEXT, false);
             return y + LINE_HEIGHT + SECTION_GAP;
         }
 
@@ -260,12 +260,12 @@ public class PartyManagementScreen extends Screen {
         
         guiGraphics.drawString(this.font,
                 Component.translatable("screen.incore.party.party_id", partyId),
-                x, y, 0xFFF3F8FF, false);
+                x, y, UIScreenTheme.Info.TITLE_TEXT, false);
         y += LINE_HEIGHT;
 
         guiGraphics.drawString(this.font,
                 Component.translatable("screen.incore.party.leader", leaderName),
-                x, y, 0xE2EBF5, false);
+                x, y, UIScreenTheme.Info.SECONDARY_TEXT, false);
         y += LINE_HEIGHT + PADDING;
 
         List<PartyClientCache.MemberView> members = PartyClientCache.getMembers();
@@ -274,7 +274,7 @@ public class PartyManagementScreen extends Screen {
             
             String displayName = member.playerName() + (isThisLeader ? " ★" : "");
             guiGraphics.drawString(this.font, Component.literal(displayName), x + 8, y, 
-                    isThisLeader ? 0xFFFFD700 : 0xFFFFFFFF, false);
+                    isThisLeader ? UIScreenTheme.Info.LEADER_CROWN_TEXT : UIScreenTheme.Info.WHITE_TEXT, false);
             y += LINE_HEIGHT + 4;
         }
 
@@ -299,7 +299,7 @@ public class PartyManagementScreen extends Screen {
 
         guiGraphics.drawString(this.font,
                 Component.translatable("screen.incore.party.section_invite"),
-                x, y, 0xFFD6F1FF, false);
+                x, y, UIScreenTheme.Info.PRIMARY_TEXT, false);
         y += LINE_HEIGHT + PADDING;
 
         List<PartyClientCache.PlayerView> onlinePlayers = PartyClientCache.getOnlinePlayers();
@@ -307,12 +307,12 @@ public class PartyManagementScreen extends Screen {
         if (onlinePlayers.isEmpty()) {
             guiGraphics.drawString(this.font,
                     Component.translatable("screen.incore.party.no_online_players"),
-                    x, y, 0xB8C8D9, false);
+                    x, y, UIScreenTheme.Info.MUTED_TEXT, false);
             return;
         }
 
         for (PartyClientCache.PlayerView player : onlinePlayers) {
-            guiGraphics.drawString(this.font, Component.literal(player.playerName()), x + 8, y, 0xFFFFFFFF, false);
+            guiGraphics.drawString(this.font, Component.literal(player.playerName()), x + 8, y, UIScreenTheme.Info.WHITE_TEXT, false);
             y += LINE_HEIGHT + 4;
         }
     }

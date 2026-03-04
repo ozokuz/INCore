@@ -115,7 +115,7 @@ public class BattlePassScreen extends Screen {
         drawTabs(guiGraphics, panelX, panelY, panelWidth);
 
         if (!BattlePassClientCache.hasActiveSet()) {
-            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.none"), panelX + panelWidth / 2, panelY + panelHeight / 2, 0xE0E0E0);
+            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.none"), panelX + panelWidth / 2, panelY + panelHeight / 2, UIScreenTheme.BattlepassTasks.NONE_TEXT);
             return;
         }
 
@@ -144,14 +144,14 @@ public class BattlePassScreen extends Screen {
         int missionsWidth = 126;
         drawTab(guiGraphics, tabX, tabY, rewardsWidth, Component.translatable("screen.incore.battle_pass.tab_rewards"), this.activeTab == Tab.REWARDS);
         drawTab(guiGraphics, tabX + rewardsWidth + 2, tabY, missionsWidth, Component.translatable("screen.incore.battle_pass.tab_missions"), this.activeTab == Tab.MISSIONS);
-        guiGraphics.fill(tabX, tabY + TAB_HEIGHT + 2, x + width - 12, tabY + TAB_HEIGHT + 3, 0x334A4F57);
+        guiGraphics.fill(tabX, tabY + TAB_HEIGHT + 2, x + width - 12, tabY + TAB_HEIGHT + 3, UIScreenTheme.BattlepassTasks.TAB_DIVIDER);
     }
 
     private void drawTab(GuiGraphics guiGraphics, int x, int y, int width, Component text, boolean selected) {
-        int bg = selected ? 0xFFF1F1F1 : 0x6626282E;
-        int fg = selected ? 0xFF1A1D22 : 0xFFC2C6CF;
+        int bg = selected ? UIScreenTheme.BattlepassTasks.TAB_FILL_SELECTED : UIScreenTheme.BattlepassTasks.TAB_FILL_DEFAULT;
+        int fg = selected ? UIScreenTheme.BattlepassTasks.TAB_TEXT_SELECTED : UIScreenTheme.BattlepassTasks.TAB_TEXT_DEFAULT;
         guiGraphics.fill(x, y, x + width, y + TAB_HEIGHT, bg);
-        guiGraphics.fill(x, y + TAB_HEIGHT - 1, x + width, y + TAB_HEIGHT, selected ? 0xFFFECE21 : 0xAA3D4149);
+        guiGraphics.fill(x, y + TAB_HEIGHT - 1, x + width, y + TAB_HEIGHT, selected ? UIScreenTheme.BattlepassTasks.TAB_UNDERLINE_SELECTED : UIScreenTheme.BattlepassTasks.TAB_UNDERLINE_DEFAULT);
         guiGraphics.drawString(this.font, text, x + 8, y + 5, fg, false);
     }
 
@@ -160,9 +160,9 @@ public class BattlePassScreen extends Screen {
         int headerY = panelY + 12 + TAB_HEIGHT + 10;
         int headerWidth = panelWidth - 24;
 
-        guiGraphics.fill(headerX, headerY, headerX + headerWidth, headerY + HEADER_HEIGHT, 0xCC0E1015);
-        guiGraphics.fill(headerX, headerY, headerX + headerWidth, headerY + 1, 0x88484D56);
-        guiGraphics.fill(headerX, headerY + HEADER_HEIGHT - 1, headerX + headerWidth, headerY + HEADER_HEIGHT, 0xAA0A0D11);
+        guiGraphics.fill(headerX, headerY, headerX + headerWidth, headerY + HEADER_HEIGHT, UIScreenTheme.BattlepassTasks.PANEL_FILL);
+        guiGraphics.fill(headerX, headerY, headerX + headerWidth, headerY + 1, UIScreenTheme.BattlepassTasks.HEADER_BORDER_TOP);
+        guiGraphics.fill(headerX, headerY + HEADER_HEIGHT - 1, headerX + headerWidth, headerY + HEADER_HEIGHT, UIScreenTheme.BattlepassTasks.HEADER_BORDER_BOTTOM);
 
         int level = BattlePassClientCache.getLevel();
         int xpPerLevel = BattlePassClientCache.getXpPerLevel();
@@ -170,10 +170,10 @@ public class BattlePassScreen extends Screen {
         int xpTotal = BattlePassClientCache.getXp();
 
         Component setDisplay = localizeSetId(BattlePassClientCache.getSetId());
-        guiGraphics.fill(headerX + 8, headerY + 8, headerX + 145, headerY + HEADER_HEIGHT - 8, 0x882D313A);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.set", setDisplay), headerX + 14, headerY + 14, 0xFFF2F2F2);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.week", BattlePassClientCache.getCurrentWeek(), BattlePassClientCache.getTotalWeeks()), headerX + 14, headerY + 28, 0xFFC8CED9);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.time_left", formatTimeLeft(BattlePassClientCache.getEndsAtMillis())), headerX + 14, headerY + 42, 0xFFC8CED9);
+        guiGraphics.fill(headerX + 8, headerY + 8, headerX + 145, headerY + HEADER_HEIGHT - 8, UIScreenTheme.BattlepassTasks.HEADER_CHIP_FILL);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.set", setDisplay), headerX + 14, headerY + 14, UIScreenTheme.BattlepassTasks.HEADER_TITLE_TEXT);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.week", BattlePassClientCache.getCurrentWeek(), BattlePassClientCache.getTotalWeeks()), headerX + 14, headerY + 28, UIScreenTheme.BattlepassTasks.HEADER_META_TEXT);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.time_left", formatTimeLeft(BattlePassClientCache.getEndsAtMillis())), headerX + 14, headerY + 42, UIScreenTheme.BattlepassTasks.HEADER_META_TEXT);
 
         int progressX = headerX + 164;
         int progressWidth = headerWidth - 174;
@@ -183,16 +183,16 @@ public class BattlePassScreen extends Screen {
                 formatDate(BattlePassClientCache.getStartsAtMillis()),
                 formatDate(BattlePassClientCache.getEndsAtMillis())
         );
-        guiGraphics.drawString(this.font, levelTitle, progressX, headerY + 12, 0xFFFFFFFF);
+        guiGraphics.drawString(this.font, levelTitle, progressX, headerY + 12, UIScreenTheme.BattlepassTasks.TEXT_WHITE);
         int seasonWindowX = progressX + Math.max(96, progressWidth - this.font.width(seasonWindow));
-        guiGraphics.drawString(this.font, seasonWindow, seasonWindowX, headerY + 12, 0xFFBFC5CF);
+        guiGraphics.drawString(this.font, seasonWindow, seasonWindowX, headerY + 12, UIScreenTheme.BattlepassTasks.HEADER_SEASON_TEXT);
 
         drawProgressBar(guiGraphics, progressX, headerY + 30, progressWidth, xpIntoLevel, xpPerLevel);
         Component xpLine = Component.translatable("screen.incore.battle_pass.xp", xpIntoLevel, xpPerLevel);
         Component totalXpLine = Component.translatable("screen.incore.battle_pass.total_xp", xpTotal);
-        guiGraphics.drawString(this.font, xpLine, progressX, headerY + 40, 0xFFF0F0F0);
+        guiGraphics.drawString(this.font, xpLine, progressX, headerY + 40, UIScreenTheme.BattlepassTasks.HEADER_XP_TEXT);
         int totalXpX = progressX + Math.max(126, progressWidth - this.font.width(totalXpLine));
-        guiGraphics.drawString(this.font, totalXpLine, totalXpX, headerY + 40, 0xFFCAD0DC);
+        guiGraphics.drawString(this.font, totalXpLine, totalXpX, headerY + 40, UIScreenTheme.BattlepassTasks.HEADER_TOTAL_XP_TEXT);
 
         Component capsLine = Component.translatable(
                 "screen.incore.battle_pass.caps",
@@ -210,12 +210,12 @@ public class BattlePassScreen extends Screen {
             unclaimedY = capsY + 10;
         }
 
-        guiGraphics.drawString(this.font, capsLine, progressX, capsY, 0xFFC3C9D3);
-        guiGraphics.drawString(this.font, unclaimedLine, unclaimedX, unclaimedY, 0xFFE9DC87, false);
+        guiGraphics.drawString(this.font, capsLine, progressX, capsY, UIScreenTheme.BattlepassTasks.TEXT_SECONDARY);
+        guiGraphics.drawString(this.font, unclaimedLine, unclaimedX, unclaimedY, UIScreenTheme.BattlepassTasks.TEXT_WARNING, false);
     }
 
     private void renderRewardsTab(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y, int width, int height) {
-        guiGraphics.fill(x, y, x + width, y + height, 0xCC0E1015);
+        guiGraphics.fill(x, y, x + width, y + height, UIScreenTheme.BattlepassTasks.PANEL_FILL);
 
         List<BattlePassClientCache.RewardLevelEntry> levels = BattlePassClientCache.getRewardLevels().stream()
                 .sorted(Comparator.comparingInt(BattlePassClientCache.RewardLevelEntry::level))
@@ -223,7 +223,7 @@ public class BattlePassScreen extends Screen {
         List<BattlePassClientCache.LaneEntry> lanes = rewardLanes();
 
         if (levels.isEmpty()) {
-            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.rewards_empty"), x + width / 2, y + height / 2 - 4, 0xC9CED7);
+            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.rewards_empty"), x + width / 2, y + height / 2 - 4, UIScreenTheme.BattlepassTasks.EMPTY_TEXT);
             return;
         }
         int highestConfiguredLevel = levels.get(levels.size() - 1).level();
@@ -248,7 +248,7 @@ public class BattlePassScreen extends Screen {
             int cardX = cardsX + col * (REWARD_CARD_WIDTH + REWARD_CARD_GAP);
             Component levelText = Component.literal("Lv " + entry.level());
             int textX = cardX + (REWARD_CARD_WIDTH - this.font.width(levelText)) / 2;
-            guiGraphics.drawString(this.font, levelText, textX, levelHeaderY, 0xFFE2E6EE, false);
+            guiGraphics.drawString(this.font, levelText, textX, levelHeaderY, UIScreenTheme.BattlepassTasks.REWARD_LEVEL_TEXT, false);
         }
 
         HoveredReward hovered = null;
@@ -270,22 +270,22 @@ public class BattlePassScreen extends Screen {
                 boolean selected = rewardLevel == this.selectedRewardLevel && track == this.selectedRewardTrack;
                 boolean highestLevel = rewardLevel == highestConfiguredLevel;
 
-                int bg = unlocked ? 0xCC20262E : 0xBB141820;
+                int bg = unlocked ? UIScreenTheme.BattlepassTasks.REWARD_FILL_UNLOCKED : UIScreenTheme.BattlepassTasks.REWARD_FILL_LOCKED;
                 int border;
                 if (selected && highestLevel) {
-                    border = 0xFF72D8FF;
+                    border = UIScreenTheme.BattlepassTasks.REWARD_BORDER_MYTHIC;
                 } else if (selected) {
-                    border = 0xFFFFD31A;
+                    border = UIScreenTheme.BattlepassTasks.ACCENT_GOLD;
                 } else if (highestLevel) {
-                    border = 0xFF34C7FF;
+                    border = UIScreenTheme.BattlepassTasks.REWARD_BORDER_EPIC;
                 } else if (claimed) {
-                    border = 0xFF62D48A;
+                    border = UIScreenTheme.BattlepassTasks.PROGRESS_FILL_COMPLETE;
                 } else if (unclaimed) {
-                    border = 0xFFFFB347;
+                    border = UIScreenTheme.BattlepassTasks.REWARD_BORDER_RARE;
                 } else if (laneUnlocked) {
-                    border = 0xFF4B515D;
+                    border = UIScreenTheme.BattlepassTasks.REWARD_BORDER_COMMON;
                 } else {
-                    border = 0xFF733239;
+                    border = UIScreenTheme.BattlepassTasks.REWARD_BORDER_LOCKED;
                 }
                 guiGraphics.fill(cardX, rowY, cardX + REWARD_CARD_WIDTH, rowY + REWARD_CARD_HEIGHT, bg);
                 drawBoxBorder(guiGraphics, cardX, rowY, REWARD_CARD_WIDTH, REWARD_CARD_HEIGHT, border);
@@ -295,7 +295,7 @@ public class BattlePassScreen extends Screen {
                     reward = null;
                 }
                 if (reward == null) {
-                    guiGraphics.drawCenteredString(this.font, Component.literal("-"), cardX + REWARD_CARD_WIDTH / 2, rowY + 16, 0xFF717887);
+                    guiGraphics.drawCenteredString(this.font, Component.literal("-"), cardX + REWARD_CARD_WIDTH / 2, rowY + 16, UIScreenTheme.BattlepassTasks.REWARD_PLACEHOLDER_TEXT);
                     continue;
                 }
 
@@ -308,15 +308,15 @@ public class BattlePassScreen extends Screen {
                     int quantityWidth = this.font.width(quantity);
                     int quantityX = cardX + (REWARD_CARD_WIDTH - quantityWidth) / 2;
                     int quantityY = rowY + REWARD_CARD_HEIGHT - this.font.lineHeight - 3;
-                    guiGraphics.fill(quantityX - 2, quantityY - 1, quantityX + quantityWidth + 2, quantityY + this.font.lineHeight, 0xC0181E27);
-                    guiGraphics.drawString(this.font, quantity, quantityX, quantityY, 0xFFE9EDF5, false);
+                    guiGraphics.fill(quantityX - 2, quantityY - 1, quantityX + quantityWidth + 2, quantityY + this.font.lineHeight, UIScreenTheme.BattlepassTasks.QUANTITY_CHIP_FILL);
+                    guiGraphics.drawString(this.font, quantity, quantityX, quantityY, UIScreenTheme.BattlepassTasks.QUANTITY_TEXT, false);
                 }
 
                 if (!laneUnlocked) {
-                    guiGraphics.fill(cardX, rowY, cardX + REWARD_CARD_WIDTH, rowY + REWARD_CARD_HEIGHT, 0xA01A070F);
+                    guiGraphics.fill(cardX, rowY, cardX + REWARD_CARD_WIDTH, rowY + REWARD_CARD_HEIGHT, UIScreenTheme.BattlepassTasks.REWARD_OVERLAY_CLAIMED);
                     drawBoxBorder(guiGraphics, cardX, rowY, REWARD_CARD_WIDTH, REWARD_CARD_HEIGHT, border);
                 } else if (!levelUnlocked) {
-                    guiGraphics.fill(cardX, rowY, cardX + REWARD_CARD_WIDTH, rowY + REWARD_CARD_HEIGHT, 0x7405070C);
+                    guiGraphics.fill(cardX, rowY, cardX + REWARD_CARD_WIDTH, rowY + REWARD_CARD_HEIGHT, UIScreenTheme.BattlepassTasks.REWARD_OVERLAY_LOCKED);
                     drawBoxBorder(guiGraphics, cardX, rowY, REWARD_CARD_WIDTH, REWARD_CARD_HEIGHT, border);
                 }
 
@@ -342,9 +342,9 @@ public class BattlePassScreen extends Screen {
                     .orElse(null);
             if (selectedLevel != null) {
                 int infoY = y + height - 34;
-                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.rewards_selected", selectedLevel.level()), x + 8, infoY, 0xFFD4D9E3);
-                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.selected_xp_to_reach", selectedLevel.requiredXp()), x + 8, infoY + 10, 0xFFC8CED9);
-                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.selected_xp_for_level", selectedLevel.xpForLevel()), x + 8, infoY + 20, 0xFFC8CED9, false);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.rewards_selected", selectedLevel.level()), x + 8, infoY, UIScreenTheme.BattlepassTasks.DETAILS_TEXT);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.selected_xp_to_reach", selectedLevel.requiredXp()), x + 8, infoY + 10, UIScreenTheme.BattlepassTasks.HEADER_META_TEXT);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.selected_xp_for_level", selectedLevel.xpForLevel()), x + 8, infoY + 20, UIScreenTheme.BattlepassTasks.HEADER_META_TEXT, false);
             }
         }
     }
@@ -354,35 +354,35 @@ public class BattlePassScreen extends Screen {
         int color;
         Component text;
         if ("basic".equals(laneId)) {
-            color = 0xCC242A35;
+            color = UIScreenTheme.BattlepassTasks.BADGE_FILL_DEFAULT;
         } else if ("originium".equals(laneId)) {
-            color = 0xCC8A6D14;
+            color = UIScreenTheme.BattlepassTasks.REQUIREMENT_FILL_WARNING;
         } else {
-            color = 0xCC8E2323;
+            color = UIScreenTheme.BattlepassTasks.REQUIREMENT_FILL_DANGER;
         }
         text = Component.literal(lane.displayName());
         if (!lane.unlocked()) {
-            color = 0xCC4B1D25;
+            color = UIScreenTheme.BattlepassTasks.REQUIREMENT_FILL_BLOCKED;
             text = Component.literal("\uD83D\uDD12 ").append(text);
         }
 
         guiGraphics.fill(x, y, x + width, y + height, color);
-        drawBoxBorder(guiGraphics, x, y, width, height, 0xFF0A0C10);
-        guiGraphics.drawString(this.font, text, x + 8, y + 12, 0xFFF2F2F2, false);
+        drawBoxBorder(guiGraphics, x, y, width, height, UIScreenTheme.BattlepassTasks.BORDER_DARK);
+        guiGraphics.drawString(this.font, text, x + 8, y + 12, UIScreenTheme.BattlepassTasks.HEADER_TITLE_TEXT, false);
     }
 
     private void renderMissionsTab(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y, int width, int height) {
-        guiGraphics.fill(x, y, x + width, y + height, 0xCC0E1015);
+        guiGraphics.fill(x, y, x + width, y + height, UIScreenTheme.BattlepassTasks.PANEL_FILL);
 
         List<BattlePassClientCache.TaskEntry> allTasks = new ArrayList<>(BattlePassClientCache.getTasks());
         if (allTasks.isEmpty()) {
-            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.tasks_empty"), x + width / 2, y + height / 2 - 4, 0xC9CED7);
+            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.tasks_empty"), x + width / 2, y + height / 2 - 4, UIScreenTheme.BattlepassTasks.EMPTY_TEXT);
             return;
         }
 
         List<MissionCategory> categories = buildMissionCategories(allTasks, BattlePassClientCache.getCurrentWeek());
         if (categories.isEmpty()) {
-            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.tasks_empty"), x + width / 2, y + height / 2 - 4, 0xC9CED7);
+            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.battle_pass.tasks_empty"), x + width / 2, y + height / 2 - 4, UIScreenTheme.BattlepassTasks.EMPTY_TEXT);
             return;
         }
 
@@ -396,13 +396,13 @@ public class BattlePassScreen extends Screen {
             }
 
             boolean selectedCategory = i == this.selectedMissionCategoryIndex;
-            int bg = selectedCategory ? 0xCC8A6D14 : 0xAA1A2029;
-            int border = selectedCategory ? 0xFFFFD31A : 0x66454D5B;
+            int bg = selectedCategory ? UIScreenTheme.BattlepassTasks.REQUIREMENT_FILL_WARNING : UIScreenTheme.BattlepassTasks.LIST_FILL_DEFAULT;
+            int border = selectedCategory ? UIScreenTheme.BattlepassTasks.ACCENT_GOLD : UIScreenTheme.BattlepassTasks.BORDER_MUTED;
             guiGraphics.fill(categoryX, rowY, categoryX + MISSION_CATEGORY_WIDTH, rowY + MISSION_CATEGORY_ROW_HEIGHT, bg);
             drawBoxBorder(guiGraphics, categoryX, rowY, MISSION_CATEGORY_WIDTH, MISSION_CATEGORY_ROW_HEIGHT, border);
             MissionCategory category = categories.get(i);
-            guiGraphics.drawString(this.font, category.label(), categoryX + 8, rowY + 7, 0xFFECEFF5, false);
-            guiGraphics.drawString(this.font, category.progressLabel(), categoryX + 8, rowY + 18, 0xFFBCC3CF, false);
+            guiGraphics.drawString(this.font, category.label(), categoryX + 8, rowY + 7, UIScreenTheme.BattlepassTasks.TEXT_SOFT, false);
+            guiGraphics.drawString(this.font, category.progressLabel(), categoryX + 8, rowY + 18, UIScreenTheme.BattlepassTasks.TEXT_MUTED, false);
         }
 
         MissionCategory selectedCategory = categories.get(this.selectedMissionCategoryIndex);
@@ -430,22 +430,22 @@ public class BattlePassScreen extends Screen {
             if (selected) {
                 selectedTask = task;
             }
-            int rowBg = selected ? 0xCC323946 : 0xAA1A2029;
+            int rowBg = selected ? UIScreenTheme.BattlepassTasks.TASK_ROW_FILL_SELECTED : UIScreenTheme.BattlepassTasks.LIST_FILL_DEFAULT;
             guiGraphics.fill(listX, rowY, listX + listWidth, rowY + MISSION_ROW_HEIGHT - 4, rowBg);
-            drawBoxBorder(guiGraphics, listX, rowY, listWidth, MISSION_ROW_HEIGHT - 4, selected ? 0xFFFFD31A : 0x66454D5B);
+            drawBoxBorder(guiGraphics, listX, rowY, listWidth, MISSION_ROW_HEIGHT - 4, selected ? UIScreenTheme.BattlepassTasks.ACCENT_GOLD : UIScreenTheme.BattlepassTasks.BORDER_MUTED);
 
             Component type = task.weekly()
                     ? Component.translatable("screen.incore.battle_pass.task_weekly", task.week())
                     : Component.translatable("screen.incore.battle_pass.task_permanent");
-            guiGraphics.drawString(this.font, type, listX + 6, rowY + 5, 0xFFD0D5DF);
-            guiGraphics.drawString(this.font, Component.literal("+" + task.xpReward() + " XP"), listX + listWidth - 72, rowY + 5, 0xFFFFE070);
+            guiGraphics.drawString(this.font, type, listX + 6, rowY + 5, UIScreenTheme.BattlepassTasks.TASK_TYPE_TEXT);
+            guiGraphics.drawString(this.font, Component.literal("+" + task.xpReward() + " XP"), listX + listWidth - 72, rowY + 5, UIScreenTheme.BattlepassTasks.TASK_XP_TEXT);
 
             int tierColor = tierColor(task.tier());
             String line = truncate(task.description(), listWidth - 228);
-            guiGraphics.drawString(this.font, Component.literal(line), listX + 6, rowY + 18, 0xFFECEFF5);
+            guiGraphics.drawString(this.font, Component.literal(line), listX + 6, rowY + 18, UIScreenTheme.BattlepassTasks.TEXT_SOFT);
             guiGraphics.drawString(this.font, Component.literal(capitalize(task.tier())), listX + listWidth - 132, rowY + 18, tierColor);
 
-            int statusColor = task.completed() ? 0xFF99E19D : (task.completableNow() ? 0xFFD4D9E3 : 0xFFAAAEB8);
+            int statusColor = task.completed() ? UIScreenTheme.BattlepassTasks.TASK_STATUS_COMPLETE : (task.completableNow() ? UIScreenTheme.BattlepassTasks.DETAILS_TEXT : UIScreenTheme.BattlepassTasks.TASK_STATUS_LOCKED);
             int progressCurrent = Math.min(task.progressCurrent(), task.progressGoal());
             int progressGoal = Math.max(1, task.progressGoal());
             int progressBarWidth = 152;
@@ -454,16 +454,16 @@ public class BattlePassScreen extends Screen {
             drawTaskProgressBar(guiGraphics, progressBarX, progressBarY, progressBarWidth, 6, progressCurrent, progressGoal, task.completed(), task.completableNow());
 
             String progressLabel = progressCurrent + "/" + progressGoal;
-            guiGraphics.drawString(this.font, Component.literal(progressLabel), progressBarX + progressBarWidth - this.font.width(progressLabel), rowY + 20, 0xFFD4D9E3, false);
+            guiGraphics.drawString(this.font, Component.literal(progressLabel), progressBarX + progressBarWidth - this.font.width(progressLabel), rowY + 20, UIScreenTheme.BattlepassTasks.DETAILS_TEXT, false);
 
             int statusMaxWidth = Math.max(30, progressBarX - (listX + 10));
             guiGraphics.drawString(this.font, Component.literal(truncate(task.status(), statusMaxWidth)), listX + 6, rowY + 31, statusColor);
         }
 
         if (selectedTask != null) {
-            guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.task_id", selectedTask.id()), listX, y + height - 12, 0xFFC9CED8);
+            guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.task_id", selectedTask.id()), listX, y + height - 12, UIScreenTheme.BattlepassTasks.FOOTER_TASK_ID_TEXT);
         } else {
-            guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.task_select_hint"), listX, y + height - 12, 0xFF9EA4AF);
+            guiGraphics.drawString(this.font, Component.translatable("screen.incore.battle_pass.task_select_hint"), listX, y + height - 12, UIScreenTheme.BattlepassTasks.FOOTER_HINT_TEXT);
         }
     }
 
@@ -684,9 +684,9 @@ public class BattlePassScreen extends Screen {
     }
 
     private void drawTaskProgressBar(GuiGraphics guiGraphics, int x, int y, int width, int height, int current, int goal, boolean completed, boolean available) {
-        int background = available ? 0xAA111722 : 0xAA1A1E26;
-        int fill = completed ? 0xFF7DDC88 : (available ? 0xFF6FA6FF : 0xFF5A6474);
-        int border = completed ? 0xFF9EF0A9 : 0xFF3A4454;
+        int background = available ? UIScreenTheme.BattlepassTasks.PROGRESS_BG_AVAILABLE : UIScreenTheme.BattlepassTasks.PROGRESS_BG_LOCKED;
+        int fill = completed ? UIScreenTheme.BattlepassTasks.PROGRESS_FILL_CLAIMED : (available ? UIScreenTheme.BattlepassTasks.PROGRESS_FILL_AVAILABLE : UIScreenTheme.BattlepassTasks.PROGRESS_FILL_LOCKED);
+        int border = completed ? UIScreenTheme.BattlepassTasks.PROGRESS_BORDER_CLAIMED : UIScreenTheme.BattlepassTasks.PROGRESS_BORDER;
         guiGraphics.fill(x, y, x + width, y + height, background);
         int clampedGoal = Math.max(1, goal);
         int clampedCurrent = Math.max(0, Math.min(current, clampedGoal));
@@ -901,16 +901,16 @@ public class BattlePassScreen extends Screen {
 
     private static int tierColor(String tier) {
         if (tier == null) {
-            return 0xFFBCBEC6;
+            return UIScreenTheme.BattlepassTasks.LEAGUE_DEFAULT;
         }
 
         return switch (tier.toLowerCase(Locale.ROOT)) {
-            case "bronze" -> 0xFFD89A4B;
-            case "silver" -> 0xFFC9D1DA;
-            case "gold" -> 0xFFFFD966;
-            case "platinum" -> 0xFF85E2E5;
-            case "diamond" -> 0xFF89A8FF;
-            default -> 0xFFBCBEC6;
+            case "bronze" -> UIScreenTheme.BattlepassTasks.LEAGUE_BRONZE;
+            case "silver" -> UIScreenTheme.BattlepassTasks.LEAGUE_SILVER;
+            case "gold" -> UIScreenTheme.BattlepassTasks.LEAGUE_GOLD;
+            case "platinum" -> UIScreenTheme.BattlepassTasks.LEAGUE_PLATINUM;
+            case "diamond" -> UIScreenTheme.BattlepassTasks.LEAGUE_DIAMOND;
+            default -> UIScreenTheme.BattlepassTasks.LEAGUE_DEFAULT;
         };
     }
 

@@ -37,20 +37,20 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(font, title, 10, 4, 0xE8EEF8, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.input"), 20, 12, 0xD6E0EF, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.theme"), 56, 12, 0xD6E0EF, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.objective"), 92, 12, 0xD6E0EF, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.modifiers"), 128, 12, 0xD6E0EF, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.output"), 172, 12, 0xD6E0EF, false);
+        guiGraphics.drawString(font, title, 10, 4, UIScreenTheme.Crafting.TITLE_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.input"), 20, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.theme"), 56, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.objective"), 92, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.modifiers"), 128, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.output"), 172, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
 
-        int statusColor = menu.validPreview() ? 0x8EF7A0 : 0xFF7A7A;
+        int statusColor = menu.validPreview() ? UIScreenTheme.Crafting.SUCCESS_TEXT : UIScreenTheme.Crafting.DANGER_TEXT;
         String statusKey = menu.validPreview()
                 ? "screen.incore.custom_crystal_forge.status.ready"
                 : "screen.incore.custom_crystal_forge.status.invalid";
         guiGraphics.drawString(font, Component.translatable(statusKey), 12, 72, statusColor, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.hint"), 12, 84, 0x98A6B8, false);
-        guiGraphics.drawString(font, playerInventoryTitle, 20, 92, 0xD6E0EF, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.hint"), 12, 84, UIScreenTheme.Crafting.MUTED_TEXT, false);
+        guiGraphics.drawString(font, playerInventoryTitle, 20, 92, UIScreenTheme.Crafting.BODY_TEXT, false);
     }
 
     @Override

@@ -103,51 +103,51 @@ public class ShopDetailsScreen extends Screen implements ShopPayloadUpdatable {
         themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawCenteredString(font, title, width / 2, 16, 0xF2F2F2);
+        guiGraphics.drawCenteredString(font, title, width / 2, 16, UIScreenTheme.MarketShop.TITLE_TEXT);
         guiGraphics.drawString(
                 font,
                 Component.translatable("screen.incore.shop.balance", data.balanceSpur()),
                 84,
                 20,
-                0x9AE29A,
+                UIScreenTheme.MarketShop.MODE_ACTIVE_TEXT,
                 false
         );
 
         ShopService.OfferView offer = selectedOffer();
         if (offer == null) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.no_offer_selected"), 16, 44, 0xDD8D8D, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.no_offer_selected"), 16, 44, UIScreenTheme.MarketShop.NO_DATA_TEXT, false);
             return;
         }
 
         ShopService.CategoryView category = ShopScreenDataUtil.findCategory(data, offer.categoryId());
 
-        drawPanel(guiGraphics, 12, 40, width - 24, 120, 0xAA1B212B, 0xFF475063);
-        drawPanel(guiGraphics, 12, 166, width - 24, Math.max(70, height - 204), 0xAA1B212B, 0xFF475063);
+        drawPanel(guiGraphics, 12, 40, width - 24, 120, UIScreenTheme.MarketShop.SECTION_PANEL_FILL, UIScreenTheme.MarketShop.SECTION_PANEL_BORDER);
+        drawPanel(guiGraphics, 12, 166, width - 24, Math.max(70, height - 204), UIScreenTheme.MarketShop.SECTION_PANEL_FILL, UIScreenTheme.MarketShop.SECTION_PANEL_BORDER);
 
         renderOfferIcon(guiGraphics, offer, 18, 52);
-        guiGraphics.drawString(font, Component.literal(offer.displayName()), 42, 48, offer.locked() ? 0xFF9A9A9A : 0xFFFFFF, false);
+        guiGraphics.drawString(font, Component.literal(offer.displayName()), 42, 48, offer.locked() ? UIScreenTheme.MarketShop.TEXT_LOCKED : UIScreenTheme.MarketShop.ITEM_NAME_TEXT, false);
 
         if (category != null) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.category", category.displayName()), 42, 62, 0xCFE4FF, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.category", category.displayName()), 42, 62, UIScreenTheme.MarketShop.TEXT_ACCENT, false);
         }
 
-        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.price_each", offer.priceSpur()), 42, 74, 0xCFE4FF, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.bundle", offer.itemCount()), 42, 86, 0xD0D0D0, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.price_each", offer.priceSpur()), 42, 74, UIScreenTheme.MarketShop.TEXT_ACCENT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.bundle", offer.itemCount()), 42, 86, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
 
         String stockText = offer.availableStock() < 0
                 ? Component.translatable("screen.incore.shop.stock.unlimited").getString()
                 : Component.translatable("screen.incore.shop.stock.remaining", offer.availableStock()).getString();
-        guiGraphics.drawString(font, Component.literal(stockText), 42, 98, 0xD0D0D0, false);
+        guiGraphics.drawString(font, Component.literal(stockText), 42, 98, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
 
         long totalCost = (long) quantity * offer.priceSpur();
-        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.quantity", quantity), 42, 110, 0xD0D0D0, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.total_cost", totalCost), 42, 122, 0xD0D0D0, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.quantity", quantity), 42, 110, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.total_cost", totalCost), 42, 122, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
 
         if (offer.locked()) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.locked"), 42, 136, 0xFF8A8A, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.shop.locked"), 42, 136, UIScreenTheme.MarketShop.TEXT_NEGATIVE, false);
         }
 
-        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.details_hint"), 16, 172, 0xB8C2D3, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.shop.details_hint"), 16, 172, UIScreenTheme.MarketShop.TEXT_SOFT, false);
     }
 
     @Override

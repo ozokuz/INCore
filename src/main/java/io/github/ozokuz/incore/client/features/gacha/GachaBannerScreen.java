@@ -149,7 +149,7 @@ public class GachaBannerScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xF6F6F6);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, UIScreenTheme.OtherContent.GACHA_TITLE_TEXT);
 
         int sidebarLeft = 12;
         int sidebarTop = 36;
@@ -157,10 +157,10 @@ public class GachaBannerScreen extends Screen {
         int footerY = this.height - 44;
         int sidebarBottom = footerY - 4;
 
-        guiGraphics.fill(sidebarLeft, sidebarTop, sidebarLeft + sidebarWidth, sidebarBottom, 0x991A1A1A);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.gacha_banners.sidebar"), sidebarLeft + 6, sidebarTop - 10, 0xD8D8D8);
+        guiGraphics.fill(sidebarLeft, sidebarTop, sidebarLeft + sidebarWidth, sidebarBottom, UIScreenTheme.OtherContent.CATALOG_COLUMN_FILL);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.gacha_banners.sidebar"), sidebarLeft + 6, sidebarTop - 10, UIScreenTheme.OtherContent.GACHA_SIDEBAR_LABEL_TEXT);
         if (totalPages > 1) {
-            guiGraphics.drawString(this.font, Component.translatable("screen.incore.gacha_banners.page", page + 1, totalPages), sidebarLeft + 88, sidebarTop - 10, 0xB6B6B6);
+            guiGraphics.drawString(this.font, Component.translatable("screen.incore.gacha_banners.page", page + 1, totalPages), sidebarLeft + 88, sidebarTop - 10, UIScreenTheme.OtherContent.GACHA_PAGE_TEXT);
         }
 
         List<GachaService.BannerView> banners = data.banners();
@@ -172,13 +172,13 @@ public class GachaBannerScreen extends Screen {
             int y = sidebarTop + (i - start) * rowHeight;
             boolean selected = banner.id().equals(selectedBannerId);
             int border = selected ? brightenColor(banner.sidebarColor(), 0.22F) : banner.sidebarColor();
-            int fill = selected ? 0xBB2A2A2A : 0x99232323;
+            int fill = selected ? UIScreenTheme.OtherContent.CATALOG_ROW_SELECTED_FILL : UIScreenTheme.OtherContent.CATALOG_ROW_FILL;
 
             guiGraphics.fill(sidebarLeft + 1, y + 1, sidebarLeft + sidebarWidth - 1, y + rowHeight - 3, fill);
-            guiGraphics.fill(sidebarLeft, y, sidebarLeft + sidebarWidth, y + 1, 0xFF000000 | border);
-            guiGraphics.fill(sidebarLeft, y + rowHeight - 3, sidebarLeft + sidebarWidth, y + rowHeight - 2, 0xFF000000 | border);
-            guiGraphics.fill(sidebarLeft, y, sidebarLeft + 1, y + rowHeight - 2, 0xFF000000 | border);
-            guiGraphics.fill(sidebarLeft + sidebarWidth - 1, y, sidebarLeft + sidebarWidth, y + rowHeight - 2, 0xFF000000 | border);
+            guiGraphics.fill(sidebarLeft, y, sidebarLeft + sidebarWidth, y + 1, UIScreenTheme.OtherContent.GACHA_ROW_BORDER_MASK | border);
+            guiGraphics.fill(sidebarLeft, y + rowHeight - 3, sidebarLeft + sidebarWidth, y + rowHeight - 2, UIScreenTheme.OtherContent.GACHA_ROW_BORDER_MASK | border);
+            guiGraphics.fill(sidebarLeft, y, sidebarLeft + 1, y + rowHeight - 2, UIScreenTheme.OtherContent.GACHA_ROW_BORDER_MASK | border);
+            guiGraphics.fill(sidebarLeft + sidebarWidth - 1, y, sidebarLeft + sidebarWidth, y + rowHeight - 2, UIScreenTheme.OtherContent.GACHA_ROW_BORDER_MASK | border);
 
             Item mainItem = itemFromId(banner.mainItemId());
             if (mainItem != Items.AIR) {
@@ -186,11 +186,11 @@ public class GachaBannerScreen extends Screen {
             }
 
             int textX = sidebarLeft + 24;
-            int textColor = selected ? 0xFFFFFF : 0xE8E8E8;
+            int textColor = selected ? UIScreenTheme.OtherContent.GACHA_TEXT_SELECTED : UIScreenTheme.OtherContent.CATALOG_TEXT_PRIMARY;
             guiGraphics.drawString(this.font, Component.literal(banner.name()), textX, y + 3, textColor, false);
             String remainingLabel = renderRemainingLabel(banner);
             if (!remainingLabel.isEmpty()) {
-                guiGraphics.drawString(this.font, Component.literal(remainingLabel), textX, y + 15, 0xBFBFBF, false);
+                guiGraphics.drawString(this.font, Component.literal(remainingLabel), textX, y + 15, UIScreenTheme.OtherContent.GACHA_TEXT_SECONDARY, false);
             }
         }
 
@@ -198,21 +198,21 @@ public class GachaBannerScreen extends Screen {
         int mainTop = sidebarTop;
         int mainRight = this.width - 12;
         int mainBottom = sidebarBottom;
-        guiGraphics.fill(mainLeft, mainTop, mainRight, mainBottom, 0x99202020);
+        guiGraphics.fill(mainLeft, mainTop, mainRight, mainBottom, UIScreenTheme.OtherContent.CATALOG_DETAILS_FILL);
 
         GachaService.BannerView selected = getSelectedBanner();
         if (selected == null) {
-            guiGraphics.drawCenteredString(this.font, Component.translatable("incore.gacha.banner.none_configured"), (mainLeft + mainRight) / 2, mainTop + 40, 0xE66F6F);
+            guiGraphics.drawCenteredString(this.font, Component.translatable("incore.gacha.banner.none_configured"), (mainLeft + mainRight) / 2, mainTop + 40, UIScreenTheme.OtherContent.GACHA_ERROR_TEXT);
             return;
         }
 
-        guiGraphics.drawString(this.font, Component.literal(selected.name()), mainLeft + 10, mainTop + 8, 0xF2F2F2);
+        guiGraphics.drawString(this.font, Component.literal(selected.name()), mainLeft + 10, mainTop + 8, UIScreenTheme.OtherContent.GACHA_TEXT_PRIMARY);
         guiGraphics.drawString(
                 this.font,
                 Component.translatable("screen.incore.gacha_banners.type." + selected.type()),
                 mainLeft + 10,
                 mainTop + 20,
-                "basic".equals(selected.type()) ? 0x9AE6FF : 0xFFD98A
+                "basic".equals(selected.type()) ? UIScreenTheme.OtherContent.GACHA_BANNER_TYPE_BASIC_TEXT : UIScreenTheme.OtherContent.GACHA_BANNER_TYPE_LIMITED_TEXT
         );
         int infoY = mainTop + 32;
         guiGraphics.drawString(
@@ -220,7 +220,7 @@ public class GachaBannerScreen extends Screen {
                 Component.translatable("screen.incore.gacha_banners.pity", selected.pityFive(), 40, selected.pitySix(), 80),
                 mainLeft + 10,
                 infoY,
-                0xD8D8D8
+                UIScreenTheme.OtherContent.GACHA_SIDEBAR_LABEL_TEXT
         );
         infoY += 12;
         if ("event".equals(selected.type())) {
@@ -231,7 +231,7 @@ public class GachaBannerScreen extends Screen {
                             GachaService.EVENT_FEATURED_SIX_PITY_THRESHOLD
                     )
                     : Component.translatable("screen.incore.gacha_banners.event_featured_pity.unavailable");
-            guiGraphics.drawString(this.font, featuredLine, mainLeft + 10, infoY, 0xFFDB9A);
+            guiGraphics.drawString(this.font, featuredLine, mainLeft + 10, infoY, UIScreenTheme.OtherContent.GACHA_FEATURED_TEXT);
             infoY += 12;
         } else {
             guiGraphics.drawString(
@@ -243,7 +243,7 @@ public class GachaBannerScreen extends Screen {
                     ),
                     mainLeft + 10,
                     infoY,
-                    0xB0E0FF
+                    UIScreenTheme.OtherContent.GACHA_DROP_RATE_TEXT
             );
             infoY += 12;
             if (selected.basicGuaranteeBlocked()) {
@@ -252,7 +252,7 @@ public class GachaBannerScreen extends Screen {
                         Component.translatable("screen.incore.gacha_banners.basic_guaranteed_locked"),
                         mainLeft + 10,
                         infoY,
-                        0xFF9696
+                        UIScreenTheme.OtherContent.GACHA_PITY_VALUE_TEXT
                 );
                 infoY += 12;
             }
@@ -264,7 +264,7 @@ public class GachaBannerScreen extends Screen {
                     Component.translatable("screen.incore.gacha_banners.cost", GachaService.PULLS_PER_CRATE),
                     mainLeft + 10,
                     infoY,
-                    0xCECECE
+                    UIScreenTheme.OtherContent.GACHA_TEXT_MUTED
             );
             infoY += 12;
         }
@@ -276,7 +276,7 @@ public class GachaBannerScreen extends Screen {
                     Component.translatable("screen.incore.gacha_banners.time_left", selectedRemaining),
                     mainLeft + 10,
                     infoY,
-                    0xD8D8D8
+                    UIScreenTheme.OtherContent.GACHA_SIDEBAR_LABEL_TEXT
             );
             infoY += 12;
         }
@@ -286,7 +286,7 @@ public class GachaBannerScreen extends Screen {
                 Component.translatable("screen.incore.gacha_banners.high_rarity_showcase"),
                 (mainLeft + mainRight) / 2,
                 showcaseTitleY,
-                0xF3D26A
+                UIScreenTheme.OtherContent.GACHA_PITY_LABEL_TEXT
         );
 
         if (!selected.basicGuaranteeBlocked()) {
@@ -390,7 +390,7 @@ public class GachaBannerScreen extends Screen {
         int panelTop = rowY - 2;
         int panelBottom = exitY;
 
-        guiGraphics.fill(panelLeft, panelTop, panelRight, panelBottom, 0xAA141414);
+        guiGraphics.fill(panelLeft, panelTop, panelRight, panelBottom, UIScreenTheme.OtherContent.GACHA_BALANCE_PANEL_FILL);
 
         for (CostRenderLine line : usage.lines()) {
             int lineX = panelLeft + (buyWidth - scaledCostLineWidth(line.count())) / 2;
@@ -403,7 +403,7 @@ public class GachaBannerScreen extends Screen {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             return new PermitUsage(List.of(
-                    new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), GachaService.PULLS_PER_CRATE, 0xFF5555)
+                    new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), GachaService.PULLS_PER_CRATE, UIScreenTheme.OtherContent.GACHA_COST_MISSING_TEXT)
             ));
         }
 
@@ -442,13 +442,13 @@ public class GachaBannerScreen extends Screen {
             int missing = required - useSpecific - useBasic;
             List<CostRenderLine> lines = new ArrayList<>();
             if (useSpecific > 0) {
-                lines.add(new CostRenderLine(Registration.TIME_PIECE_ITEM.get(), useSpecific, 0xBDE8BD));
+                lines.add(new CostRenderLine(Registration.TIME_PIECE_ITEM.get(), useSpecific, UIScreenTheme.OtherContent.GACHA_COST_OK_TEXT));
             }
             if (useBasic > 0) {
-                lines.add(new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), useBasic, 0xBDE8BD));
+                lines.add(new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), useBasic, UIScreenTheme.OtherContent.GACHA_COST_OK_TEXT));
             }
             if (missing > 0) {
-                lines.add(new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), missing, 0xFF5555));
+                lines.add(new CostRenderLine(Registration.BASIC_TIME_PIECE_ITEM.get(), missing, UIScreenTheme.OtherContent.GACHA_COST_MISSING_TEXT));
             }
             return new PermitUsage(lines);
         }
@@ -459,13 +459,13 @@ public class GachaBannerScreen extends Screen {
         int missing = required - useSpecific - useChartered;
         List<CostRenderLine> lines = new ArrayList<>();
         if (useSpecific > 0) {
-            lines.add(new CostRenderLine(Registration.TIME_PIECE_ITEM.get(), useSpecific, 0xBDE8BD));
+            lines.add(new CostRenderLine(Registration.TIME_PIECE_ITEM.get(), useSpecific, UIScreenTheme.OtherContent.GACHA_COST_OK_TEXT));
         }
         if (useChartered > 0) {
-            lines.add(new CostRenderLine(Registration.CHARTERED_TIME_PIECE_ITEM.get(), useChartered, 0xBDE8BD));
+            lines.add(new CostRenderLine(Registration.CHARTERED_TIME_PIECE_ITEM.get(), useChartered, UIScreenTheme.OtherContent.GACHA_COST_OK_TEXT));
         }
         if (missing > 0) {
-            lines.add(new CostRenderLine(Registration.CHARTERED_TIME_PIECE_ITEM.get(), missing, 0xFF5555));
+            lines.add(new CostRenderLine(Registration.CHARTERED_TIME_PIECE_ITEM.get(), missing, UIScreenTheme.OtherContent.GACHA_COST_MISSING_TEXT));
         }
         return new PermitUsage(lines);
     }
@@ -507,7 +507,7 @@ public class GachaBannerScreen extends Screen {
                     Component.translatable("screen.incore.gacha_banners.high_rarity_none"),
                     (mainLeft + mainRight) / 2,
                     showcaseTop + 24,
-                    0xD88B8B
+                    UIScreenTheme.OtherContent.GACHA_SHOWCASE_CHANCE_TEXT
             );
             return null;
         }
@@ -519,7 +519,7 @@ public class GachaBannerScreen extends Screen {
 
         ItemStack hovered = null;
         if (!sixStars.isEmpty()) {
-            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.gacha_banners.showcase.six"), centerX, y, 0xFF8C8C);
+            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.gacha_banners.showcase.six"), centerX, y, UIScreenTheme.OtherContent.GACHA_SHOWCASE_SIX_TEXT);
             y += 10;
             GridRenderResult sixRender = renderItemGrid(guiGraphics, sixStars, centerX, y, maxWidth, 1.55F, 5, 3, mouseX, mouseY);
             y = sixRender.nextY();
@@ -530,7 +530,7 @@ public class GachaBannerScreen extends Screen {
             if (y + 6 < showcaseBottom) {
                 y += 6;
             }
-            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.gacha_banners.showcase.five"), centerX, y, 0xE5CA7A);
+            guiGraphics.drawCenteredString(this.font, Component.translatable("screen.incore.gacha_banners.showcase.five"), centerX, y, UIScreenTheme.OtherContent.GACHA_SHOWCASE_FIVE_TEXT);
             y += 10;
             GridRenderResult fiveRender = renderItemGrid(guiGraphics, fiveStars, centerX, y, maxWidth, 1.15F, 6, 2, mouseX, mouseY);
             if (hovered == null) {

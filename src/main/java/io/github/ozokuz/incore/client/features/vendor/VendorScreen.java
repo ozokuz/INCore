@@ -137,8 +137,8 @@ public class VendorScreen extends Screen {
             int quantity = selectedQuantity(offer);
             boolean soldOut = offer.stockRemaining() <= 0;
             boolean purchasable = isPurchasable(offer, quantity);
-            int panelColor = soldOut ? 0x663A1D25 : (purchasable ? 0x66233648 : 0x662C2832);
-            int headerColor = soldOut ? 0xFFCE6D6D : (purchasable ? 0xFF66D9FF : 0xFF9FA7B5);
+            int panelColor = soldOut ? UIScreenTheme.Vendor.LIST_ROW_FILL_SOLD_OUT : (purchasable ? UIScreenTheme.Vendor.LIST_ROW_FILL_AVAILABLE : UIScreenTheme.Vendor.LIST_ROW_FILL_BLOCKED);
+            int headerColor = soldOut ? UIScreenTheme.Vendor.LIST_ROW_HEADER_SOLD_OUT : (purchasable ? UIScreenTheme.Vendor.LIST_ROW_HEADER_AVAILABLE : UIScreenTheme.Vendor.LIST_ROW_HEADER_BLOCKED);
             guiGraphics.fill(left + 6, y, right - 6, y + 44, panelColor);
             guiGraphics.fill(left + 6, y, right - 6, y + 1, headerColor);
             y += ROW_HEIGHT;
@@ -146,10 +146,10 @@ public class VendorScreen extends Screen {
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 6, 0xECF7FF);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 6, UIScreenTheme.Vendor.TITLE_TEXT);
         renderBalancePanel(guiGraphics, left + 8, top + 16, left + 162, top + 30);
         renderVendorModeBadge(guiGraphics, left + 166, top + 16, right - 64, top + 30);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.page", page + 1, maxPages), right - 56, top + 18, 0xA9E8FF, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.page", page + 1, maxPages), right - 56, top + 18, UIScreenTheme.Vendor.PAGE_TEXT, false);
 
         y = top + 34;
         for (int i = start; i < end; i++) {
@@ -161,19 +161,19 @@ public class VendorScreen extends Screen {
                 guiGraphics.renderItem(preview, left + 10, y + 12);
             }
 
-            guiGraphics.drawString(this.font, offer.name(), left + 48, y + 6, 0xF0F0F0, false);
-            guiGraphics.drawString(this.font, Component.literal("x" + offer.count()), left + 32, y + 6, 0xA2BFD8, false);
+            guiGraphics.drawString(this.font, offer.name(), left + 48, y + 6, UIScreenTheme.Vendor.OFFER_NAME_TEXT, false);
+            guiGraphics.drawString(this.font, Component.literal("x" + offer.count()), left + 32, y + 6, UIScreenTheme.Vendor.OFFER_COUNT_TEXT, false);
             renderDiscountBadge(guiGraphics, offer, right - 252, y + 2, right - 138);
 
             if (offer.stockRemaining() > 0) {
-                guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.stock", offer.stockRemaining()), left + 32, y + 21, 0xBDE8BD, false);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.stock", offer.stockRemaining()), left + 32, y + 21, UIScreenTheme.Vendor.STOCK_OK_TEXT, false);
             } else {
-                guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.sold_out"), left + 32, y + 21, 0xFF7777, false);
+                guiGraphics.drawString(this.font, Component.translatable("screen.incore.vendor.sold_out"), left + 32, y + 21, UIScreenTheme.Vendor.STOCK_EMPTY_TEXT, false);
             }
 
             renderOfferCostPanel(guiGraphics, right - 252, y + 14, right - 138, y + 34, offer, quantity);
             int quantityX = right - 106;
-            guiGraphics.drawCenteredString(this.font, Component.literal("x" + quantity), quantityX, y + 19, 0xDDE7F2);
+            guiGraphics.drawCenteredString(this.font, Component.literal("x" + quantity), quantityX, y + 19, UIScreenTheme.Vendor.QUANTITY_TEXT);
             y += ROW_HEIGHT;
         }
     }
@@ -197,13 +197,13 @@ public class VendorScreen extends Screen {
         int textColor;
         if (data.darkMarket()) {
             label = Component.translatable("screen.incore.vendor.mode.dark_market");
-            fillColor = 0xAA472222;
-            textColor = 0xFFE8A3A3;
+            fillColor = UIScreenTheme.Vendor.STRESS_CHIP_FILL_BAD;
+            textColor = UIScreenTheme.Vendor.STRESS_CHIP_TEXT_BAD;
         } else {
             String category = data.categoryId() == null ? "general" : displayCategoryLabel(data.categoryId());
             label = Component.translatable("screen.incore.vendor.mode.category", category);
-            fillColor = 0xAA132739;
-            textColor = 0xFF9EDCFF;
+            fillColor = UIScreenTheme.Vendor.STRESS_CHIP_FILL_OK;
+            textColor = UIScreenTheme.Vendor.STRESS_CHIP_TEXT_OK;
         }
 
         int desiredWidth = this.font.width(label) + 8;
@@ -254,8 +254,8 @@ public class VendorScreen extends Screen {
         Component badgeText = Component.translatable("screen.incore.vendor.discount.badge", offer.discountPercent());
         int width = this.font.width(badgeText) + 8;
         int x = costLeft + Math.max(0, (costRight - costLeft - width) / 2);
-        int fillColor = offer.curioOnlyDiscount() ? 0xCC0F3A32 : 0xCC3B2F10;
-        int textColor = offer.curioOnlyDiscount() ? 0xFF84FFD7 : 0xFFF9CF7A;
+        int fillColor = offer.curioOnlyDiscount() ? UIScreenTheme.Vendor.DISCOUNT_CHIP_FILL_CURIO : UIScreenTheme.Vendor.DISCOUNT_CHIP_FILL_DEFAULT;
+        int textColor = offer.curioOnlyDiscount() ? UIScreenTheme.Vendor.DISCOUNT_CHIP_TEXT_CURIO : UIScreenTheme.Vendor.DISCOUNT_CHIP_TEXT_DEFAULT;
         guiGraphics.fill(x, top, x + width, top + 10, fillColor);
         guiGraphics.drawCenteredString(this.font, badgeText, x + width / 2, top + 1, textColor);
     }
@@ -399,7 +399,7 @@ public class VendorScreen extends Screen {
             return;
         }
 
-        guiGraphics.fill(left, top, right, bottom, 0xAA141414);
+        guiGraphics.fill(left, top, right, bottom, UIScreenTheme.Vendor.OVERLAY_FILL);
 
         int scaledLineHeight = (int) Math.ceil(16 * COST_SCALE);
         int rowY = top + Math.max(0, (bottom - top - scaledLineHeight) / 2);
@@ -444,8 +444,8 @@ public class VendorScreen extends Screen {
         int textWidth = this.font.width(originalText);
         int textX = right - textWidth - 2;
         int textY = top - 9;
-        guiGraphics.drawString(this.font, originalText, textX, textY, 0xAA9C9DA3, false);
-        guiGraphics.fill(textX, textY + 4, textX + textWidth, textY + 5, 0xCC909197);
+        guiGraphics.drawString(this.font, originalText, textX, textY, UIScreenTheme.Vendor.STRIKE_TEXT, false);
+        guiGraphics.fill(textX, textY + 4, textX + textWidth, textY + 5, UIScreenTheme.Vendor.STRIKE_LINE);
     }
 
     private List<CostRenderLine> buildCostLines(VendorService.VendorOfferView offer, int quantity) {
@@ -463,23 +463,23 @@ public class VendorScreen extends Screen {
 
         ItemStack primaryIcon = iconFromId(currency.primaryIconItemId());
         if (primaryCovered > 0) {
-            lines.add(new CostRenderLine(primaryIcon, "x" + primaryCovered, 0xBDE8BD));
+            lines.add(new CostRenderLine(primaryIcon, "x" + primaryCovered, UIScreenTheme.Vendor.STOCK_OK_TEXT));
         }
 
         if (missingPrimary > 0) {
             if (!hasConversion(offer) || !conversionAffordable) {
-                lines.add(new CostRenderLine(primaryIcon, "x" + missingPrimary, 0xFF5555));
+                lines.add(new CostRenderLine(primaryIcon, "x" + missingPrimary, UIScreenTheme.Vendor.COST_MISSING_TEXT));
             }
 
             if (hasConversion(offer)) {
                 int requiredConversion = requiredConversion(offer, quantity);
                 ItemStack conversionIcon = iconFromId(currency.conversionIconItemId());
-                lines.add(new CostRenderLine(conversionIcon, "x" + requiredConversion, conversionAffordable ? 0xBDE8BD : 0xFF5555));
+                lines.add(new CostRenderLine(conversionIcon, "x" + requiredConversion, conversionAffordable ? UIScreenTheme.Vendor.STOCK_OK_TEXT : UIScreenTheme.Vendor.COST_MISSING_TEXT));
             }
         }
 
         if (requiredPrimary <= 0) {
-            lines.add(new CostRenderLine(ItemStack.EMPTY, Component.translatable("screen.incore.vendor.free").getString(), 0xBDE8BD));
+            lines.add(new CostRenderLine(ItemStack.EMPTY, Component.translatable("screen.incore.vendor.free").getString(), UIScreenTheme.Vendor.STOCK_OK_TEXT));
         }
 
         return lines;
@@ -491,7 +491,7 @@ public class VendorScreen extends Screen {
             return;
         }
 
-        guiGraphics.fill(left, top, right, bottom, 0xAA141414);
+        guiGraphics.fill(left, top, right, bottom, UIScreenTheme.Vendor.OVERLAY_FILL);
 
         int scaledLineHeight = (int) Math.ceil(16 * COST_SCALE);
         int rowY = top + Math.max(0, (bottom - top - scaledLineHeight) / 2);
@@ -513,7 +513,7 @@ public class VendorScreen extends Screen {
     private List<CostRenderLine> buildBalanceLines() {
         List<CostRenderLine> lines = new ArrayList<>();
         for (VendorService.BalanceEntryView balance : data.balances()) {
-            lines.add(new CostRenderLine(iconFromId(balance.iconItemId()), "x" + Math.max(0, balance.amount()), 0xBDE8BD));
+            lines.add(new CostRenderLine(iconFromId(balance.iconItemId()), "x" + Math.max(0, balance.amount()), UIScreenTheme.Vendor.STOCK_OK_TEXT));
         }
         return lines;
     }

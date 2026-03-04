@@ -99,37 +99,37 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
         themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawCenteredString(font, this.title, width / 2, 16, 0xF2F2F2);
+        guiGraphics.drawCenteredString(font, this.title, width / 2, 16, UIScreenTheme.MarketShop.TITLE_TEXT);
         if (data == null) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.market.no_data"), 16, 44, 0xDD8D8D, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.market.no_data"), 16, 44, UIScreenTheme.MarketShop.NO_DATA_TEXT, false);
             return;
         }
 
         Component mode = data.canTrade()
                 ? Component.translatable("screen.incore.market.mode.terminal")
                 : Component.translatable("screen.incore.market.mode.read_only");
-        guiGraphics.drawString(font, mode, 84, 20, data.canTrade() ? 0x9AE29A : 0xE2C777, false);
+        guiGraphics.drawString(font, mode, 84, 20, data.canTrade() ? UIScreenTheme.MarketShop.MODE_ACTIVE_TEXT : UIScreenTheme.MarketShop.MODE_WARNING_TEXT, false);
         renderBalancePanel(guiGraphics, 200, 14, width - 16, 32);
 
         MarketService.ItemView selected = selectedItem();
         if (selected == null) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.market.no_selection"), 16, 44, 0xD0D0D0, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.market.no_selection"), 16, 44, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
             return;
         }
         requestSelectedHistoryIfMissing(selected);
 
-        drawPanel(guiGraphics, 12, 40, width - 24, 76, 0xAA1B212B, 0xFF475063);
-        drawPanel(guiGraphics, 12, 122, width - 24, 84, 0xAA1B212B, 0xFF475063);
-        drawPanel(guiGraphics, 12, 210, width - 24, Math.max(70, height - 248), 0xAA1B212B, 0xFF475063);
+        drawPanel(guiGraphics, 12, 40, width - 24, 76, UIScreenTheme.MarketShop.SECTION_PANEL_FILL, UIScreenTheme.MarketShop.SECTION_PANEL_BORDER);
+        drawPanel(guiGraphics, 12, 122, width - 24, 84, UIScreenTheme.MarketShop.SECTION_PANEL_FILL, UIScreenTheme.MarketShop.SECTION_PANEL_BORDER);
+        drawPanel(guiGraphics, 12, 210, width - 24, Math.max(70, height - 248), UIScreenTheme.MarketShop.SECTION_PANEL_FILL, UIScreenTheme.MarketShop.SECTION_PANEL_BORDER);
 
-        guiGraphics.drawString(font, Component.literal(selected.displayName()), 42, 48, 0xFFFFFF, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.market.current_price", selected.currentPriceSpur()), 42, 62, 0xCFE4FF, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.market.base_price", selected.basePriceSpur()), 42, 74, 0xD0D0D0, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.market.demand", String.format("%.3f", selected.demandIndex())), 42, 86, 0xD0D0D0, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.market.owned", selected.inventoryCount()), 42, 98, 0xB7C1D0, false);
+        guiGraphics.drawString(font, Component.literal(selected.displayName()), 42, 48, UIScreenTheme.MarketShop.ITEM_NAME_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.market.current_price", selected.currentPriceSpur()), 42, 62, UIScreenTheme.MarketShop.TEXT_ACCENT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.market.base_price", selected.basePriceSpur()), 42, 74, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.market.demand", String.format("%.3f", selected.demandIndex())), 42, 86, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.market.owned", selected.inventoryCount()), 42, 98, UIScreenTheme.MarketShop.TEXT_MUTED, false);
 
         double change = selected.dayChangePercent();
-        int changeColor = change > 0D ? 0x6EE780 : (change < 0D ? 0xFF8A8A : 0xD0D0D0);
+        int changeColor = change > 0D ? UIScreenTheme.MarketShop.TEXT_POSITIVE : (change < 0D ? UIScreenTheme.MarketShop.TEXT_NEGATIVE : UIScreenTheme.MarketShop.TEXT_NEUTRAL);
         String arrow = change > 0D ? "▲" : (change < 0D ? "▼" : "");
         String changeText = arrow.isEmpty()
                 ? String.format("%.2f%%", Math.abs(change))
@@ -241,10 +241,10 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
             return;
         }
 
-        drawPanel(guiGraphics, x, y, width, height, 0x661A1F27, 0xFF424D5F);
-        guiGraphics.drawString(font, title, x + 4, y + 4, 0xE8E8E8, false);
+        drawPanel(guiGraphics, x, y, width, height, UIScreenTheme.MarketShop.CHART_PANEL_FILL, UIScreenTheme.MarketShop.CHART_PANEL_BORDER);
+        guiGraphics.drawString(font, title, x + 4, y + 4, UIScreenTheme.MarketShop.CHART_TITLE_TEXT, false);
         if (candles == null || candles.isEmpty()) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.market.chart.empty"), x + 4, y + 16, 0xC6C6C6, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.market.chart.empty"), x + 4, y + 16, UIScreenTheme.MarketShop.CHART_EMPTY_TEXT, false);
             return;
         }
 
@@ -279,14 +279,14 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
             int py = graphY + graphHeight - 1 - ((candle.close() - min) * (graphHeight - 1)) / (max - min);
 
             if (prevX >= 0) {
-                drawLine(guiGraphics, prevX, prevY, px, py, 0xFF71C2FF);
+                drawLine(guiGraphics, prevX, prevY, px, py, UIScreenTheme.MarketShop.CHART_LINE);
             }
             prevX = px;
             prevY = py;
         }
 
-        guiGraphics.drawString(font, Component.literal(Integer.toString(max)), x + width - 30, y + 4, 0xD5D5D5, false);
-        guiGraphics.drawString(font, Component.literal(Integer.toString(min)), x + width - 30, y + height - 11, 0xBFBFBF, false);
+        guiGraphics.drawString(font, Component.literal(Integer.toString(max)), x + width - 30, y + 4, UIScreenTheme.MarketShop.CHART_MAX_TEXT, false);
+        guiGraphics.drawString(font, Component.literal(Integer.toString(min)), x + width - 30, y + height - 11, UIScreenTheme.MarketShop.CHART_MIN_TEXT, false);
     }
 
     private void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int color) {
@@ -306,7 +306,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
     }
 
     private void renderBalancePanel(GuiGraphics guiGraphics, int left, int top, int right, int bottom) {
-        guiGraphics.fill(left, top, right, bottom, 0xAA141414);
+        guiGraphics.fill(left, top, right, bottom, UIScreenTheme.MarketShop.OVERLAY_PANEL_FILL);
 
         ItemStack spurIcon = spurIconStack();
         String text = "x" + data.balanceSpur();
@@ -329,7 +329,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
             textX = 20;
         }
 
-        guiGraphics.drawString(font, Component.literal(text), textX, 4, 0xBDE8BD, false);
+        guiGraphics.drawString(font, Component.literal(text), textX, 4, UIScreenTheme.MarketShop.OVERLAY_VALUE_TEXT, false);
         guiGraphics.pose().popPose();
     }
 

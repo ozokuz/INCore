@@ -64,12 +64,12 @@ public class CardPackOpeningScreen extends Screen {
         int top = 24;
         int bottom = this.height - 40;
 
-        guiGraphics.fill(left, top, right, bottom, 0xCC0A131B);
-        guiGraphics.fill(left, top, right, top + 1, 0xFF3FC6D5);
-        guiGraphics.fill(left, bottom - 1, right, bottom, 0xFF3FC6D5);
+        guiGraphics.fill(left, top, right, bottom, UIScreenTheme.OtherContent.PACK_MODAL_FILL);
+        guiGraphics.fill(left, top, right, top + 1, UIScreenTheme.OtherContent.PACK_MODAL_BORDER);
+        guiGraphics.fill(left, bottom - 1, right, bottom, UIScreenTheme.OtherContent.PACK_MODAL_BORDER);
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, 0xF2F9FF);
-        guiGraphics.drawString(this.font, "Revealed " + revealedCards + "/" + data.pulls().size(), left + 10, top + 8, 0xA9DBEC, false);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, UIScreenTheme.OtherContent.PACK_TITLE_TEXT);
+        guiGraphics.drawString(this.font, "Revealed " + revealedCards + "/" + data.pulls().size(), left + 10, top + 8, UIScreenTheme.OtherContent.PACK_SUBTITLE_TEXT, false);
 
         int count = data.pulls().size();
         int columns = Math.max(1, Math.min(5, count));
@@ -87,8 +87,8 @@ public class CardPackOpeningScreen extends Screen {
             int y = startY + row * (cardHeight + gap);
 
             boolean revealed = i < revealedCards;
-            int borderColor = revealed ? 0xFF4FCDE3 : 0xFF444E63;
-            int fillColor = revealed ? 0xAA111D2C : 0xAA101018;
+            int borderColor = revealed ? UIScreenTheme.OtherContent.PACK_CARD_BORDER_REVEALED : UIScreenTheme.OtherContent.PACK_CARD_BORDER_HIDDEN;
+            int fillColor = revealed ? UIScreenTheme.OtherContent.PACK_CARD_FILL_REVEALED : UIScreenTheme.OtherContent.PACK_CARD_FILL_HIDDEN;
             guiGraphics.fill(x, y, x + cardWidth, y + cardHeight, fillColor);
             guiGraphics.fill(x, y, x + cardWidth, y + 1, borderColor);
             guiGraphics.fill(x, y + cardHeight - 1, x + cardWidth, y + cardHeight, borderColor);
@@ -96,27 +96,27 @@ public class CardPackOpeningScreen extends Screen {
             guiGraphics.fill(x + cardWidth - 1, y, x + cardWidth, y + cardHeight, borderColor);
 
             if (!revealed) {
-                guiGraphics.drawCenteredString(this.font, Component.literal("?"), x + cardWidth / 2, y + 24, 0x8B93A6);
+                guiGraphics.drawCenteredString(this.font, Component.literal("?"), x + cardWidth / 2, y + 24, UIScreenTheme.OtherContent.PACK_UNKNOWN_TEXT);
                 continue;
             }
 
             CardPackService.PackRevealEntry entry = data.pulls().get(i);
             int rarityColor = switch (Math.clamp(entry.rarity(), 1, 6)) {
-                case 6 -> 0xFFCE5E;
-                case 5 -> 0xFF8E4B;
-                case 4 -> 0xBC8EFF;
-                case 3 -> 0x64D8FF;
-                default -> 0xD0D9E8;
+                case 6 -> UIScreenTheme.OtherContent.PACK_RARITY_SIX_TEXT;
+                case 5 -> UIScreenTheme.OtherContent.PACK_RARITY_FIVE_TEXT;
+                case 4 -> UIScreenTheme.OtherContent.PACK_RARITY_FOUR_TEXT;
+                case 3 -> UIScreenTheme.OtherContent.PACK_RARITY_THREE_TEXT;
+                default -> UIScreenTheme.OtherContent.PACK_RARITY_DEFAULT_TEXT;
             };
             guiGraphics.drawCenteredString(this.font, Component.literal(entry.rarity() + "★"), x + cardWidth / 2, y + 6, rarityColor);
-            guiGraphics.drawCenteredString(this.font, Component.literal(entry.moduleType()), x + cardWidth / 2, y + 16, 0x8FC3E0);
+            guiGraphics.drawCenteredString(this.font, Component.literal(entry.moduleType()), x + cardWidth / 2, y + 16, UIScreenTheme.OtherContent.PACK_TYPE_TEXT);
             String name = entry.cardName();
             if (name.length() > 14) {
                 name = name.substring(0, 14);
             }
-            guiGraphics.drawCenteredString(this.font, Component.literal(name), x + cardWidth / 2, y + 29, entry.foil() ? 0x8AEEFF : 0xE0E7F2);
+            guiGraphics.drawCenteredString(this.font, Component.literal(name), x + cardWidth / 2, y + 29, entry.foil() ? UIScreenTheme.OtherContent.PACK_NAME_FOIL_TEXT : UIScreenTheme.OtherContent.PACK_NAME_TEXT);
             if (entry.foil()) {
-                guiGraphics.drawCenteredString(this.font, Component.literal("FOIL"), x + cardWidth / 2, y + 42, 0x79F7FF);
+                guiGraphics.drawCenteredString(this.font, Component.literal("FOIL"), x + cardWidth / 2, y + 42, UIScreenTheme.OtherContent.PACK_FOIL_LABEL_TEXT);
             }
         }
     }

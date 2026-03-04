@@ -133,7 +133,7 @@ public class MarketTradeConfirmScreen extends Screen {
 
         MarketService.ItemView item = selectedItem();
         if (item == null) {
-            guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, 0xF1F3F8);
+            guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, UIScreenTheme.Confirmation.TITLE_TEXT);
             return;
         }
 
@@ -149,50 +149,50 @@ public class MarketTradeConfirmScreen extends Screen {
         int targetCenterX = right - 112;
         int amountY = top + 52;
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, 0xF1F3F8);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top + 8, UIScreenTheme.Confirmation.TITLE_TEXT);
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.literal(item.displayName() + " x" + quantity),
                 this.width / 2,
                 top + 24,
-                0xC9CDD6
+                UIScreenTheme.Confirmation.BODY_MUTED_TEXT
         );
 
         ItemStack itemIcon = itemIconStack();
         ItemStack spurIcon = spurIconStack();
 
         if (isBuy) {
-            guiGraphics.drawCenteredString(this.font, Component.literal("Spur"), sourceCenterX, top + 40, 0xD9DCE3);
-            guiGraphics.drawCenteredString(this.font, Component.literal("Items"), targetCenterX, top + 40, 0xD9DCE3);
-            drawScaledCenteredString(guiGraphics, Integer.toString(totalCost), sourceCenterX, amountY, 2.0F, 0xFFFFFF);
-            drawScaledCenteredString(guiGraphics, "x" + quantity, targetCenterX, amountY, 2.0F, 0xFFFFFF);
+            guiGraphics.drawCenteredString(this.font, Component.literal("Spur"), sourceCenterX, top + 40, UIScreenTheme.Confirmation.LABEL_TEXT);
+            guiGraphics.drawCenteredString(this.font, Component.literal("Items"), targetCenterX, top + 40, UIScreenTheme.Confirmation.LABEL_TEXT);
+            drawScaledCenteredString(guiGraphics, Integer.toString(totalCost), sourceCenterX, amountY, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
+            drawScaledCenteredString(guiGraphics, "x" + quantity, targetCenterX, amountY, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
 
             guiGraphics.renderItem(spurIcon, sourceCenterX + 30, amountY + 3);
             guiGraphics.renderItem(itemIcon, targetCenterX + 24, amountY + 3);
 
-            drawChip(guiGraphics, sourceCenterX, top + 90, Component.translatable("screen.incore.market.confirm.balance", ownedSpur), 0xDD1D2127, 0xE6EDF9);
-            drawChip(guiGraphics, targetCenterX, top + 90, Component.translatable("screen.incore.market.confirm.receive_items", quantity), 0xDD1D2127, 0xE6EDF9);
+            drawChip(guiGraphics, sourceCenterX, top + 90, Component.translatable("screen.incore.market.confirm.balance", ownedSpur), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
+            drawChip(guiGraphics, targetCenterX, top + 90, Component.translatable("screen.incore.market.confirm.receive_items", quantity), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
         } else {
-            guiGraphics.drawCenteredString(this.font, Component.literal("Items"), sourceCenterX, top + 40, 0xD9DCE3);
-            guiGraphics.drawCenteredString(this.font, Component.literal("Spur"), targetCenterX, top + 40, 0xD9DCE3);
-            drawScaledCenteredString(guiGraphics, "x" + quantity, sourceCenterX, amountY, 2.0F, 0xFFFFFF);
-            drawScaledCenteredString(guiGraphics, Integer.toString(totalCost), targetCenterX, amountY, 2.0F, 0xFFFFFF);
+            guiGraphics.drawCenteredString(this.font, Component.literal("Items"), sourceCenterX, top + 40, UIScreenTheme.Confirmation.LABEL_TEXT);
+            guiGraphics.drawCenteredString(this.font, Component.literal("Spur"), targetCenterX, top + 40, UIScreenTheme.Confirmation.LABEL_TEXT);
+            drawScaledCenteredString(guiGraphics, "x" + quantity, sourceCenterX, amountY, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
+            drawScaledCenteredString(guiGraphics, Integer.toString(totalCost), targetCenterX, amountY, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
 
             guiGraphics.renderItem(itemIcon, sourceCenterX + 24, amountY + 3);
             guiGraphics.renderItem(spurIcon, targetCenterX + 30, amountY + 3);
 
-            drawChip(guiGraphics, sourceCenterX, top + 90, Component.translatable("screen.incore.market.confirm.owned_items", ownedItems), 0xDD1D2127, 0xE6EDF9);
-            drawChip(guiGraphics, targetCenterX, top + 90, Component.translatable("screen.incore.market.confirm.receive_spur", totalCost), 0xDD1D2127, 0xE6EDF9);
+            drawChip(guiGraphics, sourceCenterX, top + 90, Component.translatable("screen.incore.market.confirm.owned_items", ownedItems), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
+            drawChip(guiGraphics, targetCenterX, top + 90, Component.translatable("screen.incore.market.confirm.receive_spur", totalCost), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
         }
 
-        guiGraphics.drawCenteredString(this.font, Component.literal(">>"), this.width / 2, top + 60, 0xF5F5F5);
+        guiGraphics.drawCenteredString(this.font, Component.literal(">>"), this.width / 2, top + 60, UIScreenTheme.Confirmation.ARROW_TEXT);
 
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.translatable("screen.incore.market.confirm.rate_each", price),
                 this.width / 2,
                 exchangeBottom + 8,
-                0xAAB2BF
+                UIScreenTheme.Confirmation.DELTA_MUTED_TEXT
         );
 
         if (isBuy) {
@@ -201,7 +201,7 @@ public class MarketTradeConfirmScreen extends Screen {
                     Component.translatable("screen.incore.market.confirm.after_spur", afterSpur),
                     this.width / 2,
                     exchangeBottom + 22,
-                    afterSpur >= 0 ? 0xBDE8BD : 0xFF7777
+                    afterSpur >= 0 ? UIScreenTheme.Confirmation.DELTA_POSITIVE_TEXT : UIScreenTheme.Confirmation.DELTA_NEGATIVE_TEXT
             );
         } else {
             guiGraphics.drawCenteredString(
@@ -209,7 +209,7 @@ public class MarketTradeConfirmScreen extends Screen {
                     Component.translatable("screen.incore.market.confirm.after_items", afterItems),
                     this.width / 2,
                     exchangeBottom + 22,
-                    afterItems >= 0 ? 0xBDE8BD : 0xFF7777
+                    afterItems >= 0 ? UIScreenTheme.Confirmation.DELTA_POSITIVE_TEXT : UIScreenTheme.Confirmation.DELTA_NEGATIVE_TEXT
             );
         }
     }

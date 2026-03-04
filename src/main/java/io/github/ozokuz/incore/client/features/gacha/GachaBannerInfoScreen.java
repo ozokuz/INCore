@@ -66,13 +66,13 @@ public class GachaBannerInfoScreen extends Screen {
         themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xF6F6F6);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, UIScreenTheme.OtherContent.GACHA_TITLE_TEXT);
         guiGraphics.drawCenteredString(
                 this.font,
                 Component.translatable("screen.incore.gacha_banners.pity", banner.pityFive(), 40, banner.pitySix(), 80),
                 this.width / 2,
                 28,
-                0xD9D9D9
+                UIScreenTheme.OtherContent.CATALOG_TEXT_META
         );
         if ("event".equals(banner.type())) {
             Component featuredLine = banner.eventFeaturedPityEnabled()
@@ -82,7 +82,7 @@ public class GachaBannerInfoScreen extends Screen {
                             GachaService.EVENT_FEATURED_SIX_PITY_THRESHOLD
                     )
                     : Component.translatable("screen.incore.gacha_banners.event_featured_pity.unavailable");
-            guiGraphics.drawCenteredString(this.font, featuredLine, this.width / 2, 40, 0xFFD4A4);
+            guiGraphics.drawCenteredString(this.font, featuredLine, this.width / 2, 40, UIScreenTheme.OtherContent.INFO_FEATURED_TEXT);
         } else {
             guiGraphics.drawCenteredString(
                     this.font,
@@ -93,7 +93,7 @@ public class GachaBannerInfoScreen extends Screen {
                     ),
                     this.width / 2,
                     40,
-                    0xC2E9FF
+                    UIScreenTheme.OtherContent.INFO_RATE_LABEL_TEXT
             );
         }
 
@@ -104,7 +104,7 @@ public class GachaBannerInfoScreen extends Screen {
                 Component.translatable("screen.incore.gacha_banners.page", page + 1, totalPages),
                 this.width / 2,
                 52,
-                0xAEAEAE
+                UIScreenTheme.OtherContent.INFO_NOTE_TEXT
         );
 
         int start = page * REWARDS_PER_PAGE;
@@ -119,7 +119,7 @@ public class GachaBannerInfoScreen extends Screen {
             GachaService.RewardView reward = rewards.get(i);
             int row = i - start;
             int y = rowY + row * rowHeight;
-            guiGraphics.fill(left, y - 1, right, y + 13, row % 2 == 0 ? 0x66303030 : 0x66202020);
+            guiGraphics.fill(left, y - 1, right, y + 13, row % 2 == 0 ? UIScreenTheme.OtherContent.INFO_ROW_FILL_A : UIScreenTheme.OtherContent.INFO_ROW_FILL_B);
 
             ResourceLocation itemId = ResourceLocation.tryParse(reward.itemId());
             Item item = itemId == null ? Items.AIR : BuiltInRegistries.ITEM.get(itemId);
@@ -127,9 +127,9 @@ public class GachaBannerInfoScreen extends Screen {
             if (item != Items.AIR) {
                 guiGraphics.renderItem(displayStack, left + 2, y - 2);
                 Component itemName = item.getName(displayStack);
-                guiGraphics.drawString(this.font, itemName, left + 22, y + 2, 0xEFEFEF);
+                guiGraphics.drawString(this.font, itemName, left + 22, y + 2, UIScreenTheme.OtherContent.INFO_ITEM_TEXT);
             } else {
-                guiGraphics.drawString(this.font, reward.itemId(), left + 22, y + 2, 0xE86E6E);
+                guiGraphics.drawString(this.font, reward.itemId(), left + 22, y + 2, UIScreenTheme.OtherContent.INFO_ITEM_MISSING_TEXT);
             }
 
             GachaRarity rarity = GachaRarity.fromStars(reward.rarity());
@@ -139,7 +139,7 @@ public class GachaBannerInfoScreen extends Screen {
                     Component.literal(String.format(Locale.ROOT, "%.2f%%", reward.chancePercent())),
                     right - 36,
                     y + 2,
-                    0xEDEDED
+                    UIScreenTheme.OtherContent.INFO_CHANCE_TEXT
             );
 
             if (mouseX >= left && mouseX < right && mouseY >= y - 1 && mouseY < y + 13) {
@@ -150,7 +150,7 @@ public class GachaBannerInfoScreen extends Screen {
                     tooltip.add(Component.literal(reward.itemId()));
                 }
                 tooltip.add(Component.literal(reward.rarity() + "★").withColor(rarity.rgb()));
-                tooltip.add(Component.literal(String.format(Locale.ROOT, "%.2f%%", reward.chancePercent())).withColor(0xCFCFCF));
+                tooltip.add(Component.literal(String.format(Locale.ROOT, "%.2f%%", reward.chancePercent())).withColor(UIScreenTheme.OtherContent.INFO_TOOLTIP_TEXT));
                 hoveredTooltip = tooltip;
             }
         }
