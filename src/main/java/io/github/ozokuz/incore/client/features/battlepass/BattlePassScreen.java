@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.battlepass;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassClientCache;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassSyncPayload;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class BattlePassScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.BATTLEPASS_TASKS;
     private static final int TARGET_WINDOW_WIDTH = 700;
     private static final int TARGET_WINDOW_HEIGHT = 360;
     private static final int TAB_HEIGHT = 18;
@@ -91,7 +94,7 @@ public class BattlePassScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        guiGraphics.fillGradient(0, 0, this.width, this.height, 0xD5090B10, 0xE0010206);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
 
         int panelX = this.windowLeft();
         int panelY = this.windowTop();
@@ -131,11 +134,7 @@ public class BattlePassScreen extends Screen {
     }
 
     private void drawMainPanel(GuiGraphics guiGraphics, int x, int y, int width, int height) {
-        guiGraphics.fill(x, y, x + width, y + height, 0xD114161A);
-        guiGraphics.fill(x, y, x + width, y + 1, 0xFF474B52);
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, 0xFF000000);
-        guiGraphics.fill(x, y, x + 1, y + height, 0xFF474B52);
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, 0xFF000000);
+        themed(guiGraphics).drawWindow(x, y, width, height);
     }
 
     private void drawTabs(GuiGraphics guiGraphics, int x, int y, int width) {
@@ -699,10 +698,7 @@ public class BattlePassScreen extends Screen {
     }
 
     private static void drawBoxBorder(GuiGraphics guiGraphics, int x, int y, int width, int height, int color) {
-        guiGraphics.fill(x, y, x + width, y + 1, color);
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, color);
-        guiGraphics.fill(x, y, x + 1, y + height, color);
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, color);
+        themed(guiGraphics).drawBorder(x, y, x + width, y + height, color);
     }
 
     private static int clamp(int value, int min, int max) {
@@ -993,6 +989,10 @@ public class BattlePassScreen extends Screen {
     }
 
     private record RewardTrackLayout(List<Integer> visibleLevelIndices, int scroll, int maxScroll) {
+    }
+
+    private static ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, THEME.theme());
     }
 
     private record MissionCategory(boolean weekly, int week, Component label, Component progressLabel) {

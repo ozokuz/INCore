@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.market;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMenu;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
@@ -18,7 +20,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuyerMenu> {
-    private static final int TEXT_COLOR = 0xCDD3DE;
+    private static final UIScreenTheme THEME = UIScreenTheme.MACHINE;
+    private static final int TEXT_COLOR = THEME.theme().text().secondary();
     private static final int GHOST_SLOT_X = 74;
     private static final int GHOST_SLOT_Y = 66;
 
@@ -120,8 +123,9 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
+        ThemedUi ui = themed(guiGraphics);
 
-        drawPanel(guiGraphics, x, y, imageWidth, imageHeight, 0xFF13161A, 0xFF4A4F5A);
+        ui.drawWindow(x, y, imageWidth, imageHeight);
         drawPanel(guiGraphics, x + 5, y + 5, imageWidth - 10, 14, 0xFF20252C, 0xFF3D4350);
         drawPanel(guiGraphics, x + 8, y + 24, imageWidth - 16, 28, 0xFF1A1F26, 0xFF363D49);
         drawPanel(guiGraphics, x + 8, y + 62, imageWidth - 16, 66, 0xFF1A1F26, 0xFF363D49);
@@ -215,7 +219,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         if (isMouseOverGhostSlot(mouseX, mouseY) && !ghostTargetPreview.isEmpty()) {
             guiGraphics.renderTooltip(this.font, ghostTargetPreview, mouseX, mouseY);
@@ -313,15 +317,16 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     }
 
     private static void drawPanel(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor) {
-        guiGraphics.fill(x, y, x + width, y + height, fillColor);
-        guiGraphics.fill(x, y, x + width, y + 1, borderColor);
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, borderColor);
-        guiGraphics.fill(x, y, x + 1, y + height, borderColor);
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, borderColor);
+        ThemedUi ui = themed(guiGraphics);
+        ui.drawRect(x, y, x + width, y + height, fillColor);
+        ui.drawBorder(x, y, x + width, y + height, borderColor);
     }
 
     private static void drawSlotFrame(GuiGraphics guiGraphics, int x, int y) {
-        drawPanel(guiGraphics, x - 1, y - 1, 18, 18, 0xFF252A32, 0xFF4A5261);
-        guiGraphics.fill(x, y, x + 16, y + 16, 0xFF181D24);
+        themed(guiGraphics).drawSlotFrame(x, y);
+    }
+
+    private static ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, THEME.theme());
     }
 }

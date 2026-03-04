@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.cards;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.cards.CardPackService;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -7,6 +9,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 public class CardPackOpeningScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.OTHER_CONTENT;
     private final CardPackService.PackRevealScreenData data;
     private Button doneButton;
     private Button skipButton;
@@ -53,7 +56,7 @@ public class CardPackOpeningScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         int left = this.width / 2 - 170;
@@ -121,5 +124,9 @@ public class CardPackOpeningScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    private ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, this.font, THEME.theme());
     }
 }

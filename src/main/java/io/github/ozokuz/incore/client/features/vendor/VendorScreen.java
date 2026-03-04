@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.vendor;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.vendor.VendorCurrencyView;
 import io.github.ozokuz.incore.features.vendor.VendorService;
 import io.github.ozokuz.incore.features.vendor.network.VendorNetworking;
@@ -21,6 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class VendorScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.VENDOR;
     private static final int ROWS_PER_PAGE = 5;
     private static final int PANEL_WIDTH = 340;
     private static final int PANEL_TOP = 16;
@@ -114,14 +117,14 @@ public class VendorScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        ThemedUi ui = themed(guiGraphics);
+        ui.drawBackdrop(this.width, this.height);
         int left = this.width / 2 - PANEL_WIDTH / 2;
         int right = this.width / 2 + PANEL_WIDTH / 2;
         int top = PANEL_TOP;
         int bottom = this.height - PANEL_BOTTOM_MARGIN;
 
-        guiGraphics.fill(left, top, right, bottom, 0xCC120E18);
-        guiGraphics.fill(left, top, right, top + 1, 0xFF6CE0FF);
-        guiGraphics.fill(left, bottom - 1, right, bottom, 0xFF6CE0FF);
+        ui.drawWindow(left, top, right - left, bottom - top);
 
         List<VendorService.VendorOfferView> offers = data.offers();
         int maxPages = Math.max(1, (int) Math.ceil(offers.size() / (double) ROWS_PER_PAGE));
@@ -530,18 +533,7 @@ public class VendorScreen extends Screen {
     }
 
     private void renderCostLine(GuiGraphics guiGraphics, int x, int y, CostRenderLine line) {
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x, y, 0.0F);
-        guiGraphics.pose().scale(COST_SCALE, COST_SCALE, 1.0F);
-
-        int textX = 0;
-        if (!line.stack().isEmpty()) {
-            guiGraphics.renderItem(line.stack(), 0, 0);
-            textX = 20;
-        }
-
-        guiGraphics.drawString(this.font, Component.literal(line.text()), textX, 4, line.color(), false);
-        guiGraphics.pose().popPose();
+        themed(guiGraphics).drawScaledItemLine(line.stack(), line.text(), x, y, COST_SCALE, line.color());
     }
 
     private int scaledCostLineWidth(CostRenderLine line) {
@@ -553,5 +545,9 @@ public class VendorScreen extends Screen {
     }
 
     private record CostRenderLine(ItemStack stack, String text, int color) {
+    }
+
+    private ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, this.font, THEME.theme());
     }
 }

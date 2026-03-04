@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.gacha;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.gacha.GachaService;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GachaGuaranteedSixSelectionScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.OTHER_CONTENT;
     private static final int CARD_HEIGHT = 90;
     private static final int CARD_GAP = 8;
 
@@ -82,7 +85,7 @@ public class GachaGuaranteedSixSelectionScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xF6F6F6);
@@ -237,5 +240,9 @@ public class GachaGuaranteedSixSelectionScreen extends Screen {
         private boolean contains(double x, double y) {
             return x >= left && x < right && y >= top && y < bottom;
         }
+    }
+
+    private ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, this.font, THEME.theme());
     }
 }

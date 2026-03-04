@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.vendor;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.vendor.network.VendorNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -12,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public class VendorConversionConfirmScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.CONFIRMATION;
     private static final int PANEL_WIDTH = 420;
     private static final int PANEL_HEIGHT = 170;
 
@@ -92,17 +95,17 @@ public class VendorConversionConfirmScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         int left = this.width / 2 - PANEL_WIDTH / 2;
         int right = this.width / 2 + PANEL_WIDTH / 2;
         int top = this.height / 2 - PANEL_HEIGHT / 2;
         int bottom = this.height / 2 + PANEL_HEIGHT / 2;
         int exchangeBottom = top + 96;
 
-        guiGraphics.fill(left, top, right, bottom, 0xE022252C);
-        guiGraphics.fill(left, top, right, exchangeBottom, 0xEE3C4048);
-        guiGraphics.fill(left, top, right, top + 1, 0xFF8F959F);
-        guiGraphics.fill(left, exchangeBottom - 1, right, exchangeBottom, 0xFF8F959F);
-        guiGraphics.fill(left, bottom - 1, right, bottom, 0xFF8F959F);
+        ThemedUi ui = themed(guiGraphics);
+        ui.drawWindow(left, top, PANEL_WIDTH, PANEL_HEIGHT);
+        ui.drawRect(left, top, right, exchangeBottom, THEME.theme().panel().fill());
+        ui.drawBorder(left, top, right, exchangeBottom, THEME.theme().panel().borderTop());
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         int sourceCenterX = left + 112;
@@ -147,11 +150,7 @@ public class VendorConversionConfirmScreen extends Screen {
     }
 
     private void drawChip(GuiGraphics guiGraphics, int centerX, int y, Component text, int fillColor, int textColor) {
-        int textWidth = this.font.width(text);
-        int width = textWidth + 14;
-        int left = centerX - width / 2;
-        guiGraphics.fill(left, y, left + width, y + 12, fillColor);
-        guiGraphics.drawCenteredString(this.font, text, centerX, y + 2, textColor);
+        themed(guiGraphics).drawChipCentered(centerX, y, text, fillColor, textColor);
     }
 
     private ItemStack iconFromId(String itemIdString) {
@@ -171,5 +170,9 @@ public class VendorConversionConfirmScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    private ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, this.font, THEME.theme());
     }
 }

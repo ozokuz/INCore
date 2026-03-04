@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.shop;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.shop.ShopService;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable {
+    private static final UIScreenTheme THEME = UIScreenTheme.MARKET_SHOP;
     private static final int LEFT_MARGIN = 14;
     private static final int TOP = 36;
     private static final int BOTTOM_MARGIN = 30;
@@ -92,7 +95,7 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         guiGraphics.drawCenteredString(font, title, width / 2, 14, 0xF2F2F2);
@@ -313,10 +316,12 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
     }
 
     private static void drawPanel(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor) {
-        guiGraphics.fill(x, y, x + width, y + height, fillColor);
-        guiGraphics.fill(x, y, x + width, y + 1, borderColor);
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, borderColor);
-        guiGraphics.fill(x, y, x + 1, y + height, borderColor);
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, borderColor);
+        ThemedUi ui = themed(guiGraphics);
+        ui.drawRect(x, y, x + width, y + height, fillColor);
+        ui.drawBorder(x, y, x + width, y + height, borderColor);
+    }
+
+    private static ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, THEME.theme());
     }
 }

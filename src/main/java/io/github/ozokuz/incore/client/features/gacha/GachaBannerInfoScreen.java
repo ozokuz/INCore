@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.gacha;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.gacha.GachaRarity;
 import io.github.ozokuz.incore.features.gacha.GachaService;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class GachaBannerInfoScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.OTHER_CONTENT;
     private static final int REWARDS_PER_PAGE = 10;
 
     private final Screen parent;
@@ -60,7 +63,7 @@ public class GachaBannerInfoScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xF6F6F6);
@@ -165,5 +168,9 @@ public class GachaBannerInfoScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    private ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, this.font, THEME.theme());
     }
 }

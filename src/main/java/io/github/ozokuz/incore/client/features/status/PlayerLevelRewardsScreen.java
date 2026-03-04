@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.status;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelSyncPayload;
 import net.minecraft.ChatFormatting;
@@ -19,6 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class PlayerLevelRewardsScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.INFO;
     private static final int TARGET_WINDOW_WIDTH = 660;
     private static final int TARGET_WINDOW_HEIGHT = 368;
     private static final int HERO_HEIGHT = 82;
@@ -83,8 +86,9 @@ public class PlayerLevelRewardsScreen extends Screen {
         Layout layout = layout();
         SidebarMetrics sidebar = sidebarMetrics(layout);
         float pulse = 0.5F + 0.5F * Mth.sin((System.currentTimeMillis() % 4000L) / 220.0F);
+        ThemedUi ui = themed(guiGraphics);
 
-        guiGraphics.fillGradient(0, 0, this.width, this.height, 0xD5090B10, 0xE0010206);
+        ui.drawBackdrop(this.width, this.height);
         drawMainPanel(guiGraphics, layout.windowLeft(), layout.windowTop(), layout.windowWidth(), layout.windowHeight());
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -398,19 +402,11 @@ public class PlayerLevelRewardsScreen extends Screen {
     }
 
     private static void drawMainPanel(GuiGraphics guiGraphics, int x, int y, int width, int height) {
-        guiGraphics.fill(x, y, x + width, y + height, 0xCF10171F);
-        guiGraphics.fill(x, y, x + width, y + 1, 0xFF67DFFF);
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, 0xFF1E2732);
-        guiGraphics.fill(x, y, x + 1, y + height, 0xFF4CAFCB);
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, 0xFF1E2732);
+        themed(guiGraphics).drawWindow(x, y, width, height);
     }
 
     private static void drawCard(GuiGraphics guiGraphics, int x, int y, int width, int height) {
-        guiGraphics.fill(x, y, x + width, y + height, 0xA516202B);
-        guiGraphics.fill(x, y, x + width, y + 1, 0xA058C7E6);
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, 0x80131A22);
-        guiGraphics.fill(x, y, x + 1, y + height, 0x804A9EB9);
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, 0x80131A22);
+        themed(guiGraphics).drawCard(x, y, width, height);
     }
 
     private static void drawCardOutline(GuiGraphics guiGraphics, int left, int top, int right, int bottom, int color) {
@@ -421,9 +417,7 @@ public class PlayerLevelRewardsScreen extends Screen {
     }
 
     private void drawChip(GuiGraphics guiGraphics, int x, int y, Component text, int fillColor, int textColor) {
-        int width = this.font.width(text) + 10;
-        guiGraphics.fill(x, y, x + width, y + 11, fillColor);
-        guiGraphics.drawString(this.font, text, x + 5, y + 2, textColor, false);
+        new ThemedUi(guiGraphics, this.font, THEME.theme()).drawChipLeft(x, y, text, fillColor, textColor);
     }
 
     private List<PlayerLevelClientCache.RewardPreview> getOrderedPreviews() {
@@ -666,5 +660,9 @@ public class PlayerLevelRewardsScreen extends Screen {
             int scrollTrackLeft,
             int scrollTrackRight
     ) {
+    }
+
+    private static ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, THEME.theme());
     }
 }

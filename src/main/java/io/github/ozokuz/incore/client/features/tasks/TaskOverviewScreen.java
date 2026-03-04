@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.tasks;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class TaskOverviewScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.BATTLEPASS_TASKS;
     private static final int TARGET_WINDOW_WIDTH = 560;
     private static final int TARGET_WINDOW_HEIGHT = 320;
     private static final int SIDEBAR_TARGET_WIDTH = 166;
@@ -105,7 +108,7 @@ public class TaskOverviewScreen extends Screen {
         ContentLayout layout = this.contentLayout();
         this.updateClaimButtons(snapshot, layout.sidebarLeft(), layout.sidebarRight(), layout.contentTop(), layout.mainLeft(), layout.mainRight(), layout.contentBottom());
 
-        guiGraphics.fillGradient(0, 0, this.width, this.height, 0xD5090B10, 0xE0010206);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         drawWindowPanel(guiGraphics, windowLeft, windowTop, windowLeft + windowWidth, windowTop + windowHeight);
         guiGraphics.fill(layout.contentLeft(), layout.contentTop(), layout.contentRight(), layout.contentBottom(), COLOR_BACKDROP);
         guiGraphics.drawString(this.font, this.title, windowLeft + 12, windowTop + 8, COLOR_TEXT_PRIMARY, false);
@@ -782,26 +785,17 @@ public class TaskOverviewScreen extends Screen {
     }
 
     private static void drawPanel(GuiGraphics guiGraphics, int left, int top, int right, int bottom, int fillColor, int borderColor) {
-        guiGraphics.fill(left, top, right, bottom, fillColor);
-        drawRectBorder(guiGraphics, left, top, right, bottom, borderColor);
+        ThemedUi ui = themed(guiGraphics);
+        ui.drawRect(left, top, right, bottom, fillColor);
+        ui.drawBorder(left, top, right, bottom, borderColor);
     }
 
     private static void drawRectBorder(GuiGraphics guiGraphics, int left, int top, int right, int bottom, int color) {
-        if (right - left <= 0 || bottom - top <= 0) {
-            return;
-        }
-        guiGraphics.fill(left, top, right, top + 1, color);
-        guiGraphics.fill(left, bottom - 1, right, bottom, color);
-        guiGraphics.fill(left, top, left + 1, bottom, color);
-        guiGraphics.fill(right - 1, top, right, bottom, color);
+        themed(guiGraphics).drawBorder(left, top, right, bottom, color);
     }
 
     private static void drawWindowPanel(GuiGraphics guiGraphics, int left, int top, int right, int bottom) {
-        guiGraphics.fill(left, top, right, bottom, COLOR_WINDOW_FILL);
-        guiGraphics.fill(left, top, right, top + 1, COLOR_WINDOW_BORDER_LIGHT);
-        guiGraphics.fill(left, top, left + 1, bottom, COLOR_WINDOW_BORDER_LIGHT);
-        guiGraphics.fill(left, bottom - 1, right, bottom, COLOR_WINDOW_BORDER_DARK);
-        guiGraphics.fill(right - 1, top, right, bottom, COLOR_WINDOW_BORDER_DARK);
+        themed(guiGraphics).drawWindow(left, top, right - left, bottom - top);
     }
 
     private static void drawProgressBar(
@@ -865,6 +859,10 @@ public class TaskOverviewScreen extends Screen {
         int mainLeft = sidebarRight + 8;
         int mainRight = contentRight;
         return new ContentLayout(contentLeft, contentTop, contentRight, contentBottom, sidebarLeft, sidebarRight, mainLeft, mainRight);
+    }
+
+    private static ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, THEME.theme());
     }
 
     private int windowLeft() {

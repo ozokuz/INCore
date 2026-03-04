@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.party;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.party.network.PartyActionPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PartyManagementScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.INFO;
     private static final int TARGET_WINDOW_WIDTH = 320;
     private static final int TARGET_WINDOW_HEIGHT = 400;
     private static final int BUTTON_HEIGHT = 20;
@@ -189,8 +192,9 @@ public class PartyManagementScreen extends Screen {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         Layout layout = layout();
+        ThemedUi ui = themed(guiGraphics);
 
-        guiGraphics.fillGradient(0, 0, this.width, this.height, 0xD5090B10, 0xE0010206);
+        ui.drawBackdrop(this.width, this.height);
         drawMainPanel(guiGraphics, layout.windowLeft(), layout.windowTop(), layout.windowWidth(), layout.windowHeight());
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -314,11 +318,7 @@ public class PartyManagementScreen extends Screen {
     }
 
     private void drawMainPanel(GuiGraphics guiGraphics, int x, int y, int width, int height) {
-        guiGraphics.fill(x, y, x + width, y + height, 0xCF10171F);
-        guiGraphics.fill(x, y, x + width, y + 1, 0xFF67DFFF);
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, 0xFF1E2732);
-        guiGraphics.fill(x, y, x + 1, y + height, 0xFF4CAFCB);
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, 0xFF1E2732);
+        themed(guiGraphics).drawWindow(x, y, width, height);
     }
 
     private void sendAction(PartyActionPayload.ActionType actionType, UUID targetPlayerId) {
@@ -372,5 +372,9 @@ public class PartyManagementScreen extends Screen {
             int contentY,
             int contentWidth
     ) {
+    }
+
+    private ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, this.font, THEME.theme());
     }
 }

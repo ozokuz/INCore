@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.client.features.cards;
 
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.cards.DeckStationMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -10,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMenu> {
+    private static final UIScreenTheme THEME = UIScreenTheme.CRAFTING;
     private static final int TEXT_COLOR = 0xD6E0EF;
     private static final int GUI_FILL = 0xCC111724;
     private static final int PANEL_FILL = 0x99202A3A;
@@ -42,8 +45,9 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
+        ThemedUi ui = themed(guiGraphics);
 
-        drawPanel(guiGraphics, x, y, imageWidth, imageHeight, GUI_FILL, PANEL_BORDER);
+        ui.drawWindow(x, y, imageWidth, imageHeight);
         drawPanel(guiGraphics, x + 6, y + 6, imageWidth - 12, 12, 0xFF1B2230, 0xFF38465D);
         drawPanel(guiGraphics, x + 8, y + 20, 186, 114, PANEL_FILL, PANEL_BORDER);
         drawPanel(guiGraphics, x + RIGHT_PANEL_X, y + RIGHT_PANEL_Y, RIGHT_PANEL_W, RIGHT_PANEL_H, PANEL_FILL, PANEL_BORDER);
@@ -133,7 +137,7 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
     }
@@ -146,14 +150,16 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
     }
 
     private static void drawPanel(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor) {
-        guiGraphics.fill(x, y, x + width, y + height, fillColor);
-        guiGraphics.fill(x, y, x + width, y + 1, borderColor);
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, borderColor);
-        guiGraphics.fill(x, y, x + 1, y + height, borderColor);
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, borderColor);
+        ThemedUi ui = themed(guiGraphics);
+        ui.drawRect(x, y, x + width, y + height, fillColor);
+        ui.drawBorder(x, y, x + width, y + height, borderColor);
     }
 
     private static void drawSlotFrame(GuiGraphics guiGraphics, int x, int y) {
-        drawPanel(guiGraphics, x - 1, y - 1, 18, 18, SLOT_FILL, SLOT_BORDER);
+        themed(guiGraphics).drawSlotFrame(x, y);
+    }
+
+    private static ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, THEME.theme());
     }
 }

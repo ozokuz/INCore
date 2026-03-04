@@ -1,6 +1,8 @@
 package io.github.ozokuz.incore.client.features.arena;
 
 import com.google.gson.Gson;
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.arena.ArenaService;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,6 +19,8 @@ import java.util.List;
 
 public class CombatCatalogScreen extends Screen {
     private static final Gson GSON = new Gson();
+    private static final UIScreenTheme THEME = UIScreenTheme.OTHER_CONTENT;
+    private static final int ROW_HEIGHT = 30;
 
     private ArenaService.ScreenData data;
     private String selectedCategoryId;
@@ -63,42 +67,33 @@ public class CombatCatalogScreen extends Screen {
         int categoryLeft = 16;
         int categoryTop = 36;
         int categoryWidth = 170;
-        int categoryHeight = 20;
 
         for (int i = 0; i < data.categories().size(); i++) {
             ArenaService.CategoryView category = data.categories().get(i);
-            int y = categoryTop + (i * (categoryHeight + 4));
-            String label = category.id().equals(selectedCategoryId)
-                    ? "[x] " + category.name()
-                    : category.name();
-
-            this.addRenderableWidget(Button.builder(Component.literal(label), b -> {
+            int y = categoryTop + i * ROW_HEIGHT;
+            this.addRenderableWidget(Button.builder(Component.empty(), b -> {
                         selectedCategoryId = category.id();
                         selectedEntryId = null;
                         rebuildWidgets();
-                    }).bounds(categoryLeft, y, categoryWidth, categoryHeight)
+                    }).bounds(categoryLeft, y, categoryWidth, ROW_HEIGHT - 2)
                     .build());
         }
 
         int entryLeft = categoryLeft + categoryWidth + 12;
         int entryTop = 36;
         int entryWidth = 220;
-        int entryHeight = 20;
 
         for (int i = 0; i < entries.size(); i++) {
             ArenaService.ScreenEntry entry = entries.get(i);
-            int y = entryTop + (i * (entryHeight + 4));
-            if (y + entryHeight > this.height - 64) {
+            int y = entryTop + i * ROW_HEIGHT;
+            if (y + ROW_HEIGHT > this.height - 64) {
                 break;
             }
 
-            String label = entry.id().equals(selectedEntryId)
-                    ? "[x] " + entry.difficultyName()
-                    : entry.difficultyName();
-            this.addRenderableWidget(Button.builder(Component.literal(label), b -> {
+            this.addRenderableWidget(Button.builder(Component.empty(), b -> {
                         selectedEntryId = entry.id();
                         rebuildWidgets();
-                    }).bounds(entryLeft, y, entryWidth, entryHeight)
+                    }).bounds(entryLeft, y, entryWidth, ROW_HEIGHT - 2)
                     .build());
         }
 
@@ -154,23 +149,70 @@ public class CombatCatalogScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xF6F6F6);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.categories"), 16, 22, 0xD2D2D2, false);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.difficulties"), 198, 22, 0xD2D2D2, false);
+        int categoryLeft = 16;
+        int categoryTop = 36;
+        int categoryWidth = 170;
+        int footerY = this.height - 44;
+        int listBottom = footerY - 4;
+
+        int entryLeft = categoryLeft + categoryWidth + 12;
+        int entryWidth = 220;
+
+        int detailsLeft = entryLeft + entryWidth + 12;
+        int detailsRight = this.width - 12;
+
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, THEME.theme().text().primary());
+        guiGraphics.fill(categoryLeft, categoryTop, categoryLeft + categoryWidth, listBottom, 0x991A1A1A);
+        guiGraphics.fill(entryLeft, categoryTop, entryLeft + entryWidth, listBottom, 0x991A1A1A);
+        guiGraphics.fill(detailsLeft, categoryTop, detailsRight, listBottom, 0x99202020);
+
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.categories"), categoryLeft + 6, categoryTop - 10, THEME.theme().text().secondary(), false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.difficulties"), entryLeft + 6, categoryTop - 10, THEME.theme().text().secondary(), false);
+
+        for (int i = 0; i < data.categories().size(); i++) {
+            ArenaService.CategoryView category = data.categories().get(i);
+            int y = categoryTop + i * ROW_HEIGHT;
+            if (y + ROW_HEIGHT > listBottom) {
+                break;
+            }
+
+            boolean selected = category.id().equals(selectedCategoryId);
+            int border = selected ? 0xFF89C9FF : 0xFF3D4558;
+            int fill = selected ? 0xBB2A2A2A : 0x99232323;
+            guiGraphics.fill(categoryLeft + 1, y + 1, categoryLeft + categoryWidth - 1, y + ROW_HEIGHT - 3, fill);
+            themed(guiGraphics).drawBorder(categoryLeft, y, categoryLeft + categoryWidth, y + ROW_HEIGHT - 2, border);
+            guiGraphics.drawString(this.font, Component.literal(category.name()), categoryLeft + 8, y + 10, selected ? 0xFFFFFF : 0xE8E8E8, false);
+        }
+
+        List<ArenaService.ScreenEntry> entries = entriesForSelectedCategory();
+        for (int i = 0; i < entries.size(); i++) {
+            ArenaService.ScreenEntry entry = entries.get(i);
+            int y = categoryTop + i * ROW_HEIGHT;
+            if (y + ROW_HEIGHT > listBottom) {
+                break;
+            }
+
+            boolean selected = entry.id().equals(selectedEntryId);
+            int border = selected ? 0xFF89C9FF : 0xFF3D4558;
+            int fill = selected ? 0xBB2A2A2A : 0x99232323;
+            guiGraphics.fill(entryLeft + 1, y + 1, entryLeft + entryWidth - 1, y + ROW_HEIGHT - 3, fill);
+            themed(guiGraphics).drawBorder(entryLeft, y, entryLeft + entryWidth, y + ROW_HEIGHT - 2, border);
+            guiGraphics.drawString(this.font, Component.literal(entry.difficultyName()), entryLeft + 8, y + 10, selected ? 0xFFFFFF : 0xE8E8E8, false);
+        }
 
         ArenaService.ScreenEntry selected = selectedEntry();
         if (selected == null) {
-            guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.none"), 430, 36, 0xC7C7C7, false);
+            guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.none"), detailsLeft + 8, categoryTop + 24, THEME.theme().text().muted(), false);
             return;
         }
 
-        int detailsX = 430;
-        int y = 36;
+        int detailsX = detailsLeft + 8;
+        int y = categoryTop + 8;
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.details"), detailsX, y, 0xF0F0F0, false);
-        y += 14;
+        y += 16;
         guiGraphics.drawString(this.font, Component.literal(selected.categoryName()), detailsX, y, 0xD9D9D9, false);
         y += 12;
         guiGraphics.drawString(this.font, Component.literal(selected.difficultyName()), detailsX, y, 0xD9D9D9, false);
@@ -243,5 +285,9 @@ public class CombatCatalogScreen extends Screen {
         }
 
         return hovered;
+    }
+
+    private ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, this.font, THEME.theme());
     }
 }

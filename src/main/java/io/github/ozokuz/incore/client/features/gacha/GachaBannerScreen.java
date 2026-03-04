@@ -1,6 +1,8 @@
 package io.github.ozokuz.incore.client.features.gacha;
 
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.client.ui.UIScreenTheme;
+import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
 import io.github.ozokuz.incore.features.gacha.GachaService;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class GachaBannerScreen extends Screen {
+    private static final UIScreenTheme THEME = UIScreenTheme.OTHER_CONTENT;
     private static final float COST_SCALE = 0.75F;
     private final GachaService.ScreenData data;
     private final long openedAtMs;
@@ -144,7 +147,7 @@ public class GachaBannerScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xF6F6F6);
 
@@ -471,13 +474,7 @@ public class GachaBannerScreen extends Screen {
         if (count <= 0) {
             return;
         }
-
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x, y, 0.0F);
-        guiGraphics.pose().scale(COST_SCALE, COST_SCALE, 1.0F);
-        guiGraphics.renderItem(item.getDefaultInstance(), 0, 0);
-        guiGraphics.drawString(this.font, Component.literal("x" + count), 20, 4, color, false);
-        guiGraphics.pose().popPose();
+        themed(guiGraphics).drawScaledItemLine(item.getDefaultInstance(), "x" + count, x, y, COST_SCALE, color);
     }
 
     private int scaledCostLineWidth(int count) {
@@ -613,5 +610,9 @@ public class GachaBannerScreen extends Screen {
     }
 
     private record GridRenderResult(int nextY, @Nullable ItemStack hoveredStack) {
+    }
+
+    private ThemedUi themed(GuiGraphics guiGraphics) {
+        return new ThemedUi(guiGraphics, this.font, THEME.theme());
     }
 }
