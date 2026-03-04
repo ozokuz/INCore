@@ -64,22 +64,20 @@ public class PlayerStatusScreen extends Screen {
 
         Layout layout = layout();
 
-        int rewardsButtonWidth = Math.max(120, Math.min(176, layout.levelWidth() - 16));
-        int rewardsButtonX = layout.levelX() + 8;
+        int buttonWidth = Math.max(126, Math.min(196, layout.sanityWidth() - 16));
+        int buttonX = layout.sanityX() + (layout.sanityWidth() - buttonWidth) / 2;
         int rewardsButtonY = layout.levelY() + layout.levelHeight() - BUTTON_HEIGHT - 8;
         this.addRenderableWidget(Button.builder(
                         Component.translatable("screen.incore.player_status.open_rewards"),
                         button -> this.minecraft.setScreen(new PlayerLevelRewardsScreen(this))
-                ).bounds(rewardsButtonX, rewardsButtonY, rewardsButtonWidth, BUTTON_HEIGHT)
+                ).bounds(buttonX, rewardsButtonY, buttonWidth, BUTTON_HEIGHT)
                 .build());
 
-        int catalogButtonWidth = Math.max(126, Math.min(196, layout.sanityWidth() - 16));
-        int catalogButtonX = layout.sanityX() + (layout.sanityWidth() - catalogButtonWidth) / 2;
         int catalogButtonY = layout.sanityY() + layout.sanityHeight() - BUTTON_HEIGHT - 8;
         this.addRenderableWidget(Button.builder(
                         Component.translatable("screen.incore.player_status.open_combat_catalog"),
                         button -> ArenaNetworking.requestOpenCatalog()
-                ).bounds(catalogButtonX, catalogButtonY, catalogButtonWidth, BUTTON_HEIGHT)
+                ).bounds(buttonX, catalogButtonY, buttonWidth, BUTTON_HEIGHT)
                 .build());
 
         addQuickNavButtons(layout);
@@ -101,11 +99,11 @@ public class PlayerStatusScreen extends Screen {
         ThemedUi ui = themed(guiGraphics);
 
         ui.drawBackdrop(this.width, this.height);
-        drawMainPanel(guiGraphics, layout.windowLeft(), layout.windowTop(), layout.windowWidth(), layout.windowHeight());
+        ui.drawWindow(layout.windowLeft(), layout.windowTop(), layout.windowWidth(), layout.windowHeight());
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawString(this.font, this.title, layout.windowLeft() + 12, layout.windowTop() + 8, UIScreenTheme.Info.TITLE_TEXT, false);
+        guiGraphics.drawString(this.font, this.title, layout.windowLeft() + 12, layout.windowTop() + 10, UIScreenTheme.Info.TITLE_TEXT, false);
         drawHeaderCurrencies(guiGraphics, layout);
 
         drawCard(guiGraphics, layout.levelX(), layout.levelY(), layout.levelWidth(), layout.levelHeight());
@@ -167,7 +165,7 @@ public class PlayerStatusScreen extends Screen {
 
         int rightX = layout.windowLeft() + layout.windowWidth() - 12;
         int minX = layout.windowLeft() + 140;
-        int y = layout.windowTop() + 7;
+        int y = layout.windowTop() + 8;
 
         if (lines.isEmpty()) {
             Component text = snapshot.loaded()
@@ -195,7 +193,7 @@ public class PlayerStatusScreen extends Screen {
         Component label = Component.translatable("screen.incore.player_status.section_currencies");
         int labelWidth = this.font.width(label);
         if (cursorRight - labelWidth >= minX) {
-            guiGraphics.drawString(this.font, label, cursorRight - labelWidth, y + 4, UIScreenTheme.Info.PRIMARY_TEXT, false);
+            guiGraphics.drawString(this.font, label, cursorRight - labelWidth, y + 2, UIScreenTheme.Info.PRIMARY_TEXT, false);
             cursorRight -= labelWidth + 4;
         }
 

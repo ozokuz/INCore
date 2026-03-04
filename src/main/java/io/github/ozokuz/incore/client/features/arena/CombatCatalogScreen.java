@@ -47,10 +47,6 @@ public class CombatCatalogScreen extends Screen {
     protected void rebuildWidgets() {
         clearWidgets();
 
-        this.addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> this.onClose())
-                .bounds(this.width - 90, this.height - 26, 80, 20)
-                .build());
-
         if (data == null || data.entries() == null || data.entries().isEmpty()) {
             return;
         }
@@ -112,10 +108,14 @@ public class CombatCatalogScreen extends Screen {
                             ArenaNetworking.requestStartRun(selected);
                             this.onClose();
                         }
-                ).bounds(entryLeft, this.height - 52, 220, 20)
+                ).bounds(this.width - categoryWidth - 12, this.height - 34, categoryWidth, 20)
                 .build());
 
         startButton.active = selectedEntryId != null;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> this.onClose())
+                .bounds(16, this.height - 34, 80, 20)
+                .build());
     }
 
     private List<ArenaService.ScreenEntry> entriesForSelectedCategory() {

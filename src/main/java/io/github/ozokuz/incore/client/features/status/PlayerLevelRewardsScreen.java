@@ -63,8 +63,8 @@ public class PlayerLevelRewardsScreen extends Screen {
         this.clearWidgets();
         Layout layout = layout();
         int backWidth = 96;
-        int backX = layout.windowLeft() + layout.windowWidth() - backWidth - 12;
-        int backY = layout.windowTop() + layout.windowHeight() - 28;
+        int backX = layout.windowLeft() + 12;
+        int backY = layout.windowTop() + layout.windowHeight() - 4 - 28;
         this.addRenderableWidget(Button.builder(Component.translatable("gui.back"), button -> this.onClose())
                 .bounds(backX, backY, backWidth, 20)
                 .build());
@@ -383,6 +383,7 @@ public class PlayerLevelRewardsScreen extends Screen {
         int contentHeight = windowHeight - 42;
 
         int railWidth = Math.min(SIDEBAR_TARGET_WIDTH, Math.max(170, contentWidth / 3));
+        int railHeight = contentHeight - 24;
         int galleryX = contentX + railWidth + 8;
         int galleryWidth = contentWidth - railWidth - 8;
 
@@ -396,6 +397,7 @@ public class PlayerLevelRewardsScreen extends Screen {
                 contentWidth,
                 contentHeight,
                 railWidth,
+                railHeight,
                 galleryX,
                 galleryWidth
         );
@@ -611,6 +613,7 @@ public class PlayerLevelRewardsScreen extends Screen {
             int contentWidth,
             int contentHeight,
             int railWidth,
+            int railHeight,
             int galleryX,
             int galleryWidth
     ) {
@@ -636,10 +639,6 @@ public class PlayerLevelRewardsScreen extends Screen {
 
         int railY() {
             return contentY;
-        }
-
-        int railHeight() {
-            return contentHeight;
         }
 
         int galleryY() {

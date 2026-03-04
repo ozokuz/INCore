@@ -252,7 +252,7 @@
   "screen.incore.player_status.open_rewards": "View Level Rewards",
   "screen.incore.player_status.open_combat_catalog": "Open Combat Catalog",
   "screen.incore.player_status.open_battle_pass": "View Battle Pass",
-  "screen.incore.player_status.section_currencies": "Currencies",
+  "screen.incore.player_status.section_currencies": "Currencies:",
   "screen.incore.player_status.currencies_loading": "Loading balances...",
   "screen.incore.player_status.currencies_none": "No tracked currencies.",
   "screen.incore.player_status.currencies_overflow": "+%s more",
