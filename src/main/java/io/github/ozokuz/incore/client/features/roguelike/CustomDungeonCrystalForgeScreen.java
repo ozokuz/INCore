@@ -25,6 +25,22 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
     private static final int INVENTORY_PANEL_W = 232;
     private static final int INVENTORY_PANEL_H = 84;
 
+    private static final int TITLE_TEXT = UIScreenTheme.Crafting.TITLE_TEXT;
+    private static final int BODY_TEXT = UIScreenTheme.Crafting.BODY_TEXT;
+    private static final int ACCENT_TEXT = UIScreenTheme.Crafting.ACCENT_TEXT;
+    private static final int MUTED_TEXT = UIScreenTheme.Crafting.MUTED_TEXT;
+    private static final int SUCCESS_TEXT = UIScreenTheme.Crafting.SUCCESS_TEXT;
+    private static final int DANGER_TEXT = UIScreenTheme.Crafting.DANGER_TEXT;
+
+    // Section layout
+    private static final int HEADER_Y = 5;
+    private static final int HEADER_H = 14;
+    private static final int SLOTS_PANEL_Y = 22;
+    private static final int SLOTS_PANEL_H = 72;
+    private static final int STATUS_PANEL_Y = 96;
+    private static final int STATUS_PANEL_H = 14;
+    private static final int INV_PANEL_Y = 108;
+
     public CustomDungeonCrystalForgeScreen(CustomDungeonCrystalForgeMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 248;
@@ -41,7 +57,6 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
         ui.drawPanel(x + INPUT_PANEL_X, y + INPUT_PANEL_Y, INPUT_PANEL_W, INPUT_PANEL_H);
         ui.drawPanel(x + RESULT_PANEL_X, y + RESULT_PANEL_Y, RESULT_PANEL_W, RESULT_PANEL_H);
         ui.drawPanel(x + INVENTORY_PANEL_X, y + INVENTORY_PANEL_Y, INVENTORY_PANEL_W, INVENTORY_PANEL_H);
-
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.INPUT_X, y + CustomDungeonCrystalForgeMenu.INPUT_Y);
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.THEME_X, y + CustomDungeonCrystalForgeMenu.THEME_Y);
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.OBJECTIVE_X, y + CustomDungeonCrystalForgeMenu.OBJECTIVE_Y);
@@ -49,6 +64,19 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_TWO_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_TWO_Y);
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_THREE_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_THREE_Y);
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.OUTPUT_X, y + CustomDungeonCrystalForgeMenu.OUTPUT_Y);
+
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                drawSlot(guiGraphics,
+                        x + CustomDungeonCrystalForgeMenu.PLAYER_INV_X + col * 18,
+                        y + CustomDungeonCrystalForgeMenu.PLAYER_INV_Y + row * 18);
+            }
+        }
+        for (int col = 0; col < 9; col++) {
+            drawSlot(guiGraphics,
+                    x + CustomDungeonCrystalForgeMenu.PLAYER_INV_X + col * 18,
+                    y + CustomDungeonCrystalForgeMenu.HOTBAR_Y);
+        }
     }
 
     @Override
@@ -59,7 +87,6 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
         drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.objective"), CustomDungeonCrystalForgeMenu.OBJECTIVE_X + 8, 30);
         guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.modifiers"), 20, 66, UIScreenTheme.Crafting.BODY_TEXT, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.output"), RESULT_PANEL_X + 10, 30, UIScreenTheme.Crafting.BODY_TEXT, false);
-
         int statusColor = menu.validPreview() ? UIScreenTheme.Crafting.SUCCESS_TEXT : UIScreenTheme.Crafting.DANGER_TEXT;
         String statusKey = menu.validPreview()
                 ? "screen.incore.custom_crystal_forge.status.ready"
@@ -82,6 +109,11 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
         themed(guiGraphics).drawBackdrop(this.width, this.height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    private void drawCenteredLabel(GuiGraphics guiGraphics, Component text, int centerX, int y, int color) {
+        int textWidth = font.width(text);
+        guiGraphics.drawString(font, text, centerX - textWidth / 2, y, color, false);
     }
 
     private static void drawSlot(GuiGraphics guiGraphics, int x, int y) {

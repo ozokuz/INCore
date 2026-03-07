@@ -10,13 +10,13 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class MarketAutoBuyerMenu extends AbstractContainerMenu {
-    public static final int CARD_X = 20;
-    public static final int CARD_Y = 136;
-    public static final int OUTPUT_X = 46;
-    public static final int OUTPUT_Y = 136;
+    public static final int CARD_X = 14;
+    public static final int CARD_Y = 140;
+    public static final int OUTPUT_X = 40;
+    public static final int OUTPUT_Y = 140;
     public static final int PLAYER_INVENTORY_X = 34;
-    public static final int PLAYER_INVENTORY_Y = 194;
-    public static final int HOTBAR_Y = 252;
+    public static final int PLAYER_INVENTORY_Y = 198;
+    public static final int HOTBAR_Y = 256;
 
     private final MarketAutoBuyerBlockEntity blockEntity;
     private final ContainerData data;
