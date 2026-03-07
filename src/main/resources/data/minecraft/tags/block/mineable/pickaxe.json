@@ -32,6 +32,12 @@
     "incore:research_controller_t1",
     "incore:research_controller_t2",
     "incore:research_controller_t3",
-    "incore:research_controller_t4"
+    "incore:research_controller_t4",
+    "incore:burner_power_input",
+    "incore:mechanical_power_input",
+    "incore:electric_power_input",
+    "incore:electric_power_input_t2",
+    "incore:electric_power_input_t3",
+    "incore:electric_power_input_t4"
   ]
 }

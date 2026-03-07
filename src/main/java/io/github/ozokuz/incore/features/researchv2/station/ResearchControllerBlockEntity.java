@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
+import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class ResearchControllerBlockEntity extends BlockEntity {
     private static final int REVALIDATE_INTERVAL_TICKS = 20;
@@ -23,6 +25,9 @@ public class ResearchControllerBlockEntity extends BlockEntity {
     private boolean formed;
     private String stationId = "";
     private List<BlockPos> connectedParts = List.of();
+    private List<BlockPos> powerInputPositions = List.of();
+    private ResearchPowerFamily powerFamily;
+    private int powerInputTier;
     private int tickCounter;
 
     public ResearchControllerBlockEntity(BlockPos pos, BlockState state) {
@@ -66,6 +71,25 @@ public class ResearchControllerBlockEntity extends BlockEntity {
             tickCounter = 0;
             revalidateStructure();
         }
+
+        if (!formed || level == null || rpBuffer() >= rpCapacity() || powerInputPositions.isEmpty()) {
+            return;
+        }
+
+        int remaining = rpCapacity() - rpBuffer();
+        for (BlockPos inputPos : powerInputPositions) {
+            if (remaining <= 0) {
+                break;
+            }
+            BlockEntity blockEntity = level.getBlockEntity(inputPos);
+            if (!(blockEntity instanceof IResearchPowerInput input)) {
+                continue;
+            }
+            int pulled = Math.max(0, input.pullResearchPower(this, remaining));
+            if (pulled > 0) {
+                remaining -= addResearchPower(pulled);
+            }
+        }
     }
 
     public String teamId() {
@@ -78,6 +102,9 @@ public class ResearchControllerBlockEntity extends BlockEntity {
             return;
         }
         this.teamId = normalized;
+        if (level != null && !level.isClientSide) {
+            ResearchMultiblockStationRegistry.register(this);
+        }
         setChanged();
     }
 
@@ -90,10 +117,10 @@ public class ResearchControllerBlockEntity extends BlockEntity {
 
     public int rpCapacity() {
         return switch (Math.max(1, stationTier())) {
-            case 1 -> 2_000;
-            case 2 -> 8_000;
-            case 3 -> 32_000;
-            default -> 128_000;
+            case 1 -> Config.CONTROLLER_BUFFER_T1.get();
+            case 2 -> Config.CONTROLLER_BUFFER_T2.get();
+            case 3 -> Config.CONTROLLER_BUFFER_T3.get();
+            default -> Config.CONTROLLER_BUFFER_T4.get();
         };
     }
 
@@ -148,6 +175,18 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         return stationId;
     }
 
+    public List<BlockPos> powerInputPositions() {
+        return powerInputPositions;
+    }
+
+    public ResearchPowerFamily powerFamily() {
+        return powerFamily;
+    }
+
+    public int powerInputTier() {
+        return powerInputTier;
+    }
+
     public List<BlockPos> connectedParts() {
         return connectedParts;
     }
@@ -160,6 +199,7 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         if (level == null || level.isClientSide) {
             return false;
         }
+        ResearchMultiblockStationRegistry.register(this);
 
         int clampedBuffer = rpBuffer();
         if (clampedBuffer != rpBuffer) {
@@ -167,18 +207,27 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         }
 
         boolean previousFormed = formed;
-        ResearchStationMultiblockValidator.ValidationResult result = ResearchStationMultiblockValidator.validate(level, worldPosition);
+        ResearchStationTopology result = ResearchStationMultiblockValidator.validate(level, worldPosition);
         boolean nextFormed = result.formed();
         String nextStationId = nextFormed ? buildStationId(level.dimension().location(), worldPosition) : "";
         List<BlockPos> nextConnectedParts = nextFormed ? normalizeConnectedParts(result.connectedParts()) : List.of();
+        List<BlockPos> nextPowerInputPositions = nextFormed ? normalizeConnectedParts(result.inputPositions()) : List.of();
+        ResearchPowerFamily nextPowerFamily = nextFormed ? result.powerFamily() : null;
+        int nextPowerInputTier = nextFormed ? Math.max(0, result.powerInputTier()) : 0;
 
         boolean changed = formed != nextFormed
                 || !stationId.equals(nextStationId)
-                || !connectedParts.equals(nextConnectedParts);
+                || !connectedParts.equals(nextConnectedParts)
+                || !powerInputPositions.equals(nextPowerInputPositions)
+                || powerFamily != nextPowerFamily
+                || powerInputTier != nextPowerInputTier;
 
         formed = nextFormed;
         stationId = nextStationId;
         connectedParts = nextConnectedParts;
+        powerInputPositions = nextPowerInputPositions;
+        powerFamily = nextPowerFamily;
+        powerInputTier = nextPowerInputTier;
 
         if (changed) {
             setChanged();
@@ -208,7 +257,7 @@ public class ResearchControllerBlockEntity extends BlockEntity {
             return null;
         }
 
-        ResearchStationEndpoints endpoints = new ResearchStationEndpoints(worldPosition.immutable(), List.of(), List.of());
+        ResearchStationEndpoints endpoints = new ResearchStationEndpoints(powerInputPositions, List.of());
         return new ResearchStationDescriptor(
                 stationId,
                 teamId,
@@ -219,6 +268,8 @@ public class ResearchControllerBlockEntity extends BlockEntity {
                 rpBuffer(),
                 rpCapacity(),
                 slotCapacity(),
+                powerFamily,
+                powerInputTier,
                 endpoints,
                 connectedParts
         );
@@ -231,6 +282,16 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         rpBuffer = Math.max(0, tag.getInt("rpBuffer"));
         formed = tag.getBoolean("formed");
         stationId = tag.getString("stationId");
+        powerInputTier = Math.max(0, tag.getInt("powerInputTier"));
+        if (tag.contains("powerFamily")) {
+            try {
+                powerFamily = ResearchPowerFamily.valueOf(tag.getString("powerFamily"));
+            } catch (IllegalArgumentException ignored) {
+                powerFamily = null;
+            }
+        } else {
+            powerFamily = null;
+        }
 
         long[] packedParts = tag.getLongArray("connectedParts");
         List<BlockPos> loadedParts = new ArrayList<>(packedParts.length);
@@ -238,6 +299,13 @@ public class ResearchControllerBlockEntity extends BlockEntity {
             loadedParts.add(BlockPos.of(packed));
         }
         connectedParts = normalizeConnectedParts(loadedParts);
+
+        long[] packedInputs = tag.getLongArray("powerInputs");
+        List<BlockPos> loadedInputs = new ArrayList<>(packedInputs.length);
+        for (long packed : packedInputs) {
+            loadedInputs.add(BlockPos.of(packed));
+        }
+        powerInputPositions = normalizeConnectedParts(loadedInputs);
     }
 
     @Override
@@ -252,10 +320,18 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         if (!stationId.isBlank()) {
             tag.putString("stationId", stationId);
         }
+        if (powerFamily != null) {
+            tag.putString("powerFamily", powerFamily.name());
+        }
+        tag.putInt("powerInputTier", powerInputTier);
 
         long[] packedParts = connectedParts.stream().mapToLong(BlockPos::asLong).toArray();
         if (packedParts.length > 0) {
             tag.putLongArray("connectedParts", packedParts);
+        }
+        long[] packedInputs = powerInputPositions.stream().mapToLong(BlockPos::asLong).toArray();
+        if (packedInputs.length > 0) {
+            tag.putLongArray("powerInputs", packedInputs);
         }
     }
 

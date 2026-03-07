@@ -1,0 +1,7 @@
+{
+    "variants": {
+        "": {
+            "model": "incore:block/electric_power_input_t3"
+        }
+    }
+}

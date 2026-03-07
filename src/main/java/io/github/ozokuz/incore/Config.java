@@ -86,6 +86,94 @@ public class Config {
             .defineInRange("modularLabMaxProductivityBonus", 0.50D, 0.0D, 1.0D);
 
     static {
+        BUILDER.push("researchPower");
+    }
+
+    public static final ModConfigSpec.IntValue CONTROLLER_BUFFER_T1 = BUILDER
+            .comment("Research Controller T1 RP buffer capacity.")
+            .defineInRange("controllerBufferT1", 2_000, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue CONTROLLER_BUFFER_T2 = BUILDER
+            .comment("Research Controller T2 RP buffer capacity.")
+            .defineInRange("controllerBufferT2", 8_000, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue CONTROLLER_BUFFER_T3 = BUILDER
+            .comment("Research Controller T3 RP buffer capacity.")
+            .defineInRange("controllerBufferT3", 32_000, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue CONTROLLER_BUFFER_T4 = BUILDER
+            .comment("Research Controller T4 RP buffer capacity.")
+            .defineInRange("controllerBufferT4", 128_000, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue BURNER_CORE_BURN_TICKS_PER_RP = BUILDER
+            .comment("Burn ticks required to produce one RP in a burner power input.")
+            .defineInRange("burnerCoreBurnTicksPerRp", 20, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue BURNER_CORE_MAX_RP_PER_TICK = BUILDER
+            .comment("Maximum RP a burner power input can supply to its controller each tick.")
+            .defineInRange("burnerCoreMaxRpPerTick", 64, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MECHANICAL_CORE_RP_PER_RPM = BUILDER
+            .comment("RP generated per whole RPM of a mechanical power input.")
+            .defineInRange("mechanicalCoreRpPerRpm", 1, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MECHANICAL_CORE_MAX_RP_PER_TICK = BUILDER
+            .comment("Maximum RP a mechanical power input can supply to its controller each tick.")
+            .defineInRange("mechanicalCoreMaxRpPerTick", 128, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MECHANICAL_INPUT_STRESS_IMPACT = BUILDER
+            .comment("Create stress impact for a mechanical power input.")
+            .defineInRange("mechanicalInputStressImpact", 128, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_INPUT_BUFFER_CAPACITY = BUILDER
+            .comment("Internal FE buffer for each electric power input.")
+            .defineInRange("electricInputBufferCapacity", 65_536, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_INPUT_MAX_RECEIVE = BUILDER
+            .comment("Maximum FE each electric power input can accept per tick.")
+            .defineInRange("electricInputMaxReceive", 1_024, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_FE_PER_RP = BUILDER
+            .comment("FE required to produce one RP in an electric power input.")
+            .defineInRange("electricCoreFePerRp", 40, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_T1_MAX_FE_PER_TICK = BUILDER
+            .comment("Maximum FE an Electric Power Input T1 may drain per tick.")
+            .defineInRange("electricCoreT1MaxFePerTick", 256, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_T1_MAX_FE_PER_INPUT_OPERATION = BUILDER
+            .comment("Maximum FE an Electric Power Input T1 may drain in a single pull.")
+            .defineInRange("electricCoreT1MaxFePerInputOperation", 256, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_T2_MAX_FE_PER_TICK = BUILDER
+            .comment("Maximum FE an Electric Power Input T2 may drain per tick.")
+            .defineInRange("electricCoreT2MaxFePerTick", 1_024, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_T2_MAX_FE_PER_INPUT_OPERATION = BUILDER
+            .comment("Maximum FE an Electric Power Input T2 may drain in a single pull.")
+            .defineInRange("electricCoreT2MaxFePerInputOperation", 512, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_T3_MAX_FE_PER_TICK = BUILDER
+            .comment("Maximum FE an Electric Power Input T3 may drain per tick.")
+            .defineInRange("electricCoreT3MaxFePerTick", 4_096, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_T3_MAX_FE_PER_INPUT_OPERATION = BUILDER
+            .comment("Maximum FE an Electric Power Input T3 may drain in a single pull.")
+            .defineInRange("electricCoreT3MaxFePerInputOperation", 2_048, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_T4_MAX_FE_PER_TICK = BUILDER
+            .comment("Maximum FE an Electric Power Input T4 may drain per tick.")
+            .defineInRange("electricCoreT4MaxFePerTick", 16_384, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue ELECTRIC_CORE_T4_MAX_FE_PER_INPUT_OPERATION = BUILDER
+            .comment("Maximum FE an Electric Power Input T4 may drain in a single pull.")
+            .defineInRange("electricCoreT4MaxFePerInputOperation", 8_192, 1, Integer.MAX_VALUE);
+
+    static {
+        BUILDER.pop();
+    }
+
+    static {
         BUILDER.push("vendingMachineDiscounts");
     }
 

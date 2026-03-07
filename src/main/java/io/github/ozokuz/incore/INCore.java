@@ -41,6 +41,7 @@ import io.github.ozokuz.incore.features.researchv2.command.ResearchV2Commands;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
+import io.github.ozokuz.incore.features.researchv2.station.ElectricPowerInputBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.HybridResearchStationResourceProvider;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
@@ -70,7 +71,6 @@ import net.minecraft.data.PackOutput;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import com.simibubi.create.api.stress.BlockStressValues;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
@@ -146,6 +146,7 @@ public class INCore {
         event.enqueueWork(() -> {
             BlockStressValues.IMPACTS.register(Registration.SHIPMENT_TERMINAL_BLOCK.get(), () -> 1024.0D);
             BlockStressValues.IMPACTS.register(Registration.MARKET_AUTOTRADER_BLOCK.get(), () -> 1024.0D);
+            BlockStressValues.IMPACTS.register(Registration.MECHANICAL_POWER_INPUT_BLOCK.get(), () -> Config.MECHANICAL_INPUT_STRESS_IMPACT.get().doubleValue());
         });
     }
 
@@ -160,6 +161,16 @@ public class INCore {
                     }
                     return lab.labTier() == LabTier.MODULAR ? lab.energyStorage() : null;
                 }
+        );
+        event.registerBlockEntity(
+                Capabilities.EnergyStorage.BLOCK,
+                Registration.ELECTRIC_POWER_INPUT_BE.get(),
+                ElectricPowerInputBlockEntity::getEnergyStorage
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.BURNER_POWER_INPUT_BE.get(),
+                (input, side) -> input.itemHandler()
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,

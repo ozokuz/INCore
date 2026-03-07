@@ -20,9 +20,9 @@ public final class ResearchStationMultiblockValidator {
     private ResearchStationMultiblockValidator() {
     }
 
-    public static ValidationResult validate(Level level, BlockPos controllerPos) {
+    public static ResearchStationTopology validate(Level level, BlockPos controllerPos) {
         if (level == null || controllerPos == null) {
-            return ValidationResult.unformed();
+            return ResearchStationTopology.unformed();
         }
 
         Block casingBlock = Registration.RESEARCH_STATION_CASING_BLOCK.get();
@@ -36,9 +36,9 @@ public final class ResearchStationMultiblockValidator {
                 for (int minY = controllerPos.getY() - MIN_HEIGHT + 1; minY <= controllerPos.getY(); minY++) {
                     for (int minZ = controllerPos.getZ() - sizeZ + 1; minZ <= controllerPos.getZ(); minZ++) {
                         BlockPos minCorner = new BlockPos(minX, minY, minZ);
-                        List<BlockPos> connected = validateCandidate(level, controllerPos, minCorner, sizeX, MIN_HEIGHT, sizeZ, casingBlock);
-                        if (!connected.isEmpty()) {
-                            candidates.add(new Candidate(minCorner, connected));
+                        ResearchStationTopology topology = validateCandidate(level, controllerPos, minCorner, sizeX, MIN_HEIGHT, sizeZ, casingBlock);
+                        if (topology.formed()) {
+                            candidates.add(new Candidate(minCorner, topology));
                         }
                     }
                 }
@@ -46,7 +46,7 @@ public final class ResearchStationMultiblockValidator {
         }
 
         if (candidates.isEmpty()) {
-            return ValidationResult.unformed();
+            return ResearchStationTopology.unformed();
         }
 
         candidates.sort(Comparator
@@ -54,10 +54,10 @@ public final class ResearchStationMultiblockValidator {
                 .thenComparingInt(candidate -> candidate.minCorner().getY())
                 .thenComparingInt(candidate -> candidate.minCorner().getZ()));
 
-        return new ValidationResult(true, List.copyOf(candidates.get(0).connectedParts()));
+        return candidates.get(0).topology();
     }
 
-    private static List<BlockPos> validateCandidate(
+    private static ResearchStationTopology validateCandidate(
             Level level,
             BlockPos controllerPos,
             BlockPos minCorner,
@@ -67,6 +67,11 @@ public final class ResearchStationMultiblockValidator {
             Block casingBlock
     ) {
         List<BlockPos> connected = new ArrayList<>(sizeX * sizeY * sizeZ);
+        List<BlockPos> inputs = new ArrayList<>();
+        ResearchPowerFamily powerFamily = null;
+        int powerInputTier = 0;
+        int controllerCount = 0;
+        Block inputBlockType = null;
 
         for (int dx = 0; dx < sizeX; dx++) {
             for (int dy = 0; dy < sizeY; dy++) {
@@ -76,10 +81,22 @@ public final class ResearchStationMultiblockValidator {
 
                     if (pos.equals(controllerPos)) {
                         if (!(state.getBlock() instanceof AbstractResearchControllerBlock)) {
-                            return List.of();
+                            return ResearchStationTopology.unformed();
+                        }
+                        controllerCount++;
+                    } else if (state.getBlock() instanceof ResearchPowerInputBlockProvider inputBlock) {
+                        inputs.add(pos.immutable());
+                        if (inputBlockType == null) {
+                            inputBlockType = state.getBlock();
+                            powerFamily = inputBlock.family();
+                            powerInputTier = inputBlock.powerTier();
+                        } else if (state.getBlock() != inputBlockType
+                                || inputBlock.family() != powerFamily
+                                || inputBlock.powerTier() != powerInputTier) {
+                            return ResearchStationTopology.unformed();
                         }
                     } else if (state.getBlock() != casingBlock) {
-                        return List.of();
+                        return ResearchStationTopology.unformed();
                     }
 
                     connected.add(pos.immutable());
@@ -87,16 +104,25 @@ public final class ResearchStationMultiblockValidator {
             }
         }
 
-        connected.sort(Comparator.comparingLong(BlockPos::asLong));
-        return connected;
-    }
-
-    private record Candidate(BlockPos minCorner, List<BlockPos> connectedParts) {
-    }
-
-    public record ValidationResult(boolean formed, List<BlockPos> connectedParts) {
-        public static ValidationResult unformed() {
-            return new ValidationResult(false, List.of());
+        if (controllerCount != 1 || inputs.isEmpty()) {
+            return ResearchStationTopology.unformed();
         }
+
+        for (BlockPos inputPos : inputs) {
+            BlockState inputState = level.getBlockState(inputPos);
+            if (!(inputState.getBlock() instanceof ResearchPowerInputBlockProvider inputBlock)
+                    || inputState.getBlock() != inputBlockType
+                    || inputBlock.family() != powerFamily
+                    || inputBlock.powerTier() != powerInputTier) {
+                return ResearchStationTopology.unformed();
+            }
+        }
+
+        connected.sort(Comparator.comparingLong(BlockPos::asLong));
+        inputs.sort(Comparator.comparingLong(BlockPos::asLong));
+        return new ResearchStationTopology(true, connected, inputs, powerFamily, powerInputTier);
+    }
+
+    private record Candidate(BlockPos minCorner, ResearchStationTopology topology) {
     }
 }
