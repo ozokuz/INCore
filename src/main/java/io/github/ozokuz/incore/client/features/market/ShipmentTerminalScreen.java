@@ -15,11 +15,13 @@ import java.util.List;
 public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerminalMenu> {
     private static final UIScreenTheme THEME = UIScreenTheme.MACHINE;
     private static final int TEXT_COLOR = THEME.theme().text().secondary();
+    private static final int WORK_PANEL_Y = 66;
+    private static final int INVENTORY_PANEL_Y = 158;
 
     public ShipmentTerminalScreen(ShipmentTerminalMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = 230;
-        this.imageHeight = 214;
+        this.imageWidth = 248;
+        this.imageHeight = 252;
     }
 
     @Override
@@ -29,63 +31,60 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
         ThemedUi ui = themed(guiGraphics);
 
         ui.drawWindow(x, y, imageWidth, imageHeight);
-        drawPanel(guiGraphics, x + 5, y + 5, imageWidth - 10, 14, UIScreenTheme.Machine.HEADER_FILL, UIScreenTheme.Machine.HEADER_BORDER);
-        drawPanel(guiGraphics, x + 8, y + 24, imageWidth - 16, 36, UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
-        drawPanel(guiGraphics, x + 8, y + 62, imageWidth - 16, 62, UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
-        drawPanel(guiGraphics, x + 8, y + 124, imageWidth - 16, 82, UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
+        ui.drawPanel(x + 5, y + 5, imageWidth - 10, 14);
+        ui.drawPanel(x + 8, y + 24, imageWidth - 16, 36);
+        ui.drawPanel(x + 8, y + WORK_PANEL_Y, imageWidth - 16, 70);
+        ui.drawPanel(x + 8, y + INVENTORY_PANEL_Y, imageWidth - 16, 86);
+
+        ui.drawProgressBar(
+                x + 12,
+                y + 49,
+                200,
+                6,
+                menu.progressScaled(200) / (float) 200,
+                UIScreenTheme.Machine.PROGRESS_TRACK_FILL,
+                UIScreenTheme.Machine.PROGRESS_FILL_SUCCESS,
+                UIScreenTheme.Machine.PROGRESS_FRAME_BORDER
+        );
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
-                drawSlotFrame(
-                        guiGraphics,
-                        x + ShipmentTerminalMenu.INPUT_X + col * 18,
-                        y + ShipmentTerminalMenu.INPUT_Y + row * 18
-                );
+                drawSlotFrame(guiGraphics, x + ShipmentTerminalMenu.INPUT_X + col * 18, y + ShipmentTerminalMenu.INPUT_Y + row * 18);
             }
         }
         drawSlotFrame(guiGraphics, x + ShipmentTerminalMenu.CARD_X, y + ShipmentTerminalMenu.CARD_Y);
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                drawSlotFrame(
-                        guiGraphics,
-                        x + ShipmentTerminalMenu.PLAYER_INVENTORY_X + col * 18,
-                        y + ShipmentTerminalMenu.PLAYER_INVENTORY_Y + row * 18
-                );
+                drawSlotFrame(guiGraphics, x + ShipmentTerminalMenu.PLAYER_INVENTORY_X + col * 18, y + ShipmentTerminalMenu.PLAYER_INVENTORY_Y + row * 18);
             }
         }
         for (int col = 0; col < 9; col++) {
-            drawSlotFrame(
-                    guiGraphics,
-                    x + ShipmentTerminalMenu.PLAYER_INVENTORY_X + col * 18,
-                    y + ShipmentTerminalMenu.HOTBAR_Y
-            );
+            drawSlotFrame(guiGraphics, x + ShipmentTerminalMenu.PLAYER_INVENTORY_X + col * 18, y + ShipmentTerminalMenu.HOTBAR_Y);
         }
 
-        int progressX = x + 12;
-        int progressY = y + 49;
-        int progressWidth = 180;
-        drawPanel(guiGraphics, progressX - 1, progressY - 1, progressWidth + 2, 8, UIScreenTheme.Machine.PROGRESS_FRAME_FILL, UIScreenTheme.Machine.PROGRESS_FRAME_BORDER);
-        guiGraphics.fill(progressX, progressY, progressX + progressWidth, progressY + 6, UIScreenTheme.Machine.PROGRESS_TRACK_FILL);
-        guiGraphics.fill(progressX, progressY, progressX + menu.progressScaled(progressWidth), progressY + 6, UIScreenTheme.Machine.PROGRESS_FILL_SUCCESS);
-
-        int statusColor = switch (menu.status()) {
-            case ShipmentTerminalBlockEntity.STATUS_NO_CARD, ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM,
-                 ShipmentTerminalBlockEntity.STATUS_NO_STRESS, ShipmentTerminalBlockEntity.STATUS_NO_POWER -> UIScreenTheme.Machine.STATUS_ERROR_TEXT;
-            case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS, ShipmentTerminalBlockEntity.STATUS_NEED_FULL_STACK,
-                 ShipmentTerminalBlockEntity.STATUS_NO_RPM -> UIScreenTheme.Machine.STATUS_WARNING_TEXT;
-            default -> UIScreenTheme.Machine.STATUS_READY_TEXT;
-        };
-        guiGraphics.fill(x + 198, y + 31, x + 206, y + 39, statusColor);
+        guiGraphics.fill(x + 220, y + 31, x + 228, y + 39, statusColor());
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(this.font, this.title, 11, 9, UIScreenTheme.Machine.TITLE_TEXT, false);
-        guiGraphics.drawString(this.font, Component.literal("Status"), 12, 29, TEXT_COLOR, false);
-        guiGraphics.drawString(this.font, this.playerInventoryTitle, 12, 128, TEXT_COLOR, false);
+        guiGraphics.drawString(font, title, 11, 9, UIScreenTheme.Machine.TITLE_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.common.status"), 12, 29, TEXT_COLOR, false);
+        drawWrapped(guiGraphics, statusComponent(), 56, 28, 152, 2, TEXT_COLOR);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.market.shipment.input"), 24, 70, TEXT_COLOR, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.market.shipment.card"), 180, 70, TEXT_COLOR, false);
+        guiGraphics.drawString(font, playerInventoryTitle, 12, INVENTORY_PANEL_Y + 6, TEXT_COLOR, false);
+    }
 
-        Component status = switch (menu.status()) {
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        themed(guiGraphics).drawBackdrop(this.width, this.height);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    private Component statusComponent() {
+        return switch (menu.status()) {
             case ShipmentTerminalBlockEntity.STATUS_NO_CARD -> Component.translatable("screen.incore.market.shipment.status.no_card");
             case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS -> Component.translatable("screen.incore.market.shipment.status.no_items");
             case ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM -> Component.translatable("screen.incore.market.shipment.status.invalid_item");
@@ -95,24 +94,23 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
             case ShipmentTerminalBlockEntity.STATUS_NO_POWER -> Component.translatable("screen.incore.market.shipment.status.no_power");
             default -> Component.translatable("screen.incore.market.shipment.status.ready");
         };
+    }
 
-        List<FormattedCharSequence> lines = font.split(status, 180);
-        for (int i = 0; i < lines.size() && i < 2; i++) {
-            guiGraphics.drawString(this.font, lines.get(i), 56, 29 + i * this.font.lineHeight, TEXT_COLOR);
+    private int statusColor() {
+        return switch (menu.status()) {
+            case ShipmentTerminalBlockEntity.STATUS_NO_CARD, ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM,
+                 ShipmentTerminalBlockEntity.STATUS_NO_STRESS, ShipmentTerminalBlockEntity.STATUS_NO_POWER -> UIScreenTheme.Machine.STATUS_ERROR_TEXT;
+            case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS, ShipmentTerminalBlockEntity.STATUS_NEED_FULL_STACK,
+                 ShipmentTerminalBlockEntity.STATUS_NO_RPM -> UIScreenTheme.Machine.STATUS_WARNING_TEXT;
+            default -> UIScreenTheme.Machine.STATUS_READY_TEXT;
+        };
+    }
+
+    private void drawWrapped(GuiGraphics guiGraphics, Component text, int x, int y, int width, int maxLines, int color) {
+        List<FormattedCharSequence> lines = font.split(text, Math.max(0, width));
+        for (int i = 0; i < Math.min(lines.size(), maxLines); i++) {
+            guiGraphics.drawString(font, lines.get(i), x, y + i * font.lineHeight, color);
         }
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        themed(guiGraphics).drawBackdrop(this.width, this.height);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        this.renderTooltip(guiGraphics, mouseX, mouseY);
-    }
-
-    private static void drawPanel(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor) {
-        ThemedUi ui = themed(guiGraphics);
-        ui.drawRect(x, y, x + width, y + height, fillColor);
-        ui.drawBorder(x, y, x + width, y + height, borderColor);
     }
 
     private static void drawSlotFrame(GuiGraphics guiGraphics, int x, int y) {

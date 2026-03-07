@@ -9,19 +9,23 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
-    public static final int INPUT_X = 20;
-    public static final int INPUT_Y = 22;
-    public static final int THEME_X = 56;
-    public static final int THEME_Y = 22;
-    public static final int OBJECTIVE_X = 92;
-    public static final int OBJECTIVE_Y = 22;
-    public static final int MODIFIER_X = 128;
-    public static final int MODIFIER_Y = 22;
-    public static final int OUTPUT_X = 172;
-    public static final int OUTPUT_Y = 22;
+    public static final int INPUT_X = 28;
+    public static final int INPUT_Y = 40;
+    public static final int THEME_X = 64;
+    public static final int THEME_Y = 40;
+    public static final int OBJECTIVE_X = 100;
+    public static final int OBJECTIVE_Y = 40;
+    public static final int MODIFIER_ONE_X = 28;
+    public static final int MODIFIER_ONE_Y = 76;
+    public static final int MODIFIER_TWO_X = 52;
+    public static final int MODIFIER_TWO_Y = 76;
+    public static final int MODIFIER_THREE_X = 76;
+    public static final int MODIFIER_THREE_Y = 76;
+    public static final int OUTPUT_X = 184;
+    public static final int OUTPUT_Y = 48;
 
     public static final int PLAYER_INV_X = 20;
-    public static final int PLAYER_INV_Y = 88;
+    public static final int PLAYER_INV_Y = 128;
     public static final int HOTBAR_Y = PLAYER_INV_Y + 58;
 
     private final CustomDungeonCrystalForgeBlockEntity blockEntity;
@@ -35,9 +39,9 @@ public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
         addSlot(new InputCrystalSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.INPUT_SLOT, INPUT_X, INPUT_Y));
         addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.THEME_SLOT, THEME_X, THEME_Y));
         addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.OBJECTIVE_SLOT, OBJECTIVE_X, OBJECTIVE_Y));
-        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START, MODIFIER_X, MODIFIER_Y));
-        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START + 1, MODIFIER_X, MODIFIER_Y + 20));
-        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START + 2, MODIFIER_X, MODIFIER_Y + 40));
+        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START, MODIFIER_ONE_X, MODIFIER_ONE_Y));
+        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START + 1, MODIFIER_TWO_X, MODIFIER_TWO_Y));
+        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START + 2, MODIFIER_THREE_X, MODIFIER_THREE_Y));
         addSlot(new OutputSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
 
         for (int row = 0; row < 3; row++) {

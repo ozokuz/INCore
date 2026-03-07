@@ -8,13 +8,27 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
+import java.util.List;
+
 public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<CustomDungeonCrystalForgeMenu> {
     private static final UIScreenTheme THEME = UIScreenTheme.CRAFTING;
+    private static final int INPUT_PANEL_X = 8;
+    private static final int INPUT_PANEL_Y = 24;
+    private static final int INPUT_PANEL_W = 138;
+    private static final int INPUT_PANEL_H = 78;
+    private static final int RESULT_PANEL_X = 152;
+    private static final int RESULT_PANEL_Y = 24;
+    private static final int RESULT_PANEL_W = 88;
+    private static final int RESULT_PANEL_H = 78;
+    private static final int INVENTORY_PANEL_X = 8;
+    private static final int INVENTORY_PANEL_Y = 112;
+    private static final int INVENTORY_PANEL_W = 232;
+    private static final int INVENTORY_PANEL_H = 84;
 
     public CustomDungeonCrystalForgeScreen(CustomDungeonCrystalForgeMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = 216;
-        this.imageHeight = 180;
+        this.imageWidth = 248;
+        this.imageHeight = 204;
     }
 
     @Override
@@ -23,34 +37,44 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
         int y = topPos;
         ThemedUi ui = themed(guiGraphics);
         ui.drawWindow(x, y, imageWidth, imageHeight);
-        ui.drawPanel(x + 8, y + 14, imageWidth - 16, 56);
-        ui.drawPanel(x + 8, y + 82, imageWidth - 16, imageHeight - 90);
+        ui.drawPanel(x + 5, y + 5, imageWidth - 10, 14);
+        ui.drawPanel(x + INPUT_PANEL_X, y + INPUT_PANEL_Y, INPUT_PANEL_W, INPUT_PANEL_H);
+        ui.drawPanel(x + RESULT_PANEL_X, y + RESULT_PANEL_Y, RESULT_PANEL_W, RESULT_PANEL_H);
+        ui.drawPanel(x + INVENTORY_PANEL_X, y + INVENTORY_PANEL_Y, INVENTORY_PANEL_W, INVENTORY_PANEL_H);
 
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.INPUT_X, y + CustomDungeonCrystalForgeMenu.INPUT_Y);
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.THEME_X, y + CustomDungeonCrystalForgeMenu.THEME_Y);
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.OBJECTIVE_X, y + CustomDungeonCrystalForgeMenu.OBJECTIVE_Y);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_Y);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_Y + 20);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_Y + 40);
+        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_ONE_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_ONE_Y);
+        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_TWO_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_TWO_Y);
+        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_THREE_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_THREE_Y);
         drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.OUTPUT_X, y + CustomDungeonCrystalForgeMenu.OUTPUT_Y);
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(font, title, 10, 4, UIScreenTheme.Crafting.TITLE_TEXT, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.input"), 20, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.theme"), 56, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.objective"), 92, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.modifiers"), 128, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.output"), 172, 12, UIScreenTheme.Crafting.BODY_TEXT, false);
+        guiGraphics.drawString(font, title, 11, 9, UIScreenTheme.Crafting.TITLE_TEXT, false);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.input"), CustomDungeonCrystalForgeMenu.INPUT_X + 8, 30);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.theme"), CustomDungeonCrystalForgeMenu.THEME_X + 8, 30);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.objective"), CustomDungeonCrystalForgeMenu.OBJECTIVE_X + 8, 30);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.modifiers"), 20, 66, UIScreenTheme.Crafting.BODY_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.output"), RESULT_PANEL_X + 10, 30, UIScreenTheme.Crafting.BODY_TEXT, false);
 
         int statusColor = menu.validPreview() ? UIScreenTheme.Crafting.SUCCESS_TEXT : UIScreenTheme.Crafting.DANGER_TEXT;
         String statusKey = menu.validPreview()
                 ? "screen.incore.custom_crystal_forge.status.ready"
                 : "screen.incore.custom_crystal_forge.status.invalid";
-        guiGraphics.drawString(font, Component.translatable(statusKey), 12, 72, statusColor, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.hint"), 12, 84, UIScreenTheme.Crafting.MUTED_TEXT, false);
-        guiGraphics.drawString(font, playerInventoryTitle, 20, 92, UIScreenTheme.Crafting.BODY_TEXT, false);
+        drawWrapped(guiGraphics, Component.translatable(statusKey), RESULT_PANEL_X + 10, 72, RESULT_PANEL_W - 20, 2, statusColor);
+        drawWrapped(
+                guiGraphics,
+                Component.translatable("screen.incore.custom_crystal_forge.hint"),
+                RESULT_PANEL_X + 10,
+                88,
+                RESULT_PANEL_W - 20,
+                2,
+                UIScreenTheme.Crafting.MUTED_TEXT
+        );
+        guiGraphics.drawString(font, playerInventoryTitle, INVENTORY_PANEL_X + 4, INVENTORY_PANEL_Y + 5, UIScreenTheme.Crafting.BODY_TEXT, false);
     }
 
     @Override
@@ -62,6 +86,17 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
 
     private static void drawSlot(GuiGraphics guiGraphics, int x, int y) {
         themed(guiGraphics).drawSlotFrame(x, y);
+    }
+
+    private void drawCenteredLabel(GuiGraphics guiGraphics, Component text, int centerX, int y) {
+        guiGraphics.drawCenteredString(font, text, centerX, y, UIScreenTheme.Crafting.BODY_TEXT);
+    }
+
+    private void drawWrapped(GuiGraphics guiGraphics, Component text, int x, int y, int width, int maxLines, int color) {
+        List<net.minecraft.util.FormattedCharSequence> lines = font.split(text, width);
+        for (int i = 0; i < Math.min(maxLines, lines.size()); i++) {
+            guiGraphics.drawString(font, lines.get(i), x, y + i * font.lineHeight, color);
+        }
     }
 
     private static ThemedUi themed(GuiGraphics guiGraphics) {

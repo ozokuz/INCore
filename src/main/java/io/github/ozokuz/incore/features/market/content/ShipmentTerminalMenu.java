@@ -9,13 +9,13 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class ShipmentTerminalMenu extends AbstractContainerMenu {
-    public static final int INPUT_X = 52;
-    public static final int INPUT_Y = 74;
-    public static final int CARD_X = 142;
-    public static final int CARD_Y = 92;
-    public static final int PLAYER_INVENTORY_X = 34;
-    public static final int PLAYER_INVENTORY_Y = 130;
-    public static final int HOTBAR_Y = 188;
+    public static final int INPUT_X = 26;
+    public static final int INPUT_Y = 80;
+    public static final int CARD_X = 186;
+    public static final int CARD_Y = 98;
+    public static final int PLAYER_INVENTORY_X = 35;
+    public static final int PLAYER_INVENTORY_Y = 170;
+    public static final int HOTBAR_Y = PLAYER_INVENTORY_Y + 58;
 
     private final ShipmentTerminalBlockEntity blockEntity;
     private final ContainerData data;
