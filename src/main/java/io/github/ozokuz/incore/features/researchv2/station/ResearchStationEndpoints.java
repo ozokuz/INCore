@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import java.util.List;
 
 public record ResearchStationEndpoints(
-        BlockPos powerCore,
         List<BlockPos> inputs,
         List<BlockPos> inventories
 ) {

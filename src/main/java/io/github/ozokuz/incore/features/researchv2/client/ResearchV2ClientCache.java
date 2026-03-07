@@ -231,6 +231,12 @@ public final class ResearchV2ClientCache {
             JsonObject controllerPos = row.has("controllerPos") && row.get("controllerPos").isJsonObject()
                     ? row.getAsJsonObject("controllerPos")
                     : null;
+            JsonObject endpoints = row.has("endpoints") && row.get("endpoints").isJsonObject()
+                    ? row.getAsJsonObject("endpoints")
+                    : null;
+            JsonArray inputRows = endpoints != null && endpoints.has("inputs") && endpoints.get("inputs").isJsonArray()
+                    ? endpoints.getAsJsonArray("inputs")
+                    : null;
             int x = intOr(controllerPos, "x", 0);
             int y = intOr(controllerPos, "y", 0);
             int z = intOr(controllerPos, "z", 0);
@@ -241,15 +247,38 @@ public final class ResearchV2ClientCache {
                     Math.max(0, intOr(row, "stationTier", 0)),
                     Math.max(0, intOr(row, "rpBuffer", 0)),
                     Math.max(0, intOr(row, "rpCapacity", 0)),
+                    stringOr(row, "powerFamily", ""),
+                    Math.max(0, intOr(row, "powerInputTier", 0)),
                     Math.max(0, intOr(row, "connectedPartCount", 0)),
                     stringOr(row, "dimensionId", ""),
                     x,
                     y,
-                    z
+                    z,
+                    readPositions(inputRows)
             ));
         }
         stations.sort(Comparator.comparing(StationEntry::stationId));
         return List.copyOf(stations);
+    }
+
+    private static List<PositionEntry> readPositions(JsonArray array) {
+        if (array == null) {
+            return List.of();
+        }
+
+        List<PositionEntry> positions = new ArrayList<>();
+        for (JsonElement element : array) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject row = element.getAsJsonObject();
+            positions.add(new PositionEntry(
+                    intOr(row, "x", 0),
+                    intOr(row, "y", 0),
+                    intOr(row, "z", 0)
+            ));
+        }
+        return List.copyOf(positions);
     }
 
     private static List<LogicModuleRequirement> readLogicRequirements(JsonArray array) {
@@ -454,11 +483,17 @@ public final class ResearchV2ClientCache {
             int stationTier,
             int rpBuffer,
             int rpCapacity,
+            String powerFamily,
+            int powerInputTier,
             int connectedPartCount,
             String dimensionId,
             int controllerX,
             int controllerY,
-            int controllerZ
+            int controllerZ,
+            List<PositionEntry> inputPositions
     ) {
+    }
+
+    public record PositionEntry(int x, int y, int z) {
     }
 }

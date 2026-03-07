@@ -179,7 +179,7 @@ public final class ResearchV2Commands {
             ResearchStationDescriptor station = stations.get(i);
             final int index = i + 1;
             final String line = String.format(
-                    "#%d id=%s formed=%s tier=%d rp=%d/%d parts=%d powerCore=%s",
+                    "#%d id=%s formed=%s tier=%d rp=%d/%d parts=%d powerFamily=%s inputTier=%d inputs=%d",
                     index,
                     station.stationId(),
                     station.formed(),
@@ -187,7 +187,9 @@ public final class ResearchV2Commands {
                     station.rpBuffer(),
                     station.rpCapacity(),
                     station.connectedParts().size(),
-                    station.endpoints().powerCore()
+                    station.powerFamily(),
+                    station.powerInputTier(),
+                    station.endpoints().inputs().size()
             );
             context.getSource().sendSuccess(() -> Component.literal(line), false);
         }

@@ -455,11 +455,11 @@ public final class ResearchManager {
             row.addProperty("rpBuffer", station.rpBuffer());
             row.addProperty("rpCapacity", station.rpCapacity());
             row.addProperty("slotCapacity", station.slotCapacity());
+            row.addProperty("powerFamily", station.powerFamily() == null ? "" : station.powerFamily().name());
+            row.addProperty("powerInputTier", station.powerInputTier());
             row.add("controllerPos", toJsonPos(station.controllerPos()));
 
             JsonObject endpoints = new JsonObject();
-            endpoints.add("powerCore", toJsonPos(station.endpoints().powerCore()));
-
             JsonArray inputRows = new JsonArray();
             station.endpoints().inputs().forEach(pos -> inputRows.add(toJsonPos(pos)));
             endpoints.add("inputs", inputRows);

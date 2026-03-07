@@ -316,6 +316,12 @@ public class Registration {
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T2_BLOCK = BLOCKS.register("research_controller_t2", () -> new ResearchControllerTier2Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T3_BLOCK = BLOCKS.register("research_controller_t3", () -> new ResearchControllerTier3Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T4_BLOCK = BLOCKS.register("research_controller_t4", () -> new ResearchControllerTier4Block());
+    public static final DeferredBlock<Block> BURNER_POWER_INPUT_BLOCK = BLOCKS.register("burner_power_input", () -> new BurnerPowerInputBlock());
+    public static final DeferredBlock<Block> MECHANICAL_POWER_INPUT_BLOCK = BLOCKS.register("mechanical_power_input", () -> new MechanicalPowerInputBlock());
+    public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_BLOCK = BLOCKS.register("electric_power_input", () -> new ElectricPowerInputBlock());
+    public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_T2_BLOCK = BLOCKS.register("electric_power_input_t2", () -> new ElectricPowerInputTier2Block());
+    public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_T3_BLOCK = BLOCKS.register("electric_power_input_t3", () -> new ElectricPowerInputTier3Block());
+    public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_T4_BLOCK = BLOCKS.register("electric_power_input_t4", () -> new ElectricPowerInputTier4Block());
     public static final Supplier<BlockEntityType<LabBlockEntity>> LAB_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
             "burner_lab",
             () -> BlockEntityType.Builder.of(
@@ -340,6 +346,24 @@ public class Registration {
                     RESEARCH_CONTROLLER_T4_BLOCK.get()
             ).build(null)
     );
+    public static final Supplier<BlockEntityType<BurnerPowerInputBlockEntity>> BURNER_POWER_INPUT_BE = BLOCK_ENTITY_TYPES.register(
+            "burner_power_input",
+            () -> BlockEntityType.Builder.of(BurnerPowerInputBlockEntity::new, BURNER_POWER_INPUT_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<MechanicalPowerInputBlockEntity>> MECHANICAL_POWER_INPUT_BE = BLOCK_ENTITY_TYPES.register(
+            "mechanical_power_input",
+            () -> BlockEntityType.Builder.of(MechanicalPowerInputBlockEntity::new, MECHANICAL_POWER_INPUT_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<ElectricPowerInputBlockEntity>> ELECTRIC_POWER_INPUT_BE = BLOCK_ENTITY_TYPES.register(
+            "electric_power_input",
+            () -> BlockEntityType.Builder.of(
+                    ElectricPowerInputBlockEntity::new,
+                    ELECTRIC_POWER_INPUT_BLOCK.get(),
+                    ELECTRIC_POWER_INPUT_T2_BLOCK.get(),
+                    ELECTRIC_POWER_INPUT_T3_BLOCK.get(),
+                    ELECTRIC_POWER_INPUT_T4_BLOCK.get()
+            ).build(null)
+    );
     public static final Supplier<MenuType<CrudeResearchStationMenu>> CRUDE_RESEARCH_STATION_MENU = MENU_TYPES.register(
             "crude_research_station",
             () -> IMenuTypeExtension.create((id, inv, data) -> new CrudeResearchStationMenu(
@@ -357,6 +381,12 @@ public class Registration {
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t2", RESEARCH_CONTROLLER_T2_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t3", RESEARCH_CONTROLLER_T3_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t4", RESEARCH_CONTROLLER_T4_BLOCK);
+    public static final DeferredItem<BlockItem> BURNER_POWER_INPUT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_power_input", BURNER_POWER_INPUT_BLOCK);
+    public static final DeferredItem<BlockItem> MECHANICAL_POWER_INPUT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_power_input", MECHANICAL_POWER_INPUT_BLOCK);
+    public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input", ELECTRIC_POWER_INPUT_BLOCK);
+    public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input_t2", ELECTRIC_POWER_INPUT_T2_BLOCK);
+    public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input_t3", ELECTRIC_POWER_INPUT_T3_BLOCK);
+    public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input_t4", ELECTRIC_POWER_INPUT_T4_BLOCK);
 
     public static final DeferredBlock<Block> DUNGEON_ALTAR_BLOCK = BLOCKS.register("dungeon_altar", DungeonAltarBlock::new);
     public static final Supplier<BlockEntityType<DungeonAltarBlockEntity>> DUNGEON_ALTAR_BE = BLOCK_ENTITY_TYPES.register("dungeon_altar", () -> BlockEntityType.Builder.of(DungeonAltarBlockEntity::new, DUNGEON_ALTAR_BLOCK.get()).build(null));
@@ -558,6 +588,17 @@ public class Registration {
                 output.accept(MECHANICAL_LAB_BLOCK_ITEM.get());
                 output.accept(MODULAR_LAB_BLOCK_ITEM.get());
                 output.accept(CRUDE_RESEARCH_STATION_BLOCK_ITEM.get());
+                output.accept(RESEARCH_STATION_CASING_BLOCK_ITEM.get());
+                output.accept(RESEARCH_CONTROLLER_T1_BLOCK_ITEM.get());
+                output.accept(RESEARCH_CONTROLLER_T2_BLOCK_ITEM.get());
+                output.accept(RESEARCH_CONTROLLER_T3_BLOCK_ITEM.get());
+                output.accept(RESEARCH_CONTROLLER_T4_BLOCK_ITEM.get());
+                output.accept(BURNER_POWER_INPUT_BLOCK_ITEM.get());
+                output.accept(MECHANICAL_POWER_INPUT_BLOCK_ITEM.get());
+                output.accept(ELECTRIC_POWER_INPUT_BLOCK_ITEM.get());
+                output.accept(ELECTRIC_POWER_INPUT_T2_BLOCK_ITEM.get());
+                output.accept(ELECTRIC_POWER_INPUT_T3_BLOCK_ITEM.get());
+                output.accept(ELECTRIC_POWER_INPUT_T4_BLOCK_ITEM.get());
                 output.accept(BASIC_LOGIC_MODULE_ITEM.get());
                 output.accept(STARTER_DATA_ITEM.get());
                 output.accept(SPEED_MODULE_CARD_ITEM.get());
