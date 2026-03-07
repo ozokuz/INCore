@@ -13,7 +13,7 @@ public class ShipmentTerminalMenu extends AbstractContainerMenu {
     public static final int INPUT_Y = 80;
     public static final int CARD_X = 186;
     public static final int CARD_Y = 98;
-    public static final int PLAYER_INVENTORY_X = 35;
+    public static final int PLAYER_INVENTORY_X = 43;
     public static final int PLAYER_INVENTORY_Y = 170;
     public static final int HOTBAR_Y = PLAYER_INVENTORY_Y + 58;
 

@@ -26,18 +26,18 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
 
     // Ghost slot position (within the target section)
     private static final int GHOST_SLOT_X = 14;
-    private static final int GHOST_SLOT_Y = 72;
+    private static final int GHOST_SLOT_Y = 78;
 
     // Section layout
     private static final int HEADER_Y = 5;
     private static final int HEADER_H = 14;
     private static final int STATUS_Y = 24;
-    private static final int STATUS_H = 28;
-    private static final int TARGET_Y = 56;
+    private static final int STATUS_H = 34;
+    private static final int TARGET_Y = 62;
     private static final int TARGET_H = 76;
-    private static final int CARD_OUTPUT_Y = 134;
+    private static final int CARD_OUTPUT_Y = 142;
     private static final int CARD_OUTPUT_H = 60;
-    private static final int INV_Y = 192;
+    private static final int INV_Y = 206;
 
     private ThemedButton enabledButton;
     private @Nullable ResourceLocation ghostTargetItemId;
@@ -46,7 +46,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     public MarketAutoBuyerScreen(MarketAutoBuyerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 230;
-        this.imageHeight = 284;
+        this.imageHeight = 302;
     }
 
     @Override
@@ -60,25 +60,25 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
 
         // Row 1: On/Off + Cap controls
         this.enabledButton = this.addRenderableWidget(new ThemedButton(
-                bx + 12, by + 92, 50, 16,
+                bx + 12, by + 98, 50, 16,
                 Component.literal(""),
                 btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), !menu.enabled())
         ));
 
         this.addRenderableWidget(new ThemedButton(
-                bx + 68, by + 92, 34, 16,
+                bx + 68, by + 98, 34, 16,
                 Component.literal("Cap -"),
                 btn -> sendConfigUpdate(currentTargetIdString(), Math.max(1, menu.priceCap() - 1), menu.batchSize(), menu.enabled())
         ));
         this.addRenderableWidget(new ThemedButton(
-                bx + 104, by + 92, 34, 16,
+                bx + 104, by + 98, 34, 16,
                 Component.literal("Cap +"),
                 btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap() + 1, menu.batchSize(), menu.enabled())
         ));
 
         // Row 2: Clear + Stack controls
         this.addRenderableWidget(new ThemedButton(
-                bx + 12, by + 112, 50, 16,
+                bx + 12, by + 118, 50, 16,
                 Component.literal("Clear"),
                 btn -> {
                     clearGhostTarget();
@@ -86,12 +86,12 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
                 }
         ));
         this.addRenderableWidget(new ThemedButton(
-                bx + 68, by + 112, 34, 16,
+                bx + 68, by + 118, 34, 16,
                 Component.literal("Stk -"),
                 btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap(), Math.max(1, menu.batchSize() - 1), menu.enabled())
         ));
         this.addRenderableWidget(new ThemedButton(
-                bx + 104, by + 112, 34, 16,
+                bx + 104, by + 118, 34, 16,
                 Component.literal("Stk +"),
                 btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap(), Math.min(64, menu.batchSize() + 1), menu.enabled())
         ));
@@ -148,7 +148,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
 
         // Progress bar (below status)
         int progressX = x + 12;
-        int progressY = y + STATUS_Y + STATUS_H + 2;
+        int progressY = y + STATUS_Y + STATUS_H - 10;
         int progressWidth = imageWidth - 24;
         drawPanel(guiGraphics, progressX - 1, progressY - 1, progressWidth + 2, 8,
                 UIScreenTheme.Machine.PROGRESS_FRAME_FILL, UIScreenTheme.Machine.PROGRESS_FRAME_BORDER);
@@ -255,9 +255,9 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
 
         // Cap and Stacks values - right-aligned next to the buttons
         guiGraphics.drawString(this.font, Component.literal("Cap: " + menu.priceCap()),
-                144, 96, TEXT_COLOR, false);
+                144, 102, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Stacks: " + menu.batchSize()),
-                144, 116, TEXT_COLOR, false);
+                144, 122, TEXT_COLOR, false);
 
         // Card + Output labels
         guiGraphics.drawString(this.font, Component.literal("Card"),

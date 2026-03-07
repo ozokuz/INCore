@@ -11,12 +11,12 @@ import net.minecraft.world.item.ItemStack;
 
 public class MarketAutoBuyerMenu extends AbstractContainerMenu {
     public static final int CARD_X = 14;
-    public static final int CARD_Y = 140;
+    public static final int CARD_Y = 148;
     public static final int OUTPUT_X = 40;
-    public static final int OUTPUT_Y = 140;
+    public static final int OUTPUT_Y = 148;
     public static final int PLAYER_INVENTORY_X = 34;
-    public static final int PLAYER_INVENTORY_Y = 198;
-    public static final int HOTBAR_Y = 256;
+    public static final int PLAYER_INVENTORY_Y = 218;
+    public static final int HOTBAR_Y = 276;
 
     private final MarketAutoBuyerBlockEntity blockEntity;
     private final ContainerData data;

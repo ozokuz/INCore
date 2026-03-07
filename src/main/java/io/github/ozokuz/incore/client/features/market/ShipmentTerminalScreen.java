@@ -63,13 +63,13 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
             drawSlotFrame(guiGraphics, x + ShipmentTerminalMenu.PLAYER_INVENTORY_X + col * 18, y + ShipmentTerminalMenu.HOTBAR_Y);
         }
 
-        guiGraphics.fill(x + 220, y + 31, x + 228, y + 39, statusColor());
+        guiGraphics.fill(x + 220, y + 28, x + 228, y + 36, statusColor());
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         guiGraphics.drawString(font, title, 11, 9, UIScreenTheme.Machine.TITLE_TEXT, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.common.status"), 12, 29, TEXT_COLOR, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.common.status"), 12, 28, TEXT_COLOR, false);
         drawWrapped(guiGraphics, statusComponent(), 56, 28, 152, 2, TEXT_COLOR);
         guiGraphics.drawString(font, Component.translatable("screen.incore.market.shipment.input"), 24, 70, TEXT_COLOR, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.market.shipment.card"), 180, 70, TEXT_COLOR, false);

@@ -37,7 +37,7 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
 
     private static final int INVENTORY_PANEL_X = 8;
     private static final int INVENTORY_PANEL_Y = 144;
-    private static final int INVENTORY_PANEL_W = 176;
+    private static final int INVENTORY_PANEL_W = 376;
     private static final int INVENTORY_PANEL_H = 87;
 
     public CardDeckStationScreen(DeckStationMenu menu, Inventory playerInventory, Component title) {
@@ -113,15 +113,14 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
         // Module grid section label
         guiGraphics.drawString(font, "Modules", MODULE_PANEL_X + 4, MODULE_PANEL_Y + 2, TEXT_COLOR, false);
 
-        // Core / Box labels - centered above the slots, sitting in the gap area
-        int coreCenter = DeckStationMenu.CORE_X + 8;
-        int boxCenter = DeckStationMenu.BOX_X + 8;
+        // Core / Box labels - centered above the slots, spaced to avoid overlap
+        int coreCenter = DeckStationMenu.CORE_X + 4;
+        int boxCenter = DeckStationMenu.BOX_X + 12;
         drawCenteredLabel(guiGraphics, "Core", coreCenter, MODULE_PANEL_Y + 2, ACCENT_COLOR);
         drawCenteredLabel(guiGraphics, "Box", boxCenter, MODULE_PANEL_Y + 2, ACCENT_COLOR);
 
-        // Output label - above the output slot
-        int outputCenter = DeckStationMenu.OUTPUT_X + 8;
-        drawCenteredLabel(guiGraphics, "Output", outputCenter, DeckStationMenu.OUTPUT_Y - 10, ACCENT_COLOR);
+        // Output label - positioned within module panel, before right panel boundary
+        drawCenteredLabel(guiGraphics, "Output", MODULE_PANEL_X + MODULE_PANEL_W - 18, DeckStationMenu.OUTPUT_Y - 12, ACCENT_COLOR);
 
         // --- Right panel: Deck Preview ---
         int rpx = RIGHT_PANEL_X + 6;
@@ -170,7 +169,7 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
         }
 
         // Inventory label
-        guiGraphics.drawString(font, playerInventoryTitle, INVENTORY_PANEL_X + 4, INVENTORY_PANEL_Y + 4, TEXT_COLOR, false);
+        guiGraphics.drawString(font, playerInventoryTitle, DeckStationMenu.PLAYER_INV_X, INVENTORY_PANEL_Y + 4, TEXT_COLOR, false);
     }
 
     @Override

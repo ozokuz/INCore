@@ -28,7 +28,7 @@ public class DeckStationMenu extends AbstractContainerMenu {
     public static final int OUTPUT_X = 188;
     public static final int OUTPUT_Y = 54;
 
-    public static final int PLAYER_INV_X = 12;
+    public static final int PLAYER_INV_X = 115;
     public static final int PLAYER_INV_Y = 152;
     public static final int HOTBAR_Y = PLAYER_INV_Y + 58;
 

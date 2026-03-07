@@ -15,15 +15,15 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
     private static final int INPUT_PANEL_X = 8;
     private static final int INPUT_PANEL_Y = 24;
     private static final int INPUT_PANEL_W = 138;
-    private static final int INPUT_PANEL_H = 78;
+    private static final int INPUT_PANEL_H = 82;
     private static final int RESULT_PANEL_X = 152;
     private static final int RESULT_PANEL_Y = 24;
     private static final int RESULT_PANEL_W = 88;
-    private static final int RESULT_PANEL_H = 78;
+    private static final int RESULT_PANEL_H = 82;
     private static final int INVENTORY_PANEL_X = 8;
-    private static final int INVENTORY_PANEL_Y = 112;
+    private static final int INVENTORY_PANEL_Y = 110;
     private static final int INVENTORY_PANEL_W = 232;
-    private static final int INVENTORY_PANEL_H = 84;
+    private static final int INVENTORY_PANEL_H = 90;
 
     private static final int TITLE_TEXT = UIScreenTheme.Crafting.TITLE_TEXT;
     private static final int BODY_TEXT = UIScreenTheme.Crafting.BODY_TEXT;
@@ -91,12 +91,12 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
         String statusKey = menu.validPreview()
                 ? "screen.incore.custom_crystal_forge.status.ready"
                 : "screen.incore.custom_crystal_forge.status.invalid";
-        drawWrapped(guiGraphics, Component.translatable(statusKey), RESULT_PANEL_X + 10, 72, RESULT_PANEL_W - 20, 2, statusColor);
+        drawWrapped(guiGraphics, Component.translatable(statusKey), RESULT_PANEL_X + 10, 68, RESULT_PANEL_W - 20, 2, statusColor);
         drawWrapped(
                 guiGraphics,
                 Component.translatable("screen.incore.custom_crystal_forge.hint"),
                 RESULT_PANEL_X + 10,
-                88,
+                86,
                 RESULT_PANEL_W - 20,
                 2,
                 UIScreenTheme.Crafting.MUTED_TEXT
