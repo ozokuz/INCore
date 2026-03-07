@@ -18,9 +18,7 @@ import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockEntity;
 import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
 import io.github.ozokuz.incore.features.research.BurnerLabBlock;
-import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlock;
-import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlockEntity;
-import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationMenu;
+import io.github.ozokuz.incore.features.researchv2.station.*;
 import io.github.ozokuz.incore.features.cards.CardBoosterBoxItem;
 import io.github.ozokuz.incore.features.cards.CardBoosterItem;
 import io.github.ozokuz.incore.features.cards.CardModuleItem;
@@ -313,6 +311,11 @@ public class Registration {
     public static final DeferredBlock<Block> MECHANICAL_LAB_BLOCK = BLOCKS.register("mechanical_lab", MechanicalLabBlock::new);
     public static final DeferredBlock<Block> MODULAR_LAB_BLOCK = BLOCKS.register("modular_lab", ModularLabBlock::new);
     public static final DeferredBlock<Block> CRUDE_RESEARCH_STATION_BLOCK = BLOCKS.register("crude_research_station", () -> new CrudeResearchStationBlock());
+    public static final DeferredBlock<Block> RESEARCH_STATION_CASING_BLOCK = BLOCKS.register("research_station_casing", () -> new ResearchStationCasingBlock());
+    public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T1_BLOCK = BLOCKS.register("research_controller_t1", () -> new ResearchControllerTier1Block());
+    public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T2_BLOCK = BLOCKS.register("research_controller_t2", () -> new ResearchControllerTier2Block());
+    public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T3_BLOCK = BLOCKS.register("research_controller_t3", () -> new ResearchControllerTier3Block());
+    public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T4_BLOCK = BLOCKS.register("research_controller_t4", () -> new ResearchControllerTier4Block());
     public static final Supplier<BlockEntityType<LabBlockEntity>> LAB_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
             "burner_lab",
             () -> BlockEntityType.Builder.of(
@@ -327,6 +330,16 @@ public class Registration {
             "crude_research_station",
             () -> BlockEntityType.Builder.of(CrudeResearchStationBlockEntity::new, CRUDE_RESEARCH_STATION_BLOCK.get()).build(null)
     );
+    public static final Supplier<BlockEntityType<ResearchControllerBlockEntity>> RESEARCH_CONTROLLER_BE = BLOCK_ENTITY_TYPES.register(
+            "research_controller",
+            () -> BlockEntityType.Builder.of(
+                    ResearchControllerBlockEntity::new,
+                    RESEARCH_CONTROLLER_T1_BLOCK.get(),
+                    RESEARCH_CONTROLLER_T2_BLOCK.get(),
+                    RESEARCH_CONTROLLER_T3_BLOCK.get(),
+                    RESEARCH_CONTROLLER_T4_BLOCK.get()
+            ).build(null)
+    );
     public static final Supplier<MenuType<CrudeResearchStationMenu>> CRUDE_RESEARCH_STATION_MENU = MENU_TYPES.register(
             "crude_research_station",
             () -> IMenuTypeExtension.create((id, inv, data) -> new CrudeResearchStationMenu(
@@ -339,6 +352,11 @@ public class Registration {
     public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
     public static final DeferredItem<BlockItem> CRUDE_RESEARCH_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("crude_research_station", CRUDE_RESEARCH_STATION_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_STATION_CASING_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_station_casing", RESEARCH_STATION_CASING_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T1_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t1", RESEARCH_CONTROLLER_T1_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t2", RESEARCH_CONTROLLER_T2_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t3", RESEARCH_CONTROLLER_T3_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t4", RESEARCH_CONTROLLER_T4_BLOCK);
 
     public static final DeferredBlock<Block> DUNGEON_ALTAR_BLOCK = BLOCKS.register("dungeon_altar", DungeonAltarBlock::new);
     public static final Supplier<BlockEntityType<DungeonAltarBlockEntity>> DUNGEON_ALTAR_BE = BLOCK_ENTITY_TYPES.register("dungeon_altar", () -> BlockEntityType.Builder.of(DungeonAltarBlockEntity::new, DUNGEON_ALTAR_BLOCK.get()).build(null));

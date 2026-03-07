@@ -27,6 +27,11 @@
     "incore:shipment_terminal",
     "incore:market_autotrader",
     "incore:dungeon_altar_automator",
-    "incore:crude_research_station"
+    "incore:crude_research_station",
+    "incore:research_station_casing",
+    "incore:research_controller_t1",
+    "incore:research_controller_t2",
+    "incore:research_controller_t3",
+    "incore:research_controller_t4"
   ]
 }

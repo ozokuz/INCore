@@ -34,6 +34,9 @@ public final class ResearchV2ClientCache {
         String activeNetworkId = stringOr(root, "activeNetworkId", "");
         boolean researchEnabled = boolOr(root, "researchEnabled", false);
         int controllerTier = intOr(root, "controllerTier", 0);
+        boolean focusModeEnabled = boolOr(root, "focusModeEnabled", false);
+        int stationCount = intOr(root, "stationCount", 0);
+        List<StationEntry> stations = readStations(root.getAsJsonArray("stations"));
         Set<String> discoveredNodeIds = readStringSet(root.getAsJsonArray("discoveredNodes"));
         Set<String> completedNodeIds = readStringSet(root.getAsJsonArray("completedNodes"));
         List<QueueEntry> researchQueue = readQueue(root.getAsJsonArray("researchQueue"));
@@ -61,6 +64,9 @@ public final class ResearchV2ClientCache {
                 activeNetworkId,
                 researchEnabled,
                 Math.max(0, controllerTier),
+                focusModeEnabled,
+                Math.max(0, stationCount),
+                List.copyOf(stations),
                 Set.copyOf(discoveredNodeIds),
                 Set.copyOf(completedNodeIds),
                 List.copyOf(researchQueue),
@@ -206,6 +212,46 @@ public final class ResearchV2ClientCache {
         return queue;
     }
 
+    private static List<StationEntry> readStations(JsonArray array) {
+        if (array == null) {
+            return List.of();
+        }
+
+        List<StationEntry> stations = new ArrayList<>();
+        for (JsonElement element : array) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject row = element.getAsJsonObject();
+            String stationId = stringOr(row, "stationId", "");
+            if (stationId.isBlank()) {
+                continue;
+            }
+
+            JsonObject controllerPos = row.has("controllerPos") && row.get("controllerPos").isJsonObject()
+                    ? row.getAsJsonObject("controllerPos")
+                    : null;
+            int x = intOr(controllerPos, "x", 0);
+            int y = intOr(controllerPos, "y", 0);
+            int z = intOr(controllerPos, "z", 0);
+
+            stations.add(new StationEntry(
+                    stationId,
+                    boolOr(row, "formed", false),
+                    Math.max(0, intOr(row, "stationTier", 0)),
+                    Math.max(0, intOr(row, "rpBuffer", 0)),
+                    Math.max(0, intOr(row, "rpCapacity", 0)),
+                    Math.max(0, intOr(row, "connectedPartCount", 0)),
+                    stringOr(row, "dimensionId", ""),
+                    x,
+                    y,
+                    z
+            ));
+        }
+        stations.sort(Comparator.comparing(StationEntry::stationId));
+        return List.copyOf(stations);
+    }
+
     private static List<LogicModuleRequirement> readLogicRequirements(JsonArray array) {
         if (array == null) {
             return List.of();
@@ -323,6 +369,9 @@ public final class ResearchV2ClientCache {
             String activeNetworkId,
             boolean researchEnabled,
             int controllerTier,
+            boolean focusModeEnabled,
+            int stationCount,
+            List<StationEntry> stations,
             Set<String> discoveredNodeIds,
             Set<String> completedNodeIds,
             List<QueueEntry> researchQueue,
@@ -343,6 +392,9 @@ public final class ResearchV2ClientCache {
                     "",
                     false,
                     0,
+                    false,
+                    0,
+                    List.of(),
                     Set.of(),
                     Set.of(),
                     List.of(),
@@ -394,5 +446,19 @@ public final class ResearchV2ClientCache {
     }
 
     public record ResearchMaterialRequirement(String materialId, int count) {
+    }
+
+    public record StationEntry(
+            String stationId,
+            boolean formed,
+            int stationTier,
+            int rpBuffer,
+            int rpCapacity,
+            int connectedPartCount,
+            String dimensionId,
+            int controllerX,
+            int controllerY,
+            int controllerZ
+    ) {
     }
 }
