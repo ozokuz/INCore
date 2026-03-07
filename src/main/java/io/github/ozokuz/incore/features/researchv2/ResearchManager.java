@@ -14,6 +14,9 @@ import io.github.ozokuz.incore.features.researchv2.state.ResearchNetworkSavedDat
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueEntry;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.state.TeamResearchState;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchStationDescriptor;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 
@@ -68,7 +71,8 @@ public final class ResearchManager {
         if (node == null) {
             return false;
         }
-        if (!isTier0BasicNode(node)) {
+        int controllerTier = effectiveControllerTier(server, teamId, state);
+        if (!isNodeAllowedByControllerTier(node, controllerTier)) {
             return false;
         }
 
@@ -100,8 +104,15 @@ public final class ResearchManager {
         if (node == null) {
             return "unknown research node";
         }
-        if (!isTier0BasicNode(node)) {
-            return "node is not Tier 0 basic research";
+        int controllerTier = effectiveControllerTier(server, teamId, state);
+        if (!isNodeAllowedByControllerTier(node, controllerTier)) {
+            if (controllerTier <= 0) {
+                return "team has no active research controller tier";
+            }
+            if (controllerTier == 1 && !isBasicCategory(node.categoryId())) {
+                return "node requires controller tier 2";
+            }
+            return "node is not allowed by current controller tier";
         }
         if (!state.discoveredNodes().contains(nodeId)) {
             return "node is not discovered";
@@ -130,6 +141,11 @@ public final class ResearchManager {
 
         ResearchNetworkSavedData data = ResearchNetworkSavedData.get(server);
         TeamResearchState state = ensureTeamState(server, teamId);
+        List<String> assignedStations = ResearchMultiblockStationRegistry.stationsForTeam(server, teamId).stream()
+                .map(ResearchStationDescriptor::stationId)
+                .filter(id -> id != null && !id.isBlank())
+                .limit(1)
+                .toList();
         state.researchQueue().add(new ResearchQueueEntry(
                 nodeId,
                 0,
@@ -138,7 +154,7 @@ public final class ResearchManager {
                 Math.max(1, node.requiredRuns()),
                 false,
                 ResearchQueueStatus.QUEUED,
-                List.of()
+                assignedStations
         ));
         data.setDirty();
         ResearchV2Networking.syncTeam(server, teamId);
@@ -381,6 +397,11 @@ public final class ResearchManager {
         return true;
     }
 
+    public static int effectiveControllerTier(MinecraftServer server, String teamId) {
+        TeamResearchState state = ensureTeamState(server, teamId);
+        return effectiveControllerTier(server, teamId, state);
+    }
+
     public static boolean clearResearch(MinecraftServer server, String teamId) {
         TeamResearchState state = getTeamState(server, teamId);
         if (state == null) {
@@ -412,11 +433,49 @@ public final class ResearchManager {
 
     public static String snapshotJson(MinecraftServer server, String teamId) {
         TeamResearchState state = ensureTeamState(server, teamId);
+        int effectiveControllerTier = effectiveControllerTier(server, teamId, state);
+        List<ResearchStationDescriptor> stations = ResearchMultiblockStationRegistry.stationsForTeam(server, teamId);
+
         JsonObject root = new JsonObject();
         root.addProperty("teamId", teamId);
         root.addProperty("activeNetworkId", state.activeNetworkId() == null ? "" : state.activeNetworkId().toString());
         root.addProperty("researchEnabled", hasValidNetwork(state));
-        root.addProperty("controllerTier", state.controllerTier());
+        root.addProperty("controllerTier", effectiveControllerTier);
+        root.addProperty("focusModeEnabled", effectiveControllerTier >= 3);
+        root.addProperty("stationCount", stations.size());
+
+        JsonArray stationRows = new JsonArray();
+        for (ResearchStationDescriptor station : stations) {
+            JsonObject row = new JsonObject();
+            row.addProperty("stationId", station.stationId());
+            row.addProperty("teamId", station.teamId());
+            row.addProperty("dimensionId", station.dimensionId());
+            row.addProperty("stationTier", station.stationTier());
+            row.addProperty("formed", station.formed());
+            row.addProperty("rpBuffer", station.rpBuffer());
+            row.addProperty("rpCapacity", station.rpCapacity());
+            row.addProperty("slotCapacity", station.slotCapacity());
+            row.add("controllerPos", toJsonPos(station.controllerPos()));
+
+            JsonObject endpoints = new JsonObject();
+            endpoints.add("powerCore", toJsonPos(station.endpoints().powerCore()));
+
+            JsonArray inputRows = new JsonArray();
+            station.endpoints().inputs().forEach(pos -> inputRows.add(toJsonPos(pos)));
+            endpoints.add("inputs", inputRows);
+
+            JsonArray inventoryRows = new JsonArray();
+            station.endpoints().inventories().forEach(pos -> inventoryRows.add(toJsonPos(pos)));
+            endpoints.add("inventories", inventoryRows);
+            row.add("endpoints", endpoints);
+
+            JsonArray connectedRows = new JsonArray();
+            station.connectedParts().forEach(pos -> connectedRows.add(toJsonPos(pos)));
+            row.add("connectedParts", connectedRows);
+            row.addProperty("connectedPartCount", station.connectedParts().size());
+            stationRows.add(row);
+        }
+        root.add("stations", stationRows);
 
         JsonArray discovered = new JsonArray();
         state.discoveredNodes().stream().map(ResourceLocation::toString).sorted().forEach(discovered::add);
@@ -436,9 +495,9 @@ public final class ResearchManager {
             row.addProperty("requiredRuns", entry.requiredRuns());
             row.addProperty("runInputsCommitted", entry.runInputsCommitted());
             row.addProperty("status", entry.status().name());
-            JsonArray stations = new JsonArray();
-            entry.assignedStationIds().forEach(stations::add);
-            row.add("assignedStationIds", stations);
+            JsonArray assignedStations = new JsonArray();
+            entry.assignedStationIds().forEach(assignedStations::add);
+            row.add("assignedStationIds", assignedStations);
             queue.add(row);
         });
         root.add("researchQueue", queue);
@@ -567,8 +626,29 @@ public final class ResearchManager {
         return nodes.contains(nodeId);
     }
 
-    private static boolean isTier0BasicNode(ResearchNodeDefinition node) {
-        return node != null && TIER0_CATEGORY_WHITELIST.contains(node.categoryId());
+    private static boolean isBasicCategory(ResourceLocation categoryId) {
+        return categoryId != null && TIER0_CATEGORY_WHITELIST.contains(categoryId);
+    }
+
+    private static boolean isNodeAllowedByControllerTier(ResearchNodeDefinition node, int controllerTier) {
+        if (node == null || controllerTier <= 0) {
+            return false;
+        }
+        if (controllerTier == 1) {
+            return isBasicCategory(node.categoryId());
+        }
+        return true;
+    }
+
+    private static int effectiveControllerTier(MinecraftServer server, String teamId, TeamResearchState state) {
+        int tier = state == null ? 0 : Math.max(0, state.controllerTier());
+        for (ResearchStationDescriptor descriptor : ResearchMultiblockStationRegistry.stationsForTeam(server, teamId)) {
+            if (!descriptor.formed()) {
+                continue;
+            }
+            tier = Math.max(tier, descriptor.stationTier());
+        }
+        return tier;
     }
 
     private static int resolveRunTickRequired(ResearchQueueEntry entry, ResearchNodeDefinition node) {
@@ -632,5 +712,19 @@ public final class ResearchManager {
             data.setDirty();
         }
         return changed;
+    }
+
+    private static JsonObject toJsonPos(BlockPos pos) {
+        JsonObject row = new JsonObject();
+        if (pos == null) {
+            row.addProperty("x", 0);
+            row.addProperty("y", 0);
+            row.addProperty("z", 0);
+            return row;
+        }
+        row.addProperty("x", pos.getX());
+        row.addProperty("y", pos.getY());
+        row.addProperty("z", pos.getZ());
+        return row;
     }
 }

@@ -716,7 +716,7 @@ public class ResearchV2TreeScreen extends Screen {
     }
 
     private boolean shouldRevealDiscoveredNodeNames() {
-        return snapshot.controllerTier() >= 3;
+        return snapshot.focusModeEnabled();
     }
 
     private ResearchV2ClientCache.NodeEntry selectedNode() {

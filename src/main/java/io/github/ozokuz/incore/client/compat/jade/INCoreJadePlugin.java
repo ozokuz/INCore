@@ -16,8 +16,10 @@ import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabTier;
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
+import io.github.ozokuz.incore.features.researchv2.station.AbstractResearchControllerBlock;
 import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlock;
 import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlockEntity;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
 import io.github.ozokuz.incore.features.research.MechanicalLabBlock;
 import io.github.ozokuz.incore.features.research.ModularLabBlock;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarAutomatorBlock;
@@ -55,6 +57,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
     private static final SurfaceOreSpotProvider SURFACE_ORE_SPOT_PROVIDER = new SurfaceOreSpotProvider();
     private static final SurfaceStoneSpotProvider SURFACE_STONE_SPOT_PROVIDER = new SurfaceStoneSpotProvider();
     private static final CrudeResearchStationProvider CRUDE_RESEARCH_STATION_PROVIDER = new CrudeResearchStationProvider();
+    private static final ResearchControllerProvider RESEARCH_CONTROLLER_PROVIDER = new ResearchControllerProvider();
 
     @Override
     public void register(IWailaCommonRegistration registration) {
@@ -69,6 +72,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(DUNGEON_ALTAR_AUTOMATOR_PROVIDER, DungeonAltarAutomatorBlockEntity.class);
         registration.registerBlockDataProvider(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlockEntity.class);
         registration.registerBlockDataProvider(CRUDE_RESEARCH_STATION_PROVIDER, CrudeResearchStationBlockEntity.class);
+        registration.registerBlockDataProvider(RESEARCH_CONTROLLER_PROVIDER, ResearchControllerBlockEntity.class);
     }
 
     @Override
@@ -85,6 +89,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlock.class);
         registration.registerBlockComponent(SURFACE_STONE_SPOT_PROVIDER, SurfaceStoneSpotBlock.class);
         registration.registerBlockComponent(CRUDE_RESEARCH_STATION_PROVIDER, CrudeResearchStationBlock.class);
+        registration.registerBlockComponent(RESEARCH_CONTROLLER_PROVIDER, AbstractResearchControllerBlock.class);
     }
 
     private abstract static class BaseProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
@@ -643,6 +648,58 @@ public class INCoreJadePlugin implements IWailaPlugin {
             }
 
             tooltip.add(Component.translatable("jade.incore.crude_station.status", crudeStationStatusText(queueStatus)));
+        }
+    }
+
+    private static class ResearchControllerProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "research_controller_station");
+
+        @Override
+        public ResourceLocation getUid() {
+            return uid;
+        }
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof ResearchControllerBlockEntity controller)) {
+                return;
+            }
+
+            data.putBoolean("team_linked", !controller.teamId().isBlank());
+            data.putBoolean("formed", controller.isFormed());
+            data.putInt("tier", controller.stationTier());
+            data.putInt("rp_buffer", controller.rpBuffer());
+            data.putInt("rp_capacity", controller.rpCapacity());
+            data.putInt("part_count", controller.connectedPartCount());
+            if (controller.isFormed() && !controller.stationId().isBlank()) {
+                data.putString("station_id", controller.stationId());
+            }
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (data.isEmpty()) {
+                return;
+            }
+
+            Component linkedText = data.getBoolean("team_linked")
+                    ? Component.translatable("jade.incore.research_controller.team.linked")
+                    : Component.translatable("jade.incore.research_controller.team.unlinked");
+            tooltip.add(Component.translatable("jade.incore.research_controller.team", linkedText));
+            tooltip.add(Component.translatable("jade.incore.research_controller.tier", data.getInt("tier")));
+            tooltip.add(Component.translatable("jade.incore.research_controller.rp", data.getInt("rp_buffer"), data.getInt("rp_capacity")));
+
+            if (!data.getBoolean("formed")) {
+                tooltip.add(Component.translatable("jade.incore.research_controller.formed.no"));
+                return;
+            }
+
+            tooltip.add(Component.translatable("jade.incore.research_controller.formed.yes"));
+            tooltip.add(Component.translatable("jade.incore.research_controller.parts", data.getInt("part_count")));
+            if (data.contains("station_id")) {
+                tooltip.add(Component.translatable("jade.incore.research_controller.station_id", data.getString("station_id")));
+            }
         }
     }
 

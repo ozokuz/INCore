@@ -12,6 +12,8 @@ import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderMana
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchNetworkSavedData;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueEntry;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchStationDescriptor;
 import io.github.ozokuz.incore.features.researchv2.team.ResearchTeamResolver;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -26,6 +28,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,6 +49,10 @@ public final class ResearchV2Commands {
                                         .executes(ctx -> getSnapshot(ctx, ctx.getSource().getPlayerOrException()))
                                         .then(Commands.argument("target", EntityArgument.player())
                                                 .executes(ctx -> getSnapshot(ctx, EntityArgument.getPlayer(ctx, "target")))))
+                                .then(Commands.literal("stations")
+                                        .executes(ctx -> listStations(ctx, ctx.getSource().getPlayerOrException()))
+                                        .then(Commands.argument("target", EntityArgument.player())
+                                                .executes(ctx -> listStations(ctx, EntityArgument.getPlayer(ctx, "target")))))
                                 .then(Commands.literal("queue")
                                         .then(Commands.argument("targets", EntityArgument.players())
                                                 .then(Commands.argument("node", ResourceLocationArgument.id())
@@ -97,18 +104,19 @@ public final class ResearchV2Commands {
         MinecraftServer server = context.getSource().getServer();
         var state = ResearchManager.ensureTeamState(server, teamId);
         String networkId = state.activeNetworkId() == null ? "none" : state.activeNetworkId().toString();
+        int effectiveTier = ResearchManager.effectiveControllerTier(server, teamId);
 
         context.getSource().sendSuccess(() -> Component.literal(
                 "Research team=" + teamId
                         + ", network=" + networkId
-                        + ", controllerTier=" + state.controllerTier()
+                        + ", controllerTier=" + effectiveTier
                         + ", discovered=" + state.discoveredNodes().size()
                         + ", completed=" + state.completedNodes().size()
                         + ", queue=" + state.researchQueue().size()
         ), false);
 
         context.getSource().sendSuccess(() -> Component.literal(
-                "Power=" + state.storedResearchPowerBuffer()
+                "PowerAvailable=" + ResearchProviderManager.availablePower(server, teamId)
                         + ", materials={" + formatIntMap(state.devResearchMaterials()) + "}"
                         + ", modules={" + formatIntMap(state.devLogicModules()) + "}"
         ), false);
@@ -144,6 +152,42 @@ public final class ResearchV2Commands {
                     totalRequired,
                     percent,
                     powerPerTick
+            );
+            context.getSource().sendSuccess(() -> Component.literal(line), false);
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int listStations(CommandContext<CommandSourceStack> context, ServerPlayer target) {
+        String teamId = ResearchTeamResolver.resolveTeamId(target);
+        MinecraftServer server = context.getSource().getServer();
+        int effectiveTier = ResearchManager.effectiveControllerTier(server, teamId);
+        List<ResearchStationDescriptor> stations = ResearchMultiblockStationRegistry.stationsForTeam(server, teamId);
+
+        context.getSource().sendSuccess(() -> Component.literal(
+                "Research stations team=" + teamId
+                        + ", effectiveTier=" + effectiveTier
+                        + ", formedStations=" + stations.size()
+        ), false);
+
+        if (stations.isEmpty()) {
+            context.getSource().sendSuccess(() -> Component.literal("Stations: none formed."), false);
+            return Command.SINGLE_SUCCESS;
+        }
+
+        for (int i = 0; i < stations.size(); i++) {
+            ResearchStationDescriptor station = stations.get(i);
+            final int index = i + 1;
+            final String line = String.format(
+                    "#%d id=%s formed=%s tier=%d rp=%d/%d parts=%d powerCore=%s",
+                    index,
+                    station.stationId(),
+                    station.formed(),
+                    station.stationTier(),
+                    station.rpBuffer(),
+                    station.rpCapacity(),
+                    station.connectedParts().size(),
+                    station.endpoints().powerCore()
             );
             context.getSource().sendSuccess(() -> Component.literal(line), false);
         }

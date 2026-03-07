@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "incore:block/research_controller_t2" }
+  }
+}
