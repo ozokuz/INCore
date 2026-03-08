@@ -96,7 +96,16 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
     }
 
     @Override
+    public int availableResearchPower(ResearchControllerBlockEntity controller, int maxRp) {
+        return computeResearchPower(maxRp, true);
+    }
+
+    @Override
     public int pullResearchPower(ResearchControllerBlockEntity controller, int maxRp) {
+        return computeResearchPower(maxRp, false);
+    }
+
+    private int computeResearchPower(int maxRp, boolean simulate) {
         if (maxRp <= 0) {
             return 0;
         }
@@ -105,18 +114,22 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
         int rpLimit = Math.max(0, maxRp);
         int tier = powerTier();
         int totalFe = Math.max(0, feRemainder);
-        int feNeeded = Math.max(0, rpLimit * fePerRp - totalFe);
+        long targetFe = (long) rpLimit * fePerRp;
+        long feNeededLong = Math.max(0L, targetFe - totalFe);
+        int feNeeded = (int) Math.min(Integer.MAX_VALUE, feNeededLong);
         int feBudget = Math.min(Math.max(0, maxFePerTick(tier)), feNeeded);
 
         if (feBudget > 0) {
-            totalFe += extractForCore(Math.min(feBudget, Math.max(1, maxFePerInputOperation(tier))), false);
+            totalFe += extractForCore(Math.min(feBudget, Math.max(1, maxFePerInputOperation(tier))), simulate);
         }
 
         int produced = Math.min(rpLimit, totalFe / fePerRp);
-        int nextRemainder = totalFe - produced * fePerRp;
-        if (nextRemainder != feRemainder) {
-            feRemainder = nextRemainder;
-            setChanged();
+        if (!simulate) {
+            int nextRemainder = totalFe - produced * fePerRp;
+            if (nextRemainder != feRemainder) {
+                feRemainder = nextRemainder;
+                setChanged();
+            }
         }
         return Math.max(0, produced);
     }

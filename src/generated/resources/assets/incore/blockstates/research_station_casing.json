@@ -1,0 +1,7 @@
+{
+    "variants": {
+        "": {
+            "model": "incore:block/research_station_casing"
+        }
+    }
+}

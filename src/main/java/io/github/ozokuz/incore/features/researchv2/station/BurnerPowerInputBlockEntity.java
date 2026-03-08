@@ -43,7 +43,16 @@ public class BurnerPowerInputBlockEntity extends BlockEntity implements IResearc
     }
 
     @Override
+    public int availableResearchPower(ResearchControllerBlockEntity controller, int maxRp) {
+        return computeResearchPower(maxRp, false);
+    }
+
+    @Override
     public int pullResearchPower(ResearchControllerBlockEntity controller, int maxRp) {
+        return computeResearchPower(maxRp, true);
+    }
+
+    private int computeResearchPower(int maxRp, boolean consumeFuel) {
         if (maxRp <= 0) {
             return 0;
         }
@@ -55,16 +64,20 @@ public class BurnerPowerInputBlockEntity extends BlockEntity implements IResearc
         }
 
         int totalBurnTicks = Math.max(0, burnTickRemainder);
-        int burnTicksNeeded = Math.max(0, rpLimit * ticksPerRp - totalBurnTicks);
+        long targetBurnTicks = (long) rpLimit * ticksPerRp;
+        long burnTicksNeededLong = Math.max(0L, targetBurnTicks - totalBurnTicks);
+        int burnTicksNeeded = (int) Math.min(Integer.MAX_VALUE, burnTicksNeededLong);
         if (burnTicksNeeded > 0) {
-            totalBurnTicks += consumeBurnTicksUpTo(burnTicksNeeded);
+            totalBurnTicks += consumeFuel ? consumeBurnTicksUpTo(burnTicksNeeded) : peekBurnTicksUpTo(burnTicksNeeded);
         }
 
         int produced = Math.min(rpLimit, totalBurnTicks / ticksPerRp);
-        int nextRemainder = totalBurnTicks - produced * ticksPerRp;
-        if (nextRemainder != burnTickRemainder) {
-            burnTickRemainder = nextRemainder;
-            setChanged();
+        if (consumeFuel) {
+            int nextRemainder = totalBurnTicks - produced * ticksPerRp;
+            if (nextRemainder != burnTickRemainder) {
+                burnTickRemainder = nextRemainder;
+                setChanged();
+            }
         }
         return Math.max(0, produced);
     }
@@ -103,6 +116,29 @@ public class BurnerPowerInputBlockEntity extends BlockEntity implements IResearc
             setChanged();
         }
         return consumed;
+    }
+
+    public int peekBurnTicksUpTo(int burnTicksNeeded) {
+        if (burnTicksNeeded <= 0) {
+            return 0;
+        }
+
+        int available = 0;
+        for (int slot = 0; slot < items.getSlots() && available < burnTicksNeeded; slot++) {
+            ItemStack stack = items.getStackInSlot(slot);
+            if (!isAcceptedFuel(stack)) {
+                continue;
+            }
+
+            int fuelValue = stack.getBurnTime(null);
+            if (fuelValue <= 0) {
+                continue;
+            }
+
+            int stackContribution = fuelValue * stack.getCount();
+            available += Math.min(stackContribution, burnTicksNeeded - available);
+        }
+        return available;
     }
 
     public void dropContents() {

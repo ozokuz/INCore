@@ -668,8 +668,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
             data.putBoolean("team_linked", !controller.teamId().isBlank());
             data.putBoolean("formed", controller.isFormed());
             data.putInt("tier", controller.stationTier());
-            data.putInt("rp_buffer", controller.rpBuffer());
-            data.putInt("rp_capacity", controller.rpCapacity());
+            data.putInt("rp_available", controller.availableResearchPower(Integer.MAX_VALUE));
             data.putInt("part_count", controller.connectedPartCount());
             data.putString("power_family", controller.powerFamily() == null ? "" : controller.powerFamily().name());
             data.putInt("power_input_tier", controller.powerInputTier());
@@ -691,7 +690,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
                     : Component.translatable("jade.incore.research_controller.team.unlinked");
             tooltip.add(Component.translatable("jade.incore.research_controller.team", linkedText));
             tooltip.add(Component.translatable("jade.incore.research_controller.tier", data.getInt("tier")));
-            tooltip.add(Component.translatable("jade.incore.research_controller.rp", data.getInt("rp_buffer"), data.getInt("rp_capacity")));
+            tooltip.add(Component.translatable("jade.incore.research_controller.rp_available", data.getInt("rp_available")));
 
             if (!data.getBoolean("formed")) {
                 tooltip.add(Component.translatable("jade.incore.research_controller.formed.no"));

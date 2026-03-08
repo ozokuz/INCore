@@ -641,7 +641,7 @@
   "jade.incore.research_controller.team.linked": "Linked",
   "jade.incore.research_controller.team.unlinked": "Unlinked",
   "jade.incore.research_controller.tier": "Tier: %s",
-  "jade.incore.research_controller.rp": "RP Buffer: %s/%s",
+  "jade.incore.research_controller.rp_available": "RP Available: %s",
   "jade.incore.research_controller.formed.yes": "Structure: Formed",
   "jade.incore.research_controller.formed.no": "Structure: Not Formed",
   "jade.incore.research_controller.parts": "Connected Parts: %s",
