@@ -206,7 +206,10 @@ public final class ResearchV2ClientCache {
                     Math.max(0, intOr(row, "completedRuns", 0)),
                     Math.max(1, intOr(row, "requiredRuns", 1)),
                     boolOr(row, "runInputsCommitted", false),
-                    stringOr(row, "status", "QUEUED")
+                    stringOr(row, "status", "QUEUED"),
+                    Math.max(0, intOr(row, "runPowerMultiplierBps", 10_000)),
+                    Math.max(0, intOr(row, "runBonusRunChanceBps", 0)),
+                    Math.max(0, intOr(row, "runCorruptionMultiplierBps", 10_000))
             ));
         }
         return queue;
@@ -237,6 +240,21 @@ public final class ResearchV2ClientCache {
             JsonArray inputRows = endpoints != null && endpoints.has("inputs") && endpoints.get("inputs").isJsonArray()
                     ? endpoints.getAsJsonArray("inputs")
                     : null;
+            JsonObject logicHousing = endpoints != null && endpoints.has("logicHousing") && endpoints.get("logicHousing").isJsonObject()
+                    ? endpoints.getAsJsonObject("logicHousing")
+                    : null;
+            JsonObject researchDrive = endpoints != null && endpoints.has("researchDrive") && endpoints.get("researchDrive").isJsonObject()
+                    ? endpoints.getAsJsonObject("researchDrive")
+                    : null;
+            JsonObject materialStorage = endpoints != null && endpoints.has("materialStorage") && endpoints.get("materialStorage").isJsonObject()
+                    ? endpoints.getAsJsonObject("materialStorage")
+                    : null;
+            JsonArray outputPorts = endpoints != null && endpoints.has("outputPorts") && endpoints.get("outputPorts").isJsonArray()
+                    ? endpoints.getAsJsonArray("outputPorts")
+                    : null;
+            JsonObject augmenter = endpoints != null && endpoints.has("augmenter") && endpoints.get("augmenter").isJsonObject()
+                    ? endpoints.getAsJsonObject("augmenter")
+                    : null;
             int x = intOr(controllerPos, "x", 0);
             int y = intOr(controllerPos, "y", 0);
             int z = intOr(controllerPos, "z", 0);
@@ -254,11 +272,32 @@ public final class ResearchV2ClientCache {
                     x,
                     y,
                     z,
-                    readPositions(inputRows)
+                    readPositions(inputRows),
+                    stringOr(row, "outputPortModes", "NONE"),
+                    Math.max(0, intOr(row, "mountedDiskTier", 0)),
+                    Math.max(0, intOr(row, "mountedDiskSnapshotCount", 0)),
+                    Math.max(0, intOr(row, "mountedDiskCorruptedSegmentCount", 0)),
+                    Math.max(0, intOr(row, "mountedDiskCorruptedSnapshotCount", 0)),
+                    Math.max(0.0D, doubleOr(row, "activeSpeedMultiplier", 1.0D)),
+                    Math.max(0.0D, doubleOr(row, "activePowerMultiplier", 1.0D)),
+                    Math.max(0.0D, doubleOr(row, "activeBonusRunChance", 0.0D)),
+                    Math.max(0.0D, doubleOr(row, "activeCorruptionMultiplier", 1.0D)),
+                    readPosition(logicHousing),
+                    readPosition(researchDrive),
+                    readPosition(materialStorage),
+                    readPositions(outputPorts),
+                    readPosition(augmenter)
             ));
         }
         stations.sort(Comparator.comparing(StationEntry::stationId));
         return List.copyOf(stations);
+    }
+
+    private static PositionEntry readPosition(JsonObject object) {
+        if (object == null) {
+            return new PositionEntry(0, 0, 0);
+        }
+        return new PositionEntry(intOr(object, "x", 0), intOr(object, "y", 0), intOr(object, "z", 0));
     }
 
     private static List<PositionEntry> readPositions(JsonArray array) {
@@ -392,6 +431,17 @@ public final class ResearchV2ClientCache {
         }
     }
 
+    private static double doubleOr(JsonObject object, String key, double fallback) {
+        if (object == null || key == null || !object.has(key) || object.get(key).isJsonNull()) {
+            return fallback;
+        }
+        try {
+            return object.get(key).getAsDouble();
+        } catch (RuntimeException ignored) {
+            return fallback;
+        }
+    }
+
     public record Snapshot(
             boolean loaded,
             String teamId,
@@ -453,7 +503,10 @@ public final class ResearchV2ClientCache {
             int completedRuns,
             int requiredRuns,
             boolean runInputsCommitted,
-            String status
+            String status,
+            int runPowerMultiplierBps,
+            int runBonusRunChanceBps,
+            int runCorruptionMultiplierBps
     ) {
     }
 
@@ -490,7 +543,21 @@ public final class ResearchV2ClientCache {
             int controllerX,
             int controllerY,
             int controllerZ,
-            List<PositionEntry> inputPositions
+            List<PositionEntry> inputPositions,
+            String outputPortModes,
+            int mountedDiskTier,
+            int mountedDiskSnapshotCount,
+            int mountedDiskCorruptedSegmentCount,
+            int mountedDiskCorruptedSnapshotCount,
+            double activeSpeedMultiplier,
+            double activePowerMultiplier,
+            double activeBonusRunChance,
+            double activeCorruptionMultiplier,
+            PositionEntry logicHousingPos,
+            PositionEntry researchDrivePos,
+            PositionEntry materialStoragePos,
+            List<PositionEntry> outputPortPositions,
+            PositionEntry augmenterPos
     ) {
     }
 

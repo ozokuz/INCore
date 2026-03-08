@@ -23,17 +23,30 @@ public class ResearchMaterialManager extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> jsons, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         Map<ResourceLocation, ResearchMaterialDefinition> next = new LinkedHashMap<>();
+        Map<ResourceLocation, ResourceLocation> itemToMaterial = new LinkedHashMap<>();
         jsons.forEach((id, json) -> {
             if (!json.isJsonObject()) {
                 return;
             }
             ResearchMaterialDefinition definition = readDefinition(id, json.getAsJsonObject());
             if (definition != null) {
+                ResourceLocation existing = itemToMaterial.putIfAbsent(definition.itemId(), id);
+                if (existing != null) {
+                    INCore.LOGGER.warn("Ignoring duplicate research material '{}' for item '{}'; already mapped by '{}'.", id, definition.itemId(), existing);
+                    return;
+                }
                 next.put(id, definition);
             }
         });
 
-        ResearchMaterialKubeJsBridge.collect().forEach((id, definition) -> next.put(id, definition));
+        ResearchMaterialKubeJsBridge.collect().forEach((id, definition) -> {
+            ResourceLocation existing = itemToMaterial.putIfAbsent(definition.itemId(), id);
+            if (existing != null) {
+                INCore.LOGGER.warn("Ignoring duplicate KubeJS research material '{}' for item '{}'; already mapped by '{}'.", id, definition.itemId(), existing);
+                return;
+            }
+            next.put(id, definition);
+        });
         materials = Map.copyOf(next);
         INCore.LOGGER.info("Loaded {} research materials.", materials.size());
     }
@@ -82,4 +95,3 @@ public class ResearchMaterialManager extends SimpleJsonResourceReloadListener {
         return id == null ? null : materials.get(id);
     }
 }
-

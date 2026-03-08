@@ -17,6 +17,15 @@ public record ResearchStationDescriptor(
         int availableResearchPower,
         ResearchPowerFamily powerFamily,
         int powerInputTier,
+        String outputPortModes,
+        int mountedDiskTier,
+        int mountedDiskSnapshotCount,
+        int mountedDiskCorruptedSegmentCount,
+        int mountedDiskCorruptedSnapshotCount,
+        double activeSpeedMultiplier,
+        double activePowerMultiplier,
+        double activeBonusRunChance,
+        double activeCorruptionMultiplier,
         ResearchStationEndpoints endpoints,
         List<BlockPos> connectedParts
 ) {
@@ -30,7 +39,16 @@ public record ResearchStationDescriptor(
         slotCapacity = Math.max(0, slotCapacity);
         availableResearchPower = Math.max(0, availableResearchPower);
         powerInputTier = Math.max(0, powerInputTier);
-        endpoints = endpoints == null ? new ResearchStationEndpoints(List.of(), List.of()) : endpoints;
+        mountedDiskTier = Math.max(0, mountedDiskTier);
+        mountedDiskSnapshotCount = Math.max(0, mountedDiskSnapshotCount);
+        mountedDiskCorruptedSegmentCount = Math.max(0, mountedDiskCorruptedSegmentCount);
+        mountedDiskCorruptedSnapshotCount = Math.max(0, mountedDiskCorruptedSnapshotCount);
+        activeSpeedMultiplier = Math.max(0.0D, activeSpeedMultiplier);
+        activePowerMultiplier = Math.max(0.0D, activePowerMultiplier);
+        activeBonusRunChance = Math.max(0.0D, activeBonusRunChance);
+        activeCorruptionMultiplier = Math.max(0.0D, activeCorruptionMultiplier);
+        outputPortModes = outputPortModes == null ? "NONE" : outputPortModes;
+        endpoints = endpoints == null ? new ResearchStationEndpoints(List.of(), List.of(), null, null, null, List.of(), null) : endpoints;
         connectedParts = connectedParts == null ? List.of() : List.copyOf(connectedParts);
     }
 }

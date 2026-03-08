@@ -74,6 +74,11 @@ public final class ResearchStationMultiblockValidator {
         int powerInputTier = 0;
         int controllerCount = 0;
         Block inputBlockType = null;
+        BlockPos logicHousingPos = null;
+        BlockPos researchDrivePos = null;
+        BlockPos materialStoragePos = null;
+        List<BlockPos> outputPortPositions = new ArrayList<>(2);
+        BlockPos augmenterPos = null;
 
         for (int dx = 0; dx < sizeX; dx++) {
             for (int dy = 0; dy < sizeY; dy++) {
@@ -97,6 +102,31 @@ public final class ResearchStationMultiblockValidator {
                                 || inputBlock.powerTier() != powerInputTier) {
                             return ResearchStationTopology.unformed();
                         }
+                    } else if (state.getBlock() instanceof LogicHousingBlock) {
+                        if (logicHousingPos != null) {
+                            return ResearchStationTopology.unformed();
+                        }
+                        logicHousingPos = pos.immutable();
+                    } else if (state.getBlock() instanceof ResearchDriveBlock) {
+                        if (researchDrivePos != null) {
+                            return ResearchStationTopology.unformed();
+                        }
+                        researchDrivePos = pos.immutable();
+                    } else if (state.getBlock() instanceof MaterialStorageBlock) {
+                        if (materialStoragePos != null) {
+                            return ResearchStationTopology.unformed();
+                        }
+                        materialStoragePos = pos.immutable();
+                    } else if (state.getBlock() instanceof OutputPortBlock) {
+                        if (outputPortPositions.size() >= 2) {
+                            return ResearchStationTopology.unformed();
+                        }
+                        outputPortPositions.add(pos.immutable());
+                    } else if (state.getBlock() instanceof AugmenterBlock) {
+                        if (augmenterPos != null) {
+                            return ResearchStationTopology.unformed();
+                        }
+                        augmenterPos = pos.immutable();
                     } else if (state.getBlock() != casingBlock) {
                         return ResearchStationTopology.unformed();
                     }
@@ -106,7 +136,11 @@ public final class ResearchStationMultiblockValidator {
             }
         }
 
-        if (controllerCount != 1 || inputs.isEmpty()) {
+        if (controllerCount != 1
+                || inputs.isEmpty()
+                || logicHousingPos == null
+                || researchDrivePos == null
+                || materialStoragePos == null) {
             return ResearchStationTopology.unformed();
         }
 
@@ -126,7 +160,19 @@ public final class ResearchStationMultiblockValidator {
 
         connected.sort(Comparator.comparingLong(BlockPos::asLong));
         inputs.sort(Comparator.comparingLong(BlockPos::asLong));
-        return new ResearchStationTopology(true, connected, inputs, powerFamily, powerInputTier);
+        outputPortPositions.sort(Comparator.comparingLong(BlockPos::asLong));
+        return new ResearchStationTopology(
+                true,
+                connected,
+                inputs,
+                logicHousingPos,
+                researchDrivePos,
+                materialStoragePos,
+                outputPortPositions,
+                augmenterPos,
+                powerFamily,
+                powerInputTier
+        );
     }
 
     private static boolean isValidControllerPlacement(

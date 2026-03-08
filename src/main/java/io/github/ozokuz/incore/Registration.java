@@ -312,6 +312,17 @@ public class Registration {
     public static final DeferredBlock<Block> MODULAR_LAB_BLOCK = BLOCKS.register("modular_lab", ModularLabBlock::new);
     public static final DeferredBlock<Block> CRUDE_RESEARCH_STATION_BLOCK = BLOCKS.register("crude_research_station", () -> new CrudeResearchStationBlock());
     public static final DeferredBlock<Block> RESEARCH_STATION_CASING_BLOCK = BLOCKS.register("research_station_casing", () -> new ResearchStationCasingBlock());
+    public static final DeferredBlock<Block> LOGIC_HOUSING_BLOCK = BLOCKS.register("logic_housing", () -> new LogicHousingBlock());
+    public static final DeferredBlock<Block> LOGIC_HOUSING_T2_BLOCK = BLOCKS.register("logic_housing_t2", () -> new LogicHousingBlock(2, BlockBehaviour.Properties.of()));
+    public static final DeferredBlock<Block> LOGIC_HOUSING_T3_BLOCK = BLOCKS.register("logic_housing_t3", () -> new LogicHousingBlock(3, BlockBehaviour.Properties.of()));
+    public static final DeferredBlock<Block> LOGIC_HOUSING_T4_BLOCK = BLOCKS.register("logic_housing_t4", () -> new LogicHousingBlock(4, BlockBehaviour.Properties.of()));
+    public static final DeferredBlock<Block> RESEARCH_DRIVE_BLOCK = BLOCKS.register("research_drive", () -> new ResearchDriveBlock());
+    public static final DeferredBlock<Block> MATERIAL_STORAGE_BLOCK = BLOCKS.register("material_storage", () -> new MaterialStorageBlock());
+    public static final DeferredBlock<Block> MATERIAL_STORAGE_T2_BLOCK = BLOCKS.register("material_storage_t2", () -> new MaterialStorageBlock(2, BlockBehaviour.Properties.of()));
+    public static final DeferredBlock<Block> MATERIAL_STORAGE_T3_BLOCK = BLOCKS.register("material_storage_t3", () -> new MaterialStorageBlock(3, BlockBehaviour.Properties.of()));
+    public static final DeferredBlock<Block> MATERIAL_STORAGE_T4_BLOCK = BLOCKS.register("material_storage_t4", () -> new MaterialStorageBlock(4, BlockBehaviour.Properties.of()));
+    public static final DeferredBlock<Block> OUTPUT_PORT_BLOCK = BLOCKS.register("output_port", () -> new OutputPortBlock());
+    public static final DeferredBlock<Block> AUGMENTER_BLOCK = BLOCKS.register("augmenter", () -> new AugmenterBlock());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T1_BLOCK = BLOCKS.register("research_controller_t1", () -> new ResearchControllerTier1Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T2_BLOCK = BLOCKS.register("research_controller_t2", () -> new ResearchControllerTier2Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T3_BLOCK = BLOCKS.register("research_controller_t3", () -> new ResearchControllerTier3Block());
@@ -346,6 +357,38 @@ public class Registration {
                     RESEARCH_CONTROLLER_T4_BLOCK.get()
             ).build(null)
     );
+    public static final Supplier<BlockEntityType<LogicHousingBlockEntity>> LOGIC_HOUSING_BE = BLOCK_ENTITY_TYPES.register(
+            "logic_housing",
+            () -> BlockEntityType.Builder.of(
+                    LogicHousingBlockEntity::new,
+                    LOGIC_HOUSING_BLOCK.get(),
+                    LOGIC_HOUSING_T2_BLOCK.get(),
+                    LOGIC_HOUSING_T3_BLOCK.get(),
+                    LOGIC_HOUSING_T4_BLOCK.get()
+            ).build(null)
+    );
+    public static final Supplier<BlockEntityType<ResearchDriveBlockEntity>> RESEARCH_DRIVE_BE = BLOCK_ENTITY_TYPES.register(
+            "research_drive",
+            () -> BlockEntityType.Builder.of(ResearchDriveBlockEntity::new, RESEARCH_DRIVE_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<MaterialStorageBlockEntity>> MATERIAL_STORAGE_BE = BLOCK_ENTITY_TYPES.register(
+            "material_storage",
+            () -> BlockEntityType.Builder.of(
+                    MaterialStorageBlockEntity::new,
+                    MATERIAL_STORAGE_BLOCK.get(),
+                    MATERIAL_STORAGE_T2_BLOCK.get(),
+                    MATERIAL_STORAGE_T3_BLOCK.get(),
+                    MATERIAL_STORAGE_T4_BLOCK.get()
+            ).build(null)
+    );
+    public static final Supplier<BlockEntityType<OutputPortBlockEntity>> OUTPUT_PORT_BE = BLOCK_ENTITY_TYPES.register(
+            "output_port",
+            () -> BlockEntityType.Builder.of(OutputPortBlockEntity::new, OUTPUT_PORT_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<AugmenterBlockEntity>> AUGMENTER_BE = BLOCK_ENTITY_TYPES.register(
+            "augmenter",
+            () -> BlockEntityType.Builder.of(AugmenterBlockEntity::new, AUGMENTER_BLOCK.get()).build(null)
+    );
     public static final Supplier<BlockEntityType<BurnerPowerInputBlockEntity>> BURNER_POWER_INPUT_BE = BLOCK_ENTITY_TYPES.register(
             "burner_power_input",
             () -> BlockEntityType.Builder.of(BurnerPowerInputBlockEntity::new, BURNER_POWER_INPUT_BLOCK.get()).build(null)
@@ -372,11 +415,42 @@ public class Registration {
                     (CrudeResearchStationBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
             ))
     );
+    public static final Supplier<MenuType<LogicHousingMenu>> LOGIC_HOUSING_MENU = MENU_TYPES.register(
+            "logic_housing",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new LogicHousingMenu(id, inv, (LogicHousingBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
+    );
+    public static final Supplier<MenuType<ResearchDriveMenu>> RESEARCH_DRIVE_MENU = MENU_TYPES.register(
+            "research_drive",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new ResearchDriveMenu(id, inv, (ResearchDriveBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
+    );
+    public static final Supplier<MenuType<MaterialStorageMenu>> MATERIAL_STORAGE_MENU = MENU_TYPES.register(
+            "material_storage",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new MaterialStorageMenu(id, inv, (MaterialStorageBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
+    );
+    public static final Supplier<MenuType<OutputPortMenu>> OUTPUT_PORT_MENU = MENU_TYPES.register(
+            "output_port",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new OutputPortMenu(id, inv, (OutputPortBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
+    );
+    public static final Supplier<MenuType<AugmenterMenu>> AUGMENTER_MENU = MENU_TYPES.register(
+            "augmenter",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new AugmenterMenu(id, inv, (AugmenterBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
+    );
     public static final DeferredItem<BlockItem> BURNER_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_lab", BURNER_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
     public static final DeferredItem<BlockItem> CRUDE_RESEARCH_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("crude_research_station", CRUDE_RESEARCH_STATION_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_STATION_CASING_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_station_casing", RESEARCH_STATION_CASING_BLOCK);
+    public static final DeferredItem<BlockItem> LOGIC_HOUSING_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("logic_housing", LOGIC_HOUSING_BLOCK);
+    public static final DeferredItem<BlockItem> LOGIC_HOUSING_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("logic_housing_t2", LOGIC_HOUSING_T2_BLOCK);
+    public static final DeferredItem<BlockItem> LOGIC_HOUSING_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("logic_housing_t3", LOGIC_HOUSING_T3_BLOCK);
+    public static final DeferredItem<BlockItem> LOGIC_HOUSING_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("logic_housing_t4", LOGIC_HOUSING_T4_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_DRIVE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_drive", RESEARCH_DRIVE_BLOCK);
+    public static final DeferredItem<BlockItem> MATERIAL_STORAGE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("material_storage", MATERIAL_STORAGE_BLOCK);
+    public static final DeferredItem<BlockItem> MATERIAL_STORAGE_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("material_storage_t2", MATERIAL_STORAGE_T2_BLOCK);
+    public static final DeferredItem<BlockItem> MATERIAL_STORAGE_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("material_storage_t3", MATERIAL_STORAGE_T3_BLOCK);
+    public static final DeferredItem<BlockItem> MATERIAL_STORAGE_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("material_storage_t4", MATERIAL_STORAGE_T4_BLOCK);
+    public static final DeferredItem<BlockItem> OUTPUT_PORT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("output_port", OUTPUT_PORT_BLOCK);
+    public static final DeferredItem<BlockItem> AUGMENTER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("augmenter", AUGMENTER_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T1_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t1", RESEARCH_CONTROLLER_T1_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t2", RESEARCH_CONTROLLER_T2_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t3", RESEARCH_CONTROLLER_T3_BLOCK);
@@ -490,9 +564,34 @@ public class Registration {
     public static final DeferredItem<Item> PRODUCTIVITY_MODULE_CARD_ITEM = ITEMS.registerItem("productivity_module_card", properties -> new ProductivityModuleCardItem(properties.stacksTo(16)));
     public static final DeferredItem<Item> BASIC_LOGIC_MODULE_ITEM = ITEMS.registerItem(
             "basic_logic_module",
-            properties -> new Item(properties.stacksTo(1).durability(64))
+            properties -> new LogicModuleItem(properties, LogicModuleTier.T1, true, "fresh")
     );
+    public static final DeferredItem<Item> LOGIC_MODULE_T2_ITEM = ITEMS.registerItem("logic_module_t2", properties -> new LogicModuleItem(properties, LogicModuleTier.T2, true, "fresh"));
+    public static final DeferredItem<Item> LOGIC_MODULE_T3_ITEM = ITEMS.registerItem("logic_module_t3", properties -> new LogicModuleItem(properties, LogicModuleTier.T3, true, "fresh"));
+    public static final DeferredItem<Item> LOGIC_MODULE_T4_ITEM = ITEMS.registerItem("logic_module_t4", properties -> new LogicModuleItem(properties, LogicModuleTier.T4, true, "fresh"));
+    public static final DeferredItem<Item> BROKEN_LOGIC_MODULE_T2_ITEM = ITEMS.registerItem("broken_logic_module_t2", properties -> new LogicModuleItem(properties, LogicModuleTier.T2, false, "broken"));
+    public static final DeferredItem<Item> BROKEN_LOGIC_MODULE_T3_ITEM = ITEMS.registerItem("broken_logic_module_t3", properties -> new LogicModuleItem(properties, LogicModuleTier.T3, false, "broken"));
+    public static final DeferredItem<Item> USED_LOGIC_MODULE_T3_ITEM = ITEMS.registerItem("used_logic_module_t3", properties -> new LogicModuleItem(properties, LogicModuleTier.T3, false, "used"));
+    public static final DeferredItem<Item> USED_LOGIC_MODULE_T4_ITEM = ITEMS.registerItem("used_logic_module_t4", properties -> new LogicModuleItem(properties, LogicModuleTier.T4, false, "used"));
     public static final DeferredItem<Item> STARTER_DATA_ITEM = ITEMS.registerSimpleItem("starter_data");
+    public static final DeferredItem<Item> RESEARCH_DISK_T1_ITEM = ITEMS.registerItem("research_disk_t1", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T1));
+    public static final DeferredItem<Item> RESEARCH_DISK_T2_ITEM = ITEMS.registerItem("research_disk_t2", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T2));
+    public static final DeferredItem<Item> RESEARCH_DISK_T3_ITEM = ITEMS.registerItem("research_disk_t3", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T3));
+    public static final DeferredItem<Item> RESEARCH_DISK_T4_ITEM = ITEMS.registerItem("research_disk_t4", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T4));
+    public static final DeferredItem<Item> SPEED_AUGMENT_ITEM = ITEMS.registerItem("speed_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPEED, false, null));
+    public static final DeferredItem<Item> PRODUCTIVITY_AUGMENT_ITEM = ITEMS.registerItem("productivity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.PRODUCTIVITY, false, null));
+    public static final DeferredItem<Item> STABILIZER_AUGMENT_ITEM = ITEMS.registerItem("stabilizer_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.STABILIZER, false, null));
+    public static final DeferredItem<Item> DUNGEON_SPEED_AUGMENT_ITEM = ITEMS.registerItem("dungeon_speed_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPEED, true, null));
+    public static final DeferredItem<Item> DUNGEON_PRODUCTIVITY_AUGMENT_ITEM = ITEMS.registerItem("dungeon_productivity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.PRODUCTIVITY, true, null));
+    public static final DeferredItem<Item> DUNGEON_STABILIZER_AUGMENT_ITEM = ITEMS.registerItem("dungeon_stabilizer_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.STABILIZER, true, null));
+    public static final DeferredItem<Item> DUNGEON_SPECIALIZER_FOUNDATIONS_ITEM = ITEMS.registerItem(
+            "dungeon_specializer_foundations",
+            properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPECIALIZER, true, ResourceLocation.fromNamespaceAndPath(INCore.MODID, "foundations"))
+    );
+    public static final DeferredItem<Item> DUNGEON_SPECIALIZER_EXPEDITION_ITEM = ITEMS.registerItem(
+            "dungeon_specializer_expedition",
+            properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPECIALIZER, true, ResourceLocation.fromNamespaceAndPath(INCore.MODID, "expedition"))
+    );
     public static final DeferredItem<Item> CARD_MODULE_ITEM = ITEMS.registerItem("card_module", CardModuleItem::new);
     public static final DeferredItem<Item> CARD_BOOSTER_ITEM = ITEMS.registerItem("card_booster", CardBoosterItem::new);
     public static final DeferredItem<Item> CARD_BOOSTER_BOX_ITEM = ITEMS.registerItem("card_booster_box", CardBoosterBoxItem::new);
@@ -589,6 +688,17 @@ public class Registration {
                 output.accept(MODULAR_LAB_BLOCK_ITEM.get());
                 output.accept(CRUDE_RESEARCH_STATION_BLOCK_ITEM.get());
                 output.accept(RESEARCH_STATION_CASING_BLOCK_ITEM.get());
+                output.accept(LOGIC_HOUSING_BLOCK_ITEM.get());
+                output.accept(LOGIC_HOUSING_T2_BLOCK_ITEM.get());
+                output.accept(LOGIC_HOUSING_T3_BLOCK_ITEM.get());
+                output.accept(LOGIC_HOUSING_T4_BLOCK_ITEM.get());
+                output.accept(RESEARCH_DRIVE_BLOCK_ITEM.get());
+                output.accept(MATERIAL_STORAGE_BLOCK_ITEM.get());
+                output.accept(MATERIAL_STORAGE_T2_BLOCK_ITEM.get());
+                output.accept(MATERIAL_STORAGE_T3_BLOCK_ITEM.get());
+                output.accept(MATERIAL_STORAGE_T4_BLOCK_ITEM.get());
+                output.accept(OUTPUT_PORT_BLOCK_ITEM.get());
+                output.accept(AUGMENTER_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T1_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T2_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T3_BLOCK_ITEM.get());
@@ -600,7 +710,26 @@ public class Registration {
                 output.accept(ELECTRIC_POWER_INPUT_T3_BLOCK_ITEM.get());
                 output.accept(ELECTRIC_POWER_INPUT_T4_BLOCK_ITEM.get());
                 output.accept(BASIC_LOGIC_MODULE_ITEM.get());
+                output.accept(LOGIC_MODULE_T2_ITEM.get());
+                output.accept(LOGIC_MODULE_T3_ITEM.get());
+                output.accept(LOGIC_MODULE_T4_ITEM.get());
+                output.accept(BROKEN_LOGIC_MODULE_T2_ITEM.get());
+                output.accept(BROKEN_LOGIC_MODULE_T3_ITEM.get());
+                output.accept(USED_LOGIC_MODULE_T3_ITEM.get());
+                output.accept(USED_LOGIC_MODULE_T4_ITEM.get());
                 output.accept(STARTER_DATA_ITEM.get());
+                output.accept(RESEARCH_DISK_T1_ITEM.get());
+                output.accept(RESEARCH_DISK_T2_ITEM.get());
+                output.accept(RESEARCH_DISK_T3_ITEM.get());
+                output.accept(RESEARCH_DISK_T4_ITEM.get());
+                output.accept(SPEED_AUGMENT_ITEM.get());
+                output.accept(PRODUCTIVITY_AUGMENT_ITEM.get());
+                output.accept(STABILIZER_AUGMENT_ITEM.get());
+                output.accept(DUNGEON_SPEED_AUGMENT_ITEM.get());
+                output.accept(DUNGEON_PRODUCTIVITY_AUGMENT_ITEM.get());
+                output.accept(DUNGEON_STABILIZER_AUGMENT_ITEM.get());
+                output.accept(DUNGEON_SPECIALIZER_FOUNDATIONS_ITEM.get());
+                output.accept(DUNGEON_SPECIALIZER_EXPEDITION_ITEM.get());
                 output.accept(SPEED_MODULE_CARD_ITEM.get());
                 output.accept(PRODUCTIVITY_MODULE_CARD_ITEM.get());
 
