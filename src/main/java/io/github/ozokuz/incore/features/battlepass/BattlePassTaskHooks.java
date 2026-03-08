@@ -16,12 +16,12 @@ public final class BattlePassTaskHooks {
         }
     }
 
-    public static void onSanityRecovered(ServerPlayer player, int amount) {
+    public static void onEntropyRecovered(ServerPlayer player, int amount) {
         if (amount <= 0) {
             return;
         }
         Instant now = Instant.now();
-        BattlePassProgressManager.addProgressByTriggerType(player, BattlePassDefinition.TriggerType.SANITY_RECOVER, amount, now);
+        BattlePassProgressManager.addProgressByTriggerType(player, BattlePassDefinition.TriggerType.ENTROPY_RECOVER, amount, now);
         BattlePassNetworking.syncToPlayer(player);
     }
 
@@ -58,9 +58,9 @@ public final class BattlePassTaskHooks {
         BattlePassNetworking.syncToPlayer(player);
     }
 
-    public static void onVendorPurchase(ServerPlayer player) {
+    public static void onVendingMachinePurchase(ServerPlayer player) {
         Instant now = Instant.now();
-        BattlePassProgressManager.addProgressByTriggerType(player, BattlePassDefinition.TriggerType.VENDOR_PURCHASE, 1, now);
+        BattlePassProgressManager.addProgressByTriggerType(player, BattlePassDefinition.TriggerType.VENDING_MACHINE_PURCHASE, 1, now);
         BattlePassNetworking.syncToPlayer(player);
     }
 

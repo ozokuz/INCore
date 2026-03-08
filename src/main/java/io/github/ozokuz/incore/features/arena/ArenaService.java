@@ -320,7 +320,7 @@ public final class ArenaService {
                 entry.difficultyId(),
                 entry.difficultyName(),
                 entry.gatewayId().toString(),
-                entry.rewardSanityCost(),
+                entry.rewardEntropyCost(),
                 entry.rewardItems().stream()
                         .map(stack -> new RewardView(stack.itemId().toString(), stack.count()))
                         .toList(),
@@ -440,7 +440,7 @@ public final class ArenaService {
             String difficultyId,
             String difficultyName,
             String gatewayId,
-            int rewardSanityCost,
+            int rewardEntropyCost,
             List<RewardView> rewardItems,
             String rewardSummary
     ) {

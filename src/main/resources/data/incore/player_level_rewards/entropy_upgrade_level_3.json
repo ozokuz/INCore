@@ -1,0 +1,9 @@
+{
+  "level": 3,
+  "rewards": [
+    {
+      "type": "entropy_cap_bonus",
+      "amount": 10
+    }
+  ]
+}

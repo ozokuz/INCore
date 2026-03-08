@@ -5,7 +5,7 @@ public enum DailyTask {
     SHOP_PURCHASE("Shop Purchases", 3),
     ARENA_COMPLETION("Arena Completions", 2),
     DUNGEON_COMPLETION("Dungeon Completion", 1),
-    VENDOR_PURCHASE("Vendor Purchase", 1),
+    VENDING_MACHINE_PURCHASE("Vending Machine Purchase", 1),
     BUY_FROM_PLAYER("Buy from Player", 1),
     SELL_TO_PLAYER("Sell to Player", 1);
 

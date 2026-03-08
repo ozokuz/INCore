@@ -219,7 +219,7 @@ public class CombatCatalogScreen extends Screen {
         y += 12;
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.gateway", selected.gatewayId()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_META, false);
         y += 12;
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.sanity", selected.rewardSanityCost()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_WARNING, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.entropy", selected.rewardEntropyCost()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_WARNING, false);
         y += 16;
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.rewards"), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_HEADING, false);
         y += 10;

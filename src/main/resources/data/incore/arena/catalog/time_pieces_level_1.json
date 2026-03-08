@@ -7,7 +7,7 @@
   "sort_order": 110,
   "reward_summary": "Basic time piece supply.",
   "reward": {
-    "sanity_cost": 20,
+    "entropy_cost": 20,
     "items": [
       { "item": "incore:basic_time_piece", "count": 2 }
     ]

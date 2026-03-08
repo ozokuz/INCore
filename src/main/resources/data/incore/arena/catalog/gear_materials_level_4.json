@@ -7,7 +7,7 @@
   "sort_order": 40,
   "reward_summary": "High-end forge materials.",
   "reward": {
-    "sanity_cost": 60,
+    "entropy_cost": 60,
     "items": [
       { "item": "minecraft:diamond", "count": 10 },
       { "item": "minecraft:emerald", "count": 10 },

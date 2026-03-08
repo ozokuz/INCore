@@ -3,7 +3,7 @@ package io.github.ozokuz.incore.features.playerlevel;
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
-import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
+import io.github.ozokuz.incore.features.entropy.network.EntropyNetworking;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -21,7 +21,7 @@ public class PlayerLevelEvents {
         PlayerLevelManager.initialize(player);
         PlayerLevelManager.grantPendingRewards(player);
         PlayerLevelNetworking.syncToPlayer(player);
-        SanityNetworking.syncToPlayer(player);
+        EntropyNetworking.syncToPlayer(player);
         BattlePassNetworking.syncToPlayer(player);
     }
 

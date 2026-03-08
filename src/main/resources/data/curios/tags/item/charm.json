@@ -1,6 +1,6 @@
 {
   "replace": false,
   "values": [
-    "incore:vendor_discount_charm"
+    "incore:vending_machine_discount_charm"
   ]
 }

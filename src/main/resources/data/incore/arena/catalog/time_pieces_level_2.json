@@ -7,7 +7,7 @@
   "sort_order": 120,
   "reward_summary": "Larger basic time piece cache.",
   "reward": {
-    "sanity_cost": 30,
+    "entropy_cost": 30,
     "items": [
       { "item": "incore:basic_time_piece", "count": 4 }
     ]

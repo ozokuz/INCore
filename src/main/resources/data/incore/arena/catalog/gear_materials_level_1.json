@@ -7,7 +7,7 @@
   "sort_order": 10,
   "reward_summary": "Starter upgrade bundle.",
   "reward": {
-    "sanity_cost": 20,
+    "entropy_cost": 20,
     "items": [
       { "item": "minecraft:iron_ingot", "count": 16 },
       { "item": "minecraft:coal", "count": 24 }

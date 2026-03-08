@@ -14,7 +14,7 @@ public record ArenaCatalogEntry(
         String difficultyId,
         String difficultyName,
         ResourceLocation gatewayId,
-        int rewardSanityCost,
+        int rewardEntropyCost,
         List<ArenaRewardStack> rewardItems,
         String rewardSummary,
         int sortOrder
@@ -31,7 +31,7 @@ public record ArenaCatalogEntry(
         }
 
         JsonObject reward = json.getAsJsonObject("reward");
-        if (!reward.has("sanity_cost") || !reward.has("items")) {
+        if (!reward.has("entropy_cost") || !reward.has("items")) {
             return null;
         }
 
@@ -55,7 +55,7 @@ public record ArenaCatalogEntry(
             return null;
         }
 
-        int sanityCost = Math.max(0, reward.get("sanity_cost").getAsInt());
+        int entropyCost = Math.max(0, reward.get("entropy_cost").getAsInt());
         String summary = json.has("reward_summary") ? json.get("reward_summary").getAsString() : "";
         int sortOrder = json.has("sort_order") ? json.get("sort_order").getAsInt() : 0;
 
@@ -66,7 +66,7 @@ public record ArenaCatalogEntry(
                 json.get("difficulty_id").getAsString(),
                 json.get("difficulty_name").getAsString(),
                 gatewayId,
-                sanityCost,
+                entropyCost,
                 List.copyOf(rewardItems),
                 summary,
                 sortOrder

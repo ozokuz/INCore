@@ -16,7 +16,7 @@ import io.github.ozokuz.incore.features.cards.CardDeckCoreManager;
 import io.github.ozokuz.incore.features.cards.CardModuleManager;
 import io.github.ozokuz.incore.features.cards.CardSetManager;
 import io.github.ozokuz.incore.features.cards.CardSynergyManager;
-import io.github.ozokuz.incore.features.cards.CardVendorIntegration;
+import io.github.ozokuz.incore.features.cards.CardVendingMachineIntegration;
 import io.github.ozokuz.incore.features.cards.command.CardCommands;
 import io.github.ozokuz.incore.features.cards.network.CardNetworking;
 import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
@@ -47,8 +47,8 @@ import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonSocketManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
 import io.github.ozokuz.incore.features.roguelike.network.RoguelikeNetworking;
-import io.github.ozokuz.incore.features.sanity.command.SanityCommands;
-import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
+import io.github.ozokuz.incore.features.entropy.command.EntropyCommands;
+import io.github.ozokuz.incore.features.entropy.network.EntropyNetworking;
 import io.github.ozokuz.incore.features.shop.ShopCategoryManager;
 import io.github.ozokuz.incore.features.shop.ShopOfferManager;
 import io.github.ozokuz.incore.features.shop.command.ShopCommands;
@@ -59,9 +59,9 @@ import io.github.ozokuz.incore.features.tasks.TaskDataManager;
 import io.github.ozokuz.incore.features.tasks.command.TaskCommands;
 import io.github.ozokuz.incore.features.tasks.network.TaskNetworking;
 import com.simibubi.create.api.stress.BlockStressValues;
-import io.github.ozokuz.incore.features.vendor.VendorBootstrap;
-import io.github.ozokuz.incore.features.vendor.VendorOfferManager;
-import io.github.ozokuz.incore.features.vendor.network.VendorNetworking;
+import io.github.ozokuz.incore.features.vendingmachine.VendingMachineBootstrap;
+import io.github.ozokuz.incore.features.vendingmachine.VendingMachineOfferManager;
+import io.github.ozokuz.incore.features.vendingmachine.network.VendingMachineNetworking;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -90,7 +90,7 @@ public class INCore {
     public INCore(IEventBus modEventBus, ModContainer modContainer) {
         Registration.register(modEventBus);
         modEventBus.register(this);
-        modEventBus.addListener(SanityNetworking::registerPayloads);
+        modEventBus.addListener(EntropyNetworking::registerPayloads);
         modEventBus.addListener(GachaNetworking::registerPayloads);
         modEventBus.addListener(PlayerLevelNetworking::registerPayloads);
         modEventBus.addListener(TaskNetworking::registerPayloads);
@@ -99,12 +99,12 @@ public class INCore {
         modEventBus.addListener(ArenaNetworking::registerPayloads);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(CardNetworking::registerPayloads);
-        modEventBus.addListener(VendorNetworking::registerPayloads);
+        modEventBus.addListener(VendingMachineNetworking::registerPayloads);
         modEventBus.addListener(PlayerStatusNetworking::registerPayloads);
         modEventBus.addListener(SurfaceOreNetworking::registerPayloads);
 
-        VendorBootstrap.initialize();
-        CardVendorIntegration.initialize();
+        VendingMachineBootstrap.initialize();
+        CardVendingMachineIntegration.initialize();
         modEventBus.addListener(NumismaticsNetworking::registerPayloads);
         modEventBus.addListener(MarketNetworking::registerPayloads);
         modEventBus.addListener(ShopNetworking::registerPayloads);
@@ -113,7 +113,7 @@ public class INCore {
         modEventBus.addListener(MarketMachineCapabilities::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onReloadListener);
-        NeoForge.EVENT_BUS.addListener(SanityCommands::register);
+        NeoForge.EVENT_BUS.addListener(EntropyCommands::register);
         NeoForge.EVENT_BUS.addListener(GachaCommands::register);
         NeoForge.EVENT_BUS.addListener(TaskCommands::register);
         NeoForge.EVENT_BUS.addListener(BattlePassCommands::register);
@@ -189,7 +189,7 @@ public class INCore {
         event.addListener(new CardDeckCoreManager());
         event.addListener(new CardDeckBoxManager());
         event.addListener(new CardSynergyManager());
-        event.addListener(new VendorOfferManager());
+        event.addListener(new VendingMachineOfferManager());
         event.addListener(new MarketItemManager());
         event.addListener(new ShopCategoryManager());
         event.addListener(new ShopOfferManager());

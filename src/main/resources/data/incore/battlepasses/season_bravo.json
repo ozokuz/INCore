@@ -1125,7 +1125,7 @@
         "level": 10,
         "rewards": [
           {
-            "type": "sanity_cap_bonus",
+            "type": "entropy_cap_bonus",
             "amount": 7
           }
         ]
@@ -1144,7 +1144,7 @@
         "level": 20,
         "rewards": [
           {
-            "type": "sanity_cap_bonus",
+            "type": "entropy_cap_bonus",
             "amount": 8
           }
         ]
@@ -1163,7 +1163,7 @@
         "level": 30,
         "rewards": [
           {
-            "type": "sanity_cap_bonus",
+            "type": "entropy_cap_bonus",
             "amount": 9
           }
         ]
@@ -1182,7 +1182,7 @@
         "level": 40,
         "rewards": [
           {
-            "type": "sanity_cap_bonus",
+            "type": "entropy_cap_bonus",
             "amount": 10
           }
         ]

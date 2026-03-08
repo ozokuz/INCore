@@ -1,6 +1,6 @@
 package io.github.ozokuz.incore.features.playerlevel;
 
-import io.github.ozokuz.incore.features.sanity.SanityManager;
+import io.github.ozokuz.incore.features.entropy.EntropyManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,19 +37,19 @@ public interface PlayerLevelReward {
         }
     }
 
-    record SanityCapBonusReward(int amount) implements PlayerLevelReward {
+    record EntropyCapBonusReward(int amount) implements PlayerLevelReward {
         @Override
         public void grant(ServerPlayer player) {
             if (amount <= 0) {
                 return;
             }
 
-            SanityManager.addSanityCapBonus(player, amount);
+            EntropyManager.addEntropyCapBonus(player, amount);
         }
 
         @Override
         public String previewText() {
-            return "+" + amount + " max sanity";
+            return "+" + amount + " max entropy";
         }
     }
 

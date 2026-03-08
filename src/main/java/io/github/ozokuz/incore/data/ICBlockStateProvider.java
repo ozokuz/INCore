@@ -20,7 +20,7 @@ public class ICBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(Registration.ENCOUNTER_SPAWNER_BLOCK.get(), spawnerModel);
 
 //        var gachaRiftModel = models().withExistingParent("gacha_rift", mcLoc("block/cube_all"))
-//                .texture("all", modLoc("item/sanity_crate"));
+//                .texture("all", modLoc("item/entropy_crate"));
 //        simpleBlock(Registration.GACHA_RIFT_BLOCK.get(), gachaRiftModel);
 //        simpleBlockItem(Registration.GACHA_RIFT_BLOCK.get(), gachaRiftModel);
     }

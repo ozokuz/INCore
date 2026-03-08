@@ -94,7 +94,7 @@ public class DailyTaskSavedData extends SavedData {
         private int shopPurchases;
         private int arenaCompletions;
         private int dungeonCompletions;
-        private int vendorPurchases;
+        private int vending_machinePurchases;
         private int numismaticsBuys;
         private int numismaticsSells;
         private boolean rewardClaimed;
@@ -142,12 +142,12 @@ public class DailyTaskSavedData extends SavedData {
             this.dungeonCompletions = dungeonCompletions;
         }
 
-        public int getVendorPurchases() {
-            return vendorPurchases;
+        public int getVendingMachinePurchases() {
+            return vending_machinePurchases;
         }
 
-        public void setVendorPurchases(int vendorPurchases) {
-            this.vendorPurchases = vendorPurchases;
+        public void setVendingMachinePurchases(int vending_machinePurchases) {
+            this.vending_machinePurchases = vending_machinePurchases;
         }
 
         public int getNumismaticsBuys() {
@@ -180,7 +180,7 @@ public class DailyTaskSavedData extends SavedData {
             this.shopPurchases = 0;
             this.arenaCompletions = 0;
             this.dungeonCompletions = 0;
-            this.vendorPurchases = 0;
+            this.vending_machinePurchases = 0;
             this.numismaticsBuys = 0;
             this.numismaticsSells = 0;
             this.rewardClaimed = false;
@@ -192,7 +192,7 @@ public class DailyTaskSavedData extends SavedData {
                 case SHOP_PURCHASE -> shopPurchases;
                 case ARENA_COMPLETION -> arenaCompletions;
                 case DUNGEON_COMPLETION -> dungeonCompletions;
-                case VENDOR_PURCHASE -> vendorPurchases;
+                case VENDING_MACHINE_PURCHASE -> vending_machinePurchases;
                 case BUY_FROM_PLAYER -> numismaticsBuys;
                 case SELL_TO_PLAYER -> numismaticsSells;
             };
@@ -205,7 +205,7 @@ public class DailyTaskSavedData extends SavedData {
             tag.putInt("shopPurchases", shopPurchases);
             tag.putInt("arenaCompletions", arenaCompletions);
             tag.putInt("dungeonCompletions", dungeonCompletions);
-            tag.putInt("vendorPurchases", vendorPurchases);
+            tag.putInt("vending_machinePurchases", vending_machinePurchases);
             tag.putInt("numismaticsBuys", numismaticsBuys);
             tag.putInt("numismaticsSells", numismaticsSells);
             tag.putBoolean("rewardClaimed", rewardClaimed);
@@ -219,7 +219,7 @@ public class DailyTaskSavedData extends SavedData {
             data.shopPurchases = tag.getInt("shopPurchases");
             data.arenaCompletions = tag.getInt("arenaCompletions");
             data.dungeonCompletions = tag.getInt("dungeonCompletions");
-            data.vendorPurchases = tag.getInt("vendorPurchases");
+            data.vending_machinePurchases = tag.getInt("vending_machinePurchases");
             data.numismaticsBuys = tag.getInt("numismaticsBuys");
             data.numismaticsSells = tag.getInt("numismaticsSells");
             data.rewardClaimed = tag.getBoolean("rewardClaimed");

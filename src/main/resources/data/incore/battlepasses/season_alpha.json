@@ -35,13 +35,13 @@
       "trigger_type": "arena_complete"
     },
     {
-      "id": "alpha_week1_vendor",
+      "id": "alpha_week1_vending_machine",
       "type": "weekly",
       "week": 1,
       "tier": "gold",
       "goal": 5,
-      "description": "Purchase 5 vendor offers",
-      "trigger_type": "vendor_purchase"
+      "description": "Purchase 5 vending machine offers",
+      "trigger_type": "vending_machine_purchase"
     },
     {
       "id": "alpha_week2_market_buy",
@@ -87,12 +87,12 @@
       "description": "Use 10 banner time pieces"
     },
     {
-      "id": "alpha_permanent_sanity",
+      "id": "alpha_permanent_entropy",
       "type": "permanent",
       "tier": "gold",
       "goal": 50,
-      "description": "Recover 50 sanity",
-      "trigger_type": "sanity_recover"
+      "description": "Recover 50 entropy",
+      "trigger_type": "entropy_recover"
     },
     {
       "id": "alpha_permanent_crates",
@@ -1151,7 +1151,7 @@
         "level": 10,
         "rewards": [
           {
-            "type": "sanity_cap_bonus",
+            "type": "entropy_cap_bonus",
             "amount": 6
           }
         ]
@@ -1170,7 +1170,7 @@
         "level": 20,
         "rewards": [
           {
-            "type": "sanity_cap_bonus",
+            "type": "entropy_cap_bonus",
             "amount": 7
           }
         ]
@@ -1189,7 +1189,7 @@
         "level": 30,
         "rewards": [
           {
-            "type": "sanity_cap_bonus",
+            "type": "entropy_cap_bonus",
             "amount": 8
           }
         ]
@@ -1208,7 +1208,7 @@
         "level": 40,
         "rewards": [
           {
-            "type": "sanity_cap_bonus",
+            "type": "entropy_cap_bonus",
             "amount": 9
           }
         ]

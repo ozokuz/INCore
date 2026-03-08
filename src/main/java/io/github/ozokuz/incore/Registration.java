@@ -25,9 +25,9 @@ import io.github.ozokuz.incore.features.cards.DeckStationBlock;
 import io.github.ozokuz.incore.features.cards.DeckStationBlockEntity;
 import io.github.ozokuz.incore.features.cards.DeckStationMenu;
 import io.github.ozokuz.incore.features.cards.DecryptorBlock;
-import io.github.ozokuz.incore.features.vendor.VendorBlock;
-import io.github.ozokuz.incore.features.vendor.VendorBlockEntity;
-import io.github.ozokuz.incore.features.vendor.VendorDiscountCharmItem;
+import io.github.ozokuz.incore.features.vendingmachine.VendingMachineBlock;
+import io.github.ozokuz.incore.features.vendingmachine.VendingMachineBlockEntity;
+import io.github.ozokuz.incore.features.vendingmachine.VendingMachineDiscountCharmItem;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlock;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
 import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMk2Block;
@@ -73,9 +73,9 @@ import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
-import io.github.ozokuz.incore.features.sanity.SanityBoosterItem;
-import io.github.ozokuz.incore.features.sanity.SanityCrateItem;
-import io.github.ozokuz.incore.features.sanity.SanityVesselItem;
+import io.github.ozokuz.incore.features.entropy.EntropyBoosterItem;
+import io.github.ozokuz.incore.features.entropy.EntropyCrateItem;
+import io.github.ozokuz.incore.features.entropy.EntropyVesselItem;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -141,9 +141,9 @@ public class Registration {
     public static final DeferredItem<BlockItem> DECK_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("deck_station", DECK_STATION_BLOCK);
     public static final DeferredBlock<Block> CARD_DECRYPTOR_BLOCK = BLOCKS.register("card_decryptor", DecryptorBlock::new);
     public static final DeferredItem<BlockItem> CARD_DECRYPTOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_decryptor", CARD_DECRYPTOR_BLOCK);
-    public static final DeferredBlock<Block> VENDOR_BLOCK = BLOCKS.register("vendor", () -> new VendorBlock());
-    public static final Supplier<BlockEntityType<VendorBlockEntity>> VENDOR_BE = BLOCK_ENTITY_TYPES.register("vendor", () -> BlockEntityType.Builder.of(VendorBlockEntity::new, VENDOR_BLOCK.get()).build(null));
-    public static final DeferredItem<BlockItem> VENDOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("vendor", VENDOR_BLOCK);
+    public static final DeferredBlock<Block> VENDING_MACHINE_BLOCK = BLOCKS.register("vending_machine", () -> new VendingMachineBlock());
+    public static final Supplier<BlockEntityType<VendingMachineBlockEntity>> VENDING_MACHINE_BE = BLOCK_ENTITY_TYPES.register("vending_machine", () -> BlockEntityType.Builder.of(VendingMachineBlockEntity::new, VENDING_MACHINE_BLOCK.get()).build(null));
+    public static final DeferredItem<BlockItem> VENDING_MACHINE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("vending_machine", VENDING_MACHINE_BLOCK);
     public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
     public static final DeferredBlock<Block> MARKET_TERMINAL_BLOCK = BLOCKS.register("market_terminal", () -> new MarketTerminalBlock());
     public static final Supplier<BlockEntityType<MarketTerminalBlockEntity>> MARKET_TERMINAL_BE = BLOCK_ENTITY_TYPES.register(
@@ -334,10 +334,10 @@ public class Registration {
     public static final DeferredItem<Item> UNIVERSAL_ORE_LOCATOR = ITEMS.registerItem("universal_ore_locator", properties -> new SurfaceOreTypeLocatorItem(properties, "Or", 7));
     public static final DeferredItem<Item> UNIVERSAL_STONE_LOCATOR = ITEMS.registerItem("universal_stone_locator", properties -> new SurfaceStoneTypeLocatorItem(properties, "St", 8));
 
-    public static final DeferredItem<Item> SANITY_CRATE_ITEM = ITEMS.registerItem("sanity_crate", SanityCrateItem::new);
-    public static final DeferredItem<Item> SANITY_BOOSTER_SMALL_ITEM = ITEMS.registerItem("sanity_booster_small", properties -> new SanityBoosterItem(properties, 50));
-    public static final DeferredItem<Item> SANITY_BOOSTER_LARGE_ITEM = ITEMS.registerItem("sanity_booster_large", properties -> new SanityBoosterItem(properties, 100));
-    public static final DeferredItem<Item> SANITY_VESSEL_ITEM = ITEMS.registerItem("sanity_vessel", SanityVesselItem::new);
+    public static final DeferredItem<Item> ENTROPY_CRATE_ITEM = ITEMS.registerItem("entropy_crate", EntropyCrateItem::new);
+    public static final DeferredItem<Item> ENTROPY_BOOSTER_SMALL_ITEM = ITEMS.registerItem("entropy_booster_small", properties -> new EntropyBoosterItem(properties, 50));
+    public static final DeferredItem<Item> ENTROPY_BOOSTER_LARGE_ITEM = ITEMS.registerItem("entropy_booster_large", properties -> new EntropyBoosterItem(properties, 100));
+    public static final DeferredItem<Item> ENTROPY_VESSEL_ITEM = ITEMS.registerItem("entropy_vessel", EntropyVesselItem::new);
     public static final DeferredItem<Item> BATTLEPASS_LANE_UNLOCK_ITEM = ITEMS.registerItem(
             "battlepass_lane_unlock",
             properties -> new BattlePassLaneUnlockItem(properties)
@@ -355,7 +355,7 @@ public class Registration {
     public static final DeferredItem<Item> CARD_DECK_ITEM = ITEMS.registerItem("card_deck", DeckItem::new);
     public static final DeferredItem<Item> CARD_SLEEVE_ITEM = ITEMS.registerItem("card_sleeve", CardSleeveItem::new);
     public static final DeferredItem<Item> CARD_TOKEN_ITEM = ITEMS.registerItem("card_token", CardTokenItem::new);
-    public static final DeferredItem<Item> VENDOR_DISCOUNT_CHARM_ITEM = ITEMS.registerItem("vendor_discount_charm", VendorDiscountCharmItem::new);
+    public static final DeferredItem<Item> VENDING_MACHINE_DISCOUNT_CHARM_ITEM = ITEMS.registerItem("vending_machine_discount_charm", VendingMachineDiscountCharmItem::new);
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> DUNGEON_CRYSTAL_THEME =
             DATA_COMPONENT_TYPES.registerComponentType(
@@ -409,8 +409,8 @@ public class Registration {
                 output.accept(QUARTZ_ORE_STONE_BLOCK_ITEM.get());
                 output.accept(QUARTZ_ORE_STONE_SLAB_BLOCK_ITEM.get());
 
-                // Vendor
-                output.accept(VENDOR_BLOCK_ITEM.get());
+                // VendingMachine
+                output.accept(VENDING_MACHINE_BLOCK_ITEM.get());
 
                 // Market
                 output.accept(MARKET_TERMINAL_BLOCK_ITEM.get());
@@ -419,9 +419,9 @@ public class Registration {
                 output.accept(MARKET_AUTOBUYER_BLOCK_ITEM.get());
                 output.accept(MARKET_AUTOBUYER_MK2_BLOCK_ITEM.get());
 
-                // Sanity
-                output.accept(SANITY_BOOSTER_SMALL_ITEM.get());
-                output.accept(SANITY_BOOSTER_LARGE_ITEM.get());
+                // Entropy
+                output.accept(ENTROPY_BOOSTER_SMALL_ITEM.get());
+                output.accept(ENTROPY_BOOSTER_LARGE_ITEM.get());
 
                 // Gacha
                 output.accept(BASIC_TIME_PIECE_ITEM.get());
@@ -439,7 +439,7 @@ public class Registration {
                 output.accept(CARD_DECRYPTOR_BLOCK_ITEM.get());
                 output.accept(CARD_SLEEVE_ITEM.get());
                 output.accept(CARD_TOKEN_ITEM.get());
-                output.accept(VENDOR_DISCOUNT_CHARM_ITEM.get());
+                output.accept(VENDING_MACHINE_DISCOUNT_CHARM_ITEM.get());
             }).build());
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> DEBUG_TAB = CREATIVE_MODE_TABS.register("debug_tab", () -> CreativeModeTab.builder()
@@ -480,9 +480,9 @@ public class Registration {
                 output.accept(ARENA_ORB_BLOCK_ITEM.get());
                 output.accept(ARENA_REWARD_RIFT_BLOCK_ITEM.get());
 
-                // Sanity Something
-                output.accept(SANITY_CRATE_ITEM.get());
-                output.accept(SANITY_VESSEL_ITEM.get());
+                // Entropy Something
+                output.accept(ENTROPY_CRATE_ITEM.get());
+                output.accept(ENTROPY_VESSEL_ITEM.get());
 
                 // NBT Items
                 output.accept(BATTLEPASS_LANE_UNLOCK_ITEM.get());

@@ -562,9 +562,9 @@ public class PlayerLevelRewardsScreen extends Screen {
 
     private static List<Component> tooltipForNonItemReward(PlayerLevelClientCache.RewardEntry reward) {
         List<Component> lines = new ArrayList<>();
-        if (reward.kind() == PlayerLevelSyncPayload.REWARD_KIND_SANITY_CAP) {
-            lines.add(Component.translatable("screen.incore.player_level_rewards.tooltip_sanity_cap_title"));
-            lines.add(Component.translatable("screen.incore.player_level_rewards.tooltip_sanity_cap", reward.amount()).withStyle(ChatFormatting.GRAY));
+        if (reward.kind() == PlayerLevelSyncPayload.REWARD_KIND_ENTROPY_CAP) {
+            lines.add(Component.translatable("screen.incore.player_level_rewards.tooltip_entropy_cap_title"));
+            lines.add(Component.translatable("screen.incore.player_level_rewards.tooltip_entropy_cap", reward.amount()).withStyle(ChatFormatting.GRAY));
             if (!reward.text().isBlank()) {
                 lines.add(Component.literal(reward.text()).withStyle(ChatFormatting.DARK_GRAY));
             }
@@ -584,7 +584,7 @@ public class PlayerLevelRewardsScreen extends Screen {
 
     private static int rewardCardFill(int kind) {
         return switch (kind) {
-            case PlayerLevelSyncPayload.REWARD_KIND_SANITY_CAP -> UIScreenTheme.Info.PLR_REWARD_SANITY_FILL;
+            case PlayerLevelSyncPayload.REWARD_KIND_ENTROPY_CAP -> UIScreenTheme.Info.PLR_REWARD_ENTROPY_FILL;
             case PlayerLevelSyncPayload.REWARD_KIND_COMMAND -> UIScreenTheme.Info.PLR_REWARD_COMMAND_FILL;
             default -> UIScreenTheme.Info.PLR_REWARD_DEFAULT_FILL;
         };

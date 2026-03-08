@@ -25,8 +25,8 @@ public final class DailyTaskEvents {
         DailyTaskService.onDungeonCompletion(player);
     }
 
-    public static void onVendorPurchase(ServerPlayer player) {
-        DailyTaskService.onVendorPurchase(player);
+    public static void onVendingMachinePurchase(ServerPlayer player) {
+        DailyTaskService.onVendingMachinePurchase(player);
     }
 
     public static void onBuyFromPlayer(ServerPlayer buyer) {

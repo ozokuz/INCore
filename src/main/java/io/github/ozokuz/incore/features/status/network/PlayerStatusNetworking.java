@@ -1,7 +1,7 @@
 package io.github.ozokuz.incore.features.status.network;
 
-import io.github.ozokuz.incore.features.vendor.VendorService;
-import io.github.ozokuz.incore.features.vendor.VendorService.BalanceEntryView;
+import io.github.ozokuz.incore.features.vendingmachine.VendingMachineService;
+import io.github.ozokuz.incore.features.vendingmachine.VendingMachineService.BalanceEntryView;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -32,7 +32,7 @@ public final class PlayerStatusNetworking {
     }
 
     static void syncCurrencyToPlayer(ServerPlayer player) {
-        List<BalanceEntryView> balances = VendorService.collectPlayerBalanceEntries(player);
+        List<BalanceEntryView> balances = VendingMachineService.collectPlayerBalanceEntries(player);
         PacketDistributor.sendToPlayer(
                 player,
                 new PlayerStatusCurrencySyncPayload(

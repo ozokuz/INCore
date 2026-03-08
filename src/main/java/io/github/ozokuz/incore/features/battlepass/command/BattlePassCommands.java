@@ -15,7 +15,7 @@ import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassProgressManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassWeekTime;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
-import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
+import io.github.ozokuz.incore.features.entropy.network.EntropyNetworking;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -179,7 +179,7 @@ public final class BattlePassCommands {
                 }
                 String successMessage = message;
                 context.getSource().sendSuccess(() -> Component.literal(successMessage), true);
-                SanityNetworking.syncToPlayer(target);
+                EntropyNetworking.syncToPlayer(target);
             } else {
                 context.getSource().sendFailure(Component.literal(message));
             }
@@ -214,7 +214,7 @@ public final class BattlePassCommands {
                 String successMessage = message;
                 context.getSource().sendSuccess(() -> Component.literal(successMessage), true);
                 if (result.completedNow()) {
-                    SanityNetworking.syncToPlayer(target);
+                    EntropyNetworking.syncToPlayer(target);
                 }
             } else {
                 context.getSource().sendFailure(Component.literal(message));

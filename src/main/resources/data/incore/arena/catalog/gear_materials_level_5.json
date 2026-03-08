@@ -7,7 +7,7 @@
   "sort_order": 50,
   "reward_summary": "Top-tier endgame materials.",
   "reward": {
-    "sanity_cost": 80,
+    "entropy_cost": 80,
     "items": [
       { "item": "minecraft:netherite_scrap", "count": 3 },
       { "item": "minecraft:diamond", "count": 24 },

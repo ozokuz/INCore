@@ -17,7 +17,7 @@ public record PlayerLevelSyncPayload(
         List<RewardPreviewEntry> rewardPreviews
 ) implements CustomPacketPayload {
     public static final int REWARD_KIND_ITEM = 0;
-    public static final int REWARD_KIND_SANITY_CAP = 1;
+    public static final int REWARD_KIND_ENTROPY_CAP = 1;
     public static final int REWARD_KIND_COMMAND = 2;
 
     public static final Type<PlayerLevelSyncPayload> TYPE = new Type<>(ResourceLocation.parse("incore:player_level_sync"));

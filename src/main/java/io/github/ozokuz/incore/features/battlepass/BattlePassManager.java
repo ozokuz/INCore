@@ -338,7 +338,7 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
                     GsonHelper.getAsString(rewardObject, "command"),
                     GsonHelper.getAsString(rewardObject, "preview", "Battle pass command")
             );
-            case "sanity_cap_bonus" -> new BattlePassReward.SanityCapBonusReward(
+            case "entropy_cap_bonus" -> new BattlePassReward.EntropyCapBonusReward(
                     Math.max(1, GsonHelper.getAsInt(rewardObject, "amount"))
             );
             default -> throw new IllegalArgumentException("Unknown reward type: " + type);

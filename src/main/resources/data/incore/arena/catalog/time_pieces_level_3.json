@@ -7,7 +7,7 @@
   "sort_order": 130,
   "reward_summary": "Mixed time piece rewards.",
   "reward": {
-    "sanity_cost": 45,
+    "entropy_cost": 45,
     "items": [
       { "item": "incore:basic_time_piece", "count": 6 },
       { "item": "incore:chartered_time_piece", "count": 1 }

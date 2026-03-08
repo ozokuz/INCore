@@ -577,8 +577,8 @@ public final class TaskService {
                         player.server.createCommandSourceStack().withPermission(2).withEntity(player),
                         commandReward.command().replace("{player}", player.getScoreboardName())
                 );
-            } else if (reward instanceof TaskReward.SanityReward sanityReward) {
-                io.github.ozokuz.incore.features.sanity.SanityManager.addSanity(player, sanityReward.amount());
+            } else if (reward instanceof TaskReward.EntropyReward entropyReward) {
+                io.github.ozokuz.incore.features.entropy.EntropyManager.addEntropy(player, entropyReward.amount());
             }
         }
     }
@@ -593,8 +593,8 @@ public final class TaskService {
                         itemReward.count(),
                         ""
                 ));
-            } else if (reward instanceof TaskReward.SanityReward sanityReward) {
-                rewards.add(new RewardView("sanity", "incore:sanity_vessel", sanityReward.amount(), ""));
+            } else if (reward instanceof TaskReward.EntropyReward entropyReward) {
+                rewards.add(new RewardView("entropy", "incore:entropy_vessel", entropyReward.amount(), ""));
             } else if (reward instanceof TaskReward.CommandReward commandReward) {
                 rewards.add(new RewardView("command", "minecraft:command_block", 1, commandReward.command()));
             }

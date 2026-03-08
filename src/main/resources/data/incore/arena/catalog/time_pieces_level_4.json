@@ -7,7 +7,7 @@
   "sort_order": 140,
   "reward_summary": "Chartered time piece progression.",
   "reward": {
-    "sanity_cost": 60,
+    "entropy_cost": 60,
     "items": [
       { "item": "incore:basic_time_piece", "count": 6 },
       { "item": "incore:chartered_time_piece", "count": 2 }

@@ -4,7 +4,7 @@ import io.github.ozokuz.incore.features.battlepass.BattlePassDefinition;
 import io.github.ozokuz.incore.features.battlepass.BattlePassProgressManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassManager;
 import io.github.ozokuz.incore.features.battlepass.BattlePassReward;
-import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
+import io.github.ozokuz.incore.features.entropy.network.EntropyNetworking;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -105,7 +105,7 @@ public final class BattlePassNetworking {
     public static BattlePassProgressManager.ClaimResult claimAllRewardsFor(ServerPlayer player) {
         BattlePassProgressManager.ClaimResult result = BattlePassProgressManager.claimAllRewards(player, Instant.now());
         if (result.success()) {
-            SanityNetworking.syncToPlayer(player);
+            EntropyNetworking.syncToPlayer(player);
         }
         syncToPlayer(player);
         return result;
@@ -135,12 +135,12 @@ public final class BattlePassNetworking {
             );
         }
 
-        if (reward instanceof BattlePassReward.SanityCapBonusReward sanityReward) {
+        if (reward instanceof BattlePassReward.EntropyCapBonusReward entropyReward) {
             return new BattlePassSyncPayload.RewardEntry(
-                    BattlePassSyncPayload.REWARD_KIND_SANITY_CAP,
-                    "incore:sanity_vessel",
-                    sanityReward.amount(),
-                    sanityReward.previewText()
+                    BattlePassSyncPayload.REWARD_KIND_ENTROPY_CAP,
+                    "incore:entropy_vessel",
+                    entropyReward.amount(),
+                    entropyReward.previewText()
             );
         }
 

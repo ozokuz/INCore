@@ -59,12 +59,12 @@ public final class PlayerLevelNetworking {
             );
         }
 
-        if (reward instanceof PlayerLevelReward.SanityCapBonusReward sanityReward) {
+        if (reward instanceof PlayerLevelReward.EntropyCapBonusReward entropyReward) {
             return new PlayerLevelSyncPayload.RewardEntry(
-                    PlayerLevelSyncPayload.REWARD_KIND_SANITY_CAP,
-                    "incore:sanity_vessel",
-                    sanityReward.amount(),
-                    sanityReward.previewText()
+                    PlayerLevelSyncPayload.REWARD_KIND_ENTROPY_CAP,
+                    "incore:entropy_vessel",
+                    entropyReward.amount(),
+                    entropyReward.previewText()
             );
         }
 

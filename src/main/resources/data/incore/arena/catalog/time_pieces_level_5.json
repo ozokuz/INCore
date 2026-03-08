@@ -7,7 +7,7 @@
   "sort_order": 150,
   "reward_summary": "Maximum time piece payout.",
   "reward": {
-    "sanity_cost": 80,
+    "entropy_cost": 80,
     "items": [
       { "item": "incore:basic_time_piece", "count": 8 },
       { "item": "incore:chartered_time_piece", "count": 4 }

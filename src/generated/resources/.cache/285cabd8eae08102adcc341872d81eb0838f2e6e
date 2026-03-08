@@ -1,16 +1,16 @@
-// 1.21.1	2026-02-27T21:20:53.653649571	Item Models: incore
+// 1.21.1	2026-03-08T19:02:52.691746387	Item Models: incore
 584e9bf1c83b55a83b5d553ac3c2348edf984dee assets/incore/models/item/asurine_ore_locator.json
 5a83d64fdbc2cfb51f3050ef8069e40dc2b6cdb8 assets/incore/models/item/basalt_locator.json
 614cf9a16a8218477fb892a2c0bac661814222cf assets/incore/models/item/cinnabar_ore_locator.json
 fc3a5b37fbe3282cdc792b315bbd05f396b28b13 assets/incore/models/item/crimsite_ore_locator.json
 2134f724dbaad0dc888cc0761e661a9a152bfa0b assets/incore/models/item/deepslate_locator.json
 07ae457e3d88ccca516270ff62b61ebd93b58c39 assets/incore/models/item/encounter_wand.json
+a5dcc6e7e966b761245f2d910a7e6dac4b20a198 assets/incore/models/item/entropy_booster_large.json
+526465d4a7fa62b8ec6aad98f6f014d7ec0eb77a assets/incore/models/item/entropy_booster_small.json
+5ab844e101cd9b280929ef8fe4a60348f61cb660 assets/incore/models/item/entropy_vessel.json
 49cb0bcf72c0471bb532fc3f23da15e41d1cca64 assets/incore/models/item/gem_clusters_ore_locator.json
 ca7d8481019b33c918da44e80c35eed5ca929318 assets/incore/models/item/limestone_locator.json
 9e1e20c682bb44ce8dbd3edc5ef9910af135b2c9 assets/incore/models/item/ochrum_ore_locator.json
-5100436ea13a945c76a1cdb69ca0e30b9d319165 assets/incore/models/item/sanity_booster_large.json
-8da21b74cd97bdd0031072afdbd44b1a9dac34d9 assets/incore/models/item/sanity_booster_small.json
-569679f4f5826cf1ab61b0051e2ba1ffc65c0512 assets/incore/models/item/sanity_vessel.json
 189e9746e565a1312329b617b764d4bc8dc80a75 assets/incore/models/item/scoria_locator.json
 86da56c9290f245695b2b101038a4a4b5cc23b91 assets/incore/models/item/stone_locator.json
 e410c681c3eaa882a3a3d62fb38dc6dd39c4012e assets/incore/models/item/universal_ore_locator.json

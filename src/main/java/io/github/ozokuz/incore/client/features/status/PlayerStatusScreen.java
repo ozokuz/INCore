@@ -12,7 +12,7 @@ import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
-import io.github.ozokuz.incore.features.sanity.SanityClientCache;
+import io.github.ozokuz.incore.features.entropy.EntropyClientCache;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import io.github.ozokuz.incore.features.status.network.PlayerStatusCurrencyClientCache;
 import io.github.ozokuz.incore.features.status.network.PlayerStatusNetworking;
@@ -64,8 +64,8 @@ public class PlayerStatusScreen extends Screen {
 
         Layout layout = layout();
 
-        int buttonWidth = Math.max(126, Math.min(196, layout.sanityWidth() - 16));
-        int buttonX = layout.sanityX() + (layout.sanityWidth() - buttonWidth) / 2;
+        int buttonWidth = Math.max(126, Math.min(196, layout.entropyWidth() - 16));
+        int buttonX = layout.entropyX() + (layout.entropyWidth() - buttonWidth) / 2;
         int rewardsButtonY = layout.levelY() + layout.levelHeight() - BUTTON_HEIGHT - 8;
         this.addRenderableWidget(Button.builder(
                         Component.translatable("screen.incore.player_status.open_rewards"),
@@ -73,7 +73,7 @@ public class PlayerStatusScreen extends Screen {
                 ).bounds(buttonX, rewardsButtonY, buttonWidth, BUTTON_HEIGHT)
                 .build());
 
-        int catalogButtonY = layout.sanityY() + layout.sanityHeight() - BUTTON_HEIGHT - 8;
+        int catalogButtonY = layout.entropyY() + layout.entropyHeight() - BUTTON_HEIGHT - 8;
         this.addRenderableWidget(Button.builder(
                         Component.translatable("screen.incore.player_status.open_combat_catalog"),
                         button -> ArenaNetworking.requestOpenCatalog()
@@ -107,11 +107,11 @@ public class PlayerStatusScreen extends Screen {
         drawHeaderCurrencies(guiGraphics, layout);
 
         drawCard(guiGraphics, layout.levelX(), layout.levelY(), layout.levelWidth(), layout.levelHeight());
-        drawCard(guiGraphics, layout.sanityX(), layout.sanityY(), layout.sanityWidth(), layout.sanityHeight());
+        drawCard(guiGraphics, layout.entropyX(), layout.entropyY(), layout.entropyWidth(), layout.entropyHeight());
         drawCard(guiGraphics, layout.quickNavX(), layout.quickNavY(), layout.quickNavWidth(), layout.quickNavHeight());
 
         drawLevelCard(guiGraphics, layout);
-        drawSanityCard(guiGraphics, layout);
+        drawEntropyCard(guiGraphics, layout);
 
         guiGraphics.drawString(
                 this.font,
@@ -205,23 +205,23 @@ public class PlayerStatusScreen extends Screen {
         }
     }
 
-    private void drawSanityCard(GuiGraphics guiGraphics, Layout layout) {
-        int cardX = layout.sanityX();
-        int cardY = layout.sanityY();
-        int cardWidth = layout.sanityWidth();
+    private void drawEntropyCard(GuiGraphics guiGraphics, Layout layout) {
+        int cardX = layout.entropyX();
+        int cardY = layout.entropyY();
+        int cardWidth = layout.entropyWidth();
 
-        int sanity = Math.max(0, SanityClientCache.getCurrent());
-        int cap = Math.max(1, SanityClientCache.getCap());
-        sanity = Math.min(sanity, cap);
+        int entropy = Math.max(0, EntropyClientCache.getCurrent());
+        int cap = Math.max(1, EntropyClientCache.getCap());
+        entropy = Math.min(entropy, cap);
 
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.sanity"), cardX + 8, cardY + 8, UIScreenTheme.Info.PRIMARY_TEXT, false);
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.player_status.entropy"), cardX + 8, cardY + 8, UIScreenTheme.Info.PRIMARY_TEXT, false);
 
         int meterX = cardX + 8;
         int meterY = cardY + 24;
         int meterWidth = Math.max(70, cardWidth - 16);
         guiGraphics.blitSprite(XP_BAR_BACKGROUND, meterX, meterY, meterWidth, XP_BAR_HEIGHT);
 
-        float ratio = (float) sanity / (float) cap;
+        float ratio = (float) entropy / (float) cap;
         int fillWidth = Math.max(0, Math.min(meterWidth, Math.round(meterWidth * ratio)));
         if (fillWidth > 0) {
             guiGraphics.enableScissor(meterX, meterY, meterX + fillWidth, meterY + XP_BAR_HEIGHT);
@@ -230,10 +230,10 @@ public class PlayerStatusScreen extends Screen {
         }
 
         int infoY = meterY + 10;
-        guiGraphics.drawString(this.font, Component.literal(sanity + " / " + cap), cardX + 8, infoY, UIScreenTheme.Info.WHITE_TEXT, false);
+        guiGraphics.drawString(this.font, Component.literal(entropy + " / " + cap), cardX + 8, infoY, UIScreenTheme.Info.WHITE_TEXT, false);
         guiGraphics.drawString(
                 this.font,
-                Component.translatable("screen.incore.player_status.next_gain", formatCountdown(SanityClientCache.getMillisUntilNextIncrease())),
+                Component.translatable("screen.incore.player_status.next_gain", formatCountdown(EntropyClientCache.getMillisUntilNextIncrease())),
                 cardX + 8,
                 infoY + 14,
                 UIScreenTheme.Info.SECONDARY_TEXT,
@@ -241,7 +241,7 @@ public class PlayerStatusScreen extends Screen {
         );
         guiGraphics.drawString(
                 this.font,
-                Component.translatable("screen.incore.player_status.full_in", formatCountdown(SanityClientCache.getMillisUntilFull())),
+                Component.translatable("screen.incore.player_status.full_in", formatCountdown(EntropyClientCache.getMillisUntilFull())),
                 cardX + 8,
                 infoY + 28,
                 UIScreenTheme.Info.STATUS_TRACK_TEXT,
@@ -409,7 +409,7 @@ public class PlayerStatusScreen extends Screen {
         int rightX = leftX + leftWidth + 8;
 
         int levelHeight = Math.max(90, Math.min(110, contentHeight / 3));
-        int sanityHeight = contentHeight - levelHeight - 8;
+        int entropyHeight = contentHeight - levelHeight - 8;
 
         return new Layout(
                 windowLeft,
@@ -420,7 +420,7 @@ public class PlayerStatusScreen extends Screen {
                 contentY,
                 leftWidth,
                 levelHeight,
-                sanityHeight,
+                entropyHeight,
                 rightX,
                 rightWidth,
                 contentY,
@@ -488,7 +488,7 @@ public class PlayerStatusScreen extends Screen {
             int leftY,
             int leftWidth,
             int leftLevelHeight,
-            int leftSanityHeight,
+            int leftEntropyHeight,
             int rightX,
             int rightWidth,
             int rightY,
@@ -510,20 +510,20 @@ public class PlayerStatusScreen extends Screen {
             return leftLevelHeight;
         }
 
-        int sanityX() {
+        int entropyX() {
             return leftX;
         }
 
-        int sanityY() {
+        int entropyY() {
             return leftY + leftLevelHeight + 8;
         }
 
-        int sanityWidth() {
+        int entropyWidth() {
             return leftWidth;
         }
 
-        int sanityHeight() {
-            return leftSanityHeight;
+        int entropyHeight() {
+            return leftEntropyHeight;
         }
 
         int quickNavX() {

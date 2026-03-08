@@ -7,7 +7,7 @@ import io.github.ozokuz.incore.client.features.roguelike.CustomDungeonCrystalFor
 import io.github.ozokuz.incore.client.features.roguelike.RoguelikePortalRenderer;
 import io.github.ozokuz.incore.client.features.roguelike.RoguelikeMinimapHudFeature;
 import io.github.ozokuz.incore.client.features.party.PartyHudFeature;
-import io.github.ozokuz.incore.client.features.sanity.SanityBarHudFeature;
+import io.github.ozokuz.incore.client.features.entropy.EntropyBarHudFeature;
 import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import io.github.ozokuz.incore.client.features.party.PartyManagementScreen;
 import io.github.ozokuz.incore.client.features.battlepass.BattlePassScreen;
@@ -55,7 +55,7 @@ public class INCoreClient {
         modEventBus.addListener(this::onRegisterRenderers);
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
         StaminaBarHudFeature.register();
-        SanityBarHudFeature.register();
+        EntropyBarHudFeature.register();
         PartyHudFeature.register();
         RoguelikeMinimapHudFeature.register();
     }

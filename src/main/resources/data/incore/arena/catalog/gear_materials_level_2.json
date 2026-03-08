@@ -7,7 +7,7 @@
   "sort_order": 20,
   "reward_summary": "Core smithing resources.",
   "reward": {
-    "sanity_cost": 30,
+    "entropy_cost": 30,
     "items": [
       { "item": "minecraft:iron_ingot", "count": 32 },
       { "item": "minecraft:gold_ingot", "count": 12 },

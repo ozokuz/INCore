@@ -7,7 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
-import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
+import io.github.ozokuz.incore.features.entropy.network.EntropyNetworking;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -83,7 +83,7 @@ public final class PlayerLevelCommands {
         for (ServerPlayer target : targets) {
             PlayerLevelManager.addLevels(target, amount, amount > 0);
             PlayerLevelNetworking.syncToPlayer(target);
-            SanityNetworking.syncToPlayer(target);
+            EntropyNetworking.syncToPlayer(target);
         }
 
         context.getSource().sendSuccess(
@@ -118,7 +118,7 @@ public final class PlayerLevelCommands {
         for (ServerPlayer target : targets) {
             PlayerLevelManager.addExperience(target, amount);
             PlayerLevelNetworking.syncToPlayer(target);
-            SanityNetworking.syncToPlayer(target);
+            EntropyNetworking.syncToPlayer(target);
         }
 
         context.getSource().sendSuccess(

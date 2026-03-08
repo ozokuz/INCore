@@ -719,16 +719,16 @@ public class TaskOverviewScreen extends Screen {
         ResourceLocation itemId = ResourceLocation.tryParse(reward.itemId());
         Item item = switch (kind) {
             case "item" -> itemId != null ? BuiltInRegistries.ITEM.get(itemId) : Items.AIR;
-            case "sanity" -> {
-                ResourceLocation sanityItem = ResourceLocation.tryParse("incore:sanity_vessel");
-                yield sanityItem != null ? BuiltInRegistries.ITEM.get(sanityItem) : Items.EXPERIENCE_BOTTLE;
+            case "entropy" -> {
+                ResourceLocation entropyItem = ResourceLocation.tryParse("incore:entropy_vessel");
+                yield entropyItem != null ? BuiltInRegistries.ITEM.get(entropyItem) : Items.EXPERIENCE_BOTTLE;
             }
             case "command" -> Items.COMMAND_BLOCK;
             default -> itemId != null ? BuiltInRegistries.ITEM.get(itemId) : Items.AIR;
         };
 
         if (item == Items.AIR) {
-            if ("sanity".equals(kind)) {
+            if ("entropy".equals(kind)) {
                 item = Items.EXPERIENCE_BOTTLE;
             } else if ("command".equals(kind)) {
                 item = Items.COMMAND_BLOCK;
@@ -761,9 +761,9 @@ public class TaskOverviewScreen extends Screen {
     private static List<Component> tooltipForNonItemReward(TaskClientCache.RewardEntry reward) {
         List<Component> lines = new ArrayList<>();
         String kind = reward.kind() == null ? "" : reward.kind();
-        if ("sanity".equals(kind)) {
-            lines.add(Component.translatable("screen.incore.tasks.tooltip_sanity_title"));
-            lines.add(Component.translatable("screen.incore.tasks.tooltip_sanity_line", Math.max(1, reward.amount())).withStyle(ChatFormatting.GRAY));
+        if ("entropy".equals(kind)) {
+            lines.add(Component.translatable("screen.incore.tasks.tooltip_entropy_title"));
+            lines.add(Component.translatable("screen.incore.tasks.tooltip_entropy_line", Math.max(1, reward.amount())).withStyle(ChatFormatting.GRAY));
             return lines;
         }
 

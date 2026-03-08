@@ -120,7 +120,7 @@ public class TaskDataManager extends SimpleJsonResourceReloadListener {
                 yield new TaskReward.ItemReward(item, count);
             }
             case "command" -> new TaskReward.CommandReward(GsonHelper.getAsString(rewardObject, "command"));
-            case "sanity" -> new TaskReward.SanityReward(Math.max(1, GsonHelper.getAsInt(rewardObject, "amount", 1)));
+            case "entropy" -> new TaskReward.EntropyReward(Math.max(1, GsonHelper.getAsInt(rewardObject, "amount", 1)));
             default -> throw new IllegalArgumentException("Unknown reward type");
         };
     }

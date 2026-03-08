@@ -5,25 +5,25 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    public static final ModConfigSpec.IntValue SANITY_REGEN_PER_MINUTE = BUILDER
-            .comment("How much sanity players regain on each regen tick.")
-            .defineInRange("sanityRegenPerMinute", 1, 0, Integer.MAX_VALUE);
+    public static final ModConfigSpec.IntValue ENTROPY_REGEN_PER_MINUTE = BUILDER
+            .comment("How much entropy players regain on each regen tick.")
+            .defineInRange("entropyRegenPerMinute", 1, 0, Integer.MAX_VALUE);
 
-    public static final ModConfigSpec.IntValue SANITY_REGEN_INTERVAL_SECONDS = BUILDER
-            .comment("How often a sanity regen tick happens, in real-world seconds.")
-            .defineInRange("sanityRegenIntervalSeconds", 60, 1, Integer.MAX_VALUE);
+    public static final ModConfigSpec.IntValue ENTROPY_REGEN_INTERVAL_SECONDS = BUILDER
+            .comment("How often a entropy regen tick happens, in real-world seconds.")
+            .defineInRange("entropyRegenIntervalSeconds", 60, 1, Integer.MAX_VALUE);
 
-    public static final ModConfigSpec.IntValue SANITY_BASE_CAP = BUILDER
-            .comment("Default sanity cap before any bonus cap extensions are applied.")
-            .defineInRange("sanityBaseCap", 120, 0, Integer.MAX_VALUE);
+    public static final ModConfigSpec.IntValue ENTROPY_BASE_CAP = BUILDER
+            .comment("Default entropy cap before any bonus cap extensions are applied.")
+            .defineInRange("entropyBaseCap", 120, 0, Integer.MAX_VALUE);
 
-    public static final ModConfigSpec.IntValue SANITY_CRATE_COST = BUILDER
-            .comment("Sanity cost to open one sanity crate.")
-            .defineInRange("sanityCrateCost", 60, 0, Integer.MAX_VALUE);
+    public static final ModConfigSpec.IntValue ENTROPY_CRATE_COST = BUILDER
+            .comment("Entropy cost to open one entropy crate.")
+            .defineInRange("entropyCrateCost", 60, 0, Integer.MAX_VALUE);
 
-    public static final ModConfigSpec.IntValue SANITY_CAP_UPGRADE_AMOUNT = BUILDER
-            .comment("How much max sanity a single sanity vessel upgrades.")
-            .defineInRange("sanityCapUpgradeAmount", 20, 1, Integer.MAX_VALUE);
+    public static final ModConfigSpec.IntValue ENTROPY_CAP_UPGRADE_AMOUNT = BUILDER
+            .comment("How much max entropy a single entropy vessel upgrades.")
+            .defineInRange("entropyCapUpgradeAmount", 20, 1, Integer.MAX_VALUE);
 
     public static final ModConfigSpec.IntValue PLAYER_LEVEL_BASE_XP_COST = BUILDER
             .comment("Base custom experience needed for the first player level up.")
@@ -86,31 +86,31 @@ public class Config {
             .defineInRange("modularLabMaxProductivityBonus", 0.50D, 0.0D, 1.0D);
 
     static {
-        BUILDER.push("vendorDiscounts");
+        BUILDER.push("vendingMachineDiscounts");
     }
 
-    public static final ModConfigSpec.IntValue VENDOR_OFFER_DISCOUNT_CHANCE_PERCENT = BUILDER
-            .comment("Base chance for each normal vendor offer to roll a discount.")
+    public static final ModConfigSpec.IntValue VENDING_MACHINE_OFFER_DISCOUNT_CHANCE_PERCENT = BUILDER
+            .comment("Base chance for each normal vending machine offer to roll a discount.")
             .defineInRange("offerDiscountChancePercent", 12, 0, 100);
 
-    public static final ModConfigSpec.IntValue VENDOR_OFFER_DISCOUNT_MIN_PERCENT = BUILDER
-            .comment("Minimum discount percent applied when a normal vendor offer discount roll succeeds.")
+    public static final ModConfigSpec.IntValue VENDING_MACHINE_OFFER_DISCOUNT_MIN_PERCENT = BUILDER
+            .comment("Minimum discount percent applied when a normal vending machine offer discount roll succeeds.")
             .defineInRange("offerDiscountMinPercent", 10, 0, 100);
 
-    public static final ModConfigSpec.IntValue VENDOR_OFFER_DISCOUNT_MAX_PERCENT = BUILDER
-            .comment("Maximum discount percent applied when a normal vendor offer discount roll succeeds.")
+    public static final ModConfigSpec.IntValue VENDING_MACHINE_OFFER_DISCOUNT_MAX_PERCENT = BUILDER
+            .comment("Maximum discount percent applied when a normal vending machine offer discount roll succeeds.")
             .defineInRange("offerDiscountMaxPercent", 35, 0, 100);
 
-    public static final ModConfigSpec.IntValue VENDOR_OFFER_DISCOUNT_CHANCE_CAP_PERCENT = BUILDER
+    public static final ModConfigSpec.IntValue VENDING_MACHINE_OFFER_DISCOUNT_CHANCE_CAP_PERCENT = BUILDER
             .comment("Hard cap for final per-offer discount chance after all bonuses are applied.")
             .defineInRange("offerDiscountChanceCapPercent", 95, 0, 100);
 
-    public static final ModConfigSpec.IntValue VENDOR_DISCOUNT_CURIO_BONUS_CHANCE_PERCENT = BUILDER
-            .comment("Discount chance bonus granted when the vendor discount charm curio is equipped.")
+    public static final ModConfigSpec.IntValue VENDING_MACHINE_DISCOUNT_CURIO_BONUS_CHANCE_PERCENT = BUILDER
+            .comment("Discount chance bonus granted when the vending machine discount charm curio is equipped.")
             .defineInRange("curioBonusChancePercent", 15, 0, 100);
 
-    public static final ModConfigSpec.IntValue VENDOR_DISCOUNT_CURIO_BONUS_AMOUNT_PERCENT = BUILDER
-            .comment("Discount amount bonus granted when the vendor discount charm curio is equipped.")
+    public static final ModConfigSpec.IntValue VENDING_MACHINE_DISCOUNT_CURIO_BONUS_AMOUNT_PERCENT = BUILDER
+            .comment("Discount amount bonus granted when the vending machine discount charm curio is equipped.")
             .defineInRange("curioBonusAmountPercent", 20, 0, 100);
 
     static {

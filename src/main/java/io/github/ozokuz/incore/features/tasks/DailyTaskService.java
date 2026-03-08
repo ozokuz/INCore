@@ -18,7 +18,7 @@ public final class DailyTaskService {
     private static final String KEY_DAILY_SHOP_PURCHASES = "incore:daily_shop_purchases";
     private static final String KEY_DAILY_ARENA_COMPLETIONS = "incore:daily_arena_completions";
     private static final String KEY_DAILY_DUNGEON_COMPLETIONS = "incore:daily_dungeon_completions";
-    private static final String KEY_DAILY_VENDOR_PURCHASES = "incore:daily_vendor_purchases";
+    private static final String KEY_DAILY_VENDING_MACHINE_PURCHASES = "incore:daily_vending_machine_purchases";
     private static final String KEY_DAILY_NUMISMATICS_BUYS = "incore:daily_numismatics_buys";
     private static final String KEY_DAILY_NUMISMATICS_SELLS = "incore:daily_numismatics_sells";
     private static final String KEY_DAILY_REWARD_CLAIMED = "incore:daily_reward_claimed";
@@ -67,7 +67,7 @@ public final class DailyTaskService {
         data.putInt(KEY_DAILY_SHOP_PURCHASES, playerData.getShopPurchases());
         data.putInt(KEY_DAILY_ARENA_COMPLETIONS, playerData.getArenaCompletions());
         data.putInt(KEY_DAILY_DUNGEON_COMPLETIONS, playerData.getDungeonCompletions());
-        data.putInt(KEY_DAILY_VENDOR_PURCHASES, playerData.getVendorPurchases());
+        data.putInt(KEY_DAILY_VENDING_MACHINE_PURCHASES, playerData.getVendingMachinePurchases());
         data.putInt(KEY_DAILY_NUMISMATICS_BUYS, playerData.getNumismaticsBuys());
         data.putInt(KEY_DAILY_NUMISMATICS_SELLS, playerData.getNumismaticsSells());
         data.putBoolean(KEY_DAILY_REWARD_CLAIMED, playerData.isRewardClaimed());
@@ -123,16 +123,16 @@ public final class DailyTaskService {
         player.getPersistentData().putInt(KEY_DAILY_DUNGEON_COMPLETIONS, playerData.getDungeonCompletions());
     }
 
-    public static void onVendorPurchase(ServerPlayer player) {
+    public static void onVendingMachinePurchase(ServerPlayer player) {
         ensurePeriod(player);
         MinecraftServer server = player.getServer();
         if (server == null) return;
 
         DailyTaskSavedData savedData = DailyTaskSavedData.get(server);
         DailyTaskSavedData.PlayerDailyData playerData = savedData.getOrCreatePlayerData(player.getUUID());
-        playerData.setVendorPurchases(playerData.getVendorPurchases() + 1);
+        playerData.setVendingMachinePurchases(playerData.getVendingMachinePurchases() + 1);
         savedData.markDirty();
-        player.getPersistentData().putInt(KEY_DAILY_VENDOR_PURCHASES, playerData.getVendorPurchases());
+        player.getPersistentData().putInt(KEY_DAILY_VENDING_MACHINE_PURCHASES, playerData.getVendingMachinePurchases());
     }
 
     public static void onBuyFromPlayer(ServerPlayer player) {

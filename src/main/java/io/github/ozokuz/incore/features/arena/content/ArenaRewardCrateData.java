@@ -3,8 +3,8 @@ package io.github.ozokuz.incore.features.arena.content;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.arena.data.ArenaCatalogEntry;
 import io.github.ozokuz.incore.features.arena.data.ArenaRewardStack;
-import io.github.ozokuz.incore.features.sanity.SanityManager;
-import io.github.ozokuz.incore.features.sanity.network.SanityNetworking;
+import io.github.ozokuz.incore.features.entropy.EntropyManager;
+import io.github.ozokuz.incore.features.entropy.network.EntropyNetworking;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -26,7 +26,7 @@ public final class ArenaRewardCrateData {
     private static final String KEY_CATEGORY_NAME = "incore:arena_category_name";
     private static final String KEY_DIFFICULTY_ID = "incore:arena_difficulty_id";
     private static final String KEY_DIFFICULTY_NAME = "incore:arena_difficulty_name";
-    private static final String KEY_SANITY_COST = "incore:arena_sanity_cost";
+    private static final String KEY_ENTROPY_COST = "incore:arena_entropy_cost";
     private static final String KEY_REWARDS = "incore:arena_rewards";
 
     private ArenaRewardCrateData() {
@@ -45,7 +45,7 @@ public final class ArenaRewardCrateData {
         tag.putString(KEY_CATEGORY_NAME, contents.categoryName());
         tag.putString(KEY_DIFFICULTY_ID, contents.difficultyId());
         tag.putString(KEY_DIFFICULTY_NAME, contents.difficultyName());
-        tag.putInt(KEY_SANITY_COST, contents.sanityCost());
+        tag.putInt(KEY_ENTROPY_COST, contents.entropyCost());
 
         ListTag rewardsTag = new ListTag();
         for (ArenaRewardStack reward : contents.rewards()) {
@@ -75,7 +75,7 @@ public final class ArenaRewardCrateData {
                 || !tag.contains(KEY_CATEGORY_NAME, Tag.TAG_STRING)
                 || !tag.contains(KEY_DIFFICULTY_ID, Tag.TAG_STRING)
                 || !tag.contains(KEY_DIFFICULTY_NAME, Tag.TAG_STRING)
-                || !tag.contains(KEY_SANITY_COST, Tag.TAG_INT)
+                || !tag.contains(KEY_ENTROPY_COST, Tag.TAG_INT)
                 || !tag.contains(KEY_REWARDS, Tag.TAG_LIST)) {
             return null;
         }
@@ -106,7 +106,7 @@ public final class ArenaRewardCrateData {
                 tag.getString(KEY_CATEGORY_NAME),
                 tag.getString(KEY_DIFFICULTY_ID),
                 tag.getString(KEY_DIFFICULTY_NAME),
-                Math.max(0, tag.getInt(KEY_SANITY_COST)),
+                Math.max(0, tag.getInt(KEY_ENTROPY_COST)),
                 List.copyOf(rewards)
         );
     }
@@ -123,7 +123,7 @@ public final class ArenaRewardCrateData {
                 contents.categoryName(),
                 contents.difficultyName()
         ));
-        tooltip.add(Component.translatable("block.incore.arena_reward_rift.tooltip.cost", contents.sanityCost()));
+        tooltip.add(Component.translatable("block.incore.arena_reward_rift.tooltip.cost", contents.entropyCost()));
         tooltip.add(Component.translatable("block.incore.arena_reward_rift.tooltip.contains"));
         for (ArenaRewardStack reward : contents.rewards()) {
             Item item = BuiltInRegistries.ITEM.get(reward.itemId());
@@ -138,10 +138,10 @@ public final class ArenaRewardCrateData {
     }
 
     public static boolean tryOpen(ServerPlayer player, CrateContents contents) {
-        int currentSanity = SanityManager.getCurrentSanity(player);
-        int cap = SanityManager.getSanityCap(player);
-        if (currentSanity < contents.sanityCost() || !SanityManager.tryConsume(player, contents.sanityCost())) {
-            player.sendSystemMessage(Component.translatable("incore.arena.crate.not_enough", contents.sanityCost(), currentSanity, cap));
+        int currentEntropy = EntropyManager.getCurrentEntropy(player);
+        int cap = EntropyManager.getEntropyCap(player);
+        if (currentEntropy < contents.entropyCost() || !EntropyManager.tryConsume(player, contents.entropyCost())) {
+            player.sendSystemMessage(Component.translatable("incore.arena.crate.not_enough", contents.entropyCost(), currentEntropy, cap));
             return false;
         }
 
@@ -157,15 +157,15 @@ public final class ArenaRewardCrateData {
             }
         }
 
-        int remaining = SanityManager.getCurrentSanity(player);
-        SanityNetworking.syncToPlayer(player);
-        player.sendSystemMessage(Component.translatable("incore.arena.crate.opened", contents.sanityCost(), remaining, cap));
+        int remaining = EntropyManager.getCurrentEntropy(player);
+        EntropyNetworking.syncToPlayer(player);
+        player.sendSystemMessage(Component.translatable("incore.arena.crate.opened", contents.entropyCost(), remaining, cap));
         return true;
     }
 
     private static Component buildDisplayName(CrateContents contents) {
         String source = contents.categoryName() + " " + contents.difficultyName();
-        return Component.literal(source + " Sanity Reward Crate");
+        return Component.literal(source + " Entropy Reward Crate");
     }
 
     public record CrateContents(
@@ -173,7 +173,7 @@ public final class ArenaRewardCrateData {
             String categoryName,
             String difficultyId,
             String difficultyName,
-            int sanityCost,
+            int entropyCost,
             List<ArenaRewardStack> rewards
     ) {
         static CrateContents fromEntry(ArenaCatalogEntry entry) {
@@ -182,7 +182,7 @@ public final class ArenaRewardCrateData {
                     entry.categoryName(),
                     entry.difficultyId(),
                     entry.difficultyName(),
-                    entry.rewardSanityCost(),
+                    entry.rewardEntropyCost(),
                     entry.rewardItems()
             );
         }
@@ -193,7 +193,7 @@ public final class ArenaRewardCrateData {
             tag.putString(KEY_CATEGORY_NAME, categoryName);
             tag.putString(KEY_DIFFICULTY_ID, difficultyId);
             tag.putString(KEY_DIFFICULTY_NAME, difficultyName);
-            tag.putInt(KEY_SANITY_COST, sanityCost);
+            tag.putInt(KEY_ENTROPY_COST, entropyCost);
 
             ListTag rewardsTag = new ListTag();
             for (ArenaRewardStack reward : rewards) {

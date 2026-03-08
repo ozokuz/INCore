@@ -41,7 +41,7 @@ public enum UIScreenTheme {
             new UITheme.Text(0xFFF2F2F2, 0xECF2FF, 0xB7C1D0, 0xCFE4FF, 0x6EE780, 0xFFE2C777, 0xFFFF8A8A),
             new UITheme.Chip(0xAA141414, 0xBDE8BD)
     )),
-    VENDOR(new UITheme(
+    VENDING_MACHINE(new UITheme(
             new UITheme.Backdrop(0xD5090B10, 0xE0010206, true),
             new UITheme.Frame(0xCC120E18, 0xFF6CE0FF, 0xFF6CE0FF, 0xFF6CE0FF, 0xFF6CE0FF),
             new UITheme.Frame(0x66233648, 0xFF66D9FF, 0xFF66D9FF, 0xFF66D9FF, 0xFF66D9FF),
@@ -115,7 +115,7 @@ public enum UIScreenTheme {
         public static final int PLR_ROW_BORDER_HOVER = 0xAA6ABFDF;
         public static final int PLR_SCROLL_THUMB_FILL = 0xAA7DE9FF;
         public static final int PLR_ROW_FILL_CLAIMED = 0xAE253446;
-        public static final int PLR_REWARD_SANITY_FILL = 0xB0193A3A;
+        public static final int PLR_REWARD_ENTROPY_FILL = 0xB0193A3A;
         public static final int PLR_REWARD_DEFAULT_FILL = 0xB01A2735;
         public static final int PLR_REWARD_COMMAND_FILL = 0xB03A301B;
         public static final int PLR_XP_PILL_FILL_SELECTED = 0xB03A607D;
@@ -225,8 +225,8 @@ public enum UIScreenTheme {
         public static final int ITEM_NAME_TEXT = 0xFFFFFF;
     }
 
-    public static final class Vendor {
-        private Vendor() {
+    public static final class VendingMachine {
+        private VendingMachine() {
         }
 
         public static final int LIST_ROW_FILL_AVAILABLE = 0x66233648;

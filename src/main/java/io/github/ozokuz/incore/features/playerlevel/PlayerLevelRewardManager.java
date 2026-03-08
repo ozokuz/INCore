@@ -79,7 +79,7 @@ public class PlayerLevelRewardManager extends SimpleJsonResourceReloadListener {
 
         return switch (type) {
             case "item" -> parseItemReward(rewardObject);
-            case "sanity_cap_bonus" -> parseSanityCapReward(rewardObject);
+            case "entropy_cap_bonus" -> parseEntropyCapReward(rewardObject);
             case "command" -> parseCommandReward(rewardObject);
             default -> throw new IllegalArgumentException("Unknown reward type: " + type);
         };
@@ -101,9 +101,9 @@ public class PlayerLevelRewardManager extends SimpleJsonResourceReloadListener {
         return new PlayerLevelReward.ItemReward(item, count);
     }
 
-    private static PlayerLevelReward parseSanityCapReward(JsonObject rewardObject) {
+    private static PlayerLevelReward parseEntropyCapReward(JsonObject rewardObject) {
         int amount = Math.max(1, GsonHelper.getAsInt(rewardObject, "amount"));
-        return new PlayerLevelReward.SanityCapBonusReward(amount);
+        return new PlayerLevelReward.EntropyCapBonusReward(amount);
     }
 
     private static PlayerLevelReward parseCommandReward(JsonObject rewardObject) {

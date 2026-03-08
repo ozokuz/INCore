@@ -1,6 +1,6 @@
 package io.github.ozokuz.incore.features.battlepass;
 
-import io.github.ozokuz.incore.features.sanity.SanityManager;
+import io.github.ozokuz.incore.features.entropy.EntropyManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -68,19 +68,19 @@ public interface BattlePassReward {
         }
     }
 
-    record SanityCapBonusReward(int amount) implements BattlePassReward {
+    record EntropyCapBonusReward(int amount) implements BattlePassReward {
         @Override
         public void grant(ServerPlayer player) {
             if (amount <= 0) {
                 return;
             }
 
-            SanityManager.addSanityCapBonus(player, amount);
+            EntropyManager.addEntropyCapBonus(player, amount);
         }
 
         @Override
         public String previewText() {
-            return "+" + amount + " max sanity";
+            return "+" + amount + " max entropy";
         }
     }
 
