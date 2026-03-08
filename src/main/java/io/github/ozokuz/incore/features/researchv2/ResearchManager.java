@@ -454,6 +454,7 @@ public final class ResearchManager {
             row.addProperty("formed", station.formed());
             row.addProperty("rpBuffer", station.rpBuffer());
             row.addProperty("rpCapacity", station.rpCapacity());
+            row.addProperty("availableResearchPower", station.availableResearchPower());
             row.addProperty("slotCapacity", station.slotCapacity());
             row.addProperty("powerFamily", station.powerFamily() == null ? "" : station.powerFamily().name());
             row.addProperty("powerInputTier", station.powerInputTier());

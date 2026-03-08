@@ -68,7 +68,7 @@ public final class HybridResearchStationResourceProvider implements ILogicModule
 
         long total = crudeProvider.availablePower(server, teamId);
         for (ResearchControllerBlockEntity controller : ResearchMultiblockStationRegistry.controllersForTeam(server, teamId)) {
-            total += controller.rpBuffer();
+            total += controller.availableResearchPower(Integer.MAX_VALUE);
             if (total >= Integer.MAX_VALUE) {
                 return Integer.MAX_VALUE;
             }

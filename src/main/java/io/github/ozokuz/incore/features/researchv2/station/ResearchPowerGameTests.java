@@ -33,7 +33,10 @@ public final class ResearchPowerGameTests {
         ElectricPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), ElectricPowerInputBlockEntity.class);
         chargeElectricInput(input, 4_000);
 
-        helper.succeedWhen(() -> helper.assertTrue(controller.rpBuffer() > 0, "expected RP buffer to increase from FE input"));
+        helper.succeedWhen(() -> helper.assertTrue(
+                controller.availableResearchPower(Integer.MAX_VALUE) > 0,
+                "expected FE input to expose research power without buffering"
+        ));
     }
 
     @GameTest(template = "empty", timeoutTicks = 900)
@@ -70,7 +73,7 @@ public final class ResearchPowerGameTests {
     public static void controller_tier_changes_capacity_and_category_gate(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
         ResearchControllerBlockEntity controllerT1 = bindController(helper, station.controllerPos(), "phase6_tier_swap");
-        int t1Capacity = controllerT1.rpCapacity();
+        helper.assertValueEqual(0, controllerT1.rpCapacity(), "controller should not expose an RP buffer");
 
         MinecraftServer server = helper.getLevel().getServer();
         helper.assertTrue(server != null, "expected game test server");
@@ -82,7 +85,7 @@ public final class ResearchPowerGameTests {
         helper.setBlock(station.controllerPos(), Registration.RESEARCH_CONTROLLER_T3_BLOCK.get());
         ResearchControllerBlockEntity controllerT3 = bindController(helper, station.controllerPos(), controllerT1.teamId());
 
-        helper.assertTrue(controllerT3.rpCapacity() > t1Capacity, "tier 3 controller should have a larger RP buffer");
+        helper.assertValueEqual(0, controllerT3.rpCapacity(), "tier 3 controller should also operate without an RP buffer");
         helper.assertTrue(ResearchManager.canQueue(server, controllerT3.teamId(), TERRAIN_SCANNING), "tier 3 controller should allow expedition node queueing");
         helper.succeed();
     }
@@ -90,14 +93,13 @@ public final class ResearchPowerGameTests {
     @GameTest(template = "empty", timeoutTicks = 120)
     public static void buffer_full_does_not_consume_fe(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_fe_full");
+        bindController(helper, station.controllerPos(), "phase6_fe_full");
         ElectricPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), ElectricPowerInputBlockEntity.class);
         chargeElectricInput(input, 2_000);
-        controller.addResearchPower(controller.rpCapacity());
         int before = input.energyStored();
 
         helper.runAfterDelay(5, () -> {
-            helper.assertValueEqual(before, input.energyStored(), "expected FE input to remain unchanged while controller buffer is full");
+            helper.assertValueEqual(before, input.energyStored(), "expected FE input to remain unchanged while no research is consuming power");
             helper.succeed();
         });
     }
@@ -105,13 +107,12 @@ public final class ResearchPowerGameTests {
     @GameTest(template = "empty", timeoutTicks = 120)
     public static void buffer_full_does_not_consume_burnables(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.BURNER_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_burner_full");
+        bindController(helper, station.controllerPos(), "phase6_burner_full");
         BurnerPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), BurnerPowerInputBlockEntity.class);
         input.itemHandler().insertItem(0, new ItemStack(Items.COAL, 1), false);
-        controller.addResearchPower(controller.rpCapacity());
 
         helper.runAfterDelay(5, () -> {
-            helper.assertValueEqual(1, input.itemHandler().getStackInSlot(0).getCount(), "expected burnables to remain untouched while controller buffer is full");
+            helper.assertValueEqual(1, input.itemHandler().getStackInSlot(0).getCount(), "expected burnables to remain untouched while no research is consuming power");
             helper.succeed();
         });
     }
@@ -146,10 +147,32 @@ public final class ResearchPowerGameTests {
     @GameTest(template = "empty", timeoutTicks = 80)
     public static void station_requires_one_or_more_inputs(GameTestHelper helper) {
         BuiltStation station = fillCasingShell(helper);
-        helper.setBlock(station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get());
+        placeController(helper, station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Direction.NORTH);
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_input_count");
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "station should be invalid without a power input");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 80)
+    public static void controller_must_face_outward(GameTestHelper helper) {
+        BuiltStation station = fillCasingShell(helper);
+        placeController(helper, station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Direction.SOUTH);
+        helper.setBlock(station.inputPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_controller_facing");
+        controller.revalidateStructure();
+        helper.assertFalse(controller.isFormed(), "controller should face outward from the multiblock");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 80)
+    public static void controller_must_be_in_center_column(GameTestHelper helper) {
+        BuiltStation station = fillCasingShell(helper);
+        placeController(helper, station.inputPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Direction.NORTH);
+        helper.setBlock(station.controllerPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
+        ResearchControllerBlockEntity controller = bindController(helper, station.inputPos(), "phase6_controller_column");
+        controller.revalidateStructure();
+        helper.assertFalse(controller.isFormed(), "controller should only form in the center column of the outward face");
         helper.succeed();
     }
 
@@ -161,26 +184,26 @@ public final class ResearchPowerGameTests {
 
         input.setSpeed(32.0F);
         input.updateFromNetwork(0.0F, 16.0F, 1);
-        helper.runAfterDelay(5, () -> helper.assertValueEqual(0, controller.rpBuffer(), "overstressed mechanical input should not generate RP"));
+        helper.runAfterDelay(5, () -> helper.assertValueEqual(0, controller.availableResearchPower(Integer.MAX_VALUE), "overstressed mechanical input should not expose RP"));
 
         helper.runAfterDelay(10, () -> {
             input.updateFromNetwork(100.0F, 0.0F, 1);
             input.setSpeed(32.0F);
         });
-        helper.succeedWhen(() -> helper.assertTrue(controller.rpBuffer() > 0, "operational mechanical input should generate RP"));
+        helper.succeedWhen(() -> helper.assertTrue(controller.availableResearchPower(Integer.MAX_VALUE) > 0, "operational mechanical input should expose RP"));
     }
 
     private static BuiltStation buildStation(GameTestHelper helper, net.minecraft.world.level.block.Block controllerBlock, net.minecraft.world.level.block.Block inputBlock) {
         BuiltStation station = fillCasingShell(helper);
-        helper.setBlock(station.controllerPos(), controllerBlock);
+        placeController(helper, station.controllerPos(), controllerBlock, Direction.NORTH);
         helper.setBlock(station.inputPos(), inputBlock);
         return station;
     }
 
     private static BuiltStation fillCasingShell(GameTestHelper helper) {
         BuiltStation station = new BuiltStation(
-                new BlockPos(1, 2, 1),
                 new BlockPos(2, 2, 1),
+                new BlockPos(1, 2, 1),
                 new BlockPos(3, 2, 1),
                 new BlockPos(3, 2, 2)
         );
@@ -193,6 +216,13 @@ public final class ResearchPowerGameTests {
             }
         }
         return station;
+    }
+
+    private static void placeController(GameTestHelper helper, BlockPos controllerPos, net.minecraft.world.level.block.Block controllerBlock, Direction facing) {
+        helper.setBlock(
+                controllerPos,
+                controllerBlock.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, facing)
+        );
     }
 
     private static ResearchControllerBlockEntity bindController(GameTestHelper helper, BlockPos controllerPos, String teamId) {
@@ -212,6 +242,14 @@ public final class ResearchPowerGameTests {
         int remaining = Math.max(0, amount);
         Direction front = input.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         var storage = input.getEnergyStorage(front);
+        if (storage == null) {
+            for (Direction direction : Direction.values()) {
+                storage = input.getEnergyStorage(direction);
+                if (storage != null) {
+                    break;
+                }
+            }
+        }
         while (remaining > 0 && storage != null) {
             int received = storage.receiveEnergy(remaining, false);
             if (received <= 0) {
@@ -221,6 +259,6 @@ public final class ResearchPowerGameTests {
         }
     }
 
-    private record BuiltStation(BlockPos controllerPos, BlockPos corePos, BlockPos inputPos, BlockPos extraPos) {
+    private record BuiltStation(BlockPos controllerPos, BlockPos inputPos, BlockPos extraPos, BlockPos sparePos) {
     }
 }

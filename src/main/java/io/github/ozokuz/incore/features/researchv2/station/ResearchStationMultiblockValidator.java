@@ -2,9 +2,11 @@ package io.github.ozokuz.incore.features.researchv2.station;
 
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -108,6 +110,10 @@ public final class ResearchStationMultiblockValidator {
             return ResearchStationTopology.unformed();
         }
 
+        if (!isValidControllerPlacement(level.getBlockState(controllerPos), controllerPos, minCorner, sizeX, sizeY, sizeZ)) {
+            return ResearchStationTopology.unformed();
+        }
+
         for (BlockPos inputPos : inputs) {
             BlockState inputState = level.getBlockState(inputPos);
             if (!(inputState.getBlock() instanceof ResearchPowerInputBlockProvider inputBlock)
@@ -121,6 +127,62 @@ public final class ResearchStationMultiblockValidator {
         connected.sort(Comparator.comparingLong(BlockPos::asLong));
         inputs.sort(Comparator.comparingLong(BlockPos::asLong));
         return new ResearchStationTopology(true, connected, inputs, powerFamily, powerInputTier);
+    }
+
+    private static boolean isValidControllerPlacement(
+            BlockState controllerState,
+            BlockPos controllerPos,
+            BlockPos minCorner,
+            int sizeX,
+            int sizeY,
+            int sizeZ
+    ) {
+        if (!(controllerState.getBlock() instanceof AbstractResearchControllerBlock)
+                || !controllerState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            return false;
+        }
+
+        Direction facing = controllerState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        int minX = minCorner.getX();
+        int maxX = minX + sizeX - 1;
+        int minY = minCorner.getY();
+        int maxY = minY + sizeY - 1;
+        int minZ = minCorner.getZ();
+        int maxZ = minZ + sizeZ - 1;
+
+        if (controllerPos.getY() < minY || controllerPos.getY() > maxY) {
+            return false;
+        }
+
+        if (sizeX == 3) {
+            int centerX = minX + 1;
+            if (controllerPos.getX() != centerX) {
+                return false;
+            }
+            if (controllerPos.getZ() == minZ) {
+                return facing == Direction.NORTH;
+            }
+            if (controllerPos.getZ() == maxZ) {
+                return facing == Direction.SOUTH;
+            }
+            return false;
+        }
+
+        if (sizeZ == 3) {
+            int centerZ = minZ + 1;
+            if (controllerPos.getZ() != centerZ) {
+                return false;
+            }
+            if (controllerPos.getX() == minX) {
+                return facing == Direction.WEST;
+            }
+            if (controllerPos.getX() == maxX) {
+                return facing == Direction.EAST;
+            }
+            return false;
+        }
+
+        return false;
     }
 
     private record Candidate(BlockPos minCorner, ResearchStationTopology topology) {

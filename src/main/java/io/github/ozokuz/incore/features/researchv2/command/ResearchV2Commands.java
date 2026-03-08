@@ -179,13 +179,12 @@ public final class ResearchV2Commands {
             ResearchStationDescriptor station = stations.get(i);
             final int index = i + 1;
             final String line = String.format(
-                    "#%d id=%s formed=%s tier=%d rp=%d/%d parts=%d powerFamily=%s inputTier=%d inputs=%d",
+                    "#%d id=%s formed=%s tier=%d rpAvailable=%d parts=%d powerFamily=%s inputTier=%d inputs=%d",
                     index,
                     station.stationId(),
                     station.formed(),
                     station.stationTier(),
-                    station.rpBuffer(),
-                    station.rpCapacity(),
+                    station.availableResearchPower(),
                     station.connectedParts().size(),
                     station.powerFamily(),
                     station.powerInputTier(),

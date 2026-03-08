@@ -14,6 +14,7 @@ public record ResearchStationDescriptor(
         int rpBuffer,
         int rpCapacity,
         int slotCapacity,
+        int availableResearchPower,
         ResearchPowerFamily powerFamily,
         int powerInputTier,
         ResearchStationEndpoints endpoints,
@@ -27,6 +28,7 @@ public record ResearchStationDescriptor(
         rpBuffer = Math.max(0, rpBuffer);
         rpCapacity = Math.max(0, rpCapacity);
         slotCapacity = Math.max(0, slotCapacity);
+        availableResearchPower = Math.max(0, availableResearchPower);
         powerInputTier = Math.max(0, powerInputTier);
         endpoints = endpoints == null ? new ResearchStationEndpoints(List.of(), List.of()) : endpoints;
         connectedParts = connectedParts == null ? List.of() : List.copyOf(connectedParts);

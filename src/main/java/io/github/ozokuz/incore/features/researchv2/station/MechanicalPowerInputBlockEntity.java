@@ -33,11 +33,16 @@ public class MechanicalPowerInputBlockEntity extends KineticBlockEntity implemen
     }
 
     @Override
-    public int pullResearchPower(ResearchControllerBlockEntity controller, int maxRp) {
+    public int availableResearchPower(ResearchControllerBlockEntity controller, int maxRp) {
         int rpPerRpm = Math.max(0, io.github.ozokuz.incore.Config.MECHANICAL_CORE_RP_PER_RPM.get());
         int rpFromInput = (int) Math.floor(availableRpm()) * rpPerRpm;
         int rpLimit = Math.min(Math.max(0, maxRp), Math.max(1, io.github.ozokuz.incore.Config.MECHANICAL_CORE_MAX_RP_PER_TICK.get()));
         return Math.max(0, Math.min(rpLimit, rpFromInput));
+    }
+
+    @Override
+    public int pullResearchPower(ResearchControllerBlockEntity controller, int maxRp) {
+        return availableResearchPower(controller, maxRp);
     }
 
     @Override

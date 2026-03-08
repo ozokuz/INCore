@@ -1,6 +1,5 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
-import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
@@ -21,7 +20,6 @@ public class ResearchControllerBlockEntity extends BlockEntity {
     private static final int REVALIDATE_INTERVAL_TICKS = 20;
 
     private String teamId = "";
-    private int rpBuffer;
     private boolean formed;
     private String stationId = "";
     private List<BlockPos> connectedParts = List.of();
@@ -71,25 +69,6 @@ public class ResearchControllerBlockEntity extends BlockEntity {
             tickCounter = 0;
             revalidateStructure();
         }
-
-        if (!formed || level == null || rpBuffer() >= rpCapacity() || powerInputPositions.isEmpty()) {
-            return;
-        }
-
-        int remaining = rpCapacity() - rpBuffer();
-        for (BlockPos inputPos : powerInputPositions) {
-            if (remaining <= 0) {
-                break;
-            }
-            BlockEntity blockEntity = level.getBlockEntity(inputPos);
-            if (!(blockEntity instanceof IResearchPowerInput input)) {
-                continue;
-            }
-            int pulled = Math.max(0, input.pullResearchPower(this, remaining));
-            if (pulled > 0) {
-                remaining -= addResearchPower(pulled);
-            }
-        }
     }
 
     public String teamId() {
@@ -116,12 +95,7 @@ public class ResearchControllerBlockEntity extends BlockEntity {
     }
 
     public int rpCapacity() {
-        return switch (Math.max(1, stationTier())) {
-            case 1 -> Config.CONTROLLER_BUFFER_T1.get();
-            case 2 -> Config.CONTROLLER_BUFFER_T2.get();
-            case 3 -> Config.CONTROLLER_BUFFER_T3.get();
-            default -> Config.CONTROLLER_BUFFER_T4.get();
-        };
+        return 0;
     }
 
     public int slotCapacity() {
@@ -134,35 +108,59 @@ public class ResearchControllerBlockEntity extends BlockEntity {
     }
 
     public int rpBuffer() {
-        return Math.max(0, Math.min(rpCapacity(), rpBuffer));
+        return 0;
     }
 
     public int addResearchPower(int amount) {
-        int requested = Math.max(0, amount);
-        if (requested <= 0) {
+        return 0;
+    }
+
+    public int availableResearchPower(int amount) {
+        if (!formed || level == null || powerInputPositions.isEmpty()) {
             return 0;
         }
 
-        int before = rpBuffer();
-        int after = Math.min(rpCapacity(), before + requested);
-        rpBuffer = after;
-        if (after != before) {
-            setChanged();
+        int remaining = Math.max(0, amount);
+        int available = 0;
+        for (BlockPos inputPos : powerInputPositions) {
+            if (remaining <= 0) {
+                break;
+            }
+            BlockEntity blockEntity = level.getBlockEntity(inputPos);
+            if (!(blockEntity instanceof IResearchPowerInput input)) {
+                continue;
+            }
+
+            int fromInput = Math.max(0, input.availableResearchPower(this, remaining));
+            if (fromInput > 0) {
+                available += fromInput;
+                remaining -= fromInput;
+            }
         }
-        return after - before;
+        return available;
     }
 
     public int consumeResearchPower(int amount) {
-        int requested = Math.max(0, amount);
-        int available = rpBuffer();
-        if (requested <= 0 || available <= 0) {
+        if (!formed || level == null || powerInputPositions.isEmpty()) {
             return 0;
         }
 
-        int consumed = Math.min(requested, available);
-        rpBuffer = available - consumed;
-        if (consumed > 0) {
-            setChanged();
+        int remaining = Math.max(0, amount);
+        int consumed = 0;
+        for (BlockPos inputPos : powerInputPositions) {
+            if (remaining <= 0) {
+                break;
+            }
+            BlockEntity blockEntity = level.getBlockEntity(inputPos);
+            if (!(blockEntity instanceof IResearchPowerInput input)) {
+                continue;
+            }
+
+            int fromInput = Math.max(0, input.pullResearchPower(this, remaining));
+            if (fromInput > 0) {
+                consumed += fromInput;
+                remaining -= fromInput;
+            }
         }
         return consumed;
     }
@@ -201,11 +199,6 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         }
         ResearchMultiblockStationRegistry.register(this);
 
-        int clampedBuffer = rpBuffer();
-        if (clampedBuffer != rpBuffer) {
-            rpBuffer = clampedBuffer;
-        }
-
         boolean previousFormed = formed;
         ResearchStationTopology result = ResearchStationMultiblockValidator.validate(level, worldPosition);
         boolean nextFormed = result.formed();
@@ -234,11 +227,10 @@ public class ResearchControllerBlockEntity extends BlockEntity {
 
             if (!previousFormed && formed) {
                 INCore.LOGGER.info(
-                        "[ResearchV2] Station formed id={} tier={} buffer={}/{} parts={}",
+                        "[ResearchV2] Station formed id={} tier={} availableRp={} parts={}",
                         stationId,
                         stationTier(),
-                        rpBuffer(),
-                        rpCapacity(),
+                        availableResearchPower(Integer.MAX_VALUE),
                         connectedPartCount()
                 );
             } else if (previousFormed && !formed) {
@@ -265,9 +257,10 @@ public class ResearchControllerBlockEntity extends BlockEntity {
                 worldPosition.immutable(),
                 stationTier(),
                 true,
-                rpBuffer(),
-                rpCapacity(),
+                0,
+                0,
                 slotCapacity(),
+                availableResearchPower(Integer.MAX_VALUE),
                 powerFamily,
                 powerInputTier,
                 endpoints,
@@ -279,7 +272,6 @@ public class ResearchControllerBlockEntity extends BlockEntity {
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
         teamId = tag.getString("teamId");
-        rpBuffer = Math.max(0, tag.getInt("rpBuffer"));
         formed = tag.getBoolean("formed");
         stationId = tag.getString("stationId");
         powerInputTier = Math.max(0, tag.getInt("powerInputTier"));
@@ -315,7 +307,6 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         if (!teamId.isBlank()) {
             tag.putString("teamId", teamId);
         }
-        tag.putInt("rpBuffer", rpBuffer());
         tag.putBoolean("formed", formed);
         if (!stationId.isBlank()) {
             tag.putString("stationId", stationId);

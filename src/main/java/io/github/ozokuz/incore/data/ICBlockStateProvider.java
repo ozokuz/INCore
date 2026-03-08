@@ -24,6 +24,10 @@ public class ICBlockStateProvider extends BlockStateProvider {
         simpleBlock(Registration.ENCOUNTER_SPAWNER_BLOCK.get(), spawnerModel);
         simpleBlockItem(Registration.ENCOUNTER_SPAWNER_BLOCK.get(), spawnerModel);
 
+        var researchCasingModel = models().cubeAll("research_station_casing", modLoc("block/research/casing"));
+        simpleBlock(Registration.RESEARCH_STATION_CASING_BLOCK.get(), researchCasingModel);
+        simpleBlockItem(Registration.RESEARCH_STATION_CASING_BLOCK.get(), researchCasingModel);
+
         registerMachineBlock(Registration.BURNER_POWER_INPUT_BLOCK.get(), "burner_power_input", "research/burner_input");
         registerMachineBlock(Registration.ELECTRIC_POWER_INPUT_BLOCK.get(), "electric_power_input", "research/fe_input");
         registerMachineBlock(Registration.ELECTRIC_POWER_INPUT_T2_BLOCK.get(), "electric_power_input_t2", "research/fe_input");
