@@ -694,6 +694,8 @@
   "screen.incore.party.create": "Create Party",
   "screen.incore.party.leave": "Leave Party",
   "screen.incore.party.invite": "Invite",
+  "screen.incore.party.inviting": "Inviting...",
+  "screen.incore.party.invited": "Invited",
   "screen.incore.party.kick": "Kick",
   "screen.incore.party.promote": "Promote",
   "screen.incore.player_status.nav.party": "Party",

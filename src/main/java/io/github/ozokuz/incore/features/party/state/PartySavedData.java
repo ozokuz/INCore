@@ -167,6 +167,20 @@ public class PartySavedData extends SavedData {
         setDirty();
     }
 
+    public List<InviteRecord> invitesFrom(UUID inviterId) {
+        if (inviterId == null || pendingInvites.isEmpty()) {
+            return List.of();
+        }
+
+        List<InviteRecord> invites = new ArrayList<>();
+        for (InviteRecord invite : pendingInvites.values()) {
+            if (inviterId.equals(invite.inviterId())) {
+                invites.add(invite);
+            }
+        }
+        return List.copyOf(invites);
+    }
+
     private void indexPartyMembers(PartyRecord party) {
         for (UUID member : party.members()) {
             partyByMember.put(member, party.id());

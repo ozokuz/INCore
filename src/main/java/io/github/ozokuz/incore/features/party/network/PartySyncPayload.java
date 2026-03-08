@@ -18,6 +18,7 @@ public record PartySyncPayload(
         UUID leaderId,
         String leaderName,
         List<MemberEntry> members,
+        List<UUID> outgoingInviteTargetIds,
         boolean hasPendingInvite,
         long invitePartyId,
         UUID inviteInviterId,
@@ -38,13 +39,30 @@ public record PartySyncPayload(
             for (int i = 0; i < memberCount; i++) {
                 members.add(new MemberEntry(buf.readUUID(), buf.readUtf(64)));
             }
+
+            int outgoingInviteCount = buf.readVarInt();
+            List<UUID> outgoingInviteTargetIds = new ArrayList<>(outgoingInviteCount);
+            for (int i = 0; i < outgoingInviteCount; i++) {
+                outgoingInviteTargetIds.add(buf.readUUID());
+            }
             
             boolean hasPendingInvite = buf.readBoolean();
             long invitePartyId = buf.readLong();
             UUID inviteInviterId = buf.readBoolean() ? buf.readUUID() : null;
             String inviteInviterName = buf.readUtf(64);
             
-            return new PartySyncPayload(inParty, partyId, leaderId, leaderName, members, hasPendingInvite, invitePartyId, inviteInviterId, inviteInviterName);
+            return new PartySyncPayload(
+                    inParty,
+                    partyId,
+                    leaderId,
+                    leaderName,
+                    members,
+                    outgoingInviteTargetIds,
+                    hasPendingInvite,
+                    invitePartyId,
+                    inviteInviterId,
+                    inviteInviterName
+            );
         }
 
         @Override
@@ -62,6 +80,11 @@ public record PartySyncPayload(
             for (MemberEntry member : payload.members()) {
                 buf.writeUUID(member.playerId());
                 buf.writeUtf(member.playerName(), 64);
+            }
+
+            buf.writeVarInt(payload.outgoingInviteTargetIds().size());
+            for (UUID outgoingInviteTargetId : payload.outgoingInviteTargetIds()) {
+                buf.writeUUID(outgoingInviteTargetId);
             }
             
             buf.writeBoolean(payload.hasPendingInvite());

@@ -59,6 +59,7 @@ public final class PartyService {
         PartySavedData data = PartySavedData.get(server);
         if (data.partyForMember(player.getUUID()).isPresent()) {
             player.sendSystemMessage(Component.translatable("incore.party.error.already_in_party"));
+            syncPartyState(server, player);
             return false;
         }
 
@@ -68,6 +69,7 @@ public final class PartyService {
         data.clearInvite(player.getUUID());
 
         player.sendSystemMessage(Component.translatable("incore.party.created", partyId).withStyle(ChatFormatting.GREEN));
+        syncPartyState(server, player);
         return true;
     }
 
@@ -79,6 +81,7 @@ public final class PartyService {
 
         if (inviter.getUUID().equals(target.getUUID())) {
             inviter.sendSystemMessage(Component.translatable("incore.party.error.invite_self"));
+            syncPartyState(server, inviter);
             return false;
         }
 
@@ -86,16 +89,20 @@ public final class PartyService {
         PartySavedData.PartyRecord party = data.partyForMember(inviter.getUUID()).orElse(null);
         if (party == null) {
             inviter.sendSystemMessage(Component.translatable("incore.party.error.not_in_party"));
+            syncPartyState(server, inviter);
             return false;
         }
 
         if (!party.leaderId().equals(inviter.getUUID())) {
             inviter.sendSystemMessage(Component.translatable("incore.party.error.not_leader"));
+            syncPartyState(server, inviter);
             return false;
         }
 
         if (data.partyForMember(target.getUUID()).isPresent()) {
             inviter.sendSystemMessage(Component.translatable("incore.party.error.target_in_party", target.getGameProfile().getName()));
+            syncPartyState(server, inviter);
+            syncPartyState(server, target);
             return false;
         }
 
@@ -104,6 +111,8 @@ public final class PartyService {
         inviter.sendSystemMessage(Component.translatable("incore.party.invite.sent", target.getGameProfile().getName()));
         target.sendSystemMessage(Component.translatable("incore.party.invite.received", inviter.getGameProfile().getName(), party.id()).withStyle(ChatFormatting.AQUA));
         target.sendSystemMessage(Component.translatable("incore.party.invite.hint").withStyle(ChatFormatting.GRAY));
+        syncPartyState(server, inviter);
+        syncPartyState(server, target);
         return true;
     }
 
@@ -117,12 +126,14 @@ public final class PartyService {
         if (data.partyForMember(player.getUUID()).isPresent()) {
             data.clearInvite(player.getUUID());
             player.sendSystemMessage(Component.translatable("incore.party.error.already_in_party"));
+            syncPartyState(server, player);
             return false;
         }
 
         PartySavedData.InviteRecord invite = data.inviteFor(player.getUUID()).orElse(null);
         if (invite == null) {
             player.sendSystemMessage(Component.translatable("incore.party.invite.none"));
+            syncPartyState(server, player);
             return false;
         }
 
@@ -130,6 +141,7 @@ public final class PartyService {
         if (party == null) {
             data.clearInvite(player.getUUID());
             player.sendSystemMessage(Component.translatable("incore.party.invite.expired"));
+            syncPartyState(server, player);
             return false;
         }
 
@@ -144,6 +156,7 @@ public final class PartyService {
 
         broadcastToOnlinePartyMembers(server, updatedParty, Component.translatable("incore.party.member.joined", player.getGameProfile().getName()));
         player.sendSystemMessage(Component.translatable("incore.party.invite.accepted", updatedParty.id()).withStyle(ChatFormatting.GREEN));
+        syncPartyState(server, updatedParty.members());
         return true;
     }
 
@@ -157,6 +170,7 @@ public final class PartyService {
         PartySavedData.InviteRecord invite = data.inviteFor(player.getUUID()).orElse(null);
         if (invite == null) {
             player.sendSystemMessage(Component.translatable("incore.party.invite.none"));
+            syncPartyState(server, player);
             return false;
         }
 
@@ -165,8 +179,10 @@ public final class PartyService {
         ServerPlayer inviter = server.getPlayerList().getPlayer(invite.inviterId());
         if (inviter != null) {
             inviter.sendSystemMessage(Component.translatable("incore.party.invite.declined.by", player.getGameProfile().getName()));
+            syncPartyState(server, inviter);
         }
         player.sendSystemMessage(Component.translatable("incore.party.invite.declined"));
+        syncPartyState(server, player);
         return true;
     }
 
@@ -180,6 +196,7 @@ public final class PartyService {
         PartySavedData.PartyRecord party = data.partyForMember(player.getUUID()).orElse(null);
         if (party == null) {
             player.sendSystemMessage(Component.translatable("incore.party.error.not_in_party"));
+            syncPartyState(server, player);
             return false;
         }
 
@@ -189,6 +206,7 @@ public final class PartyService {
         if (remaining.isEmpty()) {
             data.removeParty(party.id());
             player.sendSystemMessage(Component.translatable("incore.party.left.disbanded", party.id()).withStyle(ChatFormatting.YELLOW));
+            syncPartyState(server, player);
             return true;
         }
 
@@ -201,6 +219,8 @@ public final class PartyService {
             broadcastToOnlinePartyMembers(server, updatedParty, Component.translatable("incore.party.leader.promoted", resolvePlayerName(server, nextLeader)));
         }
         player.sendSystemMessage(Component.translatable("incore.party.left"));
+        syncPartyState(server, updatedParty.members());
+        syncPartyState(server, player);
         return true;
     }
 
@@ -212,6 +232,7 @@ public final class PartyService {
 
         if (actingLeader.getUUID().equals(target.getUUID())) {
             actingLeader.sendSystemMessage(Component.translatable("incore.party.error.kick_self"));
+            syncPartyState(server, actingLeader);
             return false;
         }
 
@@ -219,14 +240,18 @@ public final class PartyService {
         PartySavedData.PartyRecord party = data.partyForMember(actingLeader.getUUID()).orElse(null);
         if (party == null) {
             actingLeader.sendSystemMessage(Component.translatable("incore.party.error.not_in_party"));
+            syncPartyState(server, actingLeader);
             return false;
         }
         if (!party.leaderId().equals(actingLeader.getUUID())) {
             actingLeader.sendSystemMessage(Component.translatable("incore.party.error.not_leader"));
+            syncPartyState(server, actingLeader);
             return false;
         }
         if (!party.members().contains(target.getUUID())) {
             actingLeader.sendSystemMessage(Component.translatable("incore.party.error.not_member", target.getGameProfile().getName()));
+            syncPartyState(server, actingLeader);
+            syncPartyState(server, target);
             return false;
         }
 
@@ -235,6 +260,8 @@ public final class PartyService {
         if (remaining.isEmpty()) {
             data.removeParty(party.id());
             actingLeader.sendSystemMessage(Component.translatable("incore.party.left.disbanded", party.id()).withStyle(ChatFormatting.YELLOW));
+            syncPartyState(server, actingLeader);
+            syncPartyState(server, target);
             return true;
         }
 
@@ -243,6 +270,8 @@ public final class PartyService {
 
         broadcastToOnlinePartyMembers(server, updatedParty, Component.translatable("incore.party.member.kicked", target.getGameProfile().getName()));
         target.sendSystemMessage(Component.translatable("incore.party.kicked", party.id(), actingLeader.getGameProfile().getName()).withStyle(ChatFormatting.RED));
+        syncPartyState(server, updatedParty.members());
+        syncPartyState(server, target);
         return true;
     }
 
@@ -256,24 +285,30 @@ public final class PartyService {
         PartySavedData.PartyRecord party = data.partyForMember(actingLeader.getUUID()).orElse(null);
         if (party == null) {
             actingLeader.sendSystemMessage(Component.translatable("incore.party.error.not_in_party"));
+            syncPartyState(server, actingLeader);
             return false;
         }
         if (!party.leaderId().equals(actingLeader.getUUID())) {
             actingLeader.sendSystemMessage(Component.translatable("incore.party.error.not_leader"));
+            syncPartyState(server, actingLeader);
             return false;
         }
         if (actingLeader.getUUID().equals(target.getUUID())) {
             actingLeader.sendSystemMessage(Component.translatable("incore.party.error.promote_self"));
+            syncPartyState(server, actingLeader);
             return false;
         }
         if (!party.members().contains(target.getUUID())) {
             actingLeader.sendSystemMessage(Component.translatable("incore.party.error.not_member", target.getGameProfile().getName()));
+            syncPartyState(server, actingLeader);
+            syncPartyState(server, target);
             return false;
         }
 
         PartySavedData.PartyRecord updatedParty = party.withLeader(target.getUUID());
         data.putParty(updatedParty);
         broadcastToOnlinePartyMembers(server, updatedParty, Component.translatable("incore.party.leader.promoted", target.getGameProfile().getName()));
+        syncPartyState(server, updatedParty.members());
         return true;
     }
 
@@ -309,6 +344,8 @@ public final class PartyService {
         if (server == null) {
             return;
         }
+
+        syncPartyState(server, player);
 
         PartySavedData.InviteRecord invite = PartySavedData.get(server).inviteFor(player.getUUID()).orElse(null);
         if (invite == null) {
@@ -417,6 +454,19 @@ public final class PartyService {
             ServerPlayer member = server.getPlayerList().getPlayer(memberId);
             if (member != null) {
                 member.sendSystemMessage(message);
+            }
+        }
+    }
+
+    private static void syncPartyState(MinecraftServer server, ServerPlayer player) {
+        PartyNetworking.syncStateToPlayer(server, player);
+    }
+
+    private static void syncPartyState(MinecraftServer server, List<UUID> memberIds) {
+        for (UUID memberId : memberIds) {
+            ServerPlayer member = server.getPlayerList().getPlayer(memberId);
+            if (member != null) {
+                syncPartyState(server, member);
             }
         }
     }

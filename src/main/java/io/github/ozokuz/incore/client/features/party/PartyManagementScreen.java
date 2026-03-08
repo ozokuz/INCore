@@ -10,7 +10,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class PartyManagementScreen extends Screen {
@@ -25,6 +27,8 @@ public class PartyManagementScreen extends Screen {
     private static final int SECTION_GAP = 12;
 
     private Integer previousMenuBlur;
+    private long lastSeenCacheVersion = Long.MIN_VALUE;
+    private final Set<UUID> sendingInviteTargetIds = new HashSet<>();
 
     public PartyManagementScreen() {
         super(Component.translatable("screen.incore.party.title"));
@@ -44,8 +48,20 @@ public class PartyManagementScreen extends Screen {
         rebuildButtons();
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+
+        long cacheVersion = PartyClientCache.getVersion();
+        if (cacheVersion != this.lastSeenCacheVersion) {
+            this.sendingInviteTargetIds.clear();
+            rebuildButtons();
+        }
+    }
+
     private void rebuildButtons() {
         this.clearWidgets();
+        this.lastSeenCacheVersion = PartyClientCache.getVersion();
 
         Layout layout = layout();
         int y = layout.contentY();
@@ -149,10 +165,15 @@ public class PartyManagementScreen extends Screen {
 
         int btnX = x + width - ACTION_BUTTON_WIDTH;
         for (PartyClientCache.PlayerView player : onlinePlayers) {
-            this.addRenderableWidget(Button.builder(
-                    Component.translatable("screen.incore.party.invite"),
-                    btn -> sendAction(PartyActionPayload.ActionType.INVITE, player.playerId())
-            ).bounds(btnX, y - 2, ACTION_BUTTON_WIDTH, BUTTON_HEIGHT - 4).build());
+            boolean sendingInvite = this.sendingInviteTargetIds.contains(player.playerId());
+            boolean outgoingInvite = PartyClientCache.hasOutgoingInvite(player.playerId());
+
+            Button button = Button.builder(
+                    inviteButtonLabel(sendingInvite, outgoingInvite),
+                    btn -> sendInvite(player.playerId())
+            ).bounds(btnX, y - 2, ACTION_BUTTON_WIDTH, BUTTON_HEIGHT - 4).build();
+            button.active = !sendingInvite && !outgoingInvite;
+            this.addRenderableWidget(button);
             
             y += LINE_HEIGHT + 4;
         }
@@ -323,6 +344,22 @@ public class PartyManagementScreen extends Screen {
 
     private void sendAction(PartyActionPayload.ActionType actionType, UUID targetPlayerId) {
         PacketDistributor.sendToServer(new PartyActionPayload(actionType, targetPlayerId));
+    }
+
+    private void sendInvite(UUID targetPlayerId) {
+        this.sendingInviteTargetIds.add(targetPlayerId);
+        rebuildButtons();
+        sendAction(PartyActionPayload.ActionType.INVITE, targetPlayerId);
+    }
+
+    private Component inviteButtonLabel(boolean sendingInvite, boolean outgoingInvite) {
+        if (sendingInvite) {
+            return Component.translatable("screen.incore.party.inviting");
+        }
+        if (outgoingInvite) {
+            return Component.translatable("screen.incore.party.invited");
+        }
+        return Component.translatable("screen.incore.party.invite");
     }
 
     private Layout layout() {

@@ -4,15 +4,19 @@ import io.github.ozokuz.incore.features.party.network.OnlinePlayersSyncPayload;
 import io.github.ozokuz.incore.features.party.network.PartySyncPayload;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public final class PartyClientCache {
+    private static long version = 0L;
     private static boolean inParty = false;
     private static long partyId = 0L;
     private static UUID leaderId = null;
     private static String leaderName = "";
     private static List<MemberView> members = List.of();
+    private static Set<UUID> outgoingInviteTargetIds = Set.of();
     private static boolean hasPendingInvite = false;
     private static long invitePartyId = 0L;
     private static UUID inviteInviterId = null;
@@ -30,16 +34,23 @@ public final class PartyClientCache {
         members = payload.members().stream()
                 .map(m -> new MemberView(m.playerId(), m.playerName()))
                 .toList();
+        outgoingInviteTargetIds = new HashSet<>(payload.outgoingInviteTargetIds());
         hasPendingInvite = payload.hasPendingInvite();
         invitePartyId = payload.invitePartyId();
         inviteInviterId = payload.inviteInviterId();
         inviteInviterName = payload.inviteInviterName();
+        version++;
     }
 
     public static synchronized void updateOnlinePlayers(List<OnlinePlayersSyncPayload.PlayerEntry> players) {
         onlinePlayers = players.stream()
                 .map(p -> new PlayerView(p.playerId(), p.playerName()))
                 .toList();
+        version++;
+    }
+
+    public static synchronized long getVersion() {
+        return version;
     }
 
     public static synchronized boolean isInParty() {
@@ -64,6 +75,10 @@ public final class PartyClientCache {
 
     public static synchronized boolean hasPendingInvite() {
         return hasPendingInvite;
+    }
+
+    public static synchronized boolean hasOutgoingInvite(UUID playerId) {
+        return outgoingInviteTargetIds.contains(playerId);
     }
 
     public static synchronized long getInvitePartyId() {
@@ -92,11 +107,13 @@ public final class PartyClientCache {
         leaderId = null;
         leaderName = "";
         members = List.of();
+        outgoingInviteTargetIds = Set.of();
         hasPendingInvite = false;
         invitePartyId = 0L;
         inviteInviterId = null;
         inviteInviterName = "";
         onlinePlayers = List.of();
+        version++;
     }
 
     public record MemberView(UUID playerId, String playerName) {
