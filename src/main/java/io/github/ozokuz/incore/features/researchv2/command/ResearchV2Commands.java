@@ -179,7 +179,7 @@ public final class ResearchV2Commands {
             ResearchStationDescriptor station = stations.get(i);
             final int index = i + 1;
             final String line = String.format(
-                    "#%d id=%s formed=%s tier=%d rpAvailable=%d parts=%d powerFamily=%s inputTier=%d inputs=%d",
+                    "#%d id=%s formed=%s tier=%d rpAvailable=%d parts=%d powerFamily=%s inputTier=%d inputs=%d output=%s disk=t%d/%d snap corrupt=%d seg augment[speed=%.2f,power=%.2f,bonus=%.2f,corruption=%.2f]",
                     index,
                     station.stationId(),
                     station.formed(),
@@ -188,7 +188,15 @@ public final class ResearchV2Commands {
                     station.connectedParts().size(),
                     station.powerFamily(),
                     station.powerInputTier(),
-                    station.endpoints().inputs().size()
+                    station.endpoints().inputs().size(),
+                    station.outputPortModes(),
+                    station.mountedDiskTier(),
+                    station.mountedDiskSnapshotCount(),
+                    station.mountedDiskCorruptedSegmentCount(),
+                    station.activeSpeedMultiplier(),
+                    station.activePowerMultiplier(),
+                    station.activeBonusRunChance(),
+                    station.activeCorruptionMultiplier()
             );
             context.getSource().sendSuccess(() -> Component.literal(line), false);
         }

@@ -16,6 +16,10 @@ import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.state.TeamResearchState;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationDescriptor;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchStationRuntime;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchStationAugmentSummary;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchStationServices;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -154,6 +158,9 @@ public final class ResearchManager {
                 Math.max(1, node.requiredRuns()),
                 false,
                 ResearchQueueStatus.QUEUED,
+                10_000,
+                0,
+                10_000,
                 assignedStations
         ));
         data.setDirty();
@@ -189,6 +196,28 @@ public final class ResearchManager {
         int requiredRuns = resolveRequiredRuns(head, node);
         int completedRuns = Math.max(0, Math.min(head.completedRuns(), requiredRuns));
         boolean runInputsCommitted = head.runInputsCommitted();
+        ResearchControllerBlockEntity assignedController = ResearchStationRuntime.resolveAssignedController(server, teamId, head.assignedStationIds());
+        List<String> assignedStations = assignedController == null ? head.assignedStationIds() : List.of(assignedController.stationId());
+        if (!assignedStations.equals(head.assignedStationIds())) {
+            updateQueueHead(
+                    state,
+                    node,
+                    runTickProgress,
+                    runTickRequired,
+                    completedRuns,
+                    requiredRuns,
+                    runInputsCommitted,
+                    head.status(),
+                    true,
+                    data,
+                    new RunModifierState(head.runPowerMultiplierBps(), head.runBonusRunChanceBps(), head.runCorruptionMultiplierBps()),
+                    assignedStations
+            );
+            head = state.researchQueue().get(0);
+        }
+        if (assignedController != null) {
+            ResearchStationRuntime.setDiskLocked(assignedController, true);
+        }
 
         if (!state.discoveredNodes().contains(nodeId)
                 || !state.completedNodes().containsAll(node.prerequisites())) {
@@ -202,11 +231,16 @@ public final class ResearchManager {
                     runInputsCommitted,
                     ResearchQueueStatus.PAUSED_MISSING_INPUTS,
                     false,
-                    data
+                    data,
+                    modifiersFromEntry(head),
+                    assignedStations
             );
         }
 
         if (completedRuns >= requiredRuns) {
+            if (assignedController != null) {
+                ResearchStationRuntime.setDiskLocked(assignedController, false);
+            }
             state.discoveredNodes().add(nodeId);
             state.completedNodes().add(nodeId);
             state.researchQueue().remove(0);
@@ -217,21 +251,41 @@ public final class ResearchManager {
 
         if (!runInputsCommitted) {
             ResearchCostDefinition cost = node.researchCost();
-            if (!ResearchProviderManager.hasRequiredModules(server, teamId, cost)
-                    || !ResearchProviderManager.hasRequiredMaterials(server, teamId, cost)
-                    || !ResearchProviderManager.consumeRequiredModules(server, teamId, cost)
-                    || !ResearchProviderManager.consumeRequiredMaterials(server, teamId, cost)) {
+            RunModifierState modifiers = assignedController == null
+                    ? modifiersFromEntry(head)
+                    : resolveRunModifiers(assignedController, node);
+            int adjustedRunTickRequired = assignedController == null
+                    ? runTickRequired
+                    : Math.max(1, (int) Math.ceil(Math.max(1, node.researchTime()) * modifiers.speedMultiplier()));
+
+            boolean canCommitInputs;
+            if (assignedController != null) {
+                canCommitInputs = ResearchStationRuntime.hasWritableDisk(assignedController)
+                        && ResearchStationRuntime.hasRequiredModules(assignedController, cost.requiredLogicModules())
+                        && ResearchStationRuntime.hasRequiredMaterials(assignedController, cost.requiredResearchMaterials())
+                        && ResearchStationRuntime.consumeRequiredModules(assignedController, nodeId, completedRuns, cost.requiredLogicModules())
+                        && ResearchStationRuntime.consumeRequiredMaterials(assignedController, cost.requiredResearchMaterials());
+            } else {
+                canCommitInputs = ResearchProviderManager.hasRequiredModules(server, teamId, cost)
+                        && ResearchProviderManager.hasRequiredMaterials(server, teamId, cost)
+                        && ResearchProviderManager.consumeRequiredModules(server, teamId, cost)
+                        && ResearchProviderManager.consumeRequiredMaterials(server, teamId, cost);
+            }
+
+            if (!canCommitInputs) {
                 return updateQueueHead(
                         state,
                         node,
                         runTickProgress,
-                        runTickRequired,
+                        adjustedRunTickRequired,
                         completedRuns,
                         requiredRuns,
                         false,
                         ResearchQueueStatus.PAUSED_MISSING_INPUTS,
                         false,
-                        data
+                        data,
+                        modifiers,
+                        assignedStations
                 );
             }
 
@@ -239,20 +293,28 @@ public final class ResearchManager {
                     state,
                     node,
                     runTickProgress,
-                    runTickRequired,
+                    adjustedRunTickRequired,
                     completedRuns,
                     requiredRuns,
                     true,
                     ResearchQueueStatus.RUNNING,
                     true,
-                    data
+                    data,
+                    modifiers,
+                    assignedStations
             );
-            ResearchV2LifecycleCallbacks.onResearchStarted(teamId, nodeId, runTickRequired);
+            runTickRequired = adjustedRunTickRequired;
+            ResearchV2LifecycleCallbacks.onResearchStarted(teamId, nodeId, adjustedRunTickRequired);
             runInputsCommitted = true;
+            head = state.researchQueue().get(0);
         }
 
-        int rpPerTick = computePowerCostPerTick(node.researchPower(), runTickProgress, runTickRequired);
-        if (!ResearchProviderManager.consumePower(server, teamId, rpPerTick)) {
+        RunModifierState activeModifiers = modifiersFromEntry(head);
+        int rpPerTick = computePowerCostPerTick(node.researchPower(), runTickProgress, runTickRequired, activeModifiers.powerMultiplier());
+        boolean consumedPower = assignedController != null
+                ? assignedController.consumeResearchPower(rpPerTick) >= rpPerTick
+                : ResearchProviderManager.consumePower(server, teamId, rpPerTick);
+        if (!consumedPower) {
             return updateQueueHead(
                     state,
                     node,
@@ -263,7 +325,9 @@ public final class ResearchManager {
                     runInputsCommitted,
                     ResearchQueueStatus.PAUSED_NO_POWER,
                     false,
-                    data
+                    data,
+                    activeModifiers,
+                    assignedStations
             );
         }
 
@@ -278,12 +342,35 @@ public final class ResearchManager {
                 runInputsCommitted,
                 ResearchQueueStatus.RUNNING,
                 true,
-                data
+                data,
+                activeModifiers,
+                assignedStations
         );
         ResearchV2LifecycleCallbacks.onResearchProgress(teamId, nodeId, nextRunTickProgress, runTickRequired, rpPerTick);
 
         if (nextRunTickProgress >= runTickRequired) {
             int nextCompletedRuns = completedRuns + 1;
+            if (assignedController != null) {
+                ResearchStationRuntime.writeDiskSnapshot(
+                        assignedController,
+                        nodeId,
+                        nextCompletedRuns,
+                        requiredRuns,
+                        nextCompletedRuns,
+                        false,
+                        activeModifiers.corruptionMultiplier()
+                );
+                if (ResearchDeterministicRng.rollChance(
+                        teamId,
+                        assignedController.stationId(),
+                        nodeId,
+                        nextCompletedRuns,
+                        "bonus_run",
+                        activeModifiers.bonusRunChance()
+                )) {
+                    nextCompletedRuns = Math.min(requiredRuns, nextCompletedRuns + 1);
+                }
+            }
             if (nextCompletedRuns < requiredRuns) {
                 return updateQueueHead(
                         state,
@@ -295,8 +382,22 @@ public final class ResearchManager {
                         false,
                         ResearchQueueStatus.QUEUED,
                         true,
-                        data
+                        data,
+                        RunModifierState.DEFAULT,
+                        assignedStations
                 );
+            }
+            if (assignedController != null) {
+                ResearchStationRuntime.writeDiskSnapshot(
+                        assignedController,
+                        nodeId,
+                        nextCompletedRuns,
+                        requiredRuns,
+                        nextCompletedRuns + 1,
+                        true,
+                        activeModifiers.corruptionMultiplier()
+                );
+                ResearchStationRuntime.setDiskLocked(assignedController, false);
             }
             state.discoveredNodes().add(nodeId);
             state.completedNodes().add(nodeId);
@@ -333,6 +434,8 @@ public final class ResearchManager {
         boolean changed = false;
         changed = state.discoveredNodes().add(nodeId) || changed;
         changed = state.completedNodes().add(nodeId) || changed;
+        List<ResearchQueueEntry> removedEntries = state.researchQueue().stream().filter(entry -> nodeId.equals(entry.nodeId())).toList();
+        unlockEntries(server, teamId, removedEntries);
         changed = state.researchQueue().removeIf(entry -> nodeId.equals(entry.nodeId())) || changed;
 
         if (changed) {
@@ -376,6 +479,8 @@ public final class ResearchManager {
             }
         }
 
+        List<ResearchQueueEntry> removedEntries = state.researchQueue().stream().filter(entry -> cancelledNodeIds.contains(entry.nodeId())).toList();
+        unlockEntries(server, teamId, removedEntries);
         boolean changed = state.researchQueue().removeIf(entry -> cancelledNodeIds.contains(entry.nodeId()));
         if (changed) {
             ResearchNetworkSavedData.get(server).setDirty();
@@ -416,6 +521,7 @@ public final class ResearchManager {
                 || !state.devResearchMaterials().isEmpty()
                 || !state.devLogicModules().isEmpty();
 
+        unlockEntries(server, teamId, List.copyOf(state.researchQueue()));
         state.discoveredNodes().clear();
         state.completedNodes().clear();
         state.researchQueue().clear();
@@ -458,6 +564,15 @@ public final class ResearchManager {
             row.addProperty("slotCapacity", station.slotCapacity());
             row.addProperty("powerFamily", station.powerFamily() == null ? "" : station.powerFamily().name());
             row.addProperty("powerInputTier", station.powerInputTier());
+            row.addProperty("outputPortModes", station.outputPortModes());
+            row.addProperty("mountedDiskTier", station.mountedDiskTier());
+            row.addProperty("mountedDiskSnapshotCount", station.mountedDiskSnapshotCount());
+            row.addProperty("mountedDiskCorruptedSegmentCount", station.mountedDiskCorruptedSegmentCount());
+            row.addProperty("mountedDiskCorruptedSnapshotCount", station.mountedDiskCorruptedSnapshotCount());
+            row.addProperty("activeSpeedMultiplier", station.activeSpeedMultiplier());
+            row.addProperty("activePowerMultiplier", station.activePowerMultiplier());
+            row.addProperty("activeBonusRunChance", station.activeBonusRunChance());
+            row.addProperty("activeCorruptionMultiplier", station.activeCorruptionMultiplier());
             row.add("controllerPos", toJsonPos(station.controllerPos()));
 
             JsonObject endpoints = new JsonObject();
@@ -468,6 +583,13 @@ public final class ResearchManager {
             JsonArray inventoryRows = new JsonArray();
             station.endpoints().inventories().forEach(pos -> inventoryRows.add(toJsonPos(pos)));
             endpoints.add("inventories", inventoryRows);
+            endpoints.add("logicHousing", toJsonPos(station.endpoints().logicHousing()));
+            endpoints.add("researchDrive", toJsonPos(station.endpoints().researchDrive()));
+            endpoints.add("materialStorage", toJsonPos(station.endpoints().materialStorage()));
+            JsonArray outputPortRows = new JsonArray();
+            station.endpoints().outputPorts().forEach(pos -> outputPortRows.add(toJsonPos(pos)));
+            endpoints.add("outputPorts", outputPortRows);
+            endpoints.add("augmenter", toJsonPos(station.endpoints().augmenter()));
             row.add("endpoints", endpoints);
 
             JsonArray connectedRows = new JsonArray();
@@ -496,6 +618,9 @@ public final class ResearchManager {
             row.addProperty("requiredRuns", entry.requiredRuns());
             row.addProperty("runInputsCommitted", entry.runInputsCommitted());
             row.addProperty("status", entry.status().name());
+            row.addProperty("runPowerMultiplierBps", entry.runPowerMultiplierBps());
+            row.addProperty("runBonusRunChanceBps", entry.runBonusRunChanceBps());
+            row.addProperty("runCorruptionMultiplierBps", entry.runCorruptionMultiplierBps());
             JsonArray assignedStations = new JsonArray();
             entry.assignedStationIds().forEach(assignedStations::add);
             row.add("assignedStationIds", assignedStations);
@@ -666,12 +791,12 @@ public final class ResearchManager {
         return Math.max(1, node.requiredRuns());
     }
 
-    private static int computePowerCostPerTick(ResearchPowerDefinition power, int timeProgress, int requiredTime) {
+    private static int computePowerCostPerTick(ResearchPowerDefinition power, int timeProgress, int requiredTime, double powerMultiplier) {
         if (power == null) {
             power = ResearchPowerDefinition.defaults();
         }
         double ratio = requiredTime <= 0 ? 0.0D : Math.max(0.0D, (double) timeProgress / (double) requiredTime);
-        double value = power.baseRpPerTick() + (power.curveScaleRpPerTick() * Math.pow(ratio, power.curveExponent()));
+        double value = (power.baseRpPerTick() + (power.curveScaleRpPerTick() * Math.pow(ratio, power.curveExponent()))) * Math.max(0.0D, powerMultiplier);
         return Math.max(0, (int) Math.ceil(value));
     }
 
@@ -685,7 +810,9 @@ public final class ResearchManager {
             boolean runInputsCommitted,
             ResearchQueueStatus status,
             boolean forceDirty,
-            ResearchNetworkSavedData data
+            ResearchNetworkSavedData data,
+            RunModifierState modifiers,
+            List<String> assignedStations
     ) {
         if (state.researchQueue().isEmpty()) {
             return false;
@@ -704,7 +831,10 @@ public final class ResearchManager {
                 normalizedRequiredRuns,
                 runInputsCommitted,
                 status,
-                existing.assignedStationIds()
+                modifiers.powerMultiplierBps(),
+                modifiers.bonusRunChanceBps(),
+                modifiers.corruptionMultiplierBps(),
+                assignedStations == null ? existing.assignedStationIds() : List.copyOf(assignedStations)
         );
 
         boolean changed = forceDirty || !existing.equals(replacement);
@@ -713,6 +843,39 @@ public final class ResearchManager {
             data.setDirty();
         }
         return changed;
+    }
+
+    private static RunModifierState modifiersFromEntry(ResearchQueueEntry entry) {
+        if (entry == null) {
+            return RunModifierState.DEFAULT;
+        }
+        return new RunModifierState(
+                entry.runPowerMultiplierBps() <= 0 ? 10_000 : entry.runPowerMultiplierBps(),
+                Math.max(0, entry.runBonusRunChanceBps()),
+                entry.runCorruptionMultiplierBps() <= 0 ? 10_000 : entry.runCorruptionMultiplierBps()
+        );
+    }
+
+    private static RunModifierState resolveRunModifiers(ResearchControllerBlockEntity controller, ResearchNodeDefinition node) {
+        ResearchStationAugmentSummary summary = controller == null
+                ? ResearchStationAugmentSummary.DEFAULT
+                : ResearchStationServices.computeAugmentSummary(controller.getLevel(), controller, node.categoryId());
+        int powerMultiplierBps = Math.max(1, (int) Math.round(summary.powerMultiplier() * 10_000.0D));
+        int bonusRunChanceBps = Math.max(0, Math.min(9_000, (int) Math.round(summary.bonusRunChance() * 10_000.0D)));
+        int corruptionMultiplierBps = Math.max(1, (int) Math.round(summary.corruptionMultiplier() * 10_000.0D));
+        return new RunModifierState(powerMultiplierBps, bonusRunChanceBps, corruptionMultiplierBps, summary.speedMultiplier());
+    }
+
+    private static void unlockEntries(MinecraftServer server, String teamId, List<ResearchQueueEntry> entries) {
+        if (entries == null) {
+            return;
+        }
+        for (ResearchQueueEntry entry : entries) {
+            ResearchControllerBlockEntity controller = ResearchStationRuntime.resolveAssignedController(server, teamId, entry.assignedStationIds());
+            if (controller != null) {
+                ResearchStationRuntime.setDiskLocked(controller, false);
+            }
+        }
     }
 
     private static JsonObject toJsonPos(BlockPos pos) {
@@ -727,5 +890,30 @@ public final class ResearchManager {
         row.addProperty("y", pos.getY());
         row.addProperty("z", pos.getZ());
         return row;
+    }
+
+    private record RunModifierState(
+            int powerMultiplierBps,
+            int bonusRunChanceBps,
+            int corruptionMultiplierBps,
+            double speedMultiplier
+    ) {
+        private static final RunModifierState DEFAULT = new RunModifierState(10_000, 0, 10_000, 1.0D);
+
+        private RunModifierState(int powerMultiplierBps, int bonusRunChanceBps, int corruptionMultiplierBps) {
+            this(powerMultiplierBps, bonusRunChanceBps, corruptionMultiplierBps, 1.0D);
+        }
+
+        public double powerMultiplier() {
+            return Math.max(0.0D, powerMultiplierBps / 10_000.0D);
+        }
+
+        public double bonusRunChance() {
+            return Math.max(0.0D, bonusRunChanceBps / 10_000.0D);
+        }
+
+        public double corruptionMultiplier() {
+            return Math.max(0.0D, corruptionMultiplierBps / 10_000.0D);
+        }
     }
 }

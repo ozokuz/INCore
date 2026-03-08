@@ -39,19 +39,44 @@ public final class ResearchPowerGameTests {
         ));
     }
 
+    @GameTest(template = "empty", timeoutTicks = 120)
+    public static void electric_input_tiers_scale_fe_buffer_capacity(GameTestHelper helper) {
+        BuiltStation t1Station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
+        bindController(helper, t1Station.controllerPos(), "phase7_fe_buffer_t1");
+        ElectricPowerInputBlockEntity t1Input = requireBlockEntity(helper, t1Station.inputPos(), ElectricPowerInputBlockEntity.class);
+
+        BuiltStation t4Station = fillCasingShell(helper, 6, 1, 1);
+        placeController(helper, t4Station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Direction.NORTH);
+        helper.setBlock(t4Station.inputPos(), Registration.ELECTRIC_POWER_INPUT_T4_BLOCK.get());
+        bindController(helper, t4Station.controllerPos(), "phase7_fe_buffer_t4");
+        ElectricPowerInputBlockEntity t4Input = requireBlockEntity(helper, t4Station.inputPos(), ElectricPowerInputBlockEntity.class);
+
+        helper.assertTrue(t4Input.energyCapacity() > t1Input.energyCapacity(), "higher-tier electric input should expose a larger FE buffer");
+
+        chargeElectricInput(t1Input, Integer.MAX_VALUE);
+        chargeElectricInput(t4Input, Integer.MAX_VALUE);
+        helper.assertValueEqual(t1Input.energyCapacity(), t1Input.energyStored(), "tier 1 input should store up to its FE capacity");
+        helper.assertValueEqual(t4Input.energyCapacity(), t4Input.energyStored(), "tier 4 input should store up to its FE capacity");
+        helper.succeed();
+    }
+
     @GameTest(template = "empty", timeoutTicks = 900)
     public static void electric_core_advances_research(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_research_progress");
         ElectricPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), ElectricPowerInputBlockEntity.class);
+        ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
+        LogicHousingBlockEntity logicHousing = requireBlockEntity(helper, station.logicHousingPos(), LogicHousingBlockEntity.class);
+        MaterialStorageBlockEntity materialStorage = requireBlockEntity(helper, station.materialStoragePos(), MaterialStorageBlockEntity.class);
         chargeElectricInput(input, 60_000);
+        drive.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
+        logicHousing.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get()));
+        materialStorage.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 3));
 
         MinecraftServer server = helper.getLevel().getServer();
         helper.assertTrue(server != null, "expected game test server");
         TeamResearchState state = ResearchManager.ensureTeamState(server, controller.teamId());
         state.discoveredNodes().add(SIGNAL_CALIBRATION);
-        state.devLogicModules().put("basic", 3);
-        state.devResearchMaterials().put("incore:starter_data", 3);
         ResearchNetworkSavedData.get(server).setDirty();
         helper.runAfterDelay(5, () -> {
             boolean alreadyQueued = state.researchQueue().stream().anyMatch(entry -> SIGNAL_CALIBRATION.equals(entry.nodeId()));
@@ -201,20 +226,34 @@ public final class ResearchPowerGameTests {
     }
 
     private static BuiltStation fillCasingShell(GameTestHelper helper) {
+        return fillCasingShell(helper, 1, 1, 1);
+    }
+
+    private static BuiltStation fillCasingShell(GameTestHelper helper, int minX, int minY, int minZ) {
         BuiltStation station = new BuiltStation(
-                new BlockPos(2, 2, 1),
-                new BlockPos(1, 2, 1),
-                new BlockPos(3, 2, 1),
-                new BlockPos(3, 2, 2)
+                new BlockPos(minX + 1, minY + 1, minZ),
+                new BlockPos(minX, minY + 1, minZ),
+                new BlockPos(minX + 2, minY + 1, minZ),
+                new BlockPos(minX + 2, minY + 1, minZ + 1),
+                new BlockPos(minX, minY, minZ),
+                new BlockPos(minX + 1, minY, minZ),
+                new BlockPos(minX + 2, minY, minZ),
+                new BlockPos(minX + 1, minY, minZ + 1),
+                new BlockPos(minX, minY, minZ + 1)
         );
 
-        for (int x = 1; x <= 3; x++) {
-            for (int y = 1; y <= 2; y++) {
-                for (int z = 1; z <= 2; z++) {
+        for (int x = minX; x <= minX + 2; x++) {
+            for (int y = minY; y <= minY + 1; y++) {
+                for (int z = minZ; z <= minZ + 1; z++) {
                     helper.setBlock(new BlockPos(x, y, z), Registration.RESEARCH_STATION_CASING_BLOCK.get());
                 }
             }
         }
+        helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.researchDrivePos(), Registration.RESEARCH_DRIVE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.outputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
         return station;
     }
 
@@ -259,6 +298,16 @@ public final class ResearchPowerGameTests {
         }
     }
 
-    private record BuiltStation(BlockPos controllerPos, BlockPos inputPos, BlockPos extraPos, BlockPos sparePos) {
+    private record BuiltStation(
+            BlockPos controllerPos,
+            BlockPos inputPos,
+            BlockPos extraPos,
+            BlockPos sparePos,
+            BlockPos logicHousingPos,
+            BlockPos researchDrivePos,
+            BlockPos materialStoragePos,
+            BlockPos outputPortPos,
+            BlockPos augmenterPos
+    ) {
     }
 }

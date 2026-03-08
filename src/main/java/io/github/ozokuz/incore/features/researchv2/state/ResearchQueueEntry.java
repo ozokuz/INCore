@@ -18,6 +18,9 @@ public record ResearchQueueEntry(
         int requiredRuns,
         boolean runInputsCommitted,
         ResearchQueueStatus status,
+        int runPowerMultiplierBps,
+        int runBonusRunChanceBps,
+        int runCorruptionMultiplierBps,
         List<String> assignedStationIds
 ) {
     public CompoundTag toTag() {
@@ -29,6 +32,9 @@ public record ResearchQueueEntry(
         tag.putInt("requiredRuns", Math.max(1, requiredRuns));
         tag.putBoolean("runInputsCommitted", runInputsCommitted);
         tag.putString("status", status.name());
+        tag.putInt("runPowerMultiplierBps", Math.max(0, runPowerMultiplierBps));
+        tag.putInt("runBonusRunChanceBps", Math.max(0, runBonusRunChanceBps));
+        tag.putInt("runCorruptionMultiplierBps", Math.max(0, runCorruptionMultiplierBps));
         ListTag stations = new ListTag();
         assignedStationIds.forEach(id -> stations.add(StringTag.valueOf(id)));
         tag.put("assignedStationIds", stations);
@@ -50,6 +56,9 @@ public record ResearchQueueEntry(
                 tag.contains("status", Tag.TAG_STRING) ? tag.getString("status") : null,
                 runTickProgress
         );
+        int runPowerMultiplierBps = Math.max(0, tag.getInt("runPowerMultiplierBps"));
+        int runBonusRunChanceBps = Math.max(0, tag.getInt("runBonusRunChanceBps"));
+        int runCorruptionMultiplierBps = Math.max(0, tag.getInt("runCorruptionMultiplierBps"));
 
         List<String> stations = new ArrayList<>();
         ListTag listTag = tag.getList("assignedStationIds", Tag.TAG_STRING);
@@ -64,6 +73,9 @@ public record ResearchQueueEntry(
                 requiredRuns,
                 runInputsCommitted,
                 status,
+                runPowerMultiplierBps,
+                runBonusRunChanceBps,
+                runCorruptionMultiplierBps,
                 List.copyOf(stations)
         );
     }

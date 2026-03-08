@@ -6,27 +6,25 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ElectricPowerInputBlockEntity extends BlockEntity implements IResearchPowerInput {
     private int feRemainder;
-    private final EnergyStorage energy = new EnergyStorage(
-            Config.ELECTRIC_INPUT_BUFFER_CAPACITY.get(),
-            Config.ELECTRIC_INPUT_MAX_RECEIVE.get(),
-            Config.ELECTRIC_INPUT_BUFFER_CAPACITY.get()
-    ) {
+    private int energyStored;
+    private final IEnergyStorage internalEnergyView = new IEnergyStorage() {
         @Override
         public int receiveEnergy(int toReceive, boolean simulate) {
-            int received = super.receiveEnergy(toReceive, simulate);
+            int received = Math.min(Math.max(0, toReceive), Math.min(maxReceive(), remainingCapacity()));
             if (received > 0 && !simulate) {
+                energyStored += received;
                 setChanged();
             }
             return received;
@@ -34,17 +32,39 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
 
         @Override
         public int extractEnergy(int toExtract, boolean simulate) {
-            int extracted = super.extractEnergy(toExtract, simulate);
+            int extracted = Math.min(Math.max(0, toExtract), Math.max(0, energyStored));
             if (extracted > 0 && !simulate) {
+                energyStored -= extracted;
                 setChanged();
             }
             return extracted;
+        }
+
+        @Override
+        public int getEnergyStored() {
+            clampEnergyStored();
+            return energyStored;
+        }
+
+        @Override
+        public int getMaxEnergyStored() {
+            return capacity();
+        }
+
+        @Override
+        public boolean canExtract() {
+            return true;
+        }
+
+        @Override
+        public boolean canReceive() {
+            return maxReceive() > 0;
         }
     };
     private final IEnergyStorage externalEnergyView = new IEnergyStorage() {
         @Override
         public int receiveEnergy(int toReceive, boolean simulate) {
-            return energy.receiveEnergy(toReceive, simulate);
+            return internalEnergyView.receiveEnergy(toReceive, simulate);
         }
 
         @Override
@@ -54,12 +74,12 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
 
         @Override
         public int getEnergyStored() {
-            return energy.getEnergyStored();
+            return internalEnergyView.getEnergyStored();
         }
 
         @Override
         public int getMaxEnergyStored() {
-            return energy.getMaxEnergyStored();
+            return internalEnergyView.getMaxEnergyStored();
         }
 
         @Override
@@ -69,7 +89,7 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
 
         @Override
         public boolean canReceive() {
-            return energy.canReceive();
+            return internalEnergyView.canReceive();
         }
     };
 
@@ -78,6 +98,7 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ElectricPowerInputBlockEntity input) {
+        input.clampEnergyStored();
     }
 
     public @Nullable IEnergyStorage getEnergyStorage(@Nullable Direction side) {
@@ -88,11 +109,15 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
     }
 
     public int extractForCore(int amount, boolean simulate) {
-        return energy.extractEnergy(amount, simulate);
+        return internalEnergyView.extractEnergy(amount, simulate);
     }
 
     public int energyStored() {
-        return energy.getEnergyStored();
+        return internalEnergyView.getEnergyStored();
+    }
+
+    public int energyCapacity() {
+        return internalEnergyView.getMaxEnergyStored();
     }
 
     @Override
@@ -106,6 +131,7 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
     }
 
     private int computeResearchPower(int maxRp, boolean simulate) {
+        clampEnergyStored();
         if (maxRp <= 0) {
             return 0;
         }
@@ -150,20 +176,60 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.contains("energy")) {
+        if (tag.contains("energyStored")) {
+            energyStored = Math.max(0, tag.getInt("energyStored"));
+        } else if (tag.contains("energy")) {
             Tag energyTag = tag.get("energy");
-            if (energyTag != null) {
-                energy.deserializeNBT(registries, energyTag);
+            if (energyTag instanceof IntTag intTag) {
+                energyStored = Math.max(0, intTag.getAsInt());
+            } else {
+                energyStored = 0;
             }
+        } else {
+            energyStored = 0;
         }
+        clampEnergyStored();
         feRemainder = Math.max(0, tag.getInt("feRemainder"));
     }
 
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put("energy", energy.serializeNBT(registries));
+        clampEnergyStored();
+        tag.putInt("energyStored", energyStored);
         tag.putInt("feRemainder", Math.max(0, feRemainder));
+    }
+
+    private int capacity() {
+        long scaled = (long) Config.ELECTRIC_INPUT_BUFFER_CAPACITY.get() * tierScalar(powerTier());
+        return (int) Math.min(Integer.MAX_VALUE, scaled);
+    }
+
+    private int maxReceive() {
+        long scaled = (long) Config.ELECTRIC_INPUT_MAX_RECEIVE.get() * tierScalar(powerTier());
+        return (int) Math.min(capacity(), Math.min(Integer.MAX_VALUE, scaled));
+    }
+
+    private int remainingCapacity() {
+        clampEnergyStored();
+        return Math.max(0, capacity() - energyStored);
+    }
+
+    private void clampEnergyStored() {
+        int capped = Math.min(Math.max(0, energyStored), capacity());
+        if (capped != energyStored) {
+            energyStored = capped;
+            setChanged();
+        }
+    }
+
+    private static int tierScalar(int tier) {
+        return switch (Math.max(1, tier)) {
+            case 1 -> 1;
+            case 2 -> 4;
+            case 3 -> 16;
+            default -> 64;
+        };
     }
 
     private static int maxFePerTick(int tier) {

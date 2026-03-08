@@ -19,6 +19,7 @@ public final class ResearchV2Networking {
         registrar.playToServer(ResearchV2RequestSnapshotPayload.TYPE, ResearchV2RequestSnapshotPayload.STREAM_CODEC, ResearchV2RequestSnapshotPayload::handle);
         registrar.playToServer(ResearchV2QueueResearchPayload.TYPE, ResearchV2QueueResearchPayload.STREAM_CODEC, ResearchV2QueueResearchPayload::handle);
         registrar.playToServer(ResearchV2CancelQueueItemPayload.TYPE, ResearchV2CancelQueueItemPayload.STREAM_CODEC, ResearchV2CancelQueueItemPayload::handle);
+        registrar.playToServer(ResearchV2RepairDiskSegmentPayload.TYPE, ResearchV2RepairDiskSegmentPayload.STREAM_CODEC, ResearchV2RepairDiskSegmentPayload::handle);
     }
 
     public static void requestSnapshot() {
@@ -31,6 +32,10 @@ public final class ResearchV2Networking {
 
     public static void cancelQueueItem(ResourceLocation nodeId) {
         PacketDistributor.sendToServer(new ResearchV2CancelQueueItemPayload(nodeId.toString()));
+    }
+
+    public static void repairDiskSegment(net.minecraft.core.BlockPos pos, ResourceLocation nodeId, int segmentIndex) {
+        PacketDistributor.sendToServer(new ResearchV2RepairDiskSegmentPayload(pos.asLong(), nodeId.toString(), segmentIndex));
     }
 
     public static void syncToPlayer(ServerPlayer player) {

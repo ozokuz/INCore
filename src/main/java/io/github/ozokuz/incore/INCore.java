@@ -37,12 +37,14 @@ import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworkin
 import io.github.ozokuz.incore.features.party.command.PartyCommands;
 import io.github.ozokuz.incore.features.party.network.PartyNetworking;
 import io.github.ozokuz.incore.features.research.LabTier;
+import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
 import io.github.ozokuz.incore.features.researchv2.command.ResearchV2Commands;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
 import io.github.ozokuz.incore.features.researchv2.station.ElectricPowerInputBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.HybridResearchStationResourceProvider;
+import io.github.ozokuz.incore.features.researchv2.station.OutputPortBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
@@ -177,6 +179,39 @@ public class INCore {
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
+                Registration.LOGIC_HOUSING_BE.get(),
+                (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
+                        ? blockEntity.frontInsertView()
+                        : blockEntity.itemHandler()
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.RESEARCH_DRIVE_BE.get(),
+                (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
+                        ? blockEntity.frontInsertView()
+                        : blockEntity.itemHandler()
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.MATERIAL_STORAGE_BE.get(),
+                (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
+                        ? blockEntity.frontInsertView()
+                        : blockEntity.itemHandler()
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.AUGMENTER_BE.get(),
+                (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
+                        ? blockEntity.frontInsertView()
+                        : blockEntity.itemHandler()
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.OUTPUT_PORT_BE.get(),
+                OutputPortBlockEntity::frontExtractView
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
                 Registration.DUNGEON_ALTAR_AUTOMATOR_BE.get(),
                 (be, side) -> be.itemHandler()
         );
@@ -212,6 +247,7 @@ public class INCore {
         event.addListener(new BattlePassLaneManager());
         event.addListener(new BattlePassManager());
         event.addListener(new ResearchRegistry());
+        event.addListener(new ResearchMaterialManager());
         event.addListener(new AltarOfferingManager());
         event.addListener(new DungeonThemeManager());
         event.addListener(new DungeonSocketManager());

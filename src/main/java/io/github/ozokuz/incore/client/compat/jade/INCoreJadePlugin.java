@@ -675,6 +675,17 @@ public class INCoreJadePlugin implements IWailaPlugin {
             data.putInt("input_count", controller.powerInputPositions().size());
             if (controller.isFormed() && !controller.stationId().isBlank()) {
                 data.putString("station_id", controller.stationId());
+                var descriptor = controller.describeStation();
+                if (descriptor != null) {
+                    data.putString("output_mode", descriptor.outputPortModes());
+                    data.putInt("disk_tier", descriptor.mountedDiskTier());
+                    data.putInt("disk_snapshots", descriptor.mountedDiskSnapshotCount());
+                    data.putInt("disk_corrupted", descriptor.mountedDiskCorruptedSegmentCount());
+                    data.putDouble("augment_speed", descriptor.activeSpeedMultiplier());
+                    data.putDouble("augment_power", descriptor.activePowerMultiplier());
+                    data.putDouble("augment_bonus", descriptor.activeBonusRunChance());
+                    data.putDouble("augment_corruption", descriptor.activeCorruptionMultiplier());
+                }
             }
         }
 
@@ -704,6 +715,13 @@ public class INCoreJadePlugin implements IWailaPlugin {
             tooltip.add(Component.translatable("jade.incore.research_controller.inputs", data.getInt("input_count")));
             if (data.contains("station_id")) {
                 tooltip.add(Component.translatable("jade.incore.research_controller.station_id", data.getString("station_id")));
+                tooltip.add(Component.literal("Output: " + data.getString("output_mode")));
+                tooltip.add(Component.literal("Disk: T" + data.getInt("disk_tier") + " snapshots=" + data.getInt("disk_snapshots") + " corrupted=" + data.getInt("disk_corrupted")));
+                tooltip.add(Component.literal(String.format(java.util.Locale.ROOT, "Augments: speed=%.2f power=%.2f bonus=%.2f corruption=%.2f",
+                        data.getDouble("augment_speed"),
+                        data.getDouble("augment_power"),
+                        data.getDouble("augment_bonus"),
+                        data.getDouble("augment_corruption"))));
             }
         }
     }

@@ -66,4 +66,16 @@ public final class ResearchMultiblockStationRegistry {
         }
         return List.copyOf(stations);
     }
+
+    public static ResearchControllerBlockEntity controllerByStationId(MinecraftServer server, String teamId, String stationId) {
+        if (stationId == null || stationId.isBlank()) {
+            return null;
+        }
+        for (ResearchControllerBlockEntity controller : controllersForTeam(server, teamId)) {
+            if (stationId.equals(controller.stationId())) {
+                return controller;
+            }
+        }
+        return null;
+    }
 }

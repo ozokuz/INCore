@@ -24,6 +24,11 @@ public class ResearchControllerBlockEntity extends BlockEntity {
     private String stationId = "";
     private List<BlockPos> connectedParts = List.of();
     private List<BlockPos> powerInputPositions = List.of();
+    private BlockPos logicHousingPos;
+    private BlockPos researchDrivePos;
+    private BlockPos materialStoragePos;
+    private List<BlockPos> outputPortPositions = List.of();
+    private BlockPos augmenterPos;
     private ResearchPowerFamily powerFamily;
     private int powerInputTier;
     private int tickCounter;
@@ -189,6 +194,30 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         return connectedParts;
     }
 
+    public BlockPos logicHousingPos() {
+        return logicHousingPos;
+    }
+
+    public BlockPos researchDrivePos() {
+        return researchDrivePos;
+    }
+
+    public BlockPos materialStoragePos() {
+        return materialStoragePos;
+    }
+
+    public List<BlockPos> outputPortPositions() {
+        return outputPortPositions;
+    }
+
+    public BlockPos outputPortPos() {
+        return outputPortPositions.isEmpty() ? null : outputPortPositions.get(0);
+    }
+
+    public BlockPos augmenterPos() {
+        return augmenterPos;
+    }
+
     public int connectedPartCount() {
         return connectedParts.size();
     }
@@ -205,6 +234,11 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         String nextStationId = nextFormed ? buildStationId(level.dimension().location(), worldPosition) : "";
         List<BlockPos> nextConnectedParts = nextFormed ? normalizeConnectedParts(result.connectedParts()) : List.of();
         List<BlockPos> nextPowerInputPositions = nextFormed ? normalizeConnectedParts(result.inputPositions()) : List.of();
+        BlockPos nextLogicHousingPos = nextFormed ? immutablePos(result.logicHousingPos()) : null;
+        BlockPos nextResearchDrivePos = nextFormed ? immutablePos(result.researchDrivePos()) : null;
+        BlockPos nextMaterialStoragePos = nextFormed ? immutablePos(result.materialStoragePos()) : null;
+        List<BlockPos> nextOutputPortPositions = nextFormed ? normalizeConnectedParts(result.outputPortPositions()) : List.of();
+        BlockPos nextAugmenterPos = nextFormed ? immutablePos(result.augmenterPos()) : null;
         ResearchPowerFamily nextPowerFamily = nextFormed ? result.powerFamily() : null;
         int nextPowerInputTier = nextFormed ? Math.max(0, result.powerInputTier()) : 0;
 
@@ -212,15 +246,27 @@ public class ResearchControllerBlockEntity extends BlockEntity {
                 || !stationId.equals(nextStationId)
                 || !connectedParts.equals(nextConnectedParts)
                 || !powerInputPositions.equals(nextPowerInputPositions)
+                || !java.util.Objects.equals(logicHousingPos, nextLogicHousingPos)
+                || !java.util.Objects.equals(researchDrivePos, nextResearchDrivePos)
+                || !java.util.Objects.equals(materialStoragePos, nextMaterialStoragePos)
+                || !outputPortPositions.equals(nextOutputPortPositions)
+                || !java.util.Objects.equals(augmenterPos, nextAugmenterPos)
                 || powerFamily != nextPowerFamily
                 || powerInputTier != nextPowerInputTier;
 
+        clearPartBindings();
         formed = nextFormed;
         stationId = nextStationId;
         connectedParts = nextConnectedParts;
         powerInputPositions = nextPowerInputPositions;
+        logicHousingPos = nextLogicHousingPos;
+        researchDrivePos = nextResearchDrivePos;
+        materialStoragePos = nextMaterialStoragePos;
+        outputPortPositions = nextOutputPortPositions;
+        augmenterPos = nextAugmenterPos;
         powerFamily = nextPowerFamily;
         powerInputTier = nextPowerInputTier;
+        bindPartBindings();
 
         if (changed) {
             setChanged();
@@ -249,7 +295,45 @@ public class ResearchControllerBlockEntity extends BlockEntity {
             return null;
         }
 
-        ResearchStationEndpoints endpoints = new ResearchStationEndpoints(powerInputPositions, List.of());
+        List<BlockPos> inventories = java.util.stream.Stream.of(logicHousingPos, researchDrivePos, materialStoragePos, augmenterPos)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        ResearchStationEndpoints endpoints = new ResearchStationEndpoints(
+                powerInputPositions,
+                inventories,
+                logicHousingPos,
+                researchDrivePos,
+                materialStoragePos,
+                outputPortPositions,
+                augmenterPos
+        );
+        String outputModes = outputPortPositions.isEmpty()
+                ? "NONE"
+                : outputPortPositions.stream()
+                .map(pos -> level.getBlockEntity(pos) instanceof OutputPortBlockEntity outputPort ? outputPort.mode().name() : OutputPortMode.LOGIC.name())
+                .collect(java.util.stream.Collectors.joining("+"));
+
+        int mountedDiskTier = 0;
+        int mountedDiskSnapshotCount = 0;
+        int mountedDiskCorruptedSegmentCount = 0;
+        int mountedDiskCorruptedSnapshotCount = 0;
+        if (researchDrivePos != null && level.getBlockEntity(researchDrivePos) instanceof ResearchDriveBlockEntity drive) {
+            var disk = drive.mountedDisk();
+            if (!disk.isEmpty() && StationInventoryRules.isResearchDisk(disk)) {
+                mountedDiskTier = switch (ResearchDiskData.readTier(disk)) {
+                    case T1 -> 1;
+                    case T2 -> 2;
+                    case T3 -> 3;
+                    case T4 -> 4;
+                };
+                var snapshots = ResearchDiskData.readSnapshots(disk);
+                mountedDiskSnapshotCount = snapshots.size();
+                mountedDiskCorruptedSegmentCount = snapshots.stream().mapToInt(snapshot -> snapshot.corruptedSegments().size()).sum();
+                mountedDiskCorruptedSnapshotCount = (int) snapshots.stream().filter(snapshot -> !snapshot.corruptedSegments().isEmpty()).count();
+            }
+        }
+
+        ResearchStationAugmentSummary augmentSummary = ResearchStationServices.computeAugmentSummary(level, this);
         return new ResearchStationDescriptor(
                 stationId,
                 teamId,
@@ -263,6 +347,15 @@ public class ResearchControllerBlockEntity extends BlockEntity {
                 availableResearchPower(Integer.MAX_VALUE),
                 powerFamily,
                 powerInputTier,
+                outputModes,
+                mountedDiskTier,
+                mountedDiskSnapshotCount,
+                mountedDiskCorruptedSegmentCount,
+                mountedDiskCorruptedSnapshotCount,
+                augmentSummary.speedMultiplier(),
+                augmentSummary.powerMultiplier(),
+                augmentSummary.bonusRunChance(),
+                augmentSummary.corruptionMultiplier(),
                 endpoints,
                 connectedParts
         );
@@ -298,6 +391,15 @@ public class ResearchControllerBlockEntity extends BlockEntity {
             loadedInputs.add(BlockPos.of(packed));
         }
         powerInputPositions = normalizeConnectedParts(loadedInputs);
+        logicHousingPos = readPos(tag, "logicHousingPos");
+        researchDrivePos = readPos(tag, "researchDrivePos");
+        materialStoragePos = readPos(tag, "materialStoragePos");
+        outputPortPositions = readPositions(tag, "outputPortPositions");
+        if (outputPortPositions.isEmpty()) {
+            BlockPos legacyOutputPort = readPos(tag, "outputPortPos");
+            outputPortPositions = legacyOutputPort == null ? List.of() : List.of(legacyOutputPort);
+        }
+        augmenterPos = readPos(tag, "augmenterPos");
     }
 
     @Override
@@ -324,6 +426,12 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         if (packedInputs.length > 0) {
             tag.putLongArray("powerInputs", packedInputs);
         }
+        writePos(tag, "logicHousingPos", logicHousingPos);
+        writePos(tag, "researchDrivePos", researchDrivePos);
+        writePos(tag, "materialStoragePos", materialStoragePos);
+        writePositions(tag, "outputPortPositions", outputPortPositions);
+        writePos(tag, "outputPortPos", outputPortPos());
+        writePos(tag, "augmenterPos", augmenterPos);
     }
 
     private static String buildStationId(ResourceLocation dimensionId, BlockPos controllerPos) {
@@ -341,5 +449,71 @@ public class ResearchControllerBlockEntity extends BlockEntity {
         }
         normalized.sort(Comparator.comparingLong(BlockPos::asLong));
         return List.copyOf(normalized);
+    }
+
+    private void clearPartBindings() {
+        if (level == null) {
+            return;
+        }
+        List<BlockPos> partPositions = new ArrayList<>();
+        partPositions.add(logicHousingPos);
+        partPositions.add(researchDrivePos);
+        partPositions.add(materialStoragePos);
+        partPositions.addAll(outputPortPositions);
+        partPositions.add(augmenterPos);
+        for (BlockPos pos : partPositions.stream().filter(java.util.Objects::nonNull).toList()) {
+            if (pos != null && level.getBlockEntity(pos) instanceof AbstractResearchStationPartBlockEntity part) {
+                part.clearBinding();
+            }
+        }
+    }
+
+    private void bindPartBindings() {
+        if (!formed || level == null) {
+            return;
+        }
+        List<BlockPos> partPositions = new ArrayList<>();
+        partPositions.add(logicHousingPos);
+        partPositions.add(researchDrivePos);
+        partPositions.add(materialStoragePos);
+        partPositions.addAll(outputPortPositions);
+        partPositions.add(augmenterPos);
+        for (BlockPos pos : partPositions.stream().filter(java.util.Objects::nonNull).toList()) {
+            if (pos != null && level.getBlockEntity(pos) instanceof AbstractResearchStationPartBlockEntity part) {
+                part.bindToController(this);
+            }
+        }
+    }
+
+    private static BlockPos immutablePos(BlockPos pos) {
+        return pos == null ? null : pos.immutable();
+    }
+
+    private static BlockPos readPos(CompoundTag tag, String key) {
+        return tag.contains(key) ? BlockPos.of(tag.getLong(key)) : null;
+    }
+
+    private static List<BlockPos> readPositions(CompoundTag tag, String key) {
+        if (!tag.contains(key)) {
+            return List.of();
+        }
+        long[] packed = tag.getLongArray(key);
+        List<BlockPos> positions = new ArrayList<>(packed.length);
+        for (long value : packed) {
+            positions.add(BlockPos.of(value));
+        }
+        return normalizeConnectedParts(positions);
+    }
+
+    private static void writePos(CompoundTag tag, String key, BlockPos pos) {
+        if (pos != null) {
+            tag.putLong(key, pos.asLong());
+        }
+    }
+
+    private static void writePositions(CompoundTag tag, String key, List<BlockPos> positions) {
+        if (positions != null && !positions.isEmpty()) {
+            tag.putLongArray(key, positions.stream().mapToLong(BlockPos::asLong).toArray());
+        }
     }
 }

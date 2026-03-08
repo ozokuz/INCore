@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "incore:block/augmenter" },
+    "facing=south": { "model": "incore:block/augmenter", "y": 180 },
+    "facing=west": { "model": "incore:block/augmenter", "y": 270 },
+    "facing=east": { "model": "incore:block/augmenter", "y": 90 }
+  }
+}
