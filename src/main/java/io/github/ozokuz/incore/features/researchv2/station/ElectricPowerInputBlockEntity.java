@@ -10,6 +10,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +81,9 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
     }
 
     public @Nullable IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+        if (side == null || side != getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)) {
+            return null;
+        }
         return externalEnergyView;
     }
 

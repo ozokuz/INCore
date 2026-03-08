@@ -6,12 +6,14 @@ import io.github.ozokuz.incore.features.researchv2.ResearchManager;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchNetworkSavedData;
 import io.github.ozokuz.incore.features.researchv2.state.TeamResearchState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -208,7 +210,8 @@ public final class ResearchPowerGameTests {
 
     private static void chargeElectricInput(ElectricPowerInputBlockEntity input, int amount) {
         int remaining = Math.max(0, amount);
-        var storage = input.getEnergyStorage(null);
+        Direction front = input.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        var storage = input.getEnergyStorage(front);
         while (remaining > 0 && storage != null) {
             int received = storage.receiveEnergy(remaining, false);
             if (received <= 0) {

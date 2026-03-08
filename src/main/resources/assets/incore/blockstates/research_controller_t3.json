@@ -1,5 +1,8 @@
 {
   "variants": {
-    "": { "model": "incore:block/research_controller_t3" }
+    "facing=east": { "model": "incore:block/research_controller_t3", "y": 90 },
+    "facing=north": { "model": "incore:block/research_controller_t3" },
+    "facing=south": { "model": "incore:block/research_controller_t3", "y": 180 },
+    "facing=west": { "model": "incore:block/research_controller_t3", "y": 270 }
   }
 }
