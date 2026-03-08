@@ -74,6 +74,13 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 .build());
 
         clampScroll();
+        MarketNetworking.subscribeMarketView(true, data == null ? null : data.terminalPos(), null);
+    }
+
+    @Override
+    public void removed() {
+        MarketNetworking.subscribeMarketView(false, null, null);
+        super.removed();
     }
 
     @Override

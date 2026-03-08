@@ -39,7 +39,6 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     private static final int CARD_OUTPUT_H = 74;
     private static final int INV_Y = 220;
 
-    private ThemedButton enabledButton;
     private @Nullable ResourceLocation ghostTargetItemId;
     private ItemStack ghostTargetPreview = ItemStack.EMPTY;
 
@@ -58,45 +57,35 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         int bx = leftPos;
         int by = topPos;
 
-        // Row 1: On/Off + Cap controls
-        this.enabledButton = this.addRenderableWidget(new ThemedButton(
-                bx + 12, by + 98, 50, 16,
-                Component.literal(""),
-                btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), !menu.enabled())
-        ));
-
         this.addRenderableWidget(new ThemedButton(
                 bx + 68, by + 98, 34, 16,
                 Component.literal("Cap -"),
-                btn -> sendConfigUpdate(currentTargetIdString(), Math.max(1, menu.priceCap() - 1), menu.batchSize(), menu.enabled())
+                btn -> sendConfigUpdate(currentTargetIdString(), Math.max(1, menu.priceCap() - 1), menu.batchSize())
         ));
         this.addRenderableWidget(new ThemedButton(
                 bx + 104, by + 98, 34, 16,
                 Component.literal("Cap +"),
-                btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap() + 1, menu.batchSize(), menu.enabled())
+                btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap() + 1, menu.batchSize())
         ));
 
-        // Row 2: Clear + Stack controls
         this.addRenderableWidget(new ThemedButton(
                 bx + 12, by + 118, 50, 16,
                 Component.literal("Clear"),
                 btn -> {
                     clearGhostTarget();
-                    sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+                    sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize());
                 }
         ));
         this.addRenderableWidget(new ThemedButton(
                 bx + 68, by + 118, 34, 16,
                 Component.literal("Stk -"),
-                btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap(), Math.max(1, menu.batchSize() - 1), menu.enabled())
+                btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap(), Math.max(1, menu.batchSize() - 1))
         ));
         this.addRenderableWidget(new ThemedButton(
                 bx + 104, by + 118, 34, 16,
                 Component.literal("Stk +"),
-                btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap(), Math.min(64, menu.batchSize() + 1), menu.enabled())
+                btn -> sendConfigUpdate(currentTargetIdString(), menu.priceCap(), Math.min(64, menu.batchSize() + 1))
         ));
-
-        refreshEnabledButton();
     }
 
     @Override
@@ -106,26 +95,18 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         if (ghostTargetItemId == null && menuTargetId != null && !menuTargetId.isBlank()) {
             syncGhostTargetFromString(menuTargetId);
         }
-        refreshEnabledButton();
-    }
-
-    private void refreshEnabledButton() {
-        if (enabledButton != null) {
-            enabledButton.setMessage(Component.literal(menu.enabled() ? "On" : "Off"));
-        }
     }
 
     private String currentTargetIdString() {
         return ghostTargetItemId == null ? "" : ghostTargetItemId.toString();
     }
 
-    private void sendConfigUpdate(String targetItemId, int priceCap, int batchSize, boolean enabled) {
+    private void sendConfigUpdate(String targetItemId, int priceCap, int batchSize) {
         MarketNetworking.sendAutoBuyerConfig(
                 menu.positionAccessor().asLong(),
                 targetItemId,
                 priceCap,
-                batchSize,
-                enabled
+                batchSize
         );
     }
 
@@ -280,14 +261,14 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         if (isMouseOverGhostSlot(mouseX, mouseY)) {
             if (button == 1 || button == 2) {
                 clearGhostTarget();
-                sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+                sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize());
                 return true;
             }
 
             if (button == 0) {
                 ItemStack carried = menu.getCarried();
                 if (!carried.isEmpty() && setGhostTargetFromItemStack(carried)) {
-                    sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+                    sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize());
                     return true;
                 }
             }
@@ -299,13 +280,13 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         if (!setGhostTargetFromItemStack(stack)) {
             return false;
         }
-        sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+        sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize());
         return true;
     }
 
     public void clearGhostTargetFromExternal() {
         clearGhostTarget();
-        sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize(), menu.enabled());
+        sendConfigUpdate(currentTargetIdString(), menu.priceCap(), menu.batchSize());
     }
 
     public int ghostSlotLeft() {

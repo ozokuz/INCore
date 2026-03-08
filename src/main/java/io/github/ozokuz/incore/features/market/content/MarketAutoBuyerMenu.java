@@ -30,12 +30,27 @@ public class MarketAutoBuyerMenu extends AbstractContainerMenu {
             addDataSlot(net.minecraft.world.inventory.DataSlot.forContainer(data, i));
         }
 
-        addSlot(new Slot(blockEntity, MarketAutoBuyerBlockEntity.CARD_SLOT, CARD_X, CARD_Y));
+        addSlot(new Slot(blockEntity, MarketAutoBuyerBlockEntity.CARD_SLOT, CARD_X, CARD_Y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return blockEntity.canPlaceItem(MarketAutoBuyerBlockEntity.CARD_SLOT, stack);
+            }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+        });
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 int slot = MarketAutoBuyerBlockEntity.OUTPUT_START + col + row * 9;
-                addSlot(new Slot(blockEntity, slot, OUTPUT_X + col * 18, OUTPUT_Y + row * 18));
+                addSlot(new Slot(blockEntity, slot, OUTPUT_X + col * 18, OUTPUT_Y + row * 18) {
+                    @Override
+                    public boolean mayPlace(ItemStack stack) {
+                        return false;
+                    }
+                });
             }
         }
 
@@ -66,7 +81,8 @@ public class MarketAutoBuyerMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
         } else {
-            if (!moveItemStackTo(stack, 0, machineSlots, false)) {
+            if (!blockEntity.canPlaceItem(MarketAutoBuyerBlockEntity.CARD_SLOT, stack)
+                    || !moveItemStackTo(stack, MarketAutoBuyerBlockEntity.CARD_SLOT, MarketAutoBuyerBlockEntity.CARD_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         }
@@ -103,10 +119,6 @@ public class MarketAutoBuyerMenu extends AbstractContainerMenu {
 
     public int batchSize() {
         return data.get(4);
-    }
-
-    public boolean enabled() {
-        return data.get(5) != 0;
     }
 
     public int progressScaled(int width) {

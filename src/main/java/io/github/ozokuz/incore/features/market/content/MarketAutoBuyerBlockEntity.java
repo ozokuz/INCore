@@ -3,11 +3,13 @@ package io.github.ozokuz.incore.features.market.content;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.ithundxr.createnumismatics.content.bank.CardItem;
 import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.market.MarketBanking;
 import io.github.ozokuz.incore.features.market.MarketItemManager;
 import io.github.ozokuz.incore.features.market.MarketPricingService;
+import io.github.ozokuz.incore.features.market.MarketService;
 import io.github.ozokuz.incore.features.market.MarketTeamAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -62,7 +64,6 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
     private @Nullable ResourceLocation targetItemId;
     private int priceCapSpur = 64;
     private int batchSize = 1;
-    private boolean enabled = true;
     protected int progress;
     protected int status = STATUS_READY;
 
@@ -75,7 +76,6 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
                 case 2 -> status;
                 case 3 -> priceCapSpur;
                 case 4 -> batchSize;
-                case 5 -> enabled ? 1 : 0;
                 default -> 0;
             };
         }
@@ -94,14 +94,11 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
             if (index == 4) {
                 batchSize = Math.clamp(value, 1, 64);
             }
-            if (index == 5) {
-                enabled = value != 0;
-            }
         }
 
         @Override
         public int getCount() {
-            return 6;
+            return 5;
         }
     };
 
@@ -127,7 +124,7 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
 
     protected void serverTick(Level level) {
         refreshStressInNetwork();
-        if (!enabled) {
+        if (isRedstoneDisabled(level)) {
             progress = 0;
             status = STATUS_DISABLED;
             setChanged();
@@ -235,7 +232,12 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
 
         insertOutput(targetItemId, requestedItemCount);
         MarketPricingService.applyBuy(level.getServer(), targetItemId, batchSize);
+        MarketService.syncActiveViewers(level.getServer());
         setChanged();
+    }
+
+    protected boolean isRedstoneDisabled(Level level) {
+        return level.hasNeighborSignal(worldPosition);
     }
 
     protected boolean hasOperationalPower() {
@@ -286,10 +288,6 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
         return batchSize;
     }
 
-    public boolean enabledForDisplay() {
-        return enabled;
-    }
-
     public int rpmForDisplay() {
         return Math.round(Math.abs(getSpeed()));
     }
@@ -338,15 +336,6 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
 
     public void setBatchSize(int batchSize) {
         this.batchSize = Math.clamp(batchSize, 1, 64);
-        setChanged();
-    }
-
-    public boolean enabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
         setChanged();
     }
 
@@ -436,7 +425,6 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
         }
         tag.putInt("priceCapSpur", priceCapSpur);
         tag.putInt("batchSize", batchSize);
-        tag.putBoolean("enabled", enabled);
         tag.putInt("progress", progress);
         tag.putInt("status", status);
     }
@@ -466,7 +454,6 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
                 : null;
         priceCapSpur = Math.max(1, tag.getInt("priceCapSpur"));
         batchSize = Math.clamp(tag.getInt("batchSize"), 1, 64);
-        enabled = tag.getBoolean("enabled");
         progress = Math.max(0, tag.getInt("progress"));
         status = tag.getInt("status");
     }
@@ -541,7 +528,14 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
         if (slot < 0 || slot >= items.size()) {
             return;
         }
-        items.set(slot, stack);
+        ItemStack normalized = stack;
+        if (!canPlaceItem(slot, stack)) {
+            normalized = ItemStack.EMPTY;
+        } else if (slot == CARD_SLOT && !normalized.isEmpty() && normalized.getCount() > 1) {
+            normalized = normalized.copy();
+            normalized.setCount(1);
+        }
+        items.set(slot, normalized);
         setChanged();
     }
 
@@ -562,5 +556,13 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
             items.set(i, ItemStack.EMPTY);
         }
         setChanged();
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, @NotNull ItemStack stack) {
+        if (slot == CARD_SLOT) {
+            return CardItem.isBound(stack);
+        }
+        return false;
     }
 }

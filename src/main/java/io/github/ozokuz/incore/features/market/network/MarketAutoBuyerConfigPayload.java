@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record MarketAutoBuyerConfigPayload(long blockPos, String targetItemId, int priceCapSpur, int batchSize, boolean enabled) implements CustomPacketPayload {
+public record MarketAutoBuyerConfigPayload(long blockPos, String targetItemId, int priceCapSpur, int batchSize) implements CustomPacketPayload {
     public static final Type<MarketAutoBuyerConfigPayload> TYPE = new Type<>(ResourceLocation.parse("incore:market_autobuyer_config"));
     public static final StreamCodec<ByteBuf, MarketAutoBuyerConfigPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_LONG,
@@ -22,8 +22,6 @@ public record MarketAutoBuyerConfigPayload(long blockPos, String targetItemId, i
             MarketAutoBuyerConfigPayload::priceCapSpur,
             ByteBufCodecs.VAR_INT,
             MarketAutoBuyerConfigPayload::batchSize,
-            ByteBufCodecs.BOOL,
-            MarketAutoBuyerConfigPayload::enabled,
             MarketAutoBuyerConfigPayload::new
     );
 
@@ -58,7 +56,6 @@ public record MarketAutoBuyerConfigPayload(long blockPos, String targetItemId, i
 
             autoBuyer.setPriceCapSpur(payload.priceCapSpur());
             autoBuyer.setBatchSize(payload.batchSize());
-            autoBuyer.setEnabled(payload.enabled());
         });
     }
 }

@@ -14,4 +14,11 @@ public final class MarketClientPayloadHandlers {
         }
         minecraft.setScreen(new MarketSelectionScreen(json));
     }
+
+    public static void syncMarketSnapshot(String json) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.screen instanceof MarketPayloadUpdatable updatable) {
+            updatable.updatePayload(json);
+        }
+    }
 }

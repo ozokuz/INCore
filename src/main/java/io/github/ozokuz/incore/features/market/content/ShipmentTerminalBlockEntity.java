@@ -3,11 +3,13 @@ package io.github.ozokuz.incore.features.market.content;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.ithundxr.createnumismatics.content.bank.CardItem;
 import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.market.MarketBanking;
 import io.github.ozokuz.incore.features.market.MarketItemManager;
 import io.github.ozokuz.incore.features.market.MarketPricingService;
+import io.github.ozokuz.incore.features.market.MarketService;
 import io.github.ozokuz.incore.features.market.MarketTeamAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -40,13 +42,14 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
     public static final int SLOT_COUNT = 10;
 
     public static final int STATUS_IDLE = 0;
-    public static final int STATUS_NO_CARD = 1;
-    public static final int STATUS_NO_ITEMS = 2;
-    public static final int STATUS_INVALID_ITEM = 3;
-    public static final int STATUS_NEED_FULL_STACK = 4;
-    public static final int STATUS_NO_RPM = 5;
-    public static final int STATUS_NO_STRESS = 6;
-    public static final int STATUS_NO_POWER = 7;
+    public static final int STATUS_DISABLED = 1;
+    public static final int STATUS_NO_CARD = 2;
+    public static final int STATUS_NO_ITEMS = 3;
+    public static final int STATUS_INVALID_ITEM = 4;
+    public static final int STATUS_NEED_FULL_STACK = 5;
+    public static final int STATUS_NO_RPM = 6;
+    public static final int STATUS_NO_STRESS = 7;
+    public static final int STATUS_NO_POWER = 8;
 
     protected static final int MIN_REQUIRED_RPM = 128;
     protected static final float STATIC_STRESS = 1024.0F;
@@ -107,6 +110,13 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
         int interval = Math.max(1, Config.MARKET_SHIPMENT_INTERVAL_TICKS.get());
         refreshStressInNetwork();
 
+        if (isRedstoneDisabled(level)) {
+            progress = 0;
+            status = STATUS_DISABLED;
+            setChanged();
+            return;
+        }
+
         if (!hasOperationalPower()) {
             progress = 0;
             setChanged();
@@ -137,9 +147,9 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
             return;
         }
 
-        ItemStack inputStack = items.get(slot);
-        int requiredStackSize = Math.max(1, inputStack.getMaxStackSize());
-        if (inputStack.getCount() < requiredStackSize) {
+        int requiredStackSize = requiredStackSize(slot);
+        int totalMatching = totalMatchingItems(itemId);
+        if (totalMatching < requiredStackSize) {
             progress = 0;
             status = STATUS_NEED_FULL_STACK;
             setChanged();
@@ -164,11 +174,7 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
             return;
         }
 
-        ItemStack stack = items.get(slot);
-        int sellingCount = Math.max(1, stack.getMaxStackSize());
-        int soldStacks = 1;
-        int unitPrice = MarketPricingService.currentPrice(level.getServer(), itemId);
-        if (unitPrice <= 0 || sellingCount <= 0) {
+        if (requiredStackSize <= 0) {
             return;
         }
 
@@ -179,12 +185,25 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
             return;
         }
 
-        stack.shrink(sellingCount);
-        long payoutLong = (long) unitPrice * soldStacks;
-        int payout = (int) Math.min(Integer.MAX_VALUE, payoutLong);
-        MarketBanking.deposit(account, payout);
-        MarketPricingService.applySell(level.getServer(), itemId, soldStacks);
+        if (!removeMatchingItems(itemId, requiredStackSize)) {
+            status = STATUS_NO_ITEMS;
+            setChanged();
+            return;
+        }
+
+        MarketService.SaleQuote quote = MarketService.quoteSale(level.getServer(), itemId, 1);
+        if (!quote.valid()) {
+            return;
+        }
+
+        MarketBanking.deposit(account, quote.netPayoutSpur());
+        MarketPricingService.applySell(level.getServer(), itemId, 1);
+        MarketService.syncActiveViewers(level.getServer());
         setChanged();
+    }
+
+    protected boolean isRedstoneDisabled(Level level) {
+        return level.hasNeighborSignal(worldPosition);
     }
 
     protected boolean hasOperationalPower() {
@@ -242,6 +261,47 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
             }
         }
         return -1;
+    }
+
+    private int totalMatchingItems(ResourceLocation itemId) {
+        int total = 0;
+        for (int slot = 0; slot < INPUT_SLOT_COUNT; slot++) {
+            ItemStack stack = items.get(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            ResourceLocation currentId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            if (itemId.equals(currentId)) {
+                total += stack.getCount();
+            }
+        }
+        return total;
+    }
+
+    private int requiredStackSize(int slot) {
+        ItemStack stack = items.get(slot);
+        return stack.isEmpty() ? 0 : Math.max(1, stack.getMaxStackSize());
+    }
+
+    private boolean removeMatchingItems(ResourceLocation itemId, int amount) {
+        int remaining = Math.max(0, amount);
+        for (int slot = 0; slot < INPUT_SLOT_COUNT && remaining > 0; slot++) {
+            ItemStack stack = items.get(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            ResourceLocation currentId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            if (!itemId.equals(currentId)) {
+                continue;
+            }
+            int removing = Math.min(remaining, stack.getCount());
+            stack.shrink(removing);
+            if (stack.isEmpty()) {
+                items.set(slot, ItemStack.EMPTY);
+            }
+            remaining -= removing;
+        }
+        return remaining <= 0;
     }
 
     public void setOwner(@Nullable UUID owner) {
@@ -360,7 +420,16 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
         if (slot < 0 || slot >= items.size()) {
             return;
         }
-        items.set(slot, stack);
+        ItemStack normalized = stack;
+        if (slot == CARD_SLOT) {
+            if (!canPlaceItem(slot, stack)) {
+                normalized = ItemStack.EMPTY;
+            } else if (!normalized.isEmpty() && normalized.getCount() > 1) {
+                normalized = normalized.copy();
+                normalized.setCount(1);
+            }
+        }
+        items.set(slot, normalized);
         setChanged();
     }
 
@@ -381,5 +450,13 @@ public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements C
             items.set(i, ItemStack.EMPTY);
         }
         setChanged();
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, @NotNull ItemStack stack) {
+        if (slot == CARD_SLOT) {
+            return CardItem.isBound(stack);
+        }
+        return slot >= 0 && slot < INPUT_SLOT_COUNT;
     }
 }

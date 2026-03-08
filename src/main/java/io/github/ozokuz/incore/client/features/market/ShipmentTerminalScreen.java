@@ -85,6 +85,7 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
 
     private Component statusComponent() {
         return switch (menu.status()) {
+            case ShipmentTerminalBlockEntity.STATUS_DISABLED -> Component.translatable("screen.incore.market.shipment.status.disabled");
             case ShipmentTerminalBlockEntity.STATUS_NO_CARD -> Component.translatable("screen.incore.market.shipment.status.no_card");
             case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS -> Component.translatable("screen.incore.market.shipment.status.no_items");
             case ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM -> Component.translatable("screen.incore.market.shipment.status.invalid_item");
@@ -98,6 +99,7 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
 
     private int statusColor() {
         return switch (menu.status()) {
+            case ShipmentTerminalBlockEntity.STATUS_DISABLED -> UIScreenTheme.Machine.STATUS_DISABLED_TEXT;
             case ShipmentTerminalBlockEntity.STATUS_NO_CARD, ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM,
                  ShipmentTerminalBlockEntity.STATUS_NO_STRESS, ShipmentTerminalBlockEntity.STATUS_NO_POWER -> UIScreenTheme.Machine.STATUS_ERROR_TEXT;
             case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS, ShipmentTerminalBlockEntity.STATUS_NEED_FULL_STACK,

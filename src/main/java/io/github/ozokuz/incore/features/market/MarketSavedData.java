@@ -20,7 +20,6 @@ public class MarketSavedData extends SavedData {
 
     private final Map<ResourceLocation, ItemState> states = new HashMap<>();
     private long lastProcessedHourKey = Long.MIN_VALUE;
-    private long lastProcessedNoonDayKey = Long.MIN_VALUE;
 
     public static MarketSavedData get(MinecraftServer server) {
         ServerLevel overworld = server.overworld();
@@ -34,9 +33,6 @@ public class MarketSavedData extends SavedData {
         MarketSavedData data = new MarketSavedData();
         data.lastProcessedHourKey = tag.contains("lastProcessedHourKey", Tag.TAG_LONG)
                 ? tag.getLong("lastProcessedHourKey")
-                : Long.MIN_VALUE;
-        data.lastProcessedNoonDayKey = tag.contains("lastProcessedNoonDayKey", Tag.TAG_LONG)
-                ? tag.getLong("lastProcessedNoonDayKey")
                 : Long.MIN_VALUE;
 
         ListTag stateList = tag.getList("states", Tag.TAG_COMPOUND);
@@ -74,7 +70,6 @@ public class MarketSavedData extends SavedData {
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putLong("lastProcessedHourKey", lastProcessedHourKey);
-        tag.putLong("lastProcessedNoonDayKey", lastProcessedNoonDayKey);
 
         ListTag stateList = new ListTag();
         for (Map.Entry<ResourceLocation, ItemState> entry : states.entrySet()) {
@@ -121,17 +116,6 @@ public class MarketSavedData extends SavedData {
     public void setLastProcessedHourKey(long key) {
         if (this.lastProcessedHourKey != key) {
             this.lastProcessedHourKey = key;
-            setDirty();
-        }
-    }
-
-    public long lastProcessedNoonDayKey() {
-        return lastProcessedNoonDayKey;
-    }
-
-    public void setLastProcessedNoonDayKey(long key) {
-        if (this.lastProcessedNoonDayKey != key) {
-            this.lastProcessedNoonDayKey = key;
             setDirty();
         }
     }
