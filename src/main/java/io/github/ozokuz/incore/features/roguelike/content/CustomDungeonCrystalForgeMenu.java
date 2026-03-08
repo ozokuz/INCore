@@ -9,20 +9,20 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
-    public static final int INPUT_X = 16;
+    public static final int INPUT_X = 22;
     public static final int INPUT_Y = 40;
-    public static final int THEME_X = 66;
+    public static final int THEME_X = 62;
     public static final int THEME_Y = 40;
-    public static final int OBJECTIVE_X = 116;
+    public static final int OBJECTIVE_X = 110;
     public static final int OBJECTIVE_Y = 40;
-    public static final int MODIFIER_ONE_X = 28;
+    public static final int MODIFIER_ONE_X = 22;
     public static final int MODIFIER_ONE_Y = 76;
-    public static final int MODIFIER_TWO_X = 52;
+    public static final int MODIFIER_TWO_X = 44;
     public static final int MODIFIER_TWO_Y = 76;
-    public static final int MODIFIER_THREE_X = 76;
+    public static final int MODIFIER_THREE_X = 66;
     public static final int MODIFIER_THREE_Y = 76;
-    public static final int OUTPUT_X = 184;
-    public static final int OUTPUT_Y = 48;
+    public static final int OUTPUT_X = 188;
+    public static final int OUTPUT_Y = 40;
 
     public static final int PLAYER_INV_X = 43;
     public static final int PLAYER_INV_Y = 122;

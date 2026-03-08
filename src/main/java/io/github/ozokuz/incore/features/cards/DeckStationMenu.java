@@ -15,8 +15,8 @@ import java.util.List;
 public class DeckStationMenu extends AbstractContainerMenu {
     public static final int GRID_COLUMNS = 8;
     public static final int GRID_ROWS = 3;
-    public static final int GRID_START_X = 12;
-    public static final int GRID_START_Y = 34;
+    public static final int GRID_START_X = 22;
+    public static final int GRID_START_Y = 66;
     public static final int GRID_STEP_X = 20;
     public static final int GRID_STEP_Y = 20;
 
@@ -25,10 +25,10 @@ public class DeckStationMenu extends AbstractContainerMenu {
     public static final int BOX_X = GRID_START_X + 4 * GRID_STEP_X;
     public static final int BOX_Y = GRID_START_Y;
 
-    public static final int OUTPUT_X = 188;
-    public static final int OUTPUT_Y = 54;
+    public static final int OUTPUT_X = 162;
+    public static final int OUTPUT_Y = 34;
 
-    public static final int PLAYER_INV_X = 115;
+    public static final int PLAYER_INV_X = 21;
     public static final int PLAYER_INV_Y = 152;
     public static final int HOTBAR_Y = PLAYER_INV_Y + 58;
 

@@ -16,7 +16,7 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
     private static final UIScreenTheme THEME = UIScreenTheme.MACHINE;
     private static final int TEXT_COLOR = THEME.theme().text().secondary();
     private static final int WORK_PANEL_Y = 66;
-    private static final int INVENTORY_PANEL_Y = 158;
+    private static final int INVENTORY_PANEL_Y = 146;
 
     public ShipmentTerminalScreen(ShipmentTerminalMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -33,13 +33,13 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
         ui.drawWindow(x, y, imageWidth, imageHeight);
         ui.drawPanel(x + 5, y + 5, imageWidth - 10, 14);
         ui.drawPanel(x + 8, y + 24, imageWidth - 16, 36);
-        ui.drawPanel(x + 8, y + WORK_PANEL_Y, imageWidth - 16, 70);
-        ui.drawPanel(x + 8, y + INVENTORY_PANEL_Y, imageWidth - 16, 86);
+        ui.drawPanel(x + 8, y + WORK_PANEL_Y, imageWidth - 16, 74);
+        ui.drawPanel(x + 8, y + INVENTORY_PANEL_Y, imageWidth - 16, 98);
 
         ui.drawProgressBar(
                 x + 12,
                 y + 49,
-                200,
+                224,
                 6,
                 menu.progressScaled(200) / (float) 200,
                 UIScreenTheme.Machine.PROGRESS_TRACK_FILL,
@@ -63,7 +63,7 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
             drawSlotFrame(guiGraphics, x + ShipmentTerminalMenu.PLAYER_INVENTORY_X + col * 18, y + ShipmentTerminalMenu.HOTBAR_Y);
         }
 
-        guiGraphics.fill(x + 220, y + 28, x + 228, y + 36, statusColor());
+        guiGraphics.fill(x + imageWidth - 24, y + 24 + 8, x + imageWidth - 16, y + 24 + 16, statusColor());
     }
 
     @Override
@@ -71,9 +71,9 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
         guiGraphics.drawString(font, title, 11, 9, UIScreenTheme.Machine.TITLE_TEXT, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.common.status"), 12, 28, TEXT_COLOR, false);
         drawWrapped(guiGraphics, statusComponent(), 56, 28, 152, 2, TEXT_COLOR);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.market.shipment.input"), 24, 70, TEXT_COLOR, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.market.shipment.card"), 180, 70, TEXT_COLOR, false);
-        guiGraphics.drawString(font, playerInventoryTitle, 12, INVENTORY_PANEL_Y + 6, TEXT_COLOR, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.market.shipment.input"), 20, 70, TEXT_COLOR, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.market.shipment.card"), 164, 80, TEXT_COLOR, false);
+        guiGraphics.drawString(font, playerInventoryTitle, 12, INVENTORY_PANEL_Y + 4, TEXT_COLOR, false);
     }
 
     @Override

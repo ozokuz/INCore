@@ -26,19 +26,19 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
     private static final int HEADER_H = 14;
 
     private static final int MODULE_PANEL_X = 8;
-    private static final int MODULE_PANEL_Y = 22;
+    private static final int MODULE_PANEL_Y = 24;
     private static final int MODULE_PANEL_W = 186;
-    private static final int MODULE_PANEL_H = 118;
+    private static final int MODULE_PANEL_H = 106;
 
     private static final int RIGHT_PANEL_X = 200;
-    private static final int RIGHT_PANEL_Y = 22;
+    private static final int RIGHT_PANEL_Y = 24;
     private static final int RIGHT_PANEL_W = 184;
-    private static final int RIGHT_PANEL_H = 118;
+    private static final int RIGHT_PANEL_H = 208;
 
     private static final int INVENTORY_PANEL_X = 8;
-    private static final int INVENTORY_PANEL_Y = 144;
-    private static final int INVENTORY_PANEL_W = 376;
-    private static final int INVENTORY_PANEL_H = 87;
+    private static final int INVENTORY_PANEL_Y = 136;
+    private static final int INVENTORY_PANEL_W = 186;
+    private static final int INVENTORY_PANEL_H = 96;
 
     public CardDeckStationScreen(DeckStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -111,16 +111,16 @@ public class CardDeckStationScreen extends AbstractContainerScreen<DeckStationMe
         guiGraphics.drawString(font, title, 10, HEADER_Y + 3, TITLE_COLOR, false);
 
         // Module grid section label
-        guiGraphics.drawString(font, "Modules", MODULE_PANEL_X + 4, MODULE_PANEL_Y + 2, TEXT_COLOR, false);
+        guiGraphics.drawString(font, "Modules", MODULE_PANEL_X + 6, MODULE_PANEL_Y + 6, TEXT_COLOR, false);
 
         // Core / Box labels - centered above the slots, spaced to avoid overlap
-        int coreCenter = DeckStationMenu.CORE_X + 4;
-        int boxCenter = DeckStationMenu.BOX_X + 12;
-        drawCenteredLabel(guiGraphics, "Core", coreCenter, MODULE_PANEL_Y + 2, ACCENT_COLOR);
-        drawCenteredLabel(guiGraphics, "Box", boxCenter, MODULE_PANEL_Y + 2, ACCENT_COLOR);
+        int coreCenter = DeckStationMenu.CORE_X + 6;
+        int boxCenter = DeckStationMenu.BOX_X + 10;
+        drawCenteredLabel(guiGraphics, "Core", coreCenter, DeckStationMenu.CORE_Y - 12, ACCENT_COLOR);
+        drawCenteredLabel(guiGraphics, "Box", boxCenter, DeckStationMenu.BOX_Y - 12, ACCENT_COLOR);
 
         // Output label - positioned within module panel, before right panel boundary
-        drawCenteredLabel(guiGraphics, "Output", MODULE_PANEL_X + MODULE_PANEL_W - 18, DeckStationMenu.OUTPUT_Y - 12, ACCENT_COLOR);
+        drawCenteredLabel(guiGraphics, "Output", DeckStationMenu.OUTPUT_X - 20, DeckStationMenu.OUTPUT_Y + 4, ACCENT_COLOR);
 
         // --- Right panel: Deck Preview ---
         int rpx = RIGHT_PANEL_X + 6;

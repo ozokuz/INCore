@@ -15,15 +15,15 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
     private static final int INPUT_PANEL_X = 8;
     private static final int INPUT_PANEL_Y = 24;
     private static final int INPUT_PANEL_W = 138;
-    private static final int INPUT_PANEL_H = 82;
-    private static final int RESULT_PANEL_X = 152;
+    private static final int INPUT_PANEL_H = 78;
+    private static final int RESULT_PANEL_X = 150;
     private static final int RESULT_PANEL_Y = 24;
-    private static final int RESULT_PANEL_W = 88;
-    private static final int RESULT_PANEL_H = 82;
+    private static final int RESULT_PANEL_W = 90;
+    private static final int RESULT_PANEL_H = 78;
     private static final int INVENTORY_PANEL_X = 8;
-    private static final int INVENTORY_PANEL_Y = 110;
+    private static final int INVENTORY_PANEL_Y = 106;
     private static final int INVENTORY_PANEL_W = 232;
-    private static final int INVENTORY_PANEL_H = 90;
+    private static final int INVENTORY_PANEL_H = 96;
 
     private static final int TITLE_TEXT = UIScreenTheme.Crafting.TITLE_TEXT;
     private static final int BODY_TEXT = UIScreenTheme.Crafting.BODY_TEXT;
@@ -44,7 +44,7 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
     public CustomDungeonCrystalForgeScreen(CustomDungeonCrystalForgeMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 248;
-        this.imageHeight = 204;
+        this.imageHeight = 210;
     }
 
     @Override
@@ -82,22 +82,22 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         guiGraphics.drawString(font, title, 11, 9, UIScreenTheme.Crafting.TITLE_TEXT, false);
-        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.input"), CustomDungeonCrystalForgeMenu.INPUT_X + 8, 30);
-        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.theme"), CustomDungeonCrystalForgeMenu.THEME_X + 8, 30);
-        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.objective"), CustomDungeonCrystalForgeMenu.OBJECTIVE_X + 8, 30);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.modifiers"), 20, 66, UIScreenTheme.Crafting.BODY_TEXT, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.output"), RESULT_PANEL_X + 10, 30, UIScreenTheme.Crafting.BODY_TEXT, false);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.input"), CustomDungeonCrystalForgeMenu.INPUT_X + 8, 28);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.theme"), CustomDungeonCrystalForgeMenu.THEME_X + 8, 28);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.objective"), CustomDungeonCrystalForgeMenu.OBJECTIVE_X + 8, 28);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.modifiers"), 12, 62, UIScreenTheme.Crafting.BODY_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.output"), RESULT_PANEL_X + 4, 28, UIScreenTheme.Crafting.BODY_TEXT, false);
         int statusColor = menu.validPreview() ? UIScreenTheme.Crafting.SUCCESS_TEXT : UIScreenTheme.Crafting.DANGER_TEXT;
         String statusKey = menu.validPreview()
                 ? "screen.incore.custom_crystal_forge.status.ready"
                 : "screen.incore.custom_crystal_forge.status.invalid";
-        drawWrapped(guiGraphics, Component.translatable(statusKey), RESULT_PANEL_X + 10, 68, RESULT_PANEL_W - 20, 2, statusColor);
+        drawWrapped(guiGraphics, Component.translatable(statusKey), RESULT_PANEL_X + 4, 62, RESULT_PANEL_W - 4, 2, statusColor);
         drawWrapped(
                 guiGraphics,
                 Component.translatable("screen.incore.custom_crystal_forge.hint"),
-                RESULT_PANEL_X + 10,
-                86,
-                RESULT_PANEL_W - 20,
+                RESULT_PANEL_X + 4,
+                80,
+                RESULT_PANEL_W - 4,
                 2,
                 UIScreenTheme.Crafting.MUTED_TEXT
         );

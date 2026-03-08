@@ -36,8 +36,8 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     private static final int TARGET_Y = 62;
     private static final int TARGET_H = 76;
     private static final int CARD_OUTPUT_Y = 142;
-    private static final int CARD_OUTPUT_H = 60;
-    private static final int INV_Y = 206;
+    private static final int CARD_OUTPUT_H = 74;
+    private static final int INV_Y = 220;
 
     private ThemedButton enabledButton;
     private @Nullable ResourceLocation ghostTargetItemId;
@@ -46,7 +46,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     public MarketAutoBuyerScreen(MarketAutoBuyerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 230;
-        this.imageHeight = 302;
+        this.imageHeight = 326;
     }
 
     @Override
@@ -178,11 +178,6 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         // Card slot frame
         drawSlotFrame(guiGraphics, x + MarketAutoBuyerMenu.CARD_X, y + MarketAutoBuyerMenu.CARD_Y);
 
-        // Thin vertical separator between card and output
-        int sepX = x + MarketAutoBuyerMenu.CARD_X + 21;
-        guiGraphics.fill(sepX, y + CARD_OUTPUT_Y + 12, sepX + 1, y + CARD_OUTPUT_Y + CARD_OUTPUT_H - 4,
-                UIScreenTheme.Machine.SECTION_BORDER);
-
         // Output slot frames (3 rows x 9 cols)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -219,7 +214,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
             case MarketAutoBuyerBlockEntity.STATUS_NO_RPM -> UIScreenTheme.Machine.STATUS_WARNING_TEXT;
             default -> UIScreenTheme.Machine.STATUS_WARNING_TEXT;
         };
-        guiGraphics.fill(x + imageWidth - 24, y + STATUS_Y + 7, x + imageWidth - 16, y + STATUS_Y + 15, statusColor);
+        guiGraphics.fill(x + imageWidth - 24, y + STATUS_Y + 8, x + imageWidth - 16, y + STATUS_Y + 16, statusColor);
     }
 
     @Override
@@ -261,9 +256,9 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
 
         // Card + Output labels
         guiGraphics.drawString(this.font, Component.literal("Card"),
-                MarketAutoBuyerMenu.CARD_X, CARD_OUTPUT_Y + 2, TEXT_COLOR, false);
+                MarketAutoBuyerMenu.CARD_X - 4, MarketAutoBuyerMenu.CARD_Y - 12, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Output"),
-                MarketAutoBuyerMenu.OUTPUT_X, CARD_OUTPUT_Y + 2, TEXT_COLOR, false);
+                MarketAutoBuyerMenu.OUTPUT_X, CARD_OUTPUT_Y + 4, TEXT_COLOR, false);
 
         // Inventory label
         guiGraphics.drawString(this.font, this.playerInventoryTitle, 12, INV_Y + 4, TEXT_COLOR, false);

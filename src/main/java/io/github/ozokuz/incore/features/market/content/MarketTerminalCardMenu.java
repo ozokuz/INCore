@@ -8,11 +8,11 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class MarketTerminalCardMenu extends AbstractContainerMenu {
-    public static final int CARD_X = 107;
-    public static final int CARD_Y = 63;
+    public static final int CARD_X = 106;
+    public static final int CARD_Y = 52;
     public static final int PLAYER_INVENTORY_X = 34;
-    public static final int PLAYER_INVENTORY_Y = 104;
-    public static final int HOTBAR_Y = 162;
+    public static final int PLAYER_INVENTORY_Y = 102;
+    public static final int HOTBAR_Y = 160;
 
     private final MarketTerminalBlockEntity blockEntity;
 
