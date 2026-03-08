@@ -222,7 +222,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
             data.putInt("max_progress", autoBuyer.maxProgressForDisplay());
             data.putInt("price_cap", autoBuyer.priceCapSpurForDisplay());
             data.putInt("batch_size", autoBuyer.batchSizeForDisplay());
-            data.putBoolean("enabled", autoBuyer.enabledForDisplay());
+            data.putBoolean("enabled", autoBuyer.statusForDisplay() != MarketAutoBuyerBlockEntity.STATUS_DISABLED);
             ResourceLocation targetItemId = autoBuyer.targetItemIdForDisplay();
             if (targetItemId != null) {
                 data.putString("target_item_id", targetItemId.toString());
@@ -484,6 +484,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
 
     private static Component shipmentStatusText(int status) {
         return switch (status) {
+            case ShipmentTerminalBlockEntity.STATUS_DISABLED -> Component.translatable("screen.incore.market.shipment.status.disabled");
             case ShipmentTerminalBlockEntity.STATUS_NO_CARD -> Component.translatable("screen.incore.market.shipment.status.no_card");
             case ShipmentTerminalBlockEntity.STATUS_NO_ITEMS -> Component.translatable("screen.incore.market.shipment.status.no_items");
             case ShipmentTerminalBlockEntity.STATUS_INVALID_ITEM -> Component.translatable("screen.incore.market.shipment.status.invalid_item");

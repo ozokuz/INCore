@@ -19,9 +19,11 @@ public final class MarketNetworking {
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToClient(OpenMarketScreenPayload.TYPE, OpenMarketScreenPayload.STREAM_CODEC, OpenMarketScreenPayload::handle);
+        registrar.playToClient(MarketSnapshotSyncPayload.TYPE, MarketSnapshotSyncPayload.STREAM_CODEC, MarketSnapshotSyncPayload::handle);
         registrar.playToServer(RequestOpenMarketScreenPayload.TYPE, RequestOpenMarketScreenPayload.STREAM_CODEC, RequestOpenMarketScreenPayload::handle);
         registrar.playToServer(MarketActionPayload.TYPE, MarketActionPayload.STREAM_CODEC, MarketActionPayload::handle);
         registrar.playToServer(MarketAutoBuyerConfigPayload.TYPE, MarketAutoBuyerConfigPayload.STREAM_CODEC, MarketAutoBuyerConfigPayload::handle);
+        registrar.playToServer(MarketViewSubscriptionPayload.TYPE, MarketViewSubscriptionPayload.STREAM_CODEC, MarketViewSubscriptionPayload::handle);
     }
 
     public static void requestOpenMarketScreen() {
@@ -66,18 +68,30 @@ public final class MarketNetworking {
         ));
     }
 
-    public static void sendAutoBuyerConfig(long blockPos, String targetItemId, int priceCapSpur, int batchSize, boolean enabled) {
+    public static void sendAutoBuyerConfig(long blockPos, String targetItemId, int priceCapSpur, int batchSize) {
         PacketDistributor.sendToServer(new MarketAutoBuyerConfigPayload(
                 blockPos,
                 targetItemId == null ? "" : targetItemId,
                 Math.max(1, priceCapSpur),
-                Math.clamp(batchSize, 1, 64),
-                enabled
+                Math.clamp(batchSize, 1, 64)
         ));
     }
 
     public static void openMarketScreen(ServerPlayer player, MarketService.ScreenData data) {
         PacketDistributor.sendToPlayer(player, new OpenMarketScreenPayload(GSON.toJson(data)));
+    }
+
+    public static void syncMarketSnapshot(ServerPlayer player, MarketService.ScreenData data) {
+        PacketDistributor.sendToPlayer(player, new MarketSnapshotSyncPayload(GSON.toJson(data)));
+    }
+
+    public static void subscribeMarketView(boolean subscribed, @Nullable Long terminalPos, @Nullable ResourceLocation detailItemId) {
+        PacketDistributor.sendToServer(new MarketViewSubscriptionPayload(
+                subscribed,
+                terminalPos != null,
+                terminalPos == null ? 0L : terminalPos,
+                detailItemId == null ? "" : detailItemId.toString()
+        ));
     }
 
     static void openReadOnlyScreenFor(ServerPlayer player) {
@@ -100,18 +114,14 @@ public final class MarketNetworking {
                 if (itemId == null) {
                     return;
                 }
-                if (MarketService.buyFromMarket(player, terminalPos, itemId, payload.quantity())) {
-                    MarketService.requestRefresh(player, terminalPos, itemId);
-                }
+                MarketService.buyFromMarket(player, terminalPos, itemId, payload.quantity());
             }
             case MarketActionPayload.ACTION_SELL -> {
                 ResourceLocation itemId = ResourceLocation.tryParse(payload.itemId());
                 if (itemId == null) {
                     return;
                 }
-                if (MarketService.sellToMarket(player, terminalPos, itemId, payload.quantity())) {
-                    MarketService.requestRefresh(player, terminalPos, itemId);
-                }
+                MarketService.sellToMarket(player, terminalPos, itemId, payload.quantity());
             }
             default -> {
             }

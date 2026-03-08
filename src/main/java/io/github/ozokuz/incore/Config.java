@@ -125,45 +125,57 @@ public class Config {
             .comment("Demand index decrease applied per sold item.")
             .defineInRange("marketSellImpactPerItem", 0.0015D, 0D, 100D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_MEAN_REVERSION = BUILDER
-            .comment("Daily noon reversion amount toward neutral demand (0-1).")
-            .defineInRange("marketDailyMeanReversion", 0.12D, 0D, 1D);
+    public static final ModConfigSpec.DoubleValue MARKET_SELL_TAX_RATE = BUILDER
+            .comment("Tax rate applied to all market sells (0-1).")
+            .defineInRange("marketSellTaxRate", 0.05D, 0D, 1D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_SMALL_REVERSION_CHANCE = BUILDER
-            .comment("Chance each item applies small mean-reversion at noon (0-1).")
-            .defineInRange("marketDailySmallReversionChance", 0.10D, 0D, 1D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_MEAN_REVERSION = BUILDER
+            .comment("Hourly reversion amount toward neutral demand (0-1).")
+            .defineInRange("marketHourlyMeanReversion", 0.03D, 0D, 1D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_NORMAL_MOVE_CHANCE = BUILDER
-            .comment("Chance each item applies normal random movement at noon (0-1).")
-            .defineInRange("marketDailyNormalMoveChance", 0.75D, 0D, 1D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_SMALL_REVERSION_CHANCE = BUILDER
+            .comment("Chance each item applies small mean-reversion each hour (0-1).")
+            .defineInRange("marketHourlySmallReversionChance", 0.10D, 0D, 1D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_CHANCE = BUILDER
-            .comment("Chance each item applies radical spike/crash at noon (0-1).")
-            .defineInRange("marketDailyRadicalChance", 0.15D, 0D, 1D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_NORMAL_MOVE_CHANCE = BUILDER
+            .comment("Chance each item applies normal hourly movement (0-1).")
+            .defineInRange("marketHourlyNormalMoveChance", 0.82D, 0D, 1D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_NORMAL_MAX_CHANGE_PCT = BUILDER
-            .comment("Maximum absolute percentage change for normal noon movement (e.g. 0.30 = 30%).")
-            .defineInRange("marketDailyNormalMaxChangePct", 0.30D, 0D, 10D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_RADICAL_CHANCE = BUILDER
+            .comment("Chance each item applies radical hourly movement (0-1).")
+            .defineInRange("marketHourlyRadicalChance", 0.08D, 0D, 1D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_SPIKE_MIN_PCT = BUILDER
-            .comment("Minimum positive percentage for radical noon spikes (e.g. 0.50 = +50%).")
-            .defineInRange("marketDailyRadicalSpikeMinPct", 0.50D, 0D, 20D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_NORMAL_MAX_CHANGE_PCT = BUILDER
+            .comment("Maximum absolute percentage change for normal hourly movement.")
+            .defineInRange("marketHourlyNormalMaxChangePct", 0.035D, 0D, 10D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_SPIKE_MAX_PCT = BUILDER
-            .comment("Maximum positive percentage for radical noon spikes.")
-            .defineInRange("marketDailyRadicalSpikeMaxPct", 1.80D, 0D, 20D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_RADICAL_SPIKE_MIN_PCT = BUILDER
+            .comment("Minimum positive percentage for radical hourly spikes.")
+            .defineInRange("marketHourlyRadicalSpikeMinPct", 0.10D, 0D, 20D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_CRASH_MIN_PCT = BUILDER
-            .comment("Minimum percentage for radical noon crashes (e.g. 0.30 = -30%).")
-            .defineInRange("marketDailyRadicalCrashMinPct", 0.30D, 0D, 0.99D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_RADICAL_SPIKE_MAX_PCT = BUILDER
+            .comment("Maximum positive percentage for radical hourly spikes.")
+            .defineInRange("marketHourlyRadicalSpikeMaxPct", 0.40D, 0D, 20D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_CRASH_MAX_PCT = BUILDER
-            .comment("Maximum percentage for radical noon crashes.")
-            .defineInRange("marketDailyRadicalCrashMaxPct", 0.65D, 0D, 0.99D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_RADICAL_CRASH_MIN_PCT = BUILDER
+            .comment("Minimum percentage for radical hourly crashes.")
+            .defineInRange("marketHourlyRadicalCrashMinPct", 0.08D, 0D, 0.99D);
 
-    public static final ModConfigSpec.DoubleValue MARKET_DAILY_RADICAL_CRASH_VS_SPIKE_BIAS = BUILDER
-            .comment("Probability radical event is a crash instead of spike (0-1).")
-            .defineInRange("marketDailyRadicalCrashVsSpikeBias", 0.50D, 0D, 1D);
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_RADICAL_CRASH_MAX_PCT = BUILDER
+            .comment("Maximum percentage for radical hourly crashes.")
+            .defineInRange("marketHourlyRadicalCrashMaxPct", 0.25D, 0D, 0.99D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_HOURLY_RADICAL_CRASH_VS_SPIKE_BIAS = BUILDER
+            .comment("Probability a radical hourly event is a crash instead of a spike (0-1).")
+            .defineInRange("marketHourlyRadicalCrashVsSpikeBias", 0.50D, 0D, 1D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_NOON_MOVE_MULTIPLIER = BUILDER
+            .comment("Movement magnitude multiplier applied at local noon.")
+            .defineInRange("marketNoonMoveMultiplier", 1.35D, 1D, 10D);
+
+    public static final ModConfigSpec.DoubleValue MARKET_MIDNIGHT_MOVE_MULTIPLIER = BUILDER
+            .comment("Movement magnitude multiplier applied at local midnight.")
+            .defineInRange("marketMidnightMoveMultiplier", 1.50D, 1D, 10D);
 
     public static final ModConfigSpec.DoubleValue MARKET_BOOTSTRAP_HOURLY_NOISE_PCT = BUILDER
             .comment("Hourly synthetic history movement magnitude for items with no market history.")

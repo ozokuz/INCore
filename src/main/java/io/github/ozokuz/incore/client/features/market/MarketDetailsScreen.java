@@ -58,6 +58,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
     @Override
     protected void init() {
         rebuildWidgets();
+        syncSubscription();
     }
 
     @Override
@@ -174,6 +175,12 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
         super.onClose();
     }
 
+    @Override
+    public void removed() {
+        MarketNetworking.subscribeMarketView(false, null, null);
+        super.removed();
+    }
+
     private @Nullable MarketService.ItemView selectedItem() {
         return MarketScreenDataUtil.findItem(data, selectedItemId);
     }
@@ -213,6 +220,11 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
             return;
         }
         requestSelectedSnapshot();
+    }
+
+    private void syncSubscription() {
+        ResourceLocation detailItemId = selectedItemId == null ? null : MarketScreenDataUtil.parseItemId(selectedItemId);
+        MarketNetworking.subscribeMarketView(true, data == null ? null : data.terminalPos(), detailItemId);
     }
 
     private void renderItemIcon(GuiGraphics guiGraphics, String itemId, int x, int y) {

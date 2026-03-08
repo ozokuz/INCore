@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.market;
 
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
@@ -16,13 +17,20 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class MarketService {
+    private static final Map<UUID, ViewerSession> ACTIVE_VIEWERS = new ConcurrentHashMap<>();
+
     private MarketService() {
     }
 
     public static void onServerTick(MinecraftServer server) {
-        MarketPricingService.tick(server);
+        if (MarketPricingService.tick(server)) {
+            syncActiveViewers(server);
+        }
     }
 
     public static void openReadOnlyScreen(ServerPlayer player) {
@@ -57,6 +65,34 @@ public final class MarketService {
         MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
         boolean canTrade = terminal != null && terminal.canTrade(player);
         MarketNetworking.openMarketScreen(player, buildScreenData(player, player.getServer(), canTrade, terminal == null ? null : terminalPos, detailItemId));
+    }
+
+    public static void subscribeViewer(ServerPlayer player, @Nullable Long terminalPosLong, @Nullable ResourceLocation detailItemId) {
+        ACTIVE_VIEWERS.put(player.getUUID(), new ViewerSession(terminalPosLong, detailItemId));
+        syncViewer(player, ACTIVE_VIEWERS.get(player.getUUID()));
+    }
+
+    public static void unsubscribeViewer(ServerPlayer player) {
+        ACTIVE_VIEWERS.remove(player.getUUID());
+    }
+
+    public static void syncActiveViewers(@Nullable MinecraftServer server) {
+        if (server == null) {
+            return;
+        }
+
+        List<UUID> staleViewers = new ArrayList<>();
+        for (Map.Entry<UUID, ViewerSession> entry : ACTIVE_VIEWERS.entrySet()) {
+            ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
+            if (player == null) {
+                staleViewers.add(entry.getKey());
+                continue;
+            }
+            syncViewer(player, entry.getValue());
+        }
+        for (UUID viewerId : staleViewers) {
+            ACTIVE_VIEWERS.remove(viewerId);
+        }
     }
 
     public static boolean buyFromMarket(ServerPlayer player, BlockPos terminalPos, ResourceLocation itemId, int quantity) {
@@ -109,6 +145,7 @@ public final class MarketService {
 
         MarketPricingService.applyBuy(player.getServer(), itemId, stackCount);
         BattlePassTaskHooks.onMarketBuy(player, totalItems);
+        syncActiveViewers(player.getServer());
         return true;
     }
 
@@ -145,8 +182,8 @@ public final class MarketService {
             return false;
         }
 
-        int unitPrice = MarketPricingService.currentPrice(player.getServer(), itemId);
-        if (unitPrice <= 0) {
+        SaleQuote quote = quoteSale(player.getServer(), itemId, stackCount);
+        if (!quote.valid()) {
             return false;
         }
 
@@ -161,12 +198,31 @@ public final class MarketService {
             return false;
         }
 
-        long payoutLong = (long) unitPrice * stackCount;
-        int payout = (int) Math.min(Integer.MAX_VALUE, payoutLong);
-        MarketBanking.deposit(account, payout);
+        MarketBanking.deposit(account, quote.netPayoutSpur());
         MarketPricingService.applySell(player.getServer(), itemId, stackCount);
         BattlePassTaskHooks.onMarketSell(player, requestedItems);
+        syncActiveViewers(player.getServer());
         return true;
+    }
+
+    public static SaleQuote quoteSale(MinecraftServer server, ResourceLocation itemId, int stackCount) {
+        int unitPrice = MarketPricingService.currentPrice(server, itemId);
+        return quoteSale(unitPrice, stackCount);
+    }
+
+    public static SaleQuote quoteSale(int unitPrice, int stackCount) {
+        int normalizedUnitPrice = Math.max(0, unitPrice);
+        int normalizedStackCount = Math.max(1, stackCount);
+        if (normalizedUnitPrice <= 0) {
+            return SaleQuote.invalid();
+        }
+
+        long grossLong = (long) normalizedUnitPrice * normalizedStackCount;
+        int gross = (int) Math.min(Integer.MAX_VALUE, grossLong);
+        int tax = (int) Math.min(Integer.MAX_VALUE,
+                Math.floor(gross * Math.max(0D, Math.min(1D, Config.MARKET_SELL_TAX_RATE.get()))));
+        int net = Math.max(0, gross - tax);
+        return new SaleQuote(normalizedUnitPrice, normalizedStackCount, gross, tax, net, true);
     }
 
     private static void giveItems(ServerPlayer player, Item item, int totalItems) {
@@ -259,6 +315,21 @@ public final class MarketService {
     private static int toItemCount(int stackCount, int stackUnitSize) {
         long total = (long) Math.max(1, stackCount) * Math.max(1, stackUnitSize);
         return (int) Math.min(Integer.MAX_VALUE, total);
+    }
+
+    private static void syncViewer(ServerPlayer player, ViewerSession session) {
+        if (player.getServer() == null || session == null) {
+            return;
+        }
+
+        BlockPos terminalPos = session.terminalPos() == null ? null : BlockPos.of(session.terminalPos());
+        MarketTerminalBlockEntity terminal = terminalPos == null ? null : terminalAt(player, terminalPos);
+        boolean canTrade = terminal != null && terminal.canTrade(player);
+        BlockPos syncedTerminalPos = terminal == null ? null : terminalPos;
+        MarketNetworking.syncMarketSnapshot(
+                player,
+                buildScreenData(player, player.getServer(), canTrade, syncedTerminalPos, session.detailItemId())
+        );
     }
 
     public static ScreenData buildScreenData(ServerPlayer player, MinecraftServer server, boolean canTrade, BlockPos terminalPos) {
@@ -363,5 +434,21 @@ public final class MarketService {
             int buyVolume,
             int sellVolume
     ) {
+    }
+
+    private record ViewerSession(@Nullable Long terminalPos, @Nullable ResourceLocation detailItemId) {
+    }
+
+    public record SaleQuote(
+            int unitPriceSpur,
+            int stackCount,
+            int grossPayoutSpur,
+            int taxSpur,
+            int netPayoutSpur,
+            boolean valid
+    ) {
+        public static SaleQuote invalid() {
+            return new SaleQuote(0, 0, 0, 0, 0, false);
+        }
     }
 }

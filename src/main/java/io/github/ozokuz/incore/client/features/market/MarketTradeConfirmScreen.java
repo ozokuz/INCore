@@ -139,11 +139,12 @@ public class MarketTradeConfirmScreen extends Screen {
 
         int price = item.currentPriceSpur();
         int totalCost = quantity * price;
+        MarketService.SaleQuote saleQuote = MarketService.quoteSale(price, quantity);
         int ownedItems = item.inventoryCount();
         int ownedSpur = data.balanceSpur();
         int stackUnitSize = stackUnitSizeForItem();
         int afterItems = isBuy ? ownedItems + (quantity * stackUnitSize) : ownedItems - (quantity * stackUnitSize);
-        int afterSpur = isBuy ? ownedSpur - totalCost : ownedSpur + totalCost;
+        int afterSpur = isBuy ? ownedSpur - totalCost : ownedSpur + saleQuote.netPayoutSpur();
 
         int sourceCenterX = left + 112;
         int targetCenterX = right - 112;
@@ -176,13 +177,20 @@ public class MarketTradeConfirmScreen extends Screen {
             guiGraphics.drawCenteredString(this.font, Component.literal("Items"), sourceCenterX, top + 40, UIScreenTheme.Confirmation.LABEL_TEXT);
             guiGraphics.drawCenteredString(this.font, Component.literal("Spur"), targetCenterX, top + 40, UIScreenTheme.Confirmation.LABEL_TEXT);
             drawScaledCenteredString(guiGraphics, "x" + quantity, sourceCenterX, amountY, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
-            drawScaledCenteredString(guiGraphics, Integer.toString(totalCost), targetCenterX, amountY, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
+            drawScaledCenteredString(guiGraphics, Integer.toString(saleQuote.netPayoutSpur()), targetCenterX, amountY, 2.0F, UIScreenTheme.Confirmation.VALUE_TEXT);
 
             guiGraphics.renderItem(itemIcon, sourceCenterX + 24, amountY + 3);
             guiGraphics.renderItem(spurIcon, targetCenterX + 30, amountY + 3);
 
             drawChip(guiGraphics, sourceCenterX, top + 90, Component.translatable("screen.incore.market.confirm.owned_items", ownedItems), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
-            drawChip(guiGraphics, targetCenterX, top + 90, Component.translatable("screen.incore.market.confirm.receive_spur", totalCost), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
+            drawChip(guiGraphics, targetCenterX, top + 90, Component.translatable("screen.incore.market.confirm.receive_spur", saleQuote.netPayoutSpur()), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
+            guiGraphics.drawCenteredString(
+                    this.font,
+                    Component.translatable("screen.incore.market.confirm.tax", saleQuote.taxSpur()),
+                    this.width / 2,
+                    exchangeBottom + 36,
+                    UIScreenTheme.Confirmation.DELTA_MUTED_TEXT
+            );
         }
 
         guiGraphics.drawCenteredString(this.font, Component.literal(">>"), this.width / 2, top + 60, UIScreenTheme.Confirmation.ARROW_TEXT);

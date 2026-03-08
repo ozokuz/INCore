@@ -32,10 +32,25 @@ public class ShipmentTerminalMenu extends AbstractContainerMenu {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 int slot = col + row * 3;
-                addSlot(new Slot(blockEntity, slot, INPUT_X + col * 18, INPUT_Y + row * 18));
+                addSlot(new Slot(blockEntity, slot, INPUT_X + col * 18, INPUT_Y + row * 18) {
+                    @Override
+                    public boolean mayPlace(ItemStack stack) {
+                        return blockEntity.canPlaceItem(getContainerSlot(), stack);
+                    }
+                });
             }
         }
-        addSlot(new Slot(blockEntity, ShipmentTerminalBlockEntity.CARD_SLOT, CARD_X, CARD_Y));
+        addSlot(new Slot(blockEntity, ShipmentTerminalBlockEntity.CARD_SLOT, CARD_X, CARD_Y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return blockEntity.canPlaceItem(ShipmentTerminalBlockEntity.CARD_SLOT, stack);
+            }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+        });
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -64,7 +79,11 @@ public class ShipmentTerminalMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
         } else {
-            if (!moveItemStackTo(stack, 0, machineSlots, false)) {
+            if (blockEntity.canPlaceItem(ShipmentTerminalBlockEntity.CARD_SLOT, stack)) {
+                if (!moveItemStackTo(stack, ShipmentTerminalBlockEntity.CARD_SLOT, ShipmentTerminalBlockEntity.CARD_SLOT + 1, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!moveItemStackTo(stack, 0, ShipmentTerminalBlockEntity.INPUT_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;
             }
         }

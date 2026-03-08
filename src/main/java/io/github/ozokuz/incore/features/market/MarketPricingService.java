@@ -11,16 +11,16 @@ import java.util.Map;
 import java.util.Random;
 
 public final class MarketPricingService {
-    private static final long NOON_SALT = 0x4E4F4F4E5F53414CL;
+    private static final long HOURLY_SALT = 0x484F55524C595F4DL;
     private static final long BOOTSTRAP_SALT = 0x424F4F5453545241L;
     private static final double NORMAL_MOVE_LOWER_END_EXPONENT = 1.85D;
 
     private MarketPricingService() {
     }
 
-    public static void tick(MinecraftServer server) {
+    public static boolean tick(MinecraftServer server) {
         if (server == null) {
-            return;
+            return false;
         }
 
         MarketSavedData data = MarketSavedData.get(server);
@@ -28,18 +28,8 @@ public final class MarketPricingService {
 
         ZonedDateTime now = MarketTime.now(server);
         long hourKey = MarketTime.hourKey(now);
-        long noonDayKey = MarketTime.noonDayKey(now);
         bootstrapMissingHistory(server, data, hourKey);
-
-        if (data.lastProcessedHourKey() != hourKey) {
-            rolloverHour(data, hourKey);
-            data.setLastProcessedHourKey(hourKey);
-        }
-
-        if (data.lastProcessedNoonDayKey() != noonDayKey) {
-            applyDailyNoonUpdate(server, data, hourKey, noonDayKey);
-            data.setLastProcessedNoonDayKey(noonDayKey);
-        }
+        return processScheduledHours(server, data, hourKey, false);
     }
 
     public static TradeResult applyBuy(MinecraftServer server, ResourceLocation itemId, int quantity) {
@@ -77,13 +67,8 @@ public final class MarketPricingService {
 
         ZonedDateTime now = MarketTime.now(server);
         long hourKey = MarketTime.hourKey(now);
-        long noonDayKey = MarketTime.noonDayKey(now);
         bootstrapMissingHistory(server, data, hourKey);
-
-        rolloverHour(data, hourKey);
-        applyDailyNoonUpdate(server, data, hourKey, noonDayKey);
-        data.setLastProcessedHourKey(hourKey);
-        data.setLastProcessedNoonDayKey(noonDayKey);
+        processScheduledHours(server, data, hourKey, true);
     }
 
     public static boolean setDemand(MinecraftServer server, ResourceLocation itemId, double demand) {
@@ -190,10 +175,31 @@ public final class MarketPricingService {
         }
     }
 
-    private static void applyDailyNoonUpdate(MinecraftServer server, MarketSavedData data, long hourKey, long noonDayKey) {
-        double smallChance = Math.clamp(Config.MARKET_DAILY_SMALL_REVERSION_CHANCE.get(), 0D, 1D);
-        double normalChance = Math.clamp(Config.MARKET_DAILY_NORMAL_MOVE_CHANCE.get(), 0D, 1D);
-        double radicalChance = Math.clamp(Config.MARKET_DAILY_RADICAL_CHANCE.get(), 0D, 1D);
+    private static boolean processScheduledHours(MinecraftServer server, MarketSavedData data, long currentHourKey, boolean forceCurrentHour) {
+        long lastProcessedHourKey = data.lastProcessedHourKey();
+        long startHour;
+        if (lastProcessedHourKey == Long.MIN_VALUE) {
+            startHour = currentHourKey;
+        } else if (lastProcessedHourKey < currentHourKey) {
+            startHour = lastProcessedHourKey + 1L;
+        } else if (forceCurrentHour) {
+            startHour = currentHourKey;
+        } else {
+            return false;
+        }
+
+        boolean changed = false;
+        for (long hourKey = startHour; hourKey <= currentHourKey; hourKey++) {
+            changed |= applyHourlyUpdate(server, data, hourKey);
+            data.setLastProcessedHourKey(hourKey);
+        }
+        return changed;
+    }
+
+    private static boolean applyHourlyUpdate(MinecraftServer server, MarketSavedData data, long hourKey) {
+        double smallChance = Math.clamp(Config.MARKET_HOURLY_SMALL_REVERSION_CHANCE.get(), 0D, 1D);
+        double normalChance = Math.clamp(Config.MARKET_HOURLY_NORMAL_MOVE_CHANCE.get(), 0D, 1D);
+        double radicalChance = Math.clamp(Config.MARKET_HOURLY_RADICAL_CHANCE.get(), 0D, 1D);
         double totalChance = smallChance + normalChance + radicalChance;
         if (totalChance <= 0D) {
             smallChance = 0D;
@@ -204,18 +210,23 @@ public final class MarketPricingService {
 
         double smallThreshold = smallChance;
         double normalThreshold = smallChance + normalChance;
-        double reversion = Math.clamp(Config.MARKET_DAILY_MEAN_REVERSION.get(), 0D, 1D);
-        double normalMaxChange = Math.max(0D, Config.MARKET_DAILY_NORMAL_MAX_CHANGE_PCT.get());
-        double crashBias = Math.clamp(Config.MARKET_DAILY_RADICAL_CRASH_VS_SPIKE_BIAS.get(), 0D, 1D);
+        double reversion = Math.clamp(Config.MARKET_HOURLY_MEAN_REVERSION.get(), 0D, 1D);
+        double moveMultiplier = Math.max(1D, MarketTime.hourlyMoveMultiplier(server, hourKey));
+        double normalMaxChange = Math.max(0D, Config.MARKET_HOURLY_NORMAL_MAX_CHANGE_PCT.get()) * moveMultiplier;
+        double crashBias = Math.clamp(Config.MARKET_HOURLY_RADICAL_CRASH_VS_SPIKE_BIAS.get(), 0D, 1D);
 
-        double radicalSpikeMin = Math.max(0D, Config.MARKET_DAILY_RADICAL_SPIKE_MIN_PCT.get());
-        double radicalSpikeMax = Math.max(radicalSpikeMin, Config.MARKET_DAILY_RADICAL_SPIKE_MAX_PCT.get());
-        double radicalCrashMin = Math.max(0D, Config.MARKET_DAILY_RADICAL_CRASH_MIN_PCT.get());
-        double radicalCrashMax = Math.max(radicalCrashMin, Config.MARKET_DAILY_RADICAL_CRASH_MAX_PCT.get());
+        double radicalSpikeMin = Math.max(0D, Config.MARKET_HOURLY_RADICAL_SPIKE_MIN_PCT.get()) * moveMultiplier;
+        double radicalSpikeMax = Math.max(radicalSpikeMin, Config.MARKET_HOURLY_RADICAL_SPIKE_MAX_PCT.get() * moveMultiplier);
+        double radicalCrashMin = Math.max(0D, Config.MARKET_HOURLY_RADICAL_CRASH_MIN_PCT.get()) * moveMultiplier;
+        double radicalCrashMax = Math.max(radicalCrashMin, Config.MARKET_HOURLY_RADICAL_CRASH_MAX_PCT.get() * moveMultiplier);
+
+        boolean changed = false;
+        int retentionHours = Math.max(24, Config.MARKET_HISTORY_RETENTION_DAYS.get() * 24);
 
         for (MarketItemDefinition definition : MarketItemManager.all()) {
             MarketSavedData.ItemState state = data.stateFor(definition.itemId(), definition.basePriceSpur());
-            Random random = deterministicRandom(server, noonDayKey, definition.itemId(), NOON_SALT);
+            ensureCandleHour(state, hourKey, Math.max(1, state.currentPrice()));
+            Random random = deterministicRandom(server, hourKey, definition.itemId(), HOURLY_SALT);
             double roll = random.nextDouble() * totalChance;
 
             double currentMultiplier = clampMultiplier(priceMultiplier(definition, state.currentPrice()));
@@ -237,25 +248,14 @@ public final class MarketPricingService {
 
             int nextPrice = priceFromMultiplier(definition, nextMultiplier);
             double nextDemand = demandFromMultiplier(clampMultiplier(priceMultiplier(definition, nextPrice)));
+            changed |= nextPrice != state.currentPrice();
             state.setDemandIndex(nextDemand);
             state.setCurrentPrice(nextPrice);
             updateLatestCandle(state, hourKey, nextPrice, 0, 0);
-        }
-        data.setDirty();
-    }
-
-    private static void rolloverHour(MarketSavedData data, long hourKey) {
-        int retentionHours = Math.max(24, Config.MARKET_HISTORY_RETENTION_DAYS.get() * 24);
-        for (Map.Entry<ResourceLocation, MarketSavedData.ItemState> entry : data.states().entrySet()) {
-            MarketItemDefinition definition = MarketItemManager.get(entry.getKey());
-            if (definition == null) {
-                continue;
-            }
-            MarketSavedData.ItemState state = entry.getValue();
-            ensureCandleHour(state, hourKey, Math.max(1, state.currentPrice()));
             trimHistory(state, retentionHours);
         }
         data.setDirty();
+        return changed;
     }
 
     private static int priceFromDemand(MarketItemDefinition definition, double demand) {
