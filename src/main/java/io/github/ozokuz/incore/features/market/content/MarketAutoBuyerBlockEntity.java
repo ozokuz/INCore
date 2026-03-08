@@ -529,7 +529,7 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
             return;
         }
         ItemStack normalized = stack;
-        if (!canPlaceItem(slot, stack)) {
+        if (slot == CARD_SLOT && !canPlaceItem(slot, stack)) {
             normalized = ItemStack.EMPTY;
         } else if (slot == CARD_SLOT && !normalized.isEmpty() && normalized.getCount() > 1) {
             normalized = normalized.copy();
