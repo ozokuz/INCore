@@ -68,6 +68,7 @@ import io.github.ozokuz.incore.features.vendingmachine.VendingMachineOfferManage
 import io.github.ozokuz.incore.features.vendingmachine.network.VendingMachineNetworking;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -170,7 +171,9 @@ public class INCore {
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 Registration.BURNER_POWER_INPUT_BE.get(),
-                (input, side) -> input.itemHandler()
+                (input, side) -> side != null && side == input.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
+                        ? input.itemHandler()
+                        : null
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,

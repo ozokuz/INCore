@@ -1,6 +1,11 @@
 {
-    "parent": "minecraft:block/cube_all",
+    "parent": "minecraft:block/cube",
     "textures": {
-        "all": "incore:block/encounter_spawner"
+        "down": "incore:block/research/casing",
+        "east": "incore:block/research/casing",
+        "north": "incore:block/research/mechanical_input",
+        "south": "incore:block/research/casing",
+        "up": "incore:block/research/casing",
+        "west": "incore:block/research/casing"
     }
 }

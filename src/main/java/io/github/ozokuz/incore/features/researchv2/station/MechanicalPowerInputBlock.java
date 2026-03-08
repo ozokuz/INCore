@@ -66,7 +66,7 @@ public class MechanicalPowerInputBlock extends HorizontalKineticBlock implements
 
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return face == state.getValue(HORIZONTAL_FACING).getOpposite();
+        return face == state.getValue(HORIZONTAL_FACING);
     }
 
     @Override
