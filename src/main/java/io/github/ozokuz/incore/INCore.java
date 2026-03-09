@@ -172,13 +172,6 @@ public class INCore {
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
-                Registration.BURNER_POWER_INPUT_BE.get(),
-                (input, side) -> side != null && side == input.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
-                        ? input.itemHandler()
-                        : null
-        );
-        event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
                 Registration.LOGIC_HOUSING_BE.get(),
                 (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
                         ? blockEntity.frontInsertView()

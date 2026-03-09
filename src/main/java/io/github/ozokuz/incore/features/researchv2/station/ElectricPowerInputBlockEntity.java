@@ -8,6 +8,11 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,7 +21,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ElectricPowerInputBlockEntity extends BlockEntity implements IResearchPowerInput {
+public class ElectricPowerInputBlockEntity extends BlockEntity implements IResearchPowerInput, MenuProvider {
     private int feRemainder;
     private int energyStored;
     private final IEnergyStorage internalEnergyView = new IEnergyStorage() {
@@ -120,6 +125,18 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
         return internalEnergyView.getMaxEnergyStored();
     }
 
+    public int maxReceive() {
+        return maxReceive(powerTier());
+    }
+
+    public int maxFePerTickLimit() {
+        return maxFePerTick(powerTier());
+    }
+
+    public int maxFePerInputOperationLimit() {
+        return maxFePerInputOperation(powerTier());
+    }
+
     @Override
     public int availableResearchPower(ResearchControllerBlockEntity controller, int maxRp) {
         return computeResearchPower(maxRp, true);
@@ -200,14 +217,25 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
         tag.putInt("feRemainder", Math.max(0, feRemainder));
     }
 
+    @Override
+    public @NotNull Component getDisplayName() {
+        return getBlockState().getBlock().getName();
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
+        return new PowerInputMenu(containerId, playerInventory, worldPosition);
+    }
+
     private int capacity() {
         long scaled = (long) Config.ELECTRIC_INPUT_BUFFER_CAPACITY.get() * tierScalar(powerTier());
         return (int) Math.min(Integer.MAX_VALUE, scaled);
     }
 
-    private int maxReceive() {
-        long scaled = (long) Config.ELECTRIC_INPUT_MAX_RECEIVE.get() * tierScalar(powerTier());
-        return (int) Math.min(capacity(), Math.min(Integer.MAX_VALUE, scaled));
+    private static int maxReceive(int tier) {
+        long scaled = (long) Config.ELECTRIC_INPUT_MAX_RECEIVE.get() * tierScalar(tier);
+        long capacity = (long) Config.ELECTRIC_INPUT_BUFFER_CAPACITY.get() * tierScalar(tier);
+        return (int) Math.min(Math.min(Integer.MAX_VALUE, capacity), Math.min(Integer.MAX_VALUE, scaled));
     }
 
     private int remainingCapacity() {

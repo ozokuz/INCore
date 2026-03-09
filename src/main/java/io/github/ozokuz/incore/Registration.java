@@ -327,7 +327,6 @@ public class Registration {
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T2_BLOCK = BLOCKS.register("research_controller_t2", () -> new ResearchControllerTier2Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T3_BLOCK = BLOCKS.register("research_controller_t3", () -> new ResearchControllerTier3Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T4_BLOCK = BLOCKS.register("research_controller_t4", () -> new ResearchControllerTier4Block());
-    public static final DeferredBlock<Block> BURNER_POWER_INPUT_BLOCK = BLOCKS.register("burner_power_input", () -> new BurnerPowerInputBlock());
     public static final DeferredBlock<Block> MECHANICAL_POWER_INPUT_BLOCK = BLOCKS.register("mechanical_power_input", () -> new MechanicalPowerInputBlock());
     public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_BLOCK = BLOCKS.register("electric_power_input", () -> new ElectricPowerInputBlock());
     public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_T2_BLOCK = BLOCKS.register("electric_power_input_t2", () -> new ElectricPowerInputTier2Block());
@@ -389,10 +388,6 @@ public class Registration {
             "augmenter",
             () -> BlockEntityType.Builder.of(AugmenterBlockEntity::new, AUGMENTER_BLOCK.get()).build(null)
     );
-    public static final Supplier<BlockEntityType<BurnerPowerInputBlockEntity>> BURNER_POWER_INPUT_BE = BLOCK_ENTITY_TYPES.register(
-            "burner_power_input",
-            () -> BlockEntityType.Builder.of(BurnerPowerInputBlockEntity::new, BURNER_POWER_INPUT_BLOCK.get()).build(null)
-    );
     public static final Supplier<BlockEntityType<MechanicalPowerInputBlockEntity>> MECHANICAL_POWER_INPUT_BE = BLOCK_ENTITY_TYPES.register(
             "mechanical_power_input",
             () -> BlockEntityType.Builder.of(MechanicalPowerInputBlockEntity::new, MECHANICAL_POWER_INPUT_BLOCK.get()).build(null)
@@ -435,6 +430,14 @@ public class Registration {
             "augmenter",
             () -> IMenuTypeExtension.create((id, inv, data) -> new AugmenterMenu(id, inv, (AugmenterBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
     );
+    public static final Supplier<MenuType<ResearchControllerMenu>> RESEARCH_CONTROLLER_MENU = MENU_TYPES.register(
+            "research_controller",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new ResearchControllerMenu(id, inv, data.readBlockPos()))
+    );
+    public static final Supplier<MenuType<PowerInputMenu>> POWER_INPUT_MENU = MENU_TYPES.register(
+            "power_input",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new PowerInputMenu(id, inv, data.readBlockPos()))
+    );
     public static final DeferredItem<BlockItem> BURNER_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_lab", BURNER_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
@@ -455,7 +458,6 @@ public class Registration {
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t2", RESEARCH_CONTROLLER_T2_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t3", RESEARCH_CONTROLLER_T3_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t4", RESEARCH_CONTROLLER_T4_BLOCK);
-    public static final DeferredItem<BlockItem> BURNER_POWER_INPUT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_power_input", BURNER_POWER_INPUT_BLOCK);
     public static final DeferredItem<BlockItem> MECHANICAL_POWER_INPUT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_power_input", MECHANICAL_POWER_INPUT_BLOCK);
     public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input", ELECTRIC_POWER_INPUT_BLOCK);
     public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input_t2", ELECTRIC_POWER_INPUT_T2_BLOCK);
@@ -703,7 +705,6 @@ public class Registration {
                 output.accept(RESEARCH_CONTROLLER_T2_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T3_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T4_BLOCK_ITEM.get());
-                output.accept(BURNER_POWER_INPUT_BLOCK_ITEM.get());
                 output.accept(MECHANICAL_POWER_INPUT_BLOCK_ITEM.get());
                 output.accept(ELECTRIC_POWER_INPUT_BLOCK_ITEM.get());
                 output.accept(ELECTRIC_POWER_INPUT_T2_BLOCK_ITEM.get());
