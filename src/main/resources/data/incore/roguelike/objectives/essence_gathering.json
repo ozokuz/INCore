@@ -1,0 +1,6 @@
+{
+  "type": "essence_gathering",
+  "target": 10,
+  "reward_crates": 4,
+  "weight": 2
+}

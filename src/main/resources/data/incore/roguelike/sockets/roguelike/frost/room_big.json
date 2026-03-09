@@ -15,6 +15,41 @@
       "pos": [24, 12, 24],
       "encounter": "incore:basic",
       "spawn_offset": [0, 0, 0]
+    },
+    {
+      "type": "trial_spawner",
+      "pos": [20, 12, 20],
+      "block_entity_nbt": "{required_player_range:16}"
+    },
+    {
+      "type": "objective_altar",
+      "pos": [24, 12, 16],
+      "marker_id": "room_center_objective"
+    },
+    {
+      "type": "challenge_altar",
+      "pos": [16, 12, 24],
+      "marker_id": "challenge_primary"
+    },
+    {
+      "type": "loot_anchor",
+      "pos": [12, 12, 12],
+      "marker_id": "loot_cache"
+    },
+    {
+      "type": "ore_anchor",
+      "pos": [36, 12, 36],
+      "marker_id": "ore_cluster"
+    },
+    {
+      "type": "shop_anchor",
+      "pos": [12, 12, 36],
+      "marker_id": "market_stall"
+    },
+    {
+      "type": "coin_pile_anchor",
+      "pos": [36, 12, 12],
+      "marker_id": "coin_pile"
     }
   ]
 }

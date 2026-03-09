@@ -1,0 +1,6 @@
+{
+  "type": "signal_emission",
+  "target": 4,
+  "reward_crates": 2,
+  "weight": 4
+}

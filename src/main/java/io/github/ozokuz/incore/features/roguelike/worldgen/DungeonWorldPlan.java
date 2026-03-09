@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.roguelike.worldgen;
 
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeData;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
@@ -11,18 +12,26 @@ public record DungeonWorldPlan(
         BlockPos startRoomOrigin,
         BlockPos entryPos,
         List<PlacedTemplate> templates,
-        List<EncounterSpawnerPlacement> encounterSpawners
+        List<FeaturePlacement> features
 ) {
     public DungeonWorldPlan {
         startRoomOrigin = startRoomOrigin == null ? BlockPos.ZERO : startRoomOrigin.immutable();
         entryPos = entryPos == null ? BlockPos.ZERO : entryPos.immutable();
         templates = templates == null ? List.of() : List.copyOf(templates);
-        encounterSpawners = encounterSpawners == null ? List.of() : List.copyOf(encounterSpawners);
+        features = features == null ? List.of() : List.copyOf(features);
     }
 
     public List<BlockPos> encounterSpawnerPositions() {
-        return encounterSpawners.stream()
-                .map(EncounterSpawnerPlacement::pos)
+        return features.stream()
+                .filter(feature -> "encounter_spawner".equals(feature.type()))
+                .map(FeaturePlacement::pos)
+                .toList();
+    }
+
+    public List<BlockPos> featurePositions(String type) {
+        return features.stream()
+                .filter(feature -> feature.type().equals(type))
+                .map(FeaturePlacement::pos)
                 .toList();
     }
 
@@ -46,16 +55,22 @@ public record DungeonWorldPlan(
         }
     }
 
-    public record EncounterSpawnerPlacement(
+    public record FeaturePlacement(
+            String type,
             BlockPos pos,
+            ResourceLocation markerId,
             ResourceLocation encounterId,
             BlockPos spawnOffset,
             double mobHealthMultiplier,
-            double mobDamageMultiplier
+            double mobDamageMultiplier,
+            CompoundTag blockEntityData
     ) {
-        public EncounterSpawnerPlacement {
+        public FeaturePlacement {
+            type = type == null ? "" : type;
             pos = pos == null ? BlockPos.ZERO : pos.immutable();
+            markerId = markerId;
             spawnOffset = spawnOffset == null ? BlockPos.ZERO : spawnOffset.immutable();
+            blockEntityData = blockEntityData == null ? null : blockEntityData.copy();
         }
 
         public boolean isInChunk(int chunkX, int chunkZ) {

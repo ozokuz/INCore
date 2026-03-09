@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class DungeonObjectiveManager extends SimpleJsonResourceReloadListener {
     public static final Map<ResourceLocation, DungeonObjectiveData> OBJECTIVES = new LinkedHashMap<>();
@@ -27,35 +28,54 @@ public class DungeonObjectiveManager extends SimpleJsonResourceReloadListener {
 
         jsons.forEach((id, json) -> {
             try {
-                OBJECTIVES.put(id, DungeonObjectiveData.fromJson(json.getAsJsonObject()));
+                ResourceLocation resolvedId = DungeonObjectiveIds.resolve(id);
+                OBJECTIVES.put(resolvedId, DungeonObjectiveData.fromJson(json.getAsJsonObject()));
             } catch (Exception e) {
                 INCore.LOGGER.warn("Failed to load roguelike objective {}", id, e);
             }
         });
 
+        for (Map.Entry<ResourceLocation, ResourceLocation> aliasEntry : DungeonObjectiveIds.legacyToCanonical().entrySet()) {
+            DungeonObjectiveData canonical = OBJECTIVES.get(aliasEntry.getValue());
+            if (canonical != null) {
+                OBJECTIVES.put(aliasEntry.getKey(), canonical);
+            }
+        }
+
         INCore.LOGGER.info("Loaded {} roguelike dungeon objectives", OBJECTIVES.size());
     }
 
     public static Optional<PickedObjective> pickRandom(RandomSource random) {
-        if (OBJECTIVES.isEmpty()) {
+        Map<ResourceLocation, DungeonObjectiveData> canonicalObjectives = OBJECTIVES.entrySet().stream()
+                .filter(entry -> DungeonObjectiveIds.isCanonical(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left, LinkedHashMap::new));
+        if (canonicalObjectives.isEmpty()) {
             return Optional.empty();
         }
 
-        int totalWeight = OBJECTIVES.values().stream().mapToInt(DungeonObjectiveData::weight).sum();
+        int totalWeight = canonicalObjectives.values().stream().mapToInt(DungeonObjectiveData::weight).sum();
         if (totalWeight <= 0) {
             return Optional.empty();
         }
 
         int roll = random.nextInt(totalWeight);
-        for (Map.Entry<ResourceLocation, DungeonObjectiveData> entry : OBJECTIVES.entrySet()) {
+        for (Map.Entry<ResourceLocation, DungeonObjectiveData> entry : canonicalObjectives.entrySet()) {
             roll -= entry.getValue().weight();
             if (roll < 0) {
                 return Optional.of(new PickedObjective(entry.getKey(), entry.getValue()));
             }
         }
 
-        Map.Entry<ResourceLocation, DungeonObjectiveData> fallback = OBJECTIVES.entrySet().iterator().next();
+        Map.Entry<ResourceLocation, DungeonObjectiveData> fallback = canonicalObjectives.entrySet().iterator().next();
         return Optional.of(new PickedObjective(fallback.getKey(), fallback.getValue()));
+    }
+
+    public static ResourceLocation resolveObjectiveId(ResourceLocation id) {
+        return DungeonObjectiveIds.resolve(id);
+    }
+
+    public static DungeonObjectiveData getObjective(ResourceLocation id) {
+        return OBJECTIVES.get(resolveObjectiveId(id));
     }
 
     public record PickedObjective(ResourceLocation id, DungeonObjectiveData data) {

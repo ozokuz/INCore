@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.roguelike.state;
 
+import io.github.ozokuz.incore.features.roguelike.DungeonDeathDifficulty;
 import io.github.ozokuz.incore.features.roguelike.RoguelikeConstants;
 import io.github.ozokuz.incore.features.roguelike.instance.DungeonInstanceData;
 import io.github.ozokuz.incore.features.roguelike.instance.DungeonInstanceId;
@@ -12,6 +13,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -38,6 +40,11 @@ public class RoguelikeSavedData extends SavedData {
 
     private final Map<Long, DungeonInstanceData> instances = new HashMap<>();
     private final Map<Integer, DungeonInstanceData> instancesBySlot = new HashMap<>();
+    private final Map<UUID, PlayerDungeonSettings> playerDungeonSettings = new HashMap<>();
+    private final Map<Long, ObjectiveStateRecord> objectiveStates = new HashMap<>();
+    private final Map<UUID, RecoveryStrongboxRecord> recoveryStrongboxes = new HashMap<>();
+    private final Map<UUID, UUID> pendingRecoveryDeliveries = new HashMap<>();
+    private final Map<UUID, PendingInventoryRestore> pendingInventoryRestores = new HashMap<>();
     private final Map<UUID, ActiveRun> activeRuns = new HashMap<>();
     private final Map<UUID, ReturnTarget> pendingReturns = new HashMap<>();
 
@@ -83,6 +90,47 @@ public class RoguelikeSavedData extends SavedData {
             }
         }
 
+        ListTag settingsTag = tag.getList("playerDungeonSettingsV1", Tag.TAG_COMPOUND);
+        for (Tag settingsEntry : settingsTag) {
+            PlayerDungeonSettings settings = PlayerDungeonSettings.fromTag((CompoundTag) settingsEntry);
+            if (settings != null) {
+                data.playerDungeonSettings.put(settings.playerId(), settings);
+            }
+        }
+
+        ListTag objectiveStatesTag = tag.getList("objectiveStatesV1", Tag.TAG_COMPOUND);
+        for (Tag objectiveTag : objectiveStatesTag) {
+            ObjectiveStateRecord record = ObjectiveStateRecord.fromTag((CompoundTag) objectiveTag);
+            if (record != null) {
+                data.objectiveStates.put(record.instanceId().value(), record);
+            }
+        }
+
+        ListTag recoveryTag = tag.getList("recoveryStrongboxesV1", Tag.TAG_COMPOUND);
+        for (Tag recoveryEntry : recoveryTag) {
+            RecoveryStrongboxRecord record = RecoveryStrongboxRecord.fromTag((CompoundTag) recoveryEntry);
+            if (record != null) {
+                data.recoveryStrongboxes.put(record.recoveryId(), record);
+            }
+        }
+
+        ListTag pendingRecoveryTag = tag.getList("pendingRecoveryDeliveriesV1", Tag.TAG_COMPOUND);
+        for (Tag pendingEntry : pendingRecoveryTag) {
+            CompoundTag row = (CompoundTag) pendingEntry;
+            if (!row.hasUUID("player") || !row.hasUUID("recoveryId")) {
+                continue;
+            }
+            data.pendingRecoveryDeliveries.put(row.getUUID("player"), row.getUUID("recoveryId"));
+        }
+
+        ListTag pendingInventoryTag = tag.getList("pendingInventoryRestoresV1", Tag.TAG_COMPOUND);
+        for (Tag pendingEntry : pendingInventoryTag) {
+            PendingInventoryRestore restore = PendingInventoryRestore.fromTag((CompoundTag) pendingEntry);
+            if (restore != null) {
+                data.pendingInventoryRestores.put(restore.playerId(), restore);
+            }
+        }
+
         ListTag runsTag = tag.getList("activeRunsV2", Tag.TAG_COMPOUND);
         for (Tag runTag : runsTag) {
             ActiveRun run = ActiveRun.fromTag((CompoundTag) runTag);
@@ -120,6 +168,39 @@ public class RoguelikeSavedData extends SavedData {
             instancesTag.add(instance.toTag());
         }
         tag.put("instancesV2", instancesTag);
+
+        ListTag settingsTag = new ListTag();
+        for (PlayerDungeonSettings settings : playerDungeonSettings.values()) {
+            settingsTag.add(settings.toTag());
+        }
+        tag.put("playerDungeonSettingsV1", settingsTag);
+
+        ListTag objectiveStatesTag = new ListTag();
+        for (ObjectiveStateRecord record : objectiveStates.values()) {
+            objectiveStatesTag.add(record.toTag());
+        }
+        tag.put("objectiveStatesV1", objectiveStatesTag);
+
+        ListTag recoveryTag = new ListTag();
+        for (RecoveryStrongboxRecord record : recoveryStrongboxes.values()) {
+            recoveryTag.add(record.toTag());
+        }
+        tag.put("recoveryStrongboxesV1", recoveryTag);
+
+        ListTag pendingRecoveryTag = new ListTag();
+        for (Map.Entry<UUID, UUID> entry : pendingRecoveryDeliveries.entrySet()) {
+            CompoundTag row = new CompoundTag();
+            row.putUUID("player", entry.getKey());
+            row.putUUID("recoveryId", entry.getValue());
+            pendingRecoveryTag.add(row);
+        }
+        tag.put("pendingRecoveryDeliveriesV1", pendingRecoveryTag);
+
+        ListTag pendingInventoryTag = new ListTag();
+        for (PendingInventoryRestore restore : pendingInventoryRestores.values()) {
+            pendingInventoryTag.add(restore.toTag());
+        }
+        tag.put("pendingInventoryRestoresV1", pendingInventoryTag);
 
         ListTag runsTag = new ListTag();
         for (ActiveRun run : activeRuns.values()) {
@@ -313,6 +394,7 @@ public class RoguelikeSavedData extends SavedData {
                 return;
             }
             instancesBySlot.remove(removed.slotIndex());
+            objectiveStates.remove(id.value());
             setDirty();
         }
     }
@@ -374,6 +456,90 @@ public class RoguelikeSavedData extends SavedData {
         }
 
         return Optional.ofNullable(target);
+    }
+
+    public DungeonDeathDifficulty dungeonDeathDifficulty(UUID playerId) {
+        if (playerId == null) {
+            return DungeonDeathDifficulty.SOFTCORE;
+        }
+        return playerDungeonSettings.getOrDefault(playerId, PlayerDungeonSettings.DEFAULT.withPlayerId(playerId)).deathDifficulty();
+    }
+
+    public void setDungeonDeathDifficulty(UUID playerId, DungeonDeathDifficulty difficulty) {
+        if (playerId == null) {
+            return;
+        }
+        playerDungeonSettings.put(playerId, new PlayerDungeonSettings(playerId, difficulty == null ? DungeonDeathDifficulty.SOFTCORE : difficulty));
+        setDirty();
+    }
+
+    public ObjectiveStateRecord objectiveState(DungeonInstanceId instanceId) {
+        return instanceId == null ? null : objectiveStates.get(instanceId.value());
+    }
+
+    public void putObjectiveState(ObjectiveStateRecord record) {
+        if (record == null) {
+            return;
+        }
+        objectiveStates.put(record.instanceId().value(), record);
+        setDirty();
+    }
+
+    public void removeObjectiveState(DungeonInstanceId instanceId) {
+        if (instanceId != null && objectiveStates.remove(instanceId.value()) != null) {
+            setDirty();
+        }
+    }
+
+    public RecoveryStrongboxRecord recoveryStrongbox(UUID recoveryId) {
+        return recoveryId == null ? null : recoveryStrongboxes.get(recoveryId);
+    }
+
+    public void putRecoveryStrongbox(RecoveryStrongboxRecord record) {
+        if (record == null) {
+            return;
+        }
+        recoveryStrongboxes.put(record.recoveryId(), record);
+        setDirty();
+    }
+
+    public void removeRecoveryStrongbox(UUID recoveryId) {
+        if (recoveryId != null && recoveryStrongboxes.remove(recoveryId) != null) {
+            pendingRecoveryDeliveries.entrySet().removeIf(entry -> recoveryId.equals(entry.getValue()));
+            setDirty();
+        }
+    }
+
+    public void setPendingRecoveryDelivery(UUID playerId, UUID recoveryId) {
+        if (playerId == null || recoveryId == null) {
+            return;
+        }
+        pendingRecoveryDeliveries.put(playerId, recoveryId);
+        setDirty();
+    }
+
+    public Optional<UUID> takePendingRecoveryDelivery(UUID playerId) {
+        UUID recoveryId = pendingRecoveryDeliveries.remove(playerId);
+        if (recoveryId != null) {
+            setDirty();
+        }
+        return Optional.ofNullable(recoveryId);
+    }
+
+    public void setPendingInventoryRestore(PendingInventoryRestore restore) {
+        if (restore == null) {
+            return;
+        }
+        pendingInventoryRestores.put(restore.playerId(), restore);
+        setDirty();
+    }
+
+    public Optional<PendingInventoryRestore> takePendingInventoryRestore(UUID playerId) {
+        PendingInventoryRestore restore = pendingInventoryRestores.remove(playerId);
+        if (restore != null) {
+            setDirty();
+        }
+        return Optional.ofNullable(restore);
     }
 
     public record SlotOriginChunks(int chunkX, int chunkZ) {
@@ -502,5 +668,311 @@ public class RoguelikeSavedData extends SavedData {
         public ResourceKey<Level> dimensionKey() {
             return ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, dimension);
         }
+    }
+
+    public record PlayerDungeonSettings(UUID playerId, DungeonDeathDifficulty deathDifficulty) {
+        public static final PlayerDungeonSettings DEFAULT = new PlayerDungeonSettings(new UUID(0L, 0L), DungeonDeathDifficulty.SOFTCORE);
+
+        public PlayerDungeonSettings withPlayerId(UUID playerId) {
+            return new PlayerDungeonSettings(playerId, deathDifficulty);
+        }
+
+        public CompoundTag toTag() {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("player", playerId);
+            tag.putString("deathDifficulty", deathDifficulty.name());
+            return tag;
+        }
+
+        public static PlayerDungeonSettings fromTag(CompoundTag tag) {
+            if (!tag.hasUUID("player")) {
+                return null;
+            }
+            return new PlayerDungeonSettings(tag.getUUID("player"), DungeonDeathDifficulty.fromString(tag.getString("deathDifficulty")));
+        }
+    }
+
+    public record ObjectiveStateRecord(
+            DungeonInstanceId instanceId,
+            String type,
+            int target,
+            int rewardCrates,
+            Set<BlockPos> requiredPylons,
+            List<BlockPos> objectiveAltars,
+            Set<Long> openedChests,
+            Map<UUID, PlayerObjectiveProgress> playerProgress
+    ) {
+        public ObjectiveStateRecord {
+            type = type == null ? "" : type;
+            target = Math.max(1, target);
+            rewardCrates = Math.max(1, rewardCrates);
+            requiredPylons = copyPositions(requiredPylons);
+            objectiveAltars = copyPositionList(objectiveAltars);
+            openedChests = openedChests == null ? Set.of() : Set.copyOf(openedChests);
+            playerProgress = playerProgress == null ? Map.of() : Map.copyOf(playerProgress);
+        }
+
+        public PlayerObjectiveProgress progress(UUID playerId) {
+            return playerProgress.getOrDefault(playerId, PlayerObjectiveProgress.EMPTY);
+        }
+
+        public ObjectiveStateRecord withObjectiveAltars(List<BlockPos> value) {
+            return new ObjectiveStateRecord(instanceId, type, target, rewardCrates, requiredPylons, value, openedChests, playerProgress);
+        }
+
+        public ObjectiveStateRecord withOpenedChest(BlockPos pos) {
+            Set<Long> updated = new HashSet<>(openedChests);
+            updated.add(pos.asLong());
+            return new ObjectiveStateRecord(instanceId, type, target, rewardCrates, requiredPylons, objectiveAltars, updated, playerProgress);
+        }
+
+        public ObjectiveStateRecord withPlayerProgress(UUID playerId, PlayerObjectiveProgress progress) {
+            Map<UUID, PlayerObjectiveProgress> updated = new HashMap<>(playerProgress);
+            updated.put(playerId, progress);
+            return new ObjectiveStateRecord(instanceId, type, target, rewardCrates, requiredPylons, objectiveAltars, openedChests, updated);
+        }
+
+        public CompoundTag toTag() {
+            CompoundTag tag = new CompoundTag();
+            tag.putLong("instanceId", instanceId.value());
+            tag.putString("type", type);
+            tag.putInt("target", target);
+            tag.putInt("rewardCrates", rewardCrates);
+            tag.put("requiredPylons", writeBlockPosList(requiredPylons));
+            tag.put("objectiveAltars", writeBlockPosList(objectiveAltars));
+            tag.putLongArray("openedChests", openedChests.stream().mapToLong(Long::longValue).toArray());
+            ListTag playersTag = new ListTag();
+            for (Map.Entry<UUID, PlayerObjectiveProgress> entry : playerProgress.entrySet()) {
+                CompoundTag row = entry.getValue().toTag();
+                row.putUUID("player", entry.getKey());
+                playersTag.add(row);
+            }
+            tag.put("players", playersTag);
+            return tag;
+        }
+
+        public static ObjectiveStateRecord fromTag(CompoundTag tag) {
+            long rawId = tag.getLong("instanceId");
+            if (rawId <= 0L) {
+                return null;
+            }
+            Map<UUID, PlayerObjectiveProgress> players = new HashMap<>();
+            ListTag playersTag = tag.getList("players", Tag.TAG_COMPOUND);
+            for (Tag playerTag : playersTag) {
+                CompoundTag row = (CompoundTag) playerTag;
+                if (!row.hasUUID("player")) {
+                    continue;
+                }
+                players.put(row.getUUID("player"), PlayerObjectiveProgress.fromTag(row));
+            }
+            Set<Long> openedChests = new HashSet<>();
+            for (long value : tag.getLongArray("openedChests")) {
+                openedChests.add(value);
+            }
+            return new ObjectiveStateRecord(
+                    new DungeonInstanceId(rawId),
+                    tag.getString("type"),
+                    Math.max(1, tag.getInt("target")),
+                    Math.max(1, tag.getInt("rewardCrates")),
+                    readBlockPosSet(tag.getList("requiredPylons", Tag.TAG_COMPOUND)),
+                    readBlockPosList(tag.getList("objectiveAltars", Tag.TAG_COMPOUND)),
+                    openedChests,
+                    players
+            );
+        }
+    }
+
+    public record PlayerObjectiveProgress(int progress, ObjectiveResolution resolution, Set<BlockPos> activatedPylons) {
+        public static final PlayerObjectiveProgress EMPTY = new PlayerObjectiveProgress(0, ObjectiveResolution.ACTIVE, Set.of());
+
+        public PlayerObjectiveProgress {
+            progress = Math.max(0, progress);
+            resolution = resolution == null ? ObjectiveResolution.ACTIVE : resolution;
+            activatedPylons = copyPositions(activatedPylons);
+        }
+
+        public boolean resolved() {
+            return resolution != ObjectiveResolution.ACTIVE;
+        }
+
+        public CompoundTag toTag() {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("progress", progress);
+            tag.putString("resolution", resolution.name());
+            tag.put("activatedPylons", writeBlockPosList(activatedPylons));
+            return tag;
+        }
+
+        public static PlayerObjectiveProgress fromTag(CompoundTag tag) {
+            return new PlayerObjectiveProgress(
+                    Math.max(0, tag.getInt("progress")),
+                    ObjectiveResolution.fromString(tag.getString("resolution")),
+                    readBlockPosSet(tag.getList("activatedPylons", Tag.TAG_COMPOUND))
+            );
+        }
+    }
+
+    public enum ObjectiveResolution {
+        ACTIVE,
+        COMPLETED,
+        FAILED,
+        ABANDONED;
+
+        public static ObjectiveResolution fromString(String raw) {
+            try {
+                return ObjectiveResolution.valueOf(raw);
+            } catch (Exception ignored) {
+                return ACTIVE;
+            }
+        }
+    }
+
+    public record RecoveryStrongboxRecord(UUID recoveryId, UUID ownerId, List<ItemStackRecord> contents, boolean opened) {
+        public RecoveryStrongboxRecord {
+            contents = contents == null ? List.of() : List.copyOf(contents);
+        }
+
+        public RecoveryStrongboxRecord withOpened(boolean opened) {
+            return new RecoveryStrongboxRecord(recoveryId, ownerId, contents, opened);
+        }
+
+        public CompoundTag toTag() {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("recoveryId", recoveryId);
+            tag.putUUID("ownerId", ownerId);
+            tag.putBoolean("opened", opened);
+            ListTag contentsTag = new ListTag();
+            for (ItemStackRecord record : contents) {
+                contentsTag.add(record.toTag());
+            }
+            tag.put("contents", contentsTag);
+            return tag;
+        }
+
+        public static RecoveryStrongboxRecord fromTag(CompoundTag tag) {
+            if (!tag.hasUUID("recoveryId") || !tag.hasUUID("ownerId")) {
+                return null;
+            }
+            List<ItemStackRecord> contents = new ArrayList<>();
+            for (Tag contentTag : tag.getList("contents", Tag.TAG_COMPOUND)) {
+                ItemStackRecord record = ItemStackRecord.fromTag((CompoundTag) contentTag);
+                if (record != null) {
+                    contents.add(record);
+                }
+            }
+            return new RecoveryStrongboxRecord(tag.getUUID("recoveryId"), tag.getUUID("ownerId"), contents, tag.getBoolean("opened"));
+        }
+    }
+
+    public record PendingInventoryRestore(UUID playerId, int selectedSlot, List<ItemStackRecord> contents) {
+        public PendingInventoryRestore {
+            selectedSlot = Math.max(0, selectedSlot);
+            contents = contents == null ? List.of() : List.copyOf(contents);
+        }
+
+        public CompoundTag toTag() {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("player", playerId);
+            tag.putInt("selectedSlot", selectedSlot);
+            ListTag contentsTag = new ListTag();
+            for (ItemStackRecord record : contents) {
+                contentsTag.add(record.toTag());
+            }
+            tag.put("contents", contentsTag);
+            return tag;
+        }
+
+        public static PendingInventoryRestore fromTag(CompoundTag tag) {
+            if (!tag.hasUUID("player")) {
+                return null;
+            }
+            List<ItemStackRecord> contents = new ArrayList<>();
+            for (Tag contentTag : tag.getList("contents", Tag.TAG_COMPOUND)) {
+                ItemStackRecord record = ItemStackRecord.fromTag((CompoundTag) contentTag);
+                if (record != null) {
+                    contents.add(record);
+                }
+            }
+            return new PendingInventoryRestore(tag.getUUID("player"), Math.max(0, tag.getInt("selectedSlot")), contents);
+        }
+    }
+
+    public record ItemStackRecord(int slot, CompoundTag stackTag) {
+        public ItemStackRecord {
+            slot = Math.max(-1, slot);
+            stackTag = stackTag == null ? new CompoundTag() : stackTag.copy();
+        }
+
+        public CompoundTag toTag() {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("slot", slot);
+            tag.put("stack", stackTag.copy());
+            return tag;
+        }
+
+        public static ItemStackRecord fromTag(CompoundTag tag) {
+            return tag.contains("stack", Tag.TAG_COMPOUND)
+                    ? new ItemStackRecord(tag.getInt("slot"), tag.getCompound("stack").copy())
+                    : null;
+        }
+
+        public static ItemStackRecord of(int slot, ItemStack stack, HolderLookup.Provider registries) {
+            return new ItemStackRecord(slot, (CompoundTag) stack.saveOptional(registries));
+        }
+
+        public ItemStack toStack(HolderLookup.Provider registries) {
+            return ItemStack.parseOptional(registries, stackTag.copy());
+        }
+    }
+
+    private static ListTag writeBlockPosList(Iterable<BlockPos> positions) {
+        ListTag list = new ListTag();
+        for (BlockPos pos : positions) {
+            CompoundTag row = new CompoundTag();
+            row.putInt("x", pos.getX());
+            row.putInt("y", pos.getY());
+            row.putInt("z", pos.getZ());
+            list.add(row);
+        }
+        return list;
+    }
+
+    private static List<BlockPos> readBlockPosList(ListTag tag) {
+        List<BlockPos> positions = new ArrayList<>();
+        for (Tag rowTag : tag) {
+            CompoundTag row = (CompoundTag) rowTag;
+            positions.add(new BlockPos(row.getInt("x"), row.getInt("y"), row.getInt("z")));
+        }
+        return List.copyOf(positions);
+    }
+
+    private static Set<BlockPos> readBlockPosSet(ListTag tag) {
+        return Set.copyOf(readBlockPosList(tag));
+    }
+
+    private static Set<BlockPos> copyPositions(Iterable<BlockPos> positions) {
+        Set<BlockPos> copy = new HashSet<>();
+        if (positions == null) {
+            return Set.of();
+        }
+        for (BlockPos pos : positions) {
+            if (pos != null) {
+                copy.add(pos.immutable());
+            }
+        }
+        return Set.copyOf(copy);
+    }
+
+    private static List<BlockPos> copyPositionList(Iterable<BlockPos> positions) {
+        List<BlockPos> copy = new ArrayList<>();
+        if (positions == null) {
+            return List.of();
+        }
+        for (BlockPos pos : positions) {
+            if (pos != null) {
+                copy.add(pos.immutable());
+            }
+        }
+        return List.copyOf(copy);
     }
 }

@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -25,6 +26,13 @@ public class RoguelikeEvents {
         }
 
         RoguelikeService.onDungeonMobDeath(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onLivingDrops(LivingDropsEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            RoguelikeService.onPlayerDrops(player, event);
+        }
     }
 
     @SubscribeEvent

@@ -8,6 +8,7 @@ import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEn
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingData;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveData;
+import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveIds;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeData;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
@@ -35,6 +36,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -323,6 +325,10 @@ public final class RoguelikeService {
         DungeonInstanceManager.onPlayerDeath(player);
     }
 
+    public static void onPlayerDrops(ServerPlayer player, LivingDropsEvent event) {
+        DungeonInstanceManager.onPlayerDrops(player, event);
+    }
+
     public static void onPlayerRespawn(ServerPlayer player) {
         DungeonInstanceManager.onPlayerRespawn(player);
     }
@@ -356,7 +362,7 @@ public final class RoguelikeService {
     }
 
     public static Component objectiveDisplayName(ResourceLocation objectiveId) {
-        return Component.translatable(resourceNameTranslationKey("incore.roguelike.objective", objectiveId));
+        return Component.translatable(resourceNameTranslationKey("incore.roguelike.objective", DungeonObjectiveIds.resolve(objectiveId)));
     }
 
     private static UUID resolveAltarOwner(ServerPlayer player, BlockPos altarPos) {
@@ -430,14 +436,15 @@ public final class RoguelikeService {
             return DungeonObjectiveManager.pickRandom(random);
         }
 
-        DungeonObjectiveData objectiveData = DungeonObjectiveManager.OBJECTIVES.get(customObjectiveId);
+        DungeonObjectiveData objectiveData = DungeonObjectiveManager.getObjective(customObjectiveId);
         if (objectiveData == null) {
             player.sendSystemMessage(
                     Component.translatable("incore.roguelike.portal.invalid_objective", customObjectiveId.toString()));
             return Optional.empty();
         }
 
-        return Optional.of(new DungeonObjectiveManager.PickedObjective(customObjectiveId, objectiveData));
+        ResourceLocation resolvedObjectiveId = DungeonObjectiveIds.resolve(customObjectiveId);
+        return Optional.of(new DungeonObjectiveManager.PickedObjective(resolvedObjectiveId, objectiveData));
     }
 
     private static List<ResourceLocation> pickModifiersForCrystal(ServerPlayer player, ItemStack crystalStack) {

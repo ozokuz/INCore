@@ -2,6 +2,8 @@ package io.github.ozokuz.incore.features.roguelike.instance;
 
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.market.MarketBanking;
+import io.github.ozokuz.incore.features.roguelike.DungeonDeathDifficulty;
 import io.github.ozokuz.incore.features.roguelike.RoguelikeConstants;
 import io.github.ozokuz.incore.features.roguelike.RoguelikePortalShape;
 import io.github.ozokuz.incore.features.roguelike.RoguelikeService;
@@ -52,6 +54,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 
 import java.io.IOException;
@@ -71,16 +74,14 @@ import java.util.UUID;
 
 public final class DungeonInstanceManager {
     private static final String REGION_FILE_PATTERN = "r.%d.%d.mca";
-    private static final int ROOM_MIDDLE_FLOOR_WORLD_Y = 26;
-    private static final int ROOM_SIZE_CHUNKS = 3;
-    private static final int ROOM_GAP_CHUNKS = 2;
-    private static final int CHUNK_STRIDE = ROOM_SIZE_CHUNKS + ROOM_GAP_CHUNKS;
-    private static final int START_CHUNK_OFFSET = RoguelikeConstants.INSTANCE_SIZE_CHUNKS / 2;
+    private static final int ROOM_SIZE_CHUNKS = DungeonWorldPlanner.ROOM_SIZE_CHUNKS;
+    private static final int CHUNK_STRIDE = DungeonWorldPlanner.CHUNK_STRIDE;
+    private static final int START_CHUNK_OFFSET = DungeonWorldPlanner.START_CHUNK_OFFSET;
     private static final int MINIMAP_GRID_SIZE = DungeonLayoutGenerator.GRID_SIZE;
     private static final int MINIMAP_CENTER_CELL = DungeonLayoutGenerator.CENTER_CELL;
     private static final Map<Long, Map<UUID, Set<Integer>>> REVEALED_ROOMS = new HashMap<>();
     private static final Map<UUID, Long> LAST_GRAPH_SYNC_INSTANCE = new HashMap<>();
-    private static final Map<Long, ObjectiveRuntimeState> OBJECTIVE_STATES = new HashMap<>();
+    private static final Set<UUID> PENDING_DROP_SUPPRESSION = new HashSet<>();
 
     private DungeonInstanceManager() {
     }
@@ -149,7 +150,7 @@ public final class DungeonInstanceManager {
                 .withPlacement(plan.startRoomOrigin(), plan.entryPos())
                 .withState(DungeonInstanceData.State.ACTIVE);
         data.putInstance(instance);
-        initializeObjectiveState(instance, plan.encounterSpawnerPositions());
+        initializeObjectiveState(data, instance, plan);
 
         portalShape.createPortalBlocks();
         portalShape.forEachPortalBlock(portalPos -> {
@@ -258,19 +259,24 @@ public final class DungeonInstanceManager {
         teleport(player, dungeonLevel, instance.entryPos());
         syncMinimapGraphIfNeeded(player, instance);
 
-        DungeonObjectiveData objective = DungeonObjectiveManager.OBJECTIVES.get(instance.objectiveId());
+        ensurePlayerObjectiveProgress(data, instance, playerId);
+
+        DungeonObjectiveData objective = DungeonObjectiveManager.getObjective(instance.objectiveId());
         if (objective != null) {
-            ObjectiveRuntimeState runtimeState = OBJECTIVE_STATES.get(instance.id().value());
-            int progress = runtimeState == null ? 0 : runtimeState.progress();
-            int target = runtimeState == null ? objective.target() : runtimeState.target();
+            RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+            RoguelikeSavedData.PlayerObjectiveProgress playerProgress = state == null
+                    ? RoguelikeSavedData.PlayerObjectiveProgress.EMPTY
+                    : state.progress(playerId);
+            int progress = playerProgress.progress();
+            int target = state == null ? objective.target() : state.target();
             player.sendSystemMessage(Component.translatable(
                     "incore.roguelike.portal.objective",
                     RoguelikeService.objectiveDisplayName(instance.objectiveId()),
                     progress,
                     target
             ).withStyle(ChatFormatting.GOLD));
-            if (runtimeState != null) {
-                String hintKey = switch (runtimeState.type()) {
+            if (state != null) {
+                String hintKey = switch (state.type()) {
                     case "signal_emission" -> "incore.roguelike.objective.signal.hint";
                     case "scavenger_hunt" -> "incore.roguelike.objective.scavenger.hint";
                     default -> "incore.roguelike.objective.essence.hint";
@@ -298,7 +304,8 @@ public final class DungeonInstanceManager {
         data.clearRun(player.getUUID());
         teleport(player, returnLevel, run.returnPos());
 
-        checkInstanceEmptyAndCleanup(data, instance);
+        markPlayerAbandonedIfIncomplete(data, instance, player.getUUID());
+        updateInstanceResolution(data, instance);
 
         player.sendSystemMessage(Component.translatable("incore.roguelike.return_portal.used"));
         return true;
@@ -337,7 +344,8 @@ public final class DungeonInstanceManager {
         data.clearRun(serverPlayer.getUUID());
         teleport(serverPlayer, returnLevel, run.returnPos());
 
-        checkInstanceEmptyAndCleanup(data, instance);
+        markPlayerAbandonedIfIncomplete(data, instance, serverPlayer.getUUID());
+        updateInstanceResolution(data, instance);
 
         serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.return_portal.used"));
         return true;
@@ -418,7 +426,7 @@ public final class DungeonInstanceManager {
                 data.freeSlot(instance.slotIndex());
                 data.removeInstance(instance.id());
                 REVEALED_ROOMS.remove(instance.id().value());
-                OBJECTIVE_STATES.remove(instance.id().value());
+                data.removeObjectiveState(instance.id());
                 LAST_GRAPH_SYNC_INSTANCE.entrySet().removeIf(entry -> entry.getValue().equals(instance.id().value()));
             }
         }
@@ -511,14 +519,27 @@ public final class DungeonInstanceManager {
 
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         data.getRun(player.getUUID()).ifPresent(run -> {
+            List<RoguelikeSavedData.ItemStackRecord> capturedInventory = captureInventory(player);
+            DungeonDeathDifficulty difficulty = data.dungeonDeathDifficulty(player.getUUID());
+            applyDeathOutcome(data, player, difficulty, capturedInventory);
+            clearInventory(player);
+            PENDING_DROP_SUPPRESSION.add(player.getUUID());
+
             data.setPendingReturn(player.getUUID(), run.returnDimensionKey(), run.returnPos());
             data.clearRun(player.getUUID());
 
             DungeonInstanceData instance = data.getInstance(run.instanceId());
             if (instance != null) {
-                checkInstanceEmptyAndCleanup(data, instance);
+                markPlayerFailed(data, instance, player.getUUID());
+                updateInstanceResolution(data, instance);
             }
         });
+    }
+
+    public static void onPlayerDrops(ServerPlayer player, LivingDropsEvent event) {
+        if (PENDING_DROP_SUPPRESSION.remove(player.getUUID())) {
+            event.getDrops().clear();
+        }
     }
 
     public static void onPlayerRespawn(ServerPlayer player) {
@@ -543,7 +564,8 @@ public final class DungeonInstanceManager {
 
             DungeonInstanceData instance = data.getInstance(run.instanceId());
             if (instance != null) {
-                checkInstanceEmptyAndCleanup(data, instance);
+                markPlayerAbandonedIfIncomplete(data, instance, player.getUUID());
+                updateInstanceResolution(data, instance);
             }
         });
     }
@@ -561,6 +583,8 @@ public final class DungeonInstanceManager {
                 teleport(player, level, target.pos());
             }
         });
+        data.takePendingInventoryRestore(player.getUUID()).ifPresent(restore -> restoreInventory(player, restore));
+        data.takePendingRecoveryDelivery(player.getUUID()).ifPresent(recoveryId -> deliverRecoveryItems(player, recoveryId));
     }
 
     public static void onDungeonMobDeath(net.minecraft.world.entity.LivingEntity entity) {
@@ -579,8 +603,8 @@ public final class DungeonInstanceManager {
             return;
         }
 
-        ObjectiveRuntimeState state = OBJECTIVE_STATES.get(instance.id().value());
-        if (state == null || state.completed()) {
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null) {
             return;
         }
 
@@ -588,7 +612,7 @@ public final class DungeonInstanceManager {
         boolean eliteKill = isEliteKill(entity);
         if ("essence_gathering".equals(state.type())) {
             if (encounterCompletion || eliteKill) {
-                addObjectiveProgress(server, data, instance, state, 1);
+                creditActivePlayers(server, data, instance, 1, null);
             }
             return;
         }
@@ -622,21 +646,21 @@ public final class DungeonInstanceManager {
             return;
         }
 
-        ObjectiveRuntimeState objectiveState = OBJECTIVE_STATES.get(instance.id().value());
-        if (objectiveState == null || objectiveState.completed()) {
+        RoguelikeSavedData.ObjectiveStateRecord objectiveState = data.objectiveState(instance.id());
+        if (objectiveState == null) {
             return;
         }
 
         if ("signal_emission".equals(objectiveState.type()) && state.is(Registration.ENCOUNTER_SPAWNER_BLOCK.get())) {
-            if (objectiveState.tryActivatePylon(pos)) {
-                addObjectiveProgress(server, data, instance, objectiveState, 1);
+            if (tryActivatePylonForPlayer(data, instance, player.getUUID(), pos)) {
+                creditActivePlayers(server, data, instance, 1, player.getUUID());
             }
             return;
         }
 
-        if (isChestLike(state) && objectiveState.markChestOpened(pos)) {
+        if (isChestLike(state) && markChestOpened(data, instance, pos)) {
             if ("essence_gathering".equals(objectiveState.type())) {
-                addObjectiveProgress(server, data, instance, objectiveState, 1);
+                creditActivePlayers(server, data, instance, 1, player.getUUID());
             } else if ("scavenger_hunt".equals(objectiveState.type())) {
                 giveScavengerToken(player);
             }
@@ -663,16 +687,17 @@ public final class DungeonInstanceManager {
             return false;
         }
 
-        ObjectiveRuntimeState objectiveState = OBJECTIVE_STATES.get(instance.id().value());
-        if (objectiveState == null || objectiveState.completed() || !"scavenger_hunt".equals(objectiveState.type())) {
+        RoguelikeSavedData.ObjectiveStateRecord objectiveState = data.objectiveState(instance.id());
+        if (objectiveState == null || !"scavenger_hunt".equals(objectiveState.type())) {
             return false;
         }
-        if (!objectiveState.isScavengerAltar(altarPos)) {
+        if (!isScavengerAltar(objectiveState, altarPos)) {
             return false;
         }
 
         if (hand == null) {
-            serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.objective.scavenger.hint", objectiveState.progress(), objectiveState.target()));
+            RoguelikeSavedData.PlayerObjectiveProgress progress = objectiveState.progress(serverPlayer.getUUID());
+            serverPlayer.sendSystemMessage(Component.translatable("incore.roguelike.objective.scavenger.hint", progress.progress(), objectiveState.target()));
             return true;
         }
 
@@ -682,7 +707,7 @@ public final class DungeonInstanceManager {
         }
 
         held.shrink(1);
-        addObjectiveProgress(server, data, instance, objectiveState, 1);
+        creditActivePlayers(server, data, instance, 1, serverPlayer.getUUID());
         return true;
     }
 
@@ -702,323 +727,6 @@ public final class DungeonInstanceManager {
 
         if (!allowed) {
             event.setResult(MobSpawnEvent.PositionCheck.Result.FAIL);
-        }
-    }
-
-    private static PlacementResult generateAndPlaceLayout(ServerLevel level, DungeonInstanceData instance, DungeonThemeData theme) {
-        long seed = level.getSeed() ^ instance.id().value() ^ ((long) instance.slotIndex() << 32);
-        net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create(seed);
-        DungeonLayoutPlan plan = DungeonLayoutGenerator.generate(theme, random);
-
-        List<DungeonLayoutPlan.RoomPlacement> orderedRooms = new ArrayList<>(plan.rooms());
-        orderedRooms.sort(Comparator
-                .comparing(DungeonLayoutPlan.RoomPlacement::startRoom).reversed()
-                .thenComparingInt(DungeonLayoutPlan.RoomPlacement::cellZ)
-                .thenComparingInt(DungeonLayoutPlan.RoomPlacement::cellX));
-
-        Map<Long, PlacedRoom> placedRooms = new HashMap<>();
-        Set<Long> occupiedChunks = new HashSet<>();
-        List<BlockPos> encounterSpawnerPositions = new ArrayList<>();
-        BlockPos startRoomOrigin = null;
-        BlockPos entryPos = null;
-
-        for (DungeonLayoutPlan.RoomPlacement room : orderedRooms) {
-            int footprintChunkX;
-            int footprintChunkZ;
-            int footprintWidth;
-            int footprintDepth;
-            if (room.startRoom()) {
-                footprintChunkX = instance.originChunkX() + START_CHUNK_OFFSET;
-                footprintChunkZ = instance.originChunkZ() + START_CHUNK_OFFSET;
-                footprintWidth = 1;
-                footprintDepth = 1;
-            } else {
-                footprintChunkX = instance.originChunkX() + room.cellX() * CHUNK_STRIDE;
-                footprintChunkZ = instance.originChunkZ() + room.cellZ() * CHUNK_STRIDE;
-                footprintWidth = ROOM_SIZE_CHUNKS;
-                footprintDepth = ROOM_SIZE_CHUNKS;
-            }
-
-            if (!isFootprintInBounds(instance, footprintChunkX, footprintChunkZ, footprintWidth, footprintDepth)) {
-                return null;
-            }
-
-            PlacedTemplate placed = placeTemplateInFootprint(
-                    level,
-                    room.template(),
-                    footprintChunkX,
-                    footprintChunkZ,
-                    footprintWidth,
-                    footprintDepth
-            );
-            if (placed == null) {
-                return null;
-            }
-
-            replaceReturnPortalPlaceholders(level, placed.template(), placed.origin(), placed.settings(), instance.id().value());
-            placeSocketFeatures(level, room.template().id(), placed.origin(), instance, encounterSpawnerPositions);
-            markOccupied(occupiedChunks, footprintChunkX, footprintChunkZ, footprintWidth, footprintDepth);
-
-            if (room.startRoom()) {
-                startRoomOrigin = placed.origin();
-                entryPos = resolveStartEntryPosition(room.template().id(), placed.origin(), placed.template());
-            }
-
-            placedRooms.put(cellKey(room.cellX(), room.cellZ()), new PlacedRoom(room, footprintChunkX, footprintChunkZ, placed.origin()));
-        }
-
-        List<DungeonLayoutPlan.HallwayPlacement> orderedHallways = new ArrayList<>(plan.hallways());
-        orderedHallways.sort(Comparator
-                .comparingInt(DungeonLayoutPlan.HallwayPlacement::fromCellZ)
-                .thenComparingInt(DungeonLayoutPlan.HallwayPlacement::fromCellX)
-                .thenComparingInt(DungeonLayoutPlan.HallwayPlacement::toCellZ)
-                .thenComparingInt(DungeonLayoutPlan.HallwayPlacement::toCellX));
-
-        for (DungeonLayoutPlan.HallwayPlacement hallway : orderedHallways) {
-            HallwayFootprint footprint = hallwayFootprint(instance, hallway, placedRooms);
-            if (footprint == null || !isFootprintInBounds(instance, footprint.chunkX(), footprint.chunkZ(), footprint.widthChunks(), footprint.depthChunks())) {
-                return null;
-            }
-
-            PlacedTemplate placed = placeTemplateInFootprint(
-                    level,
-                    hallway.template(),
-                    footprint.chunkX(),
-                    footprint.chunkZ(),
-                    footprint.widthChunks(),
-                    footprint.depthChunks()
-            );
-            if (placed == null) {
-                return null;
-            }
-
-            replaceReturnPortalPlaceholders(level, placed.template(), placed.origin(), placed.settings(), instance.id().value());
-            placeSocketFeatures(level, hallway.template().id(), placed.origin(), instance, encounterSpawnerPositions);
-            markOccupied(occupiedChunks, footprint.chunkX(), footprint.chunkZ(), footprint.widthChunks(), footprint.depthChunks());
-        }
-
-        placeSecretRooms(level, instance, theme, placedRooms, occupiedChunks, random, encounterSpawnerPositions);
-
-        if (startRoomOrigin == null || entryPos == null) {
-            return null;
-        }
-        clearEntrySpace(level, entryPos);
-        return new PlacementResult(startRoomOrigin, entryPos, List.copyOf(encounterSpawnerPositions));
-    }
-
-    private static void placeSecretRooms(
-            ServerLevel level,
-            DungeonInstanceData instance,
-            DungeonThemeData theme,
-            Map<Long, PlacedRoom> placedRooms,
-            Set<Long> occupiedChunks,
-            net.minecraft.util.RandomSource random,
-            List<BlockPos> encounterSpawnerPositions
-    ) {
-        if (theme.secretRooms().isEmpty()) {
-            return;
-        }
-
-        List<PlacedRoom> orderedRooms = placedRooms.values().stream()
-                .filter(room -> !room.room().startRoom())
-                .sorted(Comparator.comparingInt((PlacedRoom room) -> room.room().cellZ())
-                        .thenComparingInt(room -> room.room().cellX()))
-                .toList();
-
-        for (PlacedRoom room : orderedRooms) {
-            DungeonSocketData socketData = DungeonSocketManager.SOCKETS.getOrDefault(room.room().template().id(), DungeonSocketData.EMPTY);
-            if (socketData.secretSockets().isEmpty()) {
-                continue;
-            }
-
-            DungeonThemeData.TemplateRef secretTemplate = theme.secretRooms().pick(random).orElse(null);
-            if (secretTemplate == null) {
-                continue;
-            }
-
-            for (DungeonSocketData.SecretSocket secretSocket : socketData.secretSockets()) {
-                int secretChunkX = room.footprintChunkX() + secretSocket.chunkOffsetX();
-                int secretChunkZ = room.footprintChunkZ() + secretSocket.chunkOffsetZ();
-                if (!isFootprintInBounds(instance, secretChunkX, secretChunkZ, 1, 1)) {
-                    continue;
-                }
-
-                long key = chunkKey(secretChunkX, secretChunkZ);
-                if (occupiedChunks.contains(key)) {
-                    continue;
-                }
-
-                PlacedTemplate placedSecret = placeTemplateInFootprint(level, secretTemplate, secretChunkX, secretChunkZ, 1, 1);
-                if (placedSecret == null) {
-                    continue;
-                }
-
-                replaceReturnPortalPlaceholders(level, placedSecret.template(), placedSecret.origin(), placedSecret.settings(), instance.id().value());
-                placeSocketFeatures(level, secretTemplate.id(), placedSecret.origin(), instance, encounterSpawnerPositions);
-                occupiedChunks.add(key);
-                break;
-            }
-        }
-    }
-
-    private static BlockPos resolveStartEntryPosition(ResourceLocation templateId, BlockPos templateOrigin, StructureTemplate template) {
-        DungeonSocketData socketData = DungeonSocketManager.SOCKETS.getOrDefault(templateId, DungeonSocketData.EMPTY);
-        if (!socketData.entrySockets().isEmpty()) {
-            DungeonSocketData.EntrySocket chosen = socketData.entrySockets().stream()
-                    .filter(socket -> "spawn".equalsIgnoreCase(socket.id()))
-                    .findFirst()
-                    .orElse(socketData.entrySockets().getFirst());
-            return templateOrigin.offset(chosen.pos());
-        }
-
-        var size = template.getSize();
-        return templateOrigin.offset(Math.max(1, size.getX() / 2), 1, Math.max(1, size.getZ() / 2));
-    }
-
-    private static HallwayFootprint hallwayFootprint(
-            DungeonInstanceData instance,
-            DungeonLayoutPlan.HallwayPlacement hallway,
-            Map<Long, PlacedRoom> placedRooms
-    ) {
-        PlacedRoom from = placedRooms.get(cellKey(hallway.fromCellX(), hallway.fromCellZ()));
-        PlacedRoom to = placedRooms.get(cellKey(hallway.toCellX(), hallway.toCellZ()));
-        if (from == null || to == null) {
-            return null;
-        }
-
-        if (from.room().startRoom() || to.room().startRoom()) {
-            return new HallwayFootprint(
-                    instance.originChunkX() + START_CHUNK_OFFSET,
-                    instance.originChunkZ() + START_CHUNK_OFFSET + ROOM_GAP_CHUNKS,
-                    1,
-                    2
-            );
-        }
-
-        if (hallway.orientation() == DungeonLayoutPlan.Orientation.EAST_WEST) {
-            int minCellX = Math.min(hallway.fromCellX(), hallway.toCellX());
-            int rowCellZ = hallway.fromCellZ();
-            int chunkX = instance.originChunkX() + minCellX * CHUNK_STRIDE + 3;
-            int chunkZ = instance.originChunkZ() + rowCellZ * CHUNK_STRIDE + 1;
-            return new HallwayFootprint(chunkX, chunkZ, 2, 1);
-        }
-
-        int minCellZ = Math.min(hallway.fromCellZ(), hallway.toCellZ());
-        int colCellX = hallway.fromCellX();
-        int chunkX = instance.originChunkX() + colCellX * CHUNK_STRIDE + 1;
-        int chunkZ = instance.originChunkZ() + minCellZ * CHUNK_STRIDE + 3;
-        return new HallwayFootprint(chunkX, chunkZ, 1, 2);
-    }
-
-    private static PlacedTemplate placeTemplateInFootprint(
-            ServerLevel level,
-            DungeonThemeData.TemplateRef templateRef,
-            int footprintChunkX,
-            int footprintChunkZ,
-            int footprintWidthChunks,
-            int footprintDepthChunks
-    ) {
-        Optional<StructureTemplate> templateOptional = level.getStructureManager().get(templateRef.id());
-        if (templateOptional.isEmpty()) {
-            return null;
-        }
-
-        StructureTemplate template = templateOptional.get();
-        var size = template.getSize();
-        int footprintWidthBlocks = footprintWidthChunks * 16;
-        int footprintDepthBlocks = footprintDepthChunks * 16;
-        if (size.getX() > footprintWidthBlocks || size.getZ() > footprintDepthBlocks) {
-            return null;
-        }
-
-        int originX = footprintChunkX * 16 + Math.max(0, (footprintWidthBlocks - size.getX()) / 2);
-        int originZ = footprintChunkZ * 16 + Math.max(0, (footprintDepthBlocks - size.getZ()) / 2);
-        int originY = templateRef.originYForMiddleFloor(ROOM_MIDDLE_FLOOR_WORLD_Y);
-        if (originY < level.getMinBuildHeight() || originY + size.getY() > level.getMaxBuildHeight()) {
-            return null;
-        }
-
-        BlockPos origin = new BlockPos(originX, originY, originZ);
-        StructurePlaceSettings settings = new StructurePlaceSettings().setIgnoreEntities(true);
-        if (!template.placeInWorld(level, origin, origin, settings, level.random, Block.UPDATE_ALL)) {
-            return null;
-        }
-
-        return new PlacedTemplate(origin, template, settings);
-    }
-
-    private static void placeSocketFeatures(
-            ServerLevel level,
-            ResourceLocation templateId,
-            BlockPos templateOrigin,
-            DungeonInstanceData instance,
-            List<BlockPos> encounterSpawnerPositions
-    ) {
-        DungeonSocketData socketData = DungeonSocketManager.SOCKETS.getOrDefault(templateId, DungeonSocketData.EMPTY);
-        EncounterModifierProfile profile = encounterModifierProfile(instance);
-        for (DungeonSocketData.FeatureSocket feature : socketData.featureSockets()) {
-            if (!"encounter_spawner".equals(feature.type())) {
-                continue;
-            }
-
-            if (feature.encounterId() == null) {
-                continue;
-            }
-
-            if (profile.spawnChance() < 1.0D && level.random.nextDouble() > profile.spawnChance()) {
-                continue;
-            }
-
-            BlockPos socketPos = templateOrigin.offset(feature.pos());
-            level.setBlockAndUpdate(socketPos, Registration.ENCOUNTER_SPAWNER_BLOCK.get().defaultBlockState());
-            BlockEntity be = level.getBlockEntity(socketPos);
-            if (be instanceof EncounterSpawnerBE spawner) {
-                spawner.setEncounterId(feature.encounterId().toString());
-                Vec3i spawnOffset = feature.spawnOffset() == null ? Vec3i.ZERO : feature.spawnOffset();
-                spawner.setSpawnOffset(new BlockPos(spawnOffset.getX(), spawnOffset.getY(), spawnOffset.getZ()));
-                spawner.setEncounterStrengthMultipliers(profile.mobHealthMultiplier(), profile.mobDamageMultiplier());
-                spawner.setChanged();
-                encounterSpawnerPositions.add(socketPos.immutable());
-            }
-        }
-    }
-
-    private static boolean isFootprintInBounds(
-            DungeonInstanceData instance,
-            int chunkX,
-            int chunkZ,
-            int widthChunks,
-            int depthChunks
-    ) {
-        int maxChunkX = chunkX + widthChunks - 1;
-        int maxChunkZ = chunkZ + depthChunks - 1;
-        return chunkX >= instance.originChunkX()
-                && chunkZ >= instance.originChunkZ()
-                && maxChunkX <= instance.maxChunkX()
-                && maxChunkZ <= instance.maxChunkZ();
-    }
-
-    private static void markOccupied(Set<Long> occupiedChunks, int chunkX, int chunkZ, int widthChunks, int depthChunks) {
-        for (int x = chunkX; x < chunkX + widthChunks; x++) {
-            for (int z = chunkZ; z < chunkZ + depthChunks; z++) {
-                occupiedChunks.add(chunkKey(x, z));
-            }
-        }
-    }
-
-    private static long chunkKey(int chunkX, int chunkZ) {
-        return ((long) chunkX << 32) ^ (chunkZ & 0xffffffffL);
-    }
-
-    private static long cellKey(int cellX, int cellZ) {
-        return ((long) cellX << 32) ^ (cellZ & 0xffffffffL);
-    }
-
-    private static void clearEntrySpace(ServerLevel level, BlockPos entry) {
-        level.setBlockAndUpdate(entry, Blocks.AIR.defaultBlockState());
-        level.setBlockAndUpdate(entry.above(), Blocks.AIR.defaultBlockState());
-        if (level.getBlockState(entry.below()).isAir()) {
-            level.setBlockAndUpdate(entry.below(), Blocks.BEDROCK.defaultBlockState());
         }
     }
 
@@ -1134,12 +842,18 @@ public final class DungeonInstanceManager {
     }
 
     public static void ensureObjectiveBlocksGenerated(ServerLevel dungeonLevel, DungeonInstanceData instance, ChunkPos chunkPos) {
-        ObjectiveRuntimeState objectiveState = OBJECTIVE_STATES.get(instance.id().value());
-        if (objectiveState == null || objectiveState.completed()) {
+        MinecraftServer server = dungeonLevel.getServer();
+        if (server == null) {
             return;
         }
 
-        if (!"scavenger_hunt".equals(objectiveState.type()) || objectiveState.scavengerAltarPos() != null) {
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        RoguelikeSavedData.ObjectiveStateRecord objectiveState = data.objectiveState(instance.id());
+        if (objectiveState == null) {
+            return;
+        }
+
+        if (!"scavenger_hunt".equals(objectiveState.type()) || !objectiveState.objectiveAltars().isEmpty()) {
             return;
         }
 
@@ -1148,23 +862,24 @@ public final class DungeonInstanceManager {
         }
 
         BlockPos scavengerAltarPos = findScavengerAltarPos(dungeonLevel, instance.entryPos());
-        objectiveState.setScavengerAltarPos(scavengerAltarPos);
+        data.putObjectiveState(objectiveState.withObjectiveAltars(List.of(scavengerAltarPos)));
         dungeonLevel.setBlockAndUpdate(scavengerAltarPos, Registration.DUNGEON_OBJECTIVE_ALTAR_BLOCK.get().defaultBlockState());
     }
 
-    private static void initializeObjectiveState(DungeonInstanceData instance, List<BlockPos> encounterSpawnerPositions) {
-        DungeonObjectiveData objectiveData = DungeonObjectiveManager.OBJECTIVES.get(instance.objectiveId());
+    private static void initializeObjectiveState(RoguelikeSavedData data, DungeonInstanceData instance, DungeonWorldPlan plan) {
+        DungeonObjectiveData objectiveData = DungeonObjectiveManager.getObjective(instance.objectiveId());
         if (objectiveData == null) {
-            OBJECTIVE_STATES.remove(instance.id().value());
+            data.removeObjectiveState(instance.id());
             return;
         }
 
         String type = objectiveData.type();
         int target = Math.max(1, objectiveData.target());
         Set<BlockPos> pylons = new HashSet<>();
+        List<BlockPos> objectiveAltars = plan.featurePositions("objective_altar");
 
         if ("signal_emission".equals(type)) {
-            for (BlockPos pos : encounterSpawnerPositions) {
+            for (BlockPos pos : plan.encounterSpawnerPositions()) {
                 pylons.add(pos.immutable());
                 if (pylons.size() >= target) {
                     break;
@@ -1176,7 +891,16 @@ public final class DungeonInstanceManager {
             target = Math.max(1, Math.min(target, pylons.size()));
         }
 
-        OBJECTIVE_STATES.put(instance.id().value(), new ObjectiveRuntimeState(type, target, objectiveData.rewardCrates(), pylons, null));
+        data.putObjectiveState(new RoguelikeSavedData.ObjectiveStateRecord(
+                instance.id(),
+                type,
+                target,
+                objectiveData.rewardCrates(),
+                pylons,
+                objectiveAltars,
+                Set.of(),
+                Map.of()
+        ));
     }
 
     private static BlockPos findScavengerAltarPos(ServerLevel level, BlockPos entryPos) {
@@ -1195,64 +919,111 @@ public final class DungeonInstanceManager {
         return entryPos.offset(2, 1, 0);
     }
 
-    private static void addObjectiveProgress(
+    private static void creditActivePlayers(
             MinecraftServer server,
             RoguelikeSavedData data,
             DungeonInstanceData instance,
-            ObjectiveRuntimeState state,
-            int amount
+            int amount,
+            UUID sourcePlayerId
     ) {
-        if (amount <= 0 || state.completed()) {
+        if (amount <= 0) {
             return;
         }
 
-        int previous = state.progress();
-        state.addProgress(amount);
-        if (state.progress() != previous) {
-            broadcastObjectiveProgress(server, data, instance, state);
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null) {
+            return;
         }
 
-        if (state.completed()) {
-            completeObjective(server, data, instance, state);
+        List<UUID> creditedPlayers = new ArrayList<>();
+        for (RoguelikeSavedData.ActiveRun run : data.activeRunsForInstance(instance.id())) {
+            UUID playerId = run.playerId();
+            ensurePlayerObjectiveProgress(data, instance, playerId);
+            state = data.objectiveState(instance.id());
+            RoguelikeSavedData.PlayerObjectiveProgress progress = state.progress(playerId);
+            if (progress.resolved()) {
+                continue;
+            }
+
+            int nextProgress = Math.min(state.target(), progress.progress() + amount);
+            if (nextProgress == progress.progress()) {
+                continue;
+            }
+
+            data.putObjectiveState(state.withPlayerProgress(
+                    playerId,
+                    new RoguelikeSavedData.PlayerObjectiveProgress(nextProgress, progress.resolution(), progress.activatedPylons())
+            ));
+            state = data.objectiveState(instance.id());
+            creditedPlayers.add(playerId);
+            if (nextProgress >= state.target()) {
+                completeObjectiveForPlayer(server, data, instance, playerId);
+                state = data.objectiveState(instance.id());
+            }
         }
+
+        if (!creditedPlayers.isEmpty()) {
+            broadcastObjectiveProgress(server, data, instance, creditedPlayers);
+        }
+        updateInstanceResolution(data, instance);
     }
 
     private static void broadcastObjectiveProgress(
             MinecraftServer server,
             RoguelikeSavedData data,
             DungeonInstanceData instance,
-            ObjectiveRuntimeState state
+            List<UUID> playerIds
     ) {
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null) {
+            return;
+        }
+
         String hintKey = switch (state.type()) {
             case "signal_emission" -> "incore.roguelike.objective.signal.hint";
             case "scavenger_hunt" -> "incore.roguelike.objective.scavenger.hint";
             default -> "incore.roguelike.objective.essence.hint";
         };
 
-        Component progress = Component.translatable("incore.roguelike.objective.progress", state.progress(), state.target()).withStyle(ChatFormatting.GOLD);
-        Component hint = Component.translatable(hintKey, state.progress(), state.target()).withStyle(ChatFormatting.GRAY);
-        for (RoguelikeSavedData.ActiveRun run : data.activeRunsForInstance(instance.id())) {
-            ServerPlayer player = server.getPlayerList().getPlayer(run.playerId());
-            if (player != null) {
-                player.sendSystemMessage(progress);
-                player.sendSystemMessage(hint);
-            }
-        }
-    }
-
-    private static void completeObjective(
-            MinecraftServer server,
-            RoguelikeSavedData data,
-            DungeonInstanceData instance,
-            ObjectiveRuntimeState state
-    ) {
-        int crateCount = Math.max(1, state.rewardCrates() + extraRewardCrates(instance));
-        ItemStack crateStack = new ItemStack(Registration.DUNGEON_COMPLETION_CRATE_ITEM.get());
-        for (RoguelikeSavedData.ActiveRun run : data.activeRunsForInstance(instance.id())) {
-            ServerPlayer player = server.getPlayerList().getPlayer(run.playerId());
+        for (UUID playerId : playerIds) {
+            ServerPlayer player = server.getPlayerList().getPlayer(playerId);
             if (player == null) {
                 continue;
             }
+
+            RoguelikeSavedData.PlayerObjectiveProgress progressState = state.progress(playerId);
+            Component progress = Component.translatable("incore.roguelike.objective.progress", progressState.progress(), state.target()).withStyle(ChatFormatting.GOLD);
+            Component hint = Component.translatable(hintKey, progressState.progress(), state.target()).withStyle(ChatFormatting.GRAY);
+            player.sendSystemMessage(progress);
+            player.sendSystemMessage(hint);
+        }
+    }
+
+    private static void completeObjectiveForPlayer(
+            MinecraftServer server,
+            RoguelikeSavedData data,
+            DungeonInstanceData instance,
+            UUID playerId
+    ) {
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null) {
+            return;
+        }
+
+        RoguelikeSavedData.PlayerObjectiveProgress progress = state.progress(playerId);
+        if (progress.resolved()) {
+            return;
+        }
+
+        data.putObjectiveState(state.withPlayerProgress(
+                playerId,
+                new RoguelikeSavedData.PlayerObjectiveProgress(state.target(), RoguelikeSavedData.ObjectiveResolution.COMPLETED, progress.activatedPylons())
+        ));
+
+        int crateCount = Math.max(1, state.rewardCrates() + extraRewardCrates(instance));
+        ItemStack crateStack = new ItemStack(Registration.DUNGEON_COMPLETION_CRATE_ITEM.get());
+        ServerPlayer player = server.getPlayerList().getPlayer(playerId);
+        if (player != null) {
             for (int i = 0; i < crateCount; i++) {
                 ItemStack reward = crateStack.copy();
                 if (!player.addItem(reward)) {
@@ -1262,10 +1033,6 @@ public final class DungeonInstanceManager {
             player.sendSystemMessage(Component.translatable("incore.roguelike.objective.complete", crateCount).withStyle(ChatFormatting.GREEN));
             DailyTaskEvents.onDungeonCompletion(player);
         }
-
-        data.putInstance(instance
-                .withState(DungeonInstanceData.State.COMPLETED)
-                .withCleanup(DungeonInstanceData.CleanupStage.DENY_ENTRY, DungeonInstanceData.CleanupMode.EVICT));
     }
 
     private static int extraRewardCrates(DungeonInstanceData instance) {
@@ -1363,6 +1130,224 @@ public final class DungeonInstanceManager {
         }
     }
 
+    private static boolean tryActivatePylonForPlayer(RoguelikeSavedData data, DungeonInstanceData instance, UUID playerId, BlockPos pos) {
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null || !state.requiredPylons().contains(pos)) {
+            return false;
+        }
+        RoguelikeSavedData.PlayerObjectiveProgress progress = state.progress(playerId);
+        if (progress.resolved() || progress.activatedPylons().contains(pos)) {
+            return false;
+        }
+        Set<BlockPos> activated = new HashSet<>(progress.activatedPylons());
+        activated.add(pos.immutable());
+        data.putObjectiveState(state.withPlayerProgress(
+                playerId,
+                new RoguelikeSavedData.PlayerObjectiveProgress(progress.progress(), progress.resolution(), activated)
+        ));
+        return true;
+    }
+
+    private static boolean markChestOpened(RoguelikeSavedData data, DungeonInstanceData instance, BlockPos pos) {
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null || state.openedChests().contains(pos.asLong())) {
+            return false;
+        }
+        data.putObjectiveState(state.withOpenedChest(pos));
+        return true;
+    }
+
+    private static boolean isScavengerAltar(RoguelikeSavedData.ObjectiveStateRecord state, BlockPos pos) {
+        return state.objectiveAltars().contains(pos);
+    }
+
+    private static void ensurePlayerObjectiveProgress(RoguelikeSavedData data, DungeonInstanceData instance, UUID playerId) {
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null || state.playerProgress().containsKey(playerId)) {
+            return;
+        }
+        data.putObjectiveState(state.withPlayerProgress(playerId, RoguelikeSavedData.PlayerObjectiveProgress.EMPTY));
+    }
+
+    private static void markPlayerFailed(RoguelikeSavedData data, DungeonInstanceData instance, UUID playerId) {
+        markPlayerResolution(data, instance, playerId, RoguelikeSavedData.ObjectiveResolution.FAILED, false);
+    }
+
+    private static void markPlayerAbandonedIfIncomplete(RoguelikeSavedData data, DungeonInstanceData instance, UUID playerId) {
+        markPlayerResolution(data, instance, playerId, RoguelikeSavedData.ObjectiveResolution.ABANDONED, true);
+    }
+
+    private static void markPlayerResolution(
+            RoguelikeSavedData data,
+            DungeonInstanceData instance,
+            UUID playerId,
+            RoguelikeSavedData.ObjectiveResolution resolution,
+            boolean ignoreCompleted
+    ) {
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null) {
+            return;
+        }
+        RoguelikeSavedData.PlayerObjectiveProgress progress = state.progress(playerId);
+        if (progress.resolution() == RoguelikeSavedData.ObjectiveResolution.COMPLETED && ignoreCompleted) {
+            return;
+        }
+        if (progress.resolved() && progress.resolution() != RoguelikeSavedData.ObjectiveResolution.ACTIVE) {
+            if (ignoreCompleted || progress.resolution() == resolution) {
+                return;
+            }
+        }
+        data.putObjectiveState(state.withPlayerProgress(
+                playerId,
+                new RoguelikeSavedData.PlayerObjectiveProgress(progress.progress(), resolution, progress.activatedPylons())
+        ));
+    }
+
+    private static void applyDeathOutcome(
+            RoguelikeSavedData data,
+            ServerPlayer player,
+            DungeonDeathDifficulty difficulty,
+            List<RoguelikeSavedData.ItemStackRecord> capturedInventory
+    ) {
+        DungeonDeathDifficulty effectiveDifficulty = difficulty == null ? DungeonDeathDifficulty.SOFTCORE : difficulty;
+        switch (effectiveDifficulty) {
+            case HARDCORE -> player.sendSystemMessage(Component.translatable("incore.roguelike.death.hardcore").withStyle(ChatFormatting.RED));
+            case MEDIUMCORE -> {
+                UUID recoveryId = UUID.randomUUID();
+                data.putRecoveryStrongbox(new RoguelikeSavedData.RecoveryStrongboxRecord(recoveryId, player.getUUID(), capturedInventory, false));
+                data.setPendingRecoveryDelivery(player.getUUID(), recoveryId);
+                player.sendSystemMessage(Component.translatable("incore.roguelike.death.mediumcore").withStyle(ChatFormatting.GOLD));
+            }
+            case SOFTCORE -> {
+                data.setPendingInventoryRestore(new RoguelikeSavedData.PendingInventoryRestore(
+                        player.getUUID(),
+                        Math.clamp(player.getInventory().selected, 0, 8),
+                        capturedInventory
+                ));
+                deductSoftcorePenalty(player);
+                player.sendSystemMessage(Component.translatable("incore.roguelike.death.softcore").withStyle(ChatFormatting.YELLOW));
+            }
+        }
+    }
+
+    private static void deductSoftcorePenalty(ServerPlayer player) {
+        var account = MarketBanking.resolveManualAccount(player, ItemStack.EMPTY);
+        int currentBalance = MarketBanking.balanceSpur(account);
+        int penalty = Math.max(0, (int) Math.floor(currentBalance * 0.20D));
+        if (penalty > 0) {
+            MarketBanking.withdraw(account, penalty);
+            player.sendSystemMessage(Component.translatable("incore.roguelike.death.softcore_penalty", penalty).withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    private static List<RoguelikeSavedData.ItemStackRecord> captureInventory(ServerPlayer player) {
+        List<RoguelikeSavedData.ItemStackRecord> captured = new ArrayList<>();
+        for (int slot = 0; slot < player.getInventory().items.size(); slot++) {
+            ItemStack stack = player.getInventory().items.get(slot);
+            if (!stack.isEmpty()) {
+                captured.add(RoguelikeSavedData.ItemStackRecord.of(slot, stack, player.registryAccess()));
+            }
+        }
+        for (int slot = 0; slot < player.getInventory().armor.size(); slot++) {
+            ItemStack stack = player.getInventory().armor.get(slot);
+            if (!stack.isEmpty()) {
+                captured.add(RoguelikeSavedData.ItemStackRecord.of(100 + slot, stack, player.registryAccess()));
+            }
+        }
+        for (int slot = 0; slot < player.getInventory().offhand.size(); slot++) {
+            ItemStack stack = player.getInventory().offhand.get(slot);
+            if (!stack.isEmpty()) {
+                captured.add(RoguelikeSavedData.ItemStackRecord.of(150 + slot, stack, player.registryAccess()));
+            }
+        }
+        return List.copyOf(captured);
+    }
+
+    private static void clearInventory(ServerPlayer player) {
+        for (int slot = 0; slot < player.getInventory().items.size(); slot++) {
+            player.getInventory().items.set(slot, ItemStack.EMPTY);
+        }
+        for (int slot = 0; slot < player.getInventory().armor.size(); slot++) {
+            player.getInventory().armor.set(slot, ItemStack.EMPTY);
+        }
+        for (int slot = 0; slot < player.getInventory().offhand.size(); slot++) {
+            player.getInventory().offhand.set(slot, ItemStack.EMPTY);
+        }
+        player.containerMenu.broadcastChanges();
+    }
+
+    private static void restoreInventory(ServerPlayer player, RoguelikeSavedData.PendingInventoryRestore restore) {
+        clearInventory(player);
+        for (RoguelikeSavedData.ItemStackRecord record : restore.contents()) {
+            ItemStack stack = record.toStack(player.registryAccess());
+            if (stack.isEmpty()) {
+                continue;
+            }
+            int slot = record.slot();
+            if (slot >= 0 && slot < player.getInventory().items.size()) {
+                player.getInventory().items.set(slot, stack);
+            } else if (slot >= 100 && slot < 100 + player.getInventory().armor.size()) {
+                player.getInventory().armor.set(slot - 100, stack);
+            } else if (slot >= 150 && slot < 150 + player.getInventory().offhand.size()) {
+                player.getInventory().offhand.set(slot - 150, stack);
+            } else if (!player.addItem(stack)) {
+                player.drop(stack, false);
+            }
+        }
+        player.getInventory().selected = Math.clamp(restore.selectedSlot(), 0, 8);
+        player.containerMenu.broadcastChanges();
+    }
+
+    private static void deliverRecoveryItems(ServerPlayer player, UUID recoveryId) {
+        MinecraftServer server = player.getServer();
+        if (server == null || recoveryId == null) {
+            return;
+        }
+
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        RoguelikeSavedData.RecoveryStrongboxRecord record = data.recoveryStrongbox(recoveryId);
+        if (record == null || record.opened()) {
+            return;
+        }
+
+        ItemStack strongbox = new ItemStack(Registration.LOCKED_RECOVERY_STRONGBOX_BLOCK_ITEM.get());
+        strongbox.set(Registration.RECOVERY_STRONGBOX_ID.get(), recoveryId.toString());
+        ItemStack key = new ItemStack(Registration.RECOVERY_STRONGBOX_KEY_ITEM.get());
+        key.set(Registration.RECOVERY_STRONGBOX_ID.get(), recoveryId.toString());
+
+        if (!player.addItem(strongbox)) {
+            player.drop(strongbox, false);
+        }
+        if (!player.addItem(key)) {
+            player.drop(key, false);
+        }
+
+        player.sendSystemMessage(Component.translatable("incore.roguelike.recovery.delivered").withStyle(ChatFormatting.GOLD));
+    }
+
+    private static void updateInstanceResolution(RoguelikeSavedData data, DungeonInstanceData instance) {
+        if (instance.state() != DungeonInstanceData.State.ACTIVE) {
+            return;
+        }
+
+        RoguelikeSavedData.ObjectiveStateRecord state = data.objectiveState(instance.id());
+        if (state == null) {
+            checkInstanceEmptyAndCleanup(data, instance);
+            return;
+        }
+
+        for (UUID playerId : instance.enteredPlayers()) {
+            RoguelikeSavedData.PlayerObjectiveProgress progress = state.progress(playerId);
+            if (!progress.resolved()) {
+                return;
+            }
+        }
+
+        data.putInstance(instance
+                .withState(DungeonInstanceData.State.COMPLETED)
+                .withCleanup(DungeonInstanceData.CleanupStage.DENY_ENTRY, DungeonInstanceData.CleanupMode.EVICT));
+    }
+
     private static Holder<MobEffect> resolveXaeroEffect(ResourceLocation... ids) {
         for (ResourceLocation id : ids) {
             Optional<Holder.Reference<MobEffect>> holder = BuiltInRegistries.MOB_EFFECT.getHolder(id);
@@ -1446,91 +1431,6 @@ public final class DungeonInstanceManager {
             }
         }
         return -1;
-    }
-
-    private static final class ObjectiveRuntimeState {
-        private final String type;
-        private final int target;
-        private final int rewardCrates;
-        private int progress;
-        private final Set<BlockPos> requiredPylons;
-        private final Set<BlockPos> activatedPylons = new HashSet<>();
-        private final Set<Long> openedChests = new HashSet<>();
-        private BlockPos scavengerAltarPos;
-
-        private ObjectiveRuntimeState(String type, int target, int rewardCrates, Set<BlockPos> requiredPylons, BlockPos scavengerAltarPos) {
-            this.type = type;
-            this.target = Math.max(1, target);
-            this.rewardCrates = Math.max(1, rewardCrates);
-            this.requiredPylons = requiredPylons == null ? Set.of() : Set.copyOf(requiredPylons);
-            this.scavengerAltarPos = scavengerAltarPos == null ? null : scavengerAltarPos.immutable();
-        }
-
-        private String type() {
-            return type;
-        }
-
-        private int target() {
-            return target;
-        }
-
-        private int rewardCrates() {
-            return rewardCrates;
-        }
-
-        private int progress() {
-            return progress;
-        }
-
-        private boolean completed() {
-            return progress >= target;
-        }
-
-        private void addProgress(int amount) {
-            progress = Math.min(target, progress + Math.max(0, amount));
-        }
-
-        private boolean tryActivatePylon(BlockPos pos) {
-            if (!requiredPylons.contains(pos)) {
-                return false;
-            }
-            return activatedPylons.add(pos.immutable());
-        }
-
-        private boolean markChestOpened(BlockPos pos) {
-            return openedChests.add(pos.asLong());
-        }
-
-        private boolean isScavengerAltar(BlockPos pos) {
-            return scavengerAltarPos != null && scavengerAltarPos.equals(pos);
-        }
-
-        private BlockPos scavengerAltarPos() {
-            return scavengerAltarPos;
-        }
-
-        private void setScavengerAltarPos(BlockPos pos) {
-            if (pos != null) {
-                this.scavengerAltarPos = pos.immutable();
-            }
-        }
-    }
-
-    private record PlacedTemplate(BlockPos origin, StructureTemplate template, StructurePlaceSettings settings) {
-    }
-
-    private record PlacedRoom(
-            DungeonLayoutPlan.RoomPlacement room,
-            int footprintChunkX,
-            int footprintChunkZ,
-            BlockPos origin
-    ) {
-    }
-
-    private record HallwayFootprint(int chunkX, int chunkZ, int widthChunks, int depthChunks) {
-    }
-
-    private record PlacementResult(BlockPos startRoomOrigin, BlockPos entryPos, List<BlockPos> encounterSpawnerPositions) {
     }
 
     private static EncounterModifierProfile encounterModifierProfile(DungeonInstanceData instance) {

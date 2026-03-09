@@ -53,7 +53,7 @@ public final class DungeonWorldPlanner {
         Map<Long, PlacedRoom> placedRooms = new HashMap<>();
         Set<Long> occupiedChunks = new HashSet<>();
         List<DungeonWorldPlan.PlacedTemplate> templates = new ArrayList<>();
-        List<DungeonWorldPlan.EncounterSpawnerPlacement> encounterSpawners = new ArrayList<>();
+        List<DungeonWorldPlan.FeaturePlacement> features = new ArrayList<>();
         BlockPos startRoomOrigin = null;
         BlockPos entryPos = null;
         EncounterModifierProfile encounterProfile = encounterModifierProfile(instance);
@@ -85,7 +85,7 @@ public final class DungeonWorldPlanner {
             }
 
             templates.add(placed.template());
-            encounterSpawners.addAll(planSocketFeatures(room.template().id(), placed.origin(), encounterProfile, encounterRandom));
+            features.addAll(planSocketFeatures(room.template().id(), placed.origin(), encounterProfile, encounterRandom));
             markOccupied(occupiedChunks, footprintChunkX, footprintChunkZ, footprintWidth, footprintDepth);
 
             if (room.startRoom()) {
@@ -122,17 +122,17 @@ public final class DungeonWorldPlanner {
             }
 
             templates.add(placed.template());
-            encounterSpawners.addAll(planSocketFeatures(hallway.template().id(), placed.origin(), encounterProfile, encounterRandom));
+            features.addAll(planSocketFeatures(hallway.template().id(), placed.origin(), encounterProfile, encounterRandom));
             markOccupied(occupiedChunks, footprint.chunkX(), footprint.chunkZ(), footprint.widthChunks(), footprint.depthChunks());
         }
 
-        planSecretRooms(level, instance, theme, placedRooms, occupiedChunks, layoutRandom, encounterRandom, encounterProfile, templates, encounterSpawners);
+        planSecretRooms(level, instance, theme, placedRooms, occupiedChunks, layoutRandom, encounterRandom, encounterProfile, templates, features);
 
         if (startRoomOrigin == null || entryPos == null) {
             return null;
         }
 
-        return new DungeonWorldPlan(startRoomOrigin, entryPos, templates, encounterSpawners);
+        return new DungeonWorldPlan(startRoomOrigin, entryPos, templates, features);
     }
 
     private static void planSecretRooms(
@@ -145,7 +145,7 @@ public final class DungeonWorldPlanner {
             RandomSource encounterRandom,
             EncounterModifierProfile encounterProfile,
             List<DungeonWorldPlan.PlacedTemplate> templates,
-            List<DungeonWorldPlan.EncounterSpawnerPlacement> encounterSpawners
+            List<DungeonWorldPlan.FeaturePlacement> features
     ) {
         if (theme.secretRooms().isEmpty()) {
             return;
@@ -186,7 +186,7 @@ public final class DungeonWorldPlanner {
                 }
 
                 templates.add(placedSecret.template());
-                encounterSpawners.addAll(planSocketFeatures(secretTemplate.id(), placedSecret.origin(), encounterProfile, encounterRandom));
+                features.addAll(planSocketFeatures(secretTemplate.id(), placedSecret.origin(), encounterProfile, encounterRandom));
                 occupiedChunks.add(key);
                 break;
             }
@@ -227,30 +227,47 @@ public final class DungeonWorldPlanner {
         return new PlannedTemplate(new DungeonWorldPlan.PlacedTemplate(templateRef, origin, bounds), origin, template);
     }
 
-    private static List<DungeonWorldPlan.EncounterSpawnerPlacement> planSocketFeatures(
+    private static List<DungeonWorldPlan.FeaturePlacement> planSocketFeatures(
             ResourceLocation templateId,
             BlockPos templateOrigin,
             EncounterModifierProfile profile,
             RandomSource random
     ) {
         DungeonSocketData socketData = DungeonSocketManager.SOCKETS.getOrDefault(templateId, DungeonSocketData.EMPTY);
-        List<DungeonWorldPlan.EncounterSpawnerPlacement> result = new ArrayList<>();
+        List<DungeonWorldPlan.FeaturePlacement> result = new ArrayList<>();
         for (DungeonSocketData.FeatureSocket feature : socketData.featureSockets()) {
-            if (!"encounter_spawner".equals(feature.type()) || feature.encounterId() == null) {
-                continue;
-            }
-
-            if (profile.spawnChance() < 1.0D && random.nextDouble() > profile.spawnChance()) {
-                continue;
-            }
-
+            String type = feature.type();
             Vec3i rawOffset = feature.spawnOffset() == null ? Vec3i.ZERO : feature.spawnOffset();
-            result.add(new DungeonWorldPlan.EncounterSpawnerPlacement(
-                    templateOrigin.offset(feature.pos()),
+            BlockPos pos = templateOrigin.offset(feature.pos());
+            if ("encounter_spawner".equals(type)) {
+                if (feature.encounterId() == null) {
+                    continue;
+                }
+                if (profile.spawnChance() < 1.0D && random.nextDouble() > profile.spawnChance()) {
+                    continue;
+                }
+                result.add(new DungeonWorldPlan.FeaturePlacement(
+                        type,
+                        pos,
+                        feature.markerId(),
+                        feature.encounterId(),
+                        new BlockPos(rawOffset.getX(), rawOffset.getY(), rawOffset.getZ()),
+                        profile.mobHealthMultiplier(),
+                        profile.mobDamageMultiplier(),
+                        feature.blockEntityData()
+                ));
+                continue;
+            }
+
+            result.add(new DungeonWorldPlan.FeaturePlacement(
+                    type,
+                    pos,
+                    feature.markerId(),
                     feature.encounterId(),
                     new BlockPos(rawOffset.getX(), rawOffset.getY(), rawOffset.getZ()),
-                    profile.mobHealthMultiplier(),
-                    profile.mobDamageMultiplier()
+                    1.0D,
+                    1.0D,
+                    feature.blockEntityData()
             ));
         }
         return result;
