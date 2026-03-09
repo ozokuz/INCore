@@ -18,6 +18,8 @@ import io.github.ozokuz.incore.features.roguelike.layout.DungeonLayoutPlan;
 import io.github.ozokuz.incore.features.roguelike.network.RoguelikeMinimapPartyPayload;
 import io.github.ozokuz.incore.features.roguelike.network.RoguelikeNetworking;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
+import io.github.ozokuz.incore.features.roguelike.worldgen.DungeonWorldPlan;
+import io.github.ozokuz.incore.features.roguelike.worldgen.DungeonWorldPlanner;
 import io.github.ozokuz.incore.features.party.PartyService;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
@@ -42,6 +44,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -135,18 +138,18 @@ public final class DungeonInstanceManager {
                 Set.of()
         );
 
-        PlacementResult placement = generateAndPlaceLayout(dungeonLevel, instance, themeData);
-        if (placement == null) {
+        DungeonWorldPlan plan = DungeonWorldPlanner.plan(dungeonLevel, instance, themeData);
+        if (plan == null) {
             data.freeSlot(slotIndex);
             player.sendSystemMessage(Component.translatable("incore.roguelike.portal.generation_failed"));
             return false;
         }
 
         instance = instance
-                .withPlacement(placement.startRoomOrigin(), placement.entryPos())
+                .withPlacement(plan.startRoomOrigin(), plan.entryPos())
                 .withState(DungeonInstanceData.State.ACTIVE);
         data.putInstance(instance);
-        initializeObjectiveState(dungeonLevel, instance, placement.encounterSpawnerPositions());
+        initializeObjectiveState(instance, plan.encounterSpawnerPositions());
 
         portalShape.createPortalBlocks();
         portalShape.forEachPortalBlock(portalPos -> {
@@ -170,32 +173,47 @@ public final class DungeonInstanceManager {
     }
 
     public static boolean tryEnterPortal(ServerPlayer player, RoguelikePortalBlockEntity portal, BlockPos portalPos) {
-        if (!portal.isActivated()) {
-            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.not_active"));
-            return false;
-        }
-
         MinecraftServer server = player.getServer();
         if (server == null) {
             return false;
         }
 
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
-        DungeonInstanceData instance = data.getInstance(portal.instanceId());
-        if (instance == null) {
-            clearConnectedPortalBlocks(player.serverLevel(), portalPos, portal.instanceId());
-            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.no_dungeon"));
-            return false;
-        }
 
         if (player.serverLevel().dimension().equals(RoguelikeConstants.DUNGEON_DIMENSION)) {
             RoguelikeSavedData.ActiveRun run = data.getRun(player.getUUID()).orElse(null);
-            if (run != null && run.instanceId().equals(instance.id())) {
-                return returnPlayerFromDungeon(server, data, instance, run, player);
+            if (run != null) {
+                DungeonInstanceData activeInstance = data.getInstance(run.instanceId());
+                if (activeInstance != null) {
+                    return returnPlayerFromDungeon(server, data, activeInstance, run, player);
+                }
+
+                data.clearRun(player.getUUID());
+                ServerLevel returnLevel = server.getLevel(run.returnDimensionKey());
+                if (returnLevel == null) {
+                    player.sendSystemMessage(Component.translatable("incore.roguelike.portal.dimension_missing"));
+                    return false;
+                }
+
+                teleport(player, returnLevel, run.returnPos());
+                player.sendSystemMessage(Component.translatable("incore.roguelike.return_portal.used"));
+                return true;
             }
 
             player.sendSystemMessage(Component.translatable("incore.roguelike.return_portal.unbound"));
             player.setPortalCooldown();
+            return false;
+        }
+
+        if (!portal.isActivated()) {
+            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.not_active"));
+            return false;
+        }
+
+        DungeonInstanceData instance = data.getInstance(portal.instanceId());
+        if (instance == null) {
+            clearConnectedPortalBlocks(player.serverLevel(), portalPos, portal.instanceId());
+            player.sendSystemMessage(Component.translatable("incore.roguelike.portal.no_dungeon"));
             return false;
         }
 
@@ -1115,7 +1133,26 @@ public final class DungeonInstanceManager {
         return Math.max(20L, adjusted);
     }
 
-    private static void initializeObjectiveState(ServerLevel dungeonLevel, DungeonInstanceData instance, List<BlockPos> encounterSpawnerPositions) {
+    public static void ensureObjectiveBlocksGenerated(ServerLevel dungeonLevel, DungeonInstanceData instance, ChunkPos chunkPos) {
+        ObjectiveRuntimeState objectiveState = OBJECTIVE_STATES.get(instance.id().value());
+        if (objectiveState == null || objectiveState.completed()) {
+            return;
+        }
+
+        if (!"scavenger_hunt".equals(objectiveState.type()) || objectiveState.scavengerAltarPos() != null) {
+            return;
+        }
+
+        if ((instance.entryPos().getX() >> 4) != chunkPos.x || (instance.entryPos().getZ() >> 4) != chunkPos.z) {
+            return;
+        }
+
+        BlockPos scavengerAltarPos = findScavengerAltarPos(dungeonLevel, instance.entryPos());
+        objectiveState.setScavengerAltarPos(scavengerAltarPos);
+        dungeonLevel.setBlockAndUpdate(scavengerAltarPos, Registration.DUNGEON_OBJECTIVE_ALTAR_BLOCK.get().defaultBlockState());
+    }
+
+    private static void initializeObjectiveState(DungeonInstanceData instance, List<BlockPos> encounterSpawnerPositions) {
         DungeonObjectiveData objectiveData = DungeonObjectiveManager.OBJECTIVES.get(instance.objectiveId());
         if (objectiveData == null) {
             OBJECTIVE_STATES.remove(instance.id().value());
@@ -1125,7 +1162,6 @@ public final class DungeonInstanceManager {
         String type = objectiveData.type();
         int target = Math.max(1, objectiveData.target());
         Set<BlockPos> pylons = new HashSet<>();
-        BlockPos scavengerAltarPos = null;
 
         if ("signal_emission".equals(type)) {
             for (BlockPos pos : encounterSpawnerPositions) {
@@ -1138,12 +1174,9 @@ public final class DungeonInstanceManager {
                 pylons.add(instance.entryPos().immutable());
             }
             target = Math.max(1, Math.min(target, pylons.size()));
-        } else if ("scavenger_hunt".equals(type)) {
-            scavengerAltarPos = findScavengerAltarPos(dungeonLevel, instance.entryPos());
-            dungeonLevel.setBlockAndUpdate(scavengerAltarPos, Registration.DUNGEON_OBJECTIVE_ALTAR_BLOCK.get().defaultBlockState());
         }
 
-        OBJECTIVE_STATES.put(instance.id().value(), new ObjectiveRuntimeState(type, target, objectiveData.rewardCrates(), pylons, scavengerAltarPos));
+        OBJECTIVE_STATES.put(instance.id().value(), new ObjectiveRuntimeState(type, target, objectiveData.rewardCrates(), pylons, null));
     }
 
     private static BlockPos findScavengerAltarPos(ServerLevel level, BlockPos entryPos) {
@@ -1423,7 +1456,7 @@ public final class DungeonInstanceManager {
         private final Set<BlockPos> requiredPylons;
         private final Set<BlockPos> activatedPylons = new HashSet<>();
         private final Set<Long> openedChests = new HashSet<>();
-        private final BlockPos scavengerAltarPos;
+        private BlockPos scavengerAltarPos;
 
         private ObjectiveRuntimeState(String type, int target, int rewardCrates, Set<BlockPos> requiredPylons, BlockPos scavengerAltarPos) {
             this.type = type;
@@ -1470,6 +1503,16 @@ public final class DungeonInstanceManager {
 
         private boolean isScavengerAltar(BlockPos pos) {
             return scavengerAltarPos != null && scavengerAltarPos.equals(pos);
+        }
+
+        private BlockPos scavengerAltarPos() {
+            return scavengerAltarPos;
+        }
+
+        private void setScavengerAltarPos(BlockPos pos) {
+            if (pos != null) {
+                this.scavengerAltarPos = pos.immutable();
+            }
         }
     }
 

@@ -1,22 +1,7 @@
 {
   "type": "incore:dungeon",
   "generator": {
-    "type": "minecraft:flat",
-    "settings": {
-      "biome": "minecraft:the_void",
-      "features": false,
-      "lakes": false,
-      "layers": [
-        {
-          "block": "minecraft:bedrock",
-          "height": 81
-        },
-        {
-          "block": "minecraft:air",
-          "height": 1
-        }
-      ],
-      "structure_overrides": []
-    }
+    "type": "incore:dungeon",
+    "biome": "minecraft:the_void"
   }
 }

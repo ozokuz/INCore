@@ -192,6 +192,10 @@ public record DungeonInstanceData(
     public boolean containsBlock(BlockPos pos) {
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
+        return containsChunk(chunkX, chunkZ);
+    }
+
+    public boolean containsChunk(int chunkX, int chunkZ) {
         return chunkX >= originChunkX
                 && chunkX <= maxChunkX()
                 && chunkZ >= originChunkZ

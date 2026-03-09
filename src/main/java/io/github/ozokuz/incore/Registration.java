@@ -73,9 +73,11 @@ import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.worldgen.DungeonChunkGenerator;
 import io.github.ozokuz.incore.features.entropy.EntropyBoosterItem;
 import io.github.ozokuz.incore.features.entropy.EntropyCrateItem;
 import io.github.ozokuz.incore.features.entropy.EntropyVesselItem;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -89,6 +91,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -100,8 +103,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.fml.loading.FMLEnvironment;
 
-import java.util.function.Supplier;
 import com.mojang.serialization.Codec;
+import java.util.function.Supplier;
 
 public class Registration {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(INCore.MODID);
@@ -111,6 +114,7 @@ public class Registration {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE,  INCore.MODID);
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(Registries.MENU, INCore.MODID);
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, INCore.MODID);
+    public static final DeferredRegister<MapCodec<? extends ChunkGenerator>> CHUNK_GENERATORS = DeferredRegister.create(Registries.CHUNK_GENERATOR, INCore.MODID);
 
     public static void register(IEventBus bus) {
         BLOCKS.register(bus);
@@ -120,7 +124,10 @@ public class Registration {
         BLOCK_ENTITY_TYPES.register(bus);
         MENU_TYPES.register(bus);
         FEATURES.register(bus);
+        CHUNK_GENERATORS.register(bus);
     }
+
+    public static final Supplier<MapCodec<DungeonChunkGenerator>> DUNGEON_CHUNK_GENERATOR = CHUNK_GENERATORS.register("dungeon", () -> DungeonChunkGenerator.CODEC);
 
     public static final DeferredBlock<Block> ENCOUNTER_SPAWNER_BLOCK = BLOCKS.register("encounter_spawner", EncounterSpawnerBlock::new);
     public static final Supplier<BlockEntityType<EncounterSpawnerBE>> ENCOUNTER_SPAWNER_BE = BLOCK_ENTITY_TYPES.register("encounter_spawner", () -> BlockEntityType.Builder.of(EncounterSpawnerBE::new, ENCOUNTER_SPAWNER_BLOCK.get()).build(null));

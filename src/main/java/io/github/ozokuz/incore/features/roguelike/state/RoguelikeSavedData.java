@@ -37,6 +37,7 @@ public class RoguelikeSavedData extends SavedData {
     private final Set<Integer> freeSlots = new HashSet<>();
 
     private final Map<Long, DungeonInstanceData> instances = new HashMap<>();
+    private final Map<Integer, DungeonInstanceData> instancesBySlot = new HashMap<>();
     private final Map<UUID, ActiveRun> activeRuns = new HashMap<>();
     private final Map<UUID, ReturnTarget> pendingReturns = new HashMap<>();
 
@@ -78,6 +79,7 @@ public class RoguelikeSavedData extends SavedData {
             DungeonInstanceData instance = DungeonInstanceData.fromTag((CompoundTag) instanceTag);
             if (instance != null) {
                 data.instances.put(instance.id().value(), instance);
+                data.instancesBySlot.put(instance.slotIndex(), instance);
             }
         }
 
@@ -288,6 +290,7 @@ public class RoguelikeSavedData extends SavedData {
 
     public void putInstance(DungeonInstanceData instance) {
         instances.put(instance.id().value(), instance);
+        instancesBySlot.put(instance.slotIndex(), instance);
         setDirty();
     }
 
@@ -304,9 +307,30 @@ public class RoguelikeSavedData extends SavedData {
     }
 
     public void removeInstance(DungeonInstanceId id) {
-        if (id != null && instances.remove(id.value()) != null) {
+        if (id != null) {
+            DungeonInstanceData removed = instances.remove(id.value());
+            if (removed == null) {
+                return;
+            }
+            instancesBySlot.remove(removed.slotIndex());
             setDirty();
         }
+    }
+
+    public DungeonInstanceData getWorldgenInstanceForChunk(int chunkX, int chunkZ) {
+        if (chunkX < 0 || chunkZ < 0) {
+            return null;
+        }
+
+        int gridX = Math.floorDiv(chunkX, RoguelikeConstants.INSTANCE_SLOT_STRIDE_CHUNKS);
+        int gridZ = Math.floorDiv(chunkZ, RoguelikeConstants.INSTANCE_SLOT_STRIDE_CHUNKS);
+        int slotIndex = gridX + (gridZ * 1024);
+        DungeonInstanceData instance = instancesBySlot.get(slotIndex);
+        if (instance == null || instance.state() == DungeonInstanceData.State.CLEANING) {
+            return null;
+        }
+
+        return instance.containsChunk(chunkX, chunkZ) ? instance : null;
     }
 
     public void startRun(UUID playerId, DungeonInstanceId instanceId, ResourceKey<Level> returnDimension, BlockPos returnPos) {
