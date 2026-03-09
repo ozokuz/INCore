@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "FCF",
+    "TMT",
+    "EPE"
+  ],
+  "key": {
+    "F": {
+      "item": "ae2:fluix_glass_cable"
+    },
+    "C": {
+      "item": "ae2:formation_core"
+    },
+    "T": {
+      "item": "ae2:terminal"
+    },
+    "M": {
+      "item": "incore:market_terminal"
+    },
+    "E": {
+      "item": "ae2:engineering_processor"
+    },
+    "P": {
+      "item": "ae2:logic_processor"
+    }
+  },
+  "result": {
+    "id": "incore:market_terminal_me",
+    "count": 1
+  }
+}

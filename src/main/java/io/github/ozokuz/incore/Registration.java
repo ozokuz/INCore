@@ -1,5 +1,10 @@
 package io.github.ozokuz.incore;
 
+import appeng.api.parts.IPart;
+import appeng.api.parts.IPartItem;
+import appeng.api.parts.PartModels;
+import appeng.items.parts.PartItem;
+import appeng.items.parts.PartModelsHelper;
 import io.github.ozokuz.incore.features.arena.content.ArenaOrbBlock;
 import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateBlock;
 import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateBlockEntity;
@@ -36,6 +41,9 @@ import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMenu;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalCardMenu;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlock;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalMeBlock;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalMeBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalMeCardMenu;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlock;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMk2Block;
@@ -62,6 +70,8 @@ import io.github.ozokuz.incore.features.research.ProductivityModuleCardItem;
 import io.github.ozokuz.incore.features.research.SpeedModuleCardItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCompletionCrateItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalItem;
+import io.github.ozokuz.incore.features.roguelike.content.MeCrystalAutomationTerminalMenu;
+import io.github.ozokuz.incore.features.roguelike.content.MeCrystalAutomationTerminalPart;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonObjectiveAltarBlock;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalModificationStationBlock;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalModificationStationBlockEntity;
@@ -75,6 +85,8 @@ import io.github.ozokuz.incore.features.roguelike.content.LockedRecoveryStrongbo
 import io.github.ozokuz.incore.features.roguelike.content.LockedRecoveryStrongboxBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.content.LockedRecoveryStrongboxItem;
 import io.github.ozokuz.incore.features.roguelike.content.RecoveryStrongboxKeyItem;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarAutomatorBlock;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarAutomatorBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.worldgen.DungeonChunkGenerator;
@@ -111,6 +123,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import com.mojang.serialization.Codec;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.function.Function;
 
 public class Registration {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(INCore.MODID);
@@ -172,6 +185,20 @@ public class Registration {
             ))
     );
     public static final DeferredItem<BlockItem> MARKET_TERMINAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_terminal", MARKET_TERMINAL_BLOCK);
+    public static final DeferredBlock<Block> MARKET_TERMINAL_ME_BLOCK = BLOCKS.register("market_terminal_me", () -> new MarketTerminalMeBlock());
+    public static final Supplier<BlockEntityType<MarketTerminalMeBlockEntity>> MARKET_TERMINAL_ME_BE = BLOCK_ENTITY_TYPES.register(
+            "market_terminal_me",
+            () -> BlockEntityType.Builder.of(MarketTerminalMeBlockEntity::new, MARKET_TERMINAL_ME_BLOCK.get()).build(null)
+    );
+    public static final Supplier<MenuType<MarketTerminalMeCardMenu>> MARKET_TERMINAL_ME_CARD_MENU = MENU_TYPES.register(
+            "market_terminal_me_card",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new MarketTerminalMeCardMenu(
+                    id,
+                    inv,
+                    (MarketTerminalMeBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
+    );
+    public static final DeferredItem<BlockItem> MARKET_TERMINAL_ME_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_terminal_me", MARKET_TERMINAL_ME_BLOCK);
     public static final DeferredBlock<Block> SHIPMENT_TERMINAL_BLOCK = BLOCKS.register("shipment_terminal", () -> new ShipmentTerminalBlock());
     public static final Supplier<BlockEntityType<ShipmentTerminalBlockEntity>> SHIPMENT_TERMINAL_BE = BLOCK_ENTITY_TYPES.register(
             "shipment_terminal",
@@ -299,6 +326,12 @@ public class Registration {
     public static final DeferredBlock<Block> DUNGEON_ALTAR_BLOCK = BLOCKS.register("dungeon_altar", DungeonAltarBlock::new);
     public static final Supplier<BlockEntityType<DungeonAltarBlockEntity>> DUNGEON_ALTAR_BE = BLOCK_ENTITY_TYPES.register("dungeon_altar", () -> BlockEntityType.Builder.of(DungeonAltarBlockEntity::new, DUNGEON_ALTAR_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> DUNGEON_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_altar", DUNGEON_ALTAR_BLOCK);
+    public static final DeferredBlock<Block> DUNGEON_ALTAR_AUTOMATOR_BLOCK = BLOCKS.register("dungeon_altar_automator", DungeonAltarAutomatorBlock::new);
+    public static final Supplier<BlockEntityType<DungeonAltarAutomatorBlockEntity>> DUNGEON_ALTAR_AUTOMATOR_BE = BLOCK_ENTITY_TYPES.register(
+            "dungeon_altar_automator",
+            () -> BlockEntityType.Builder.of(DungeonAltarAutomatorBlockEntity::new, DUNGEON_ALTAR_AUTOMATOR_BLOCK.get()).build(null)
+    );
+    public static final DeferredItem<BlockItem> DUNGEON_ALTAR_AUTOMATOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_altar_automator", DUNGEON_ALTAR_AUTOMATOR_BLOCK);
     public static final DeferredBlock<Block> DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK = BLOCKS.register("dungeon_crystal_modification_station", () -> new DungeonCrystalModificationStationBlock());
     public static final Supplier<BlockEntityType<DungeonCrystalModificationStationBlockEntity>> DUNGEON_CRYSTAL_MODIFICATION_STATION_BE = BLOCK_ENTITY_TYPES.register(
             "dungeon_crystal_modification_station",
@@ -313,6 +346,25 @@ public class Registration {
             ))
     );
     public static final DeferredItem<BlockItem> DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_crystal_modification_station", DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK);
+    public static final DeferredItem<PartItem<MeCrystalAutomationTerminalPart>> ME_CRYSTAL_AUTOMATION_TERMINAL_ITEM =
+            registerPartItem("me_crystal_automation_terminal", MeCrystalAutomationTerminalPart.class, MeCrystalAutomationTerminalPart::new);
+    public static final Supplier<MenuType<MeCrystalAutomationTerminalMenu>> ME_CRYSTAL_AUTOMATION_TERMINAL_MENU = MENU_TYPES.register(
+            "me_crystal_automation_terminal",
+            () -> IMenuTypeExtension.create((id, inv, data) -> {
+                var hostPos = data.readBlockPos();
+                var side = net.minecraft.core.Direction.from3DDataValue(data.readByte());
+                return new MeCrystalAutomationTerminalMenu(
+                        id,
+                        inv,
+                        hostPos,
+                        side,
+                        java.util.Objects.requireNonNull(
+                                MeCrystalAutomationTerminalPart.resolve(inv.player.level(), hostPos, side),
+                                "Missing ME crystal automation terminal part"
+                        )
+                );
+            })
+    );
     public static final DeferredBlock<Block> DUNGEON_OBJECTIVE_ALTAR_BLOCK = BLOCKS.register("dungeon_objective_altar", DungeonObjectiveAltarBlock::new);
     public static final DeferredItem<BlockItem> DUNGEON_OBJECTIVE_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_objective_altar", DUNGEON_OBJECTIVE_ALTAR_BLOCK);
     public static final DeferredBlock<Block> LOCKED_RECOVERY_STRONGBOX_BLOCK = BLOCKS.register("locked_recovery_strongbox", () -> new LockedRecoveryStrongboxBlock());
@@ -403,6 +455,11 @@ public class Registration {
                     "battlepass_lane",
                     builder -> builder.persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8)
             );
+
+    private static <T extends IPart> DeferredItem<PartItem<T>> registerPartItem(String id, Class<T> partClass, Function<IPartItem<T>, T> factory) {
+        PartModels.registerModels(PartModelsHelper.createModels(partClass));
+        return ITEMS.registerItem(id, properties -> new PartItem<>(properties, partClass, factory));
+    }
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN_TAB = CREATIVE_MODE_TABS.register("main_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.incore"))
             .icon(() -> DUNGEON_CRYSTAL_ITEM.get().getDefaultInstance())

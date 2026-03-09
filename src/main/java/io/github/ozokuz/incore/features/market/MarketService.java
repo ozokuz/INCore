@@ -3,8 +3,11 @@ package io.github.ozokuz.incore.features.market;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
 import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
+import io.github.ozokuz.incore.features.market.content.AbstractMarketTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalMeBlockEntity;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
+import io.github.ozokuz.incore.integration.ae2.Ae2StorageAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -44,7 +47,7 @@ public final class MarketService {
         MarketNetworking.openMarketScreen(player, buildScreenData(player, player.getServer(), false, null, detailItemId));
     }
 
-    public static void openTerminalScreen(ServerPlayer player, MarketTerminalBlockEntity terminal) {
+    public static void openTerminalScreen(ServerPlayer player, AbstractMarketTerminalBlockEntity terminal) {
         if (player.getServer() == null) {
             return;
         }
@@ -62,7 +65,7 @@ public final class MarketService {
             return;
         }
 
-        MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
+        AbstractMarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
         boolean canTrade = terminal != null && terminal.canTrade(player);
         MarketNetworking.openMarketScreen(player, buildScreenData(player, player.getServer(), canTrade, terminal == null ? null : terminalPos, detailItemId));
     }
@@ -100,9 +103,20 @@ public final class MarketService {
             return false;
         }
 
-        MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
+        AbstractMarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
         if (terminal == null || !terminal.canTrade(player)) {
             player.sendSystemMessage(Component.translatable("incore.market.not_allowed"));
+            return false;
+        }
+
+        if (terminal instanceof MarketTerminalMeBlockEntity meTerminal) {
+            return buyFromMarketMeTerminal(player, meTerminal, itemId, quantity);
+        }
+        return buyFromMarketInventoryTerminal(player, terminal, itemId, quantity);
+    }
+
+    private static boolean buyFromMarketInventoryTerminal(ServerPlayer player, AbstractMarketTerminalBlockEntity terminal, ResourceLocation itemId, int quantity) {
+        if (player.getServer() == null) {
             return false;
         }
 
@@ -149,14 +163,78 @@ public final class MarketService {
         return true;
     }
 
+    private static boolean buyFromMarketMeTerminal(ServerPlayer player, MarketTerminalMeBlockEntity terminal, ResourceLocation itemId, int quantity) {
+        if (player.getServer() == null) {
+            return false;
+        }
+
+        MarketItemDefinition definition = MarketItemManager.get(itemId);
+        if (definition == null) {
+            return false;
+        }
+
+        int stackCount = Math.max(1, quantity);
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            return false;
+        }
+        int stackUnitSize = stackUnitSize(item);
+        int totalItems = toItemCount(stackCount, stackUnitSize);
+        if (totalItems <= 0) {
+            return false;
+        }
+
+        int unitPrice = MarketPricingService.currentPrice(player.getServer(), itemId);
+        if (unitPrice <= 0) {
+            return false;
+        }
+
+        int cost = (int) Math.min(Integer.MAX_VALUE, (long) unitPrice * stackCount);
+        BankAccount account = MarketBanking.resolveManualAccount(player, terminal.cardStack());
+        if (account == null) {
+            player.sendSystemMessage(Component.translatable("incore.market.no_account"));
+            return false;
+        }
+        if (!MarketBanking.withdraw(account, cost)) {
+            player.sendSystemMessage(Component.translatable("incore.market.insufficient_funds"));
+            return false;
+        }
+
+        ItemStack bought = new ItemStack(item, totalItems);
+        if (terminal.ae2Online()) {
+            var insertResult = Ae2StorageAccess.insert(terminal.grid(), terminal.actionSource(), bought);
+            if (!insertResult.remainder().isEmpty()) {
+                giveItems(player, item, insertResult.remainder().getCount());
+            }
+        } else {
+            giveItems(player, item, totalItems);
+        }
+
+        MarketPricingService.applyBuy(player.getServer(), itemId, stackCount);
+        BattlePassTaskHooks.onMarketBuy(player, totalItems);
+        syncActiveViewers(player.getServer());
+        return true;
+    }
+
     public static boolean sellToMarket(ServerPlayer player, BlockPos terminalPos, ResourceLocation itemId, int quantity) {
         if (player.getServer() == null) {
             return false;
         }
 
-        MarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
+        AbstractMarketTerminalBlockEntity terminal = terminalAt(player, terminalPos);
         if (terminal == null || !terminal.canTrade(player)) {
             player.sendSystemMessage(Component.translatable("incore.market.not_allowed"));
+            return false;
+        }
+
+        if (terminal instanceof MarketTerminalMeBlockEntity meTerminal) {
+            return sellToMarketMeTerminal(player, meTerminal, itemId, quantity);
+        }
+        return sellToMarketInventoryTerminal(player, terminal, itemId, quantity);
+    }
+
+    private static boolean sellToMarketInventoryTerminal(ServerPlayer player, AbstractMarketTerminalBlockEntity terminal, ResourceLocation itemId, int quantity) {
+        if (player.getServer() == null) {
             return false;
         }
 
@@ -205,6 +283,61 @@ public final class MarketService {
         return true;
     }
 
+    private static boolean sellToMarketMeTerminal(ServerPlayer player, MarketTerminalMeBlockEntity terminal, ResourceLocation itemId, int quantity) {
+        if (player.getServer() == null) {
+            return false;
+        }
+
+        MarketItemDefinition definition = MarketItemManager.get(itemId);
+        if (definition == null) {
+            return false;
+        }
+
+        int stackCount = Math.max(1, quantity);
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            return false;
+        }
+        int stackUnitSize = stackUnitSize(item);
+        int requestedItems = toItemCount(stackCount, stackUnitSize);
+        if (requestedItems <= 0) {
+            return false;
+        }
+
+        int inventoryAvailable = countInInventory(player, itemId);
+        long meAvailable = terminal.ae2Online() ? Ae2StorageAccess.count(terminal.grid(), new ItemStack(item)) : 0L;
+        if (inventoryAvailable + meAvailable < requestedItems) {
+            player.sendSystemMessage(Component.translatable("incore.market.no_items_to_sell"));
+            return false;
+        }
+
+        SaleQuote quote = quoteSale(player.getServer(), itemId, stackCount);
+        if (!quote.valid()) {
+            return false;
+        }
+
+        BankAccount account = MarketBanking.resolveManualAccount(player, terminal.cardStack());
+        if (account == null) {
+            player.sendSystemMessage(Component.translatable("incore.market.no_account"));
+            return false;
+        }
+
+        int remaining = requestedItems;
+        if (terminal.ae2Online()) {
+            long meRemoved = Ae2StorageAccess.extract(terminal.grid(), terminal.actionSource(), new ItemStack(item), remaining);
+            remaining -= (int) Math.min(Integer.MAX_VALUE, meRemoved);
+        }
+        if (remaining > 0 && !removeItems(player, itemId, remaining)) {
+            return false;
+        }
+
+        MarketBanking.deposit(account, quote.netPayoutSpur());
+        MarketPricingService.applySell(player.getServer(), itemId, stackCount);
+        BattlePassTaskHooks.onMarketSell(player, requestedItems);
+        syncActiveViewers(player.getServer());
+        return true;
+    }
+
     public static SaleQuote quoteSale(MinecraftServer server, ResourceLocation itemId, int stackCount) {
         int unitPrice = MarketPricingService.currentPrice(server, itemId);
         return quoteSale(unitPrice, stackCount);
@@ -238,11 +371,11 @@ public final class MarketService {
         }
     }
 
-    private static MarketTerminalBlockEntity terminalAt(ServerPlayer player, BlockPos pos) {
+    private static AbstractMarketTerminalBlockEntity terminalAt(ServerPlayer player, BlockPos pos) {
         if (pos == null) {
             return null;
         }
-        if (!(player.level().getBlockEntity(pos) instanceof MarketTerminalBlockEntity terminal)) {
+        if (!(player.level().getBlockEntity(pos) instanceof AbstractMarketTerminalBlockEntity terminal)) {
             return null;
         }
         return terminal;
@@ -323,7 +456,7 @@ public final class MarketService {
         }
 
         BlockPos terminalPos = session.terminalPos() == null ? null : BlockPos.of(session.terminalPos());
-        MarketTerminalBlockEntity terminal = terminalPos == null ? null : terminalAt(player, terminalPos);
+        AbstractMarketTerminalBlockEntity terminal = terminalPos == null ? null : terminalAt(player, terminalPos);
         boolean canTrade = terminal != null && terminal.canTrade(player);
         BlockPos syncedTerminalPos = terminal == null ? null : terminalPos;
         MarketNetworking.syncMarketSnapshot(
@@ -341,8 +474,12 @@ public final class MarketService {
 
         BankAccount account = MarketBanking.resolveManualAccount(player, ItemStack.EMPTY);
         int balanceSpur = MarketBanking.balanceSpur(account);
+        boolean ae2Linked = terminalPos != null && player.level().getBlockEntity(terminalPos) instanceof MarketTerminalMeBlockEntity meTerminal && meTerminal.ae2Linked();
+        boolean ae2Online = terminalPos != null && player.level().getBlockEntity(terminalPos) instanceof MarketTerminalMeBlockEntity meTerminalOnline && meTerminalOnline.ae2Online();
 
         List<ItemView> items = new ArrayList<>();
+        MarketTerminalMeBlockEntity meTerminal = terminalPos == null ? null
+                : player.level().getBlockEntity(terminalPos) instanceof MarketTerminalMeBlockEntity found ? found : null;
         for (MarketItemDefinition definition : MarketItemManager.all()) {
             int price = MarketPricingService.currentPrice(server, definition.itemId());
             List<MarketSavedData.PriceCandle> sourceCandles = MarketPricingService.candles(server, definition.itemId());
@@ -359,6 +496,14 @@ public final class MarketService {
                     .demandIndex();
 
             int inventoryCount = countInInventory(player, definition.itemId());
+            int availableCount = inventoryCount;
+            if (meTerminal != null && meTerminal.ae2Online()) {
+                Item item = BuiltInRegistries.ITEM.get(definition.itemId());
+                if (item != null && item != net.minecraft.world.item.Items.AIR) {
+                    long meCount = Ae2StorageAccess.count(meTerminal.grid(), new ItemStack(item));
+                    availableCount = (int) Math.min(Integer.MAX_VALUE, meCount + inventoryCount);
+                }
+            }
 
             items.add(new ItemView(
                     definition.itemId().toString(),
@@ -368,7 +513,8 @@ public final class MarketService {
                     dayChangePercent,
                     demand,
                     candles,
-                    inventoryCount
+                    inventoryCount,
+                    availableCount
             ));
         }
 
@@ -376,7 +522,9 @@ public final class MarketService {
                 canTrade,
                 terminalPos == null ? null : terminalPos.asLong(),
                 items,
-                balanceSpur
+                balanceSpur,
+                ae2Linked,
+                ae2Online
         );
     }
 
@@ -409,7 +557,9 @@ public final class MarketService {
             boolean canTrade,
             Long terminalPos,
             List<ItemView> items,
-            int balanceSpur
+            int balanceSpur,
+            boolean ae2Linked,
+            boolean ae2Online
     ) {
     }
 
@@ -421,7 +571,8 @@ public final class MarketService {
             double dayChangePercent,
             double demandIndex,
             List<CandleView> candles,
-            int inventoryCount
+            int inventoryCount,
+            int availableCount
     ) {
     }
 

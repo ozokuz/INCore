@@ -18,6 +18,8 @@ version = mod_version
 group = mod_group_id
 
 repositories {
+    mavenCentral()
+
     maven {
         url "https://maven.latvian.dev/releases"
         content {
@@ -212,6 +214,10 @@ dependencies {
     implementation "curse.maven:numismatics-889722:7168396"
 
     implementation "snownee.jade:Jade-NeoForge:${minecraft_version}-${jadeVersion}"
+
+    compileOnly("org.appliedenergistics:appliedenergistics2:${ae2Version}:api")
+    compileOnly("org.appliedenergistics:appliedenergistics2:${ae2Version}")
+    runtimeOnly("org.appliedenergistics:appliedenergistics2:${ae2Version}")
 
     compileOnly("dev.emi:emi-neoforge:${emi_version}:api")
     runtimeOnly("dev.emi:emi-neoforge:${emi_version}")

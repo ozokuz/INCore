@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "FCF",
+    "TAT",
+    "EIE"
+  ],
+  "key": {
+    "F": {
+      "item": "ae2:fluix_glass_cable"
+    },
+    "C": {
+      "item": "ae2:calculation_processor"
+    },
+    "T": {
+      "item": "ae2:terminal"
+    },
+    "A": {
+      "item": "incore:dungeon_altar_automator"
+    },
+    "E": {
+      "item": "ae2:engineering_processor"
+    },
+    "I": {
+      "item": "ae2:interface"
+    }
+  },
+  "result": {
+    "id": "incore:me_crystal_automation_terminal",
+    "count": 1
+  }
+}

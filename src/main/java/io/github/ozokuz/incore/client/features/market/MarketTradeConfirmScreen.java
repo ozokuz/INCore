@@ -159,7 +159,7 @@ public class MarketTradeConfirmScreen extends Screen implements MarketPayloadUpd
         int price = item.currentPriceSpur();
         int totalCost = quantity * price;
         MarketService.SaleQuote saleQuote = MarketService.quoteSale(price, quantity);
-        int ownedItems = item.inventoryCount();
+        int ownedItems = data.ae2Linked() ? item.availableCount() : item.inventoryCount();
         int ownedSpur = data.balanceSpur();
         int stackUnitSize = stackUnitSizeForItem();
         int afterItems = isBuy ? ownedItems + (quantity * stackUnitSize) : ownedItems - (quantity * stackUnitSize);
@@ -201,7 +201,8 @@ public class MarketTradeConfirmScreen extends Screen implements MarketPayloadUpd
             guiGraphics.renderItem(itemIcon, sourceCenterX + 24, amountY + 3);
             guiGraphics.renderItem(spurIcon, targetCenterX + 30, amountY + 3);
 
-            drawChip(guiGraphics, sourceCenterX, top + 90, Component.translatable("screen.incore.market.confirm.owned_items", ownedItems), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
+            String sourceKey = data.ae2Linked() ? "screen.incore.market.confirm.available_items" : "screen.incore.market.confirm.owned_items";
+            drawChip(guiGraphics, sourceCenterX, top + 90, Component.translatable(sourceKey, ownedItems), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
             drawChip(guiGraphics, targetCenterX, top + 90, Component.translatable("screen.incore.market.confirm.receive_spur", saleQuote.netPayoutSpur()), UIScreenTheme.Confirmation.CHIP_FILL, UIScreenTheme.Confirmation.CHIP_TEXT);
             guiGraphics.drawCenteredString(
                     this.font,
@@ -221,6 +222,12 @@ public class MarketTradeConfirmScreen extends Screen implements MarketPayloadUpd
                 exchangeBottom + 8,
                 UIScreenTheme.Confirmation.DELTA_MUTED_TEXT
         );
+        if (data.ae2Linked()) {
+            Component sourceText = isBuy
+                    ? Component.translatable("screen.incore.market.confirm.source.me_insert")
+                    : Component.translatable("screen.incore.market.confirm.source.me_extract");
+            guiGraphics.drawCenteredString(this.font, sourceText, this.width / 2, exchangeBottom + 50, UIScreenTheme.Confirmation.DELTA_MUTED_TEXT);
+        }
 
         if (isBuy) {
             guiGraphics.drawCenteredString(
@@ -289,7 +296,7 @@ public class MarketTradeConfirmScreen extends Screen implements MarketPayloadUpd
             return Math.min(64, Math.max(1, maxByFunds));
         } else {
             int stackUnitSize = stackUnitSizeForItem();
-            int maxByInventory = item.inventoryCount() / stackUnitSize;
+            int maxByInventory = (data.ae2Linked() ? item.availableCount() : item.inventoryCount()) / stackUnitSize;
             return Math.min(64, Math.max(1, maxByInventory));
         }
     }
@@ -306,7 +313,8 @@ public class MarketTradeConfirmScreen extends Screen implements MarketPayloadUpd
             return quantity * price <= data.balanceSpur();
         } else {
             int stackUnitSize = stackUnitSizeForItem();
-            return quantity * stackUnitSize <= item.inventoryCount();
+            int available = data.ae2Linked() ? item.availableCount() : item.inventoryCount();
+            return quantity * stackUnitSize <= available;
         }
     }
 

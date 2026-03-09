@@ -365,6 +365,84 @@ public final class RoguelikeService {
         return Component.translatable(resourceNameTranslationKey("incore.roguelike.objective", DungeonObjectiveIds.resolve(objectiveId)));
     }
 
+    public static @Nullable UUID altarOwnerAt(ServerLevel level, BlockPos altarPos) {
+        BlockEntity blockEntity = level.getBlockEntity(altarPos);
+        if (!(blockEntity instanceof DungeonAltarBlockEntity altar)) {
+            return null;
+        }
+        return altar.ownerId();
+    }
+
+    public static void ensureAltarRequirements(MinecraftServer server, UUID ownerId) {
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        ensureAltarRequirement(server, data, ownerId);
+    }
+
+    public static List<RoguelikeSavedData.AltarRequirement> altarRequirementsForOwner(MinecraftServer server, UUID ownerId) {
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        ensureAltarRequirement(server, data, ownerId);
+        return data.altarRequirements(ownerId);
+    }
+
+    public static boolean isCrystalPlaced(MinecraftServer server, UUID ownerId) {
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        ensureAltarRequirement(server, data, ownerId);
+        return data.isCrystalPlaced(ownerId);
+    }
+
+    public static boolean isAltarComplete(MinecraftServer server, UUID ownerId) {
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        ensureAltarRequirement(server, data, ownerId);
+        return data.isAltarComplete(ownerId);
+    }
+
+    public static boolean placeCrystalForAutomation(ServerLevel level, BlockPos altarPos, UUID ownerId) {
+        if (ownerId == null) {
+            return false;
+        }
+
+        MinecraftServer server = level.getServer();
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        ensureAltarRequirement(server, data, ownerId);
+        if (data.isCrystalPlaced(ownerId)) {
+            return false;
+        }
+
+        data.setCrystalPlaced(ownerId, true);
+        syncAltarState(level, altarPos, ownerId);
+        return true;
+    }
+
+    public static int submitOfferingForAutomation(ServerLevel level, BlockPos altarPos, UUID ownerId, ResourceLocation offeringId, int amount) {
+        if (ownerId == null || offeringId == null || amount <= 0) {
+            return 0;
+        }
+
+        MinecraftServer server = level.getServer();
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        ensureAltarRequirement(server, data, ownerId);
+        int consumed = data.submitOffering(ownerId, offeringId, amount);
+        if (consumed > 0) {
+            syncAltarState(level, altarPos, ownerId);
+        }
+        return consumed;
+    }
+
+    public static void syncAltarState(ServerLevel level, BlockPos altarPos, UUID ownerId) {
+        if (ownerId == null) {
+            return;
+        }
+
+        MinecraftServer server = level.getServer();
+        RoguelikeSavedData data = RoguelikeSavedData.get(server);
+        ensureAltarRequirement(server, data, ownerId);
+        BlockEntity blockEntity = level.getBlockEntity(altarPos);
+        if (blockEntity instanceof DungeonAltarBlockEntity altar) {
+            altar.setCrystalPlaced(data.isCrystalPlaced(ownerId));
+            syncAltarDisplay(data.altarRequirements(ownerId), altar);
+        }
+    }
+
     private static UUID resolveAltarOwner(ServerPlayer player, BlockPos altarPos) {
         BlockEntity blockEntity = player.serverLevel().getBlockEntity(altarPos);
         if (!(blockEntity instanceof DungeonAltarBlockEntity altar)) {

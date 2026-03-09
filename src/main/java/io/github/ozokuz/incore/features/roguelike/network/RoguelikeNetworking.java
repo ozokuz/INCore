@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.roguelike.network;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -16,6 +18,7 @@ public final class RoguelikeNetworking {
         registrar.playToClient(RoguelikeMinimapGraphPayload.TYPE, RoguelikeMinimapGraphPayload.STREAM_CODEC, RoguelikeMinimapGraphPayload::handle);
         registrar.playToClient(RoguelikeMinimapRevealPayload.TYPE, RoguelikeMinimapRevealPayload.STREAM_CODEC, RoguelikeMinimapRevealPayload::handle);
         registrar.playToClient(RoguelikeMinimapPartyPayload.TYPE, RoguelikeMinimapPartyPayload.STREAM_CODEC, RoguelikeMinimapPartyPayload::handle);
+        registrar.playToServer(MeCrystalAutomationTerminalActionPayload.TYPE, MeCrystalAutomationTerminalActionPayload.STREAM_CODEC, MeCrystalAutomationTerminalActionPayload::handle);
     }
 
     public static void syncGraph(ServerPlayer player, long instanceId, int originChunkX, int originChunkZ) {
@@ -28,5 +31,13 @@ public final class RoguelikeNetworking {
 
     public static void syncParty(ServerPlayer player, long instanceId, List<RoguelikeMinimapPartyPayload.Marker> markers) {
         PacketDistributor.sendToPlayer(player, new RoguelikeMinimapPartyPayload(instanceId, markers));
+    }
+
+    public static void requestMeCrystalAutomationTerminalAction(BlockPos pos, Direction side, boolean refreshOnly) {
+        PacketDistributor.sendToServer(new MeCrystalAutomationTerminalActionPayload(
+                pos.asLong(),
+                side.get3DDataValue(),
+                refreshOnly ? MeCrystalAutomationTerminalActionPayload.ACTION_REFRESH : MeCrystalAutomationTerminalActionPayload.ACTION_REQUEST_ITEMS
+        ));
     }
 }
