@@ -71,6 +71,10 @@ import io.github.ozokuz.incore.features.roguelike.content.DungeonScavengerTokenI
 import io.github.ozokuz.incore.features.roguelike.content.EmptyDungeonCrystalItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarBlock;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.LockedRecoveryStrongboxBlock;
+import io.github.ozokuz.incore.features.roguelike.content.LockedRecoveryStrongboxBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.LockedRecoveryStrongboxItem;
+import io.github.ozokuz.incore.features.roguelike.content.RecoveryStrongboxKeyItem;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.worldgen.DungeonChunkGenerator;
@@ -309,6 +313,15 @@ public class Registration {
     public static final DeferredItem<BlockItem> DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_crystal_modification_station", DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK);
     public static final DeferredBlock<Block> DUNGEON_OBJECTIVE_ALTAR_BLOCK = BLOCKS.register("dungeon_objective_altar", DungeonObjectiveAltarBlock::new);
     public static final DeferredItem<BlockItem> DUNGEON_OBJECTIVE_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_objective_altar", DUNGEON_OBJECTIVE_ALTAR_BLOCK);
+    public static final DeferredBlock<Block> LOCKED_RECOVERY_STRONGBOX_BLOCK = BLOCKS.register("locked_recovery_strongbox", () -> new LockedRecoveryStrongboxBlock());
+    public static final Supplier<BlockEntityType<LockedRecoveryStrongboxBlockEntity>> LOCKED_RECOVERY_STRONGBOX_BE = BLOCK_ENTITY_TYPES.register(
+            "locked_recovery_strongbox",
+            () -> BlockEntityType.Builder.of(LockedRecoveryStrongboxBlockEntity::new, LOCKED_RECOVERY_STRONGBOX_BLOCK.get()).build(null)
+    );
+    public static final DeferredItem<BlockItem> LOCKED_RECOVERY_STRONGBOX_BLOCK_ITEM = ITEMS.registerItem(
+            "locked_recovery_strongbox",
+            properties -> new LockedRecoveryStrongboxItem(LOCKED_RECOVERY_STRONGBOX_BLOCK.get(), properties.stacksTo(1))
+    );
     public static final DeferredBlock<Block> ROGUELIKE_PORTAL_BLOCK = BLOCKS.register("roguelike_portal", RoguelikePortalBlock::new);
     public static final Supplier<BlockEntityType<RoguelikePortalBlockEntity>> ROGUELIKE_PORTAL_BE = BLOCK_ENTITY_TYPES.register("roguelike_portal", () -> BlockEntityType.Builder.of(RoguelikePortalBlockEntity::new, ROGUELIKE_PORTAL_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> ROGUELIKE_PORTAL_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("roguelike_portal", ROGUELIKE_PORTAL_BLOCK);
@@ -320,6 +333,10 @@ public class Registration {
     public static final DeferredItem<Item> DUNGEON_CRYSTAL_ITEM = ITEMS.registerItem("dungeon_crystal", DungeonCrystalItem::new);
     public static final DeferredItem<Item> DUNGEON_COMPLETION_CRATE_ITEM = ITEMS.registerItem("dungeon_completion_crate", DungeonCompletionCrateItem::new);
     public static final DeferredItem<Item> DUNGEON_SCAVENGER_TOKEN_ITEM = ITEMS.registerItem("dungeon_scavenger_token", DungeonScavengerTokenItem::new);
+    public static final DeferredItem<Item> RECOVERY_STRONGBOX_KEY_ITEM = ITEMS.registerItem(
+            "recovery_strongbox_key",
+            properties -> new RecoveryStrongboxKeyItem(properties.stacksTo(1))
+    );
     public static final DeferredItem<Item> SURFACE_ORE_DEBUG_COMPASS_ITEM = ITEMS.registerItem("surface_ore_debug_compass", SurfaceOreDebugCompassItem::new);
     public static final DeferredItem<Item> SURFACE_STONE_DEBUG_COMPASS_ITEM = ITEMS.registerItem("surface_stone_debug_compass", SurfaceStoneDebugCompassItem::new);
 
@@ -373,6 +390,11 @@ public class Registration {
             DATA_COMPONENT_TYPES.registerComponentType(
                     "dungeon_crystal_objective",
                     builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC)
+            );
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> RECOVERY_STRONGBOX_ID =
+            DATA_COMPONENT_TYPES.registerComponentType(
+                    "recovery_strongbox_id",
+                    builder -> builder.persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8)
             );
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> BATTLEPASS_LANE =
             DATA_COMPONENT_TYPES.registerComponentType(
@@ -460,6 +482,8 @@ public class Registration {
                 output.accept(DUNGEON_CRYSTAL_ITEM.get());
                 output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());
                 output.accept(DUNGEON_SCAVENGER_TOKEN_ITEM.get());
+                output.accept(LOCKED_RECOVERY_STRONGBOX_BLOCK_ITEM.get());
+                output.accept(RECOVERY_STRONGBOX_KEY_ITEM.get());
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
                 output.accept(ENCOUNTER_WAND_ITEM.get());
 

@@ -104,7 +104,7 @@ public class DungeonChunkGenerator extends FlatLevelSource {
             replaceReturnPortalPlaceholders(level, template, placedTemplate.origin(), settings, instance.id().value());
         }
 
-        placeEncounterSpawners(level, plan, chunkPos);
+        placePlannedFeatures(level, plan, chunkPos);
 
         if ((plan.entryPos().getX() >> 4) == chunkPos.x && (plan.entryPos().getZ() >> 4) == chunkPos.z) {
             clearEntrySpace(level, plan.entryPos());
@@ -116,21 +116,49 @@ public class DungeonChunkGenerator extends FlatLevelSource {
         chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
     }
 
-    private static void placeEncounterSpawners(WorldGenRegion level, DungeonWorldPlan plan, ChunkPos chunkPos) {
-        for (DungeonWorldPlan.EncounterSpawnerPlacement placement : plan.encounterSpawners()) {
+    private static void placePlannedFeatures(WorldGenRegion level, DungeonWorldPlan plan, ChunkPos chunkPos) {
+        for (DungeonWorldPlan.FeaturePlacement placement : plan.features()) {
             if (!placement.isInChunk(chunkPos.x, chunkPos.z)) {
                 continue;
             }
 
-            level.setBlock(placement.pos(), Registration.ENCOUNTER_SPAWNER_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
-            BlockEntity blockEntity = level.getBlockEntity(placement.pos());
-            if (blockEntity instanceof EncounterSpawnerBE spawner) {
-                spawner.setEncounterId(placement.encounterId().toString());
-                spawner.setSpawnOffset(placement.spawnOffset());
-                spawner.setEncounterStrengthMultipliers(placement.mobHealthMultiplier(), placement.mobDamageMultiplier());
-                spawner.setChanged();
+            switch (placement.type()) {
+                case "encounter_spawner" -> {
+                    if (placement.encounterId() == null) {
+                        continue;
+                    }
+                    level.setBlock(placement.pos(), Registration.ENCOUNTER_SPAWNER_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
+                    BlockEntity blockEntity = level.getBlockEntity(placement.pos());
+                    if (blockEntity instanceof EncounterSpawnerBE spawner) {
+                        spawner.setEncounterId(placement.encounterId().toString());
+                        spawner.setSpawnOffset(placement.spawnOffset());
+                        spawner.setEncounterStrengthMultipliers(placement.mobHealthMultiplier(), placement.mobDamageMultiplier());
+                        spawner.setChanged();
+                    }
+                }
+                case "trial_spawner" -> {
+                    level.setBlock(placement.pos(), Blocks.TRIAL_SPAWNER.defaultBlockState(), Block.UPDATE_ALL);
+                    applyBlockEntityData(level, placement);
+                }
+                case "objective_altar" -> level.setBlock(placement.pos(), Registration.DUNGEON_OBJECTIVE_ALTAR_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
+                case "challenge_altar", "loot_anchor", "ore_anchor", "shop_anchor", "coin_pile_anchor" -> {
+                    // Reserved for future dungeon content systems.
+                }
             }
         }
+    }
+
+    private static void applyBlockEntityData(WorldGenRegion level, DungeonWorldPlan.FeaturePlacement placement) {
+        if (placement.blockEntityData() == null) {
+            return;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(placement.pos());
+        if (blockEntity == null) {
+            return;
+        }
+
+        blockEntity.loadCustomOnly(placement.blockEntityData().copy(), level.getLevel().registryAccess());
+        blockEntity.setChanged();
     }
 
     private static void replaceReturnPortalPlaceholders(

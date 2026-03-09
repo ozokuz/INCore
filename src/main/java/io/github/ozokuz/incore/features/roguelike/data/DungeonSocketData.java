@@ -5,6 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
@@ -83,11 +85,25 @@ public record DungeonSocketData(
             ResourceLocation encounterId = object.has("encounter")
                     ? ResourceLocation.tryParse(object.get("encounter").getAsString())
                     : null;
+            ResourceLocation markerId = object.has("marker_id")
+                    ? ResourceLocation.tryParse(object.get("marker_id").getAsString())
+                    : null;
             int[] spawnOffsetRaw = readIntArray(object, "spawn_offset", 3);
             Vec3i spawnOffset = new Vec3i(spawnOffsetRaw[0], spawnOffsetRaw[1], spawnOffsetRaw[2]);
-            sockets.add(new FeatureSocket(type, readPos(object), encounterId, spawnOffset));
+            sockets.add(new FeatureSocket(type, readPos(object), encounterId, spawnOffset, markerId, readBlockEntityData(object)));
         }
         return List.copyOf(sockets);
+    }
+
+    private static CompoundTag readBlockEntityData(JsonObject object) {
+        if (!object.has("block_entity_nbt")) {
+            return null;
+        }
+        try {
+            return TagParser.parseTag(object.get("block_entity_nbt").getAsString());
+        } catch (Exception exception) {
+            throw new IllegalArgumentException("Invalid block_entity_nbt string", exception);
+        }
     }
 
     private static BlockPos readPos(JsonObject object) {
@@ -121,6 +137,19 @@ public record DungeonSocketData(
     public record SecretSocket(String id, int chunkOffsetX, int chunkOffsetZ) {
     }
 
-    public record FeatureSocket(String type, BlockPos pos, ResourceLocation encounterId, Vec3i spawnOffset) {
+    public record FeatureSocket(
+            String type,
+            BlockPos pos,
+            ResourceLocation encounterId,
+            Vec3i spawnOffset,
+            ResourceLocation markerId,
+            CompoundTag blockEntityData
+    ) {
+        public FeatureSocket {
+            type = type == null ? "" : type;
+            pos = pos == null ? BlockPos.ZERO : pos.immutable();
+            spawnOffset = spawnOffset == null ? Vec3i.ZERO : spawnOffset;
+            blockEntityData = blockEntityData == null ? null : blockEntityData.copy();
+        }
     }
 }

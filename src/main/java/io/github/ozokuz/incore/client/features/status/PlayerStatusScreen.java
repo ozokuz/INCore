@@ -89,6 +89,11 @@ public class PlayerStatusScreen extends Screen {
                     ).bounds(buttonX, catalogButtonY, buttonWidth, BUTTON_HEIGHT)
                     .build());
         }
+        this.addRenderableWidget(Button.builder(
+                        Component.translatable("screen.incore.player_status.open_dungeon_settings"),
+                        button -> this.minecraft.setScreen(new DungeonDifficultyScreen(this))
+                ).bounds(buttonX, catalogButtonY - BUTTON_HEIGHT - 6, buttonWidth, BUTTON_HEIGHT)
+                .build());
 
         addQuickNavButtons(layout);
         PlayerStatusNetworking.requestCurrencySync();
