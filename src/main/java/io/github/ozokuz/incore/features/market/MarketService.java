@@ -323,12 +323,17 @@ public final class MarketService {
         }
 
         int remaining = requestedItems;
+        if (!removeItems(player, itemId, remaining)) {
+            return false;
+        }
         if (terminal.ae2Online()) {
             long meRemoved = Ae2StorageAccess.extract(terminal.grid(), terminal.actionSource(), new ItemStack(item), remaining);
-            remaining -= (int) Math.min(Integer.MAX_VALUE, meRemoved);
-        }
-        if (remaining > 0 && !removeItems(player, itemId, remaining)) {
-            return false;
+            if (meRemoved < remaining) {
+                int stillNeeded = (int) (remaining - meRemoved);
+                if (!removeItems(player, itemId, stillNeeded)) {
+                    return false;
+                }
+            }
         }
 
         MarketBanking.deposit(account, quote.netPayoutSpur());

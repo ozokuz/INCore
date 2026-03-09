@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.roguelike.network;
 
+import io.github.ozokuz.incore.features.roguelike.content.MeCrystalAutomationTerminalMenu;
 import io.github.ozokuz.incore.features.roguelike.content.MeCrystalAutomationTerminalPart;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
@@ -36,9 +37,15 @@ public record MeCrystalAutomationTerminalActionPayload(long hostPos, int side, i
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
-            BlockPos pos = BlockPos.of(payload.hostPos());
-            Direction side = Direction.from3DDataValue(payload.side());
-            MeCrystalAutomationTerminalPart terminal = MeCrystalAutomationTerminalPart.resolve(player.level(), pos, side);
+            if (!(player.containerMenu instanceof MeCrystalAutomationTerminalMenu menu)) {
+                return;
+            }
+            BlockPos payloadPos = BlockPos.of(payload.hostPos());
+            Direction payloadSide = Direction.from3DDataValue(payload.side());
+            if (!menu.hostPos().equals(payloadPos) || menu.side() != payloadSide) {
+                return;
+            }
+            MeCrystalAutomationTerminalPart terminal = menu.part();
             if (terminal == null) {
                 return;
             }

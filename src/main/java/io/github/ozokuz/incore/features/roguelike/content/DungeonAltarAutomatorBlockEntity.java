@@ -14,6 +14,7 @@ import io.github.ozokuz.incore.features.roguelike.RoguelikeService;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingData;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
+import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData.AltarRequirement;
 import io.github.ozokuz.incore.integration.ae2.Ae2GridNodeComponent;
 import io.github.ozokuz.incore.integration.ae2.Ae2StorageAccess;
 import net.minecraft.core.BlockPos;
@@ -61,9 +62,9 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
     public static final int STATUS_ALTAR_COMPLETE = 5;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
-    private final Map<ResourceLocation, Integer> offeringBuffer = new LinkedHashMap<>();
-    private final Map<ResourceLocation, ICraftingLink> activeLinks = new LinkedHashMap<>();
-    private final Map<ResourceLocation, CompoundTag> serializedLinks = new LinkedHashMap<>();
+    private final Map<AltarRequirement, Integer> offeringBuffer = new LinkedHashMap<>();
+    private final Map<AltarRequirement, ICraftingLink> activeLinks = new LinkedHashMap<>();
+    private final Map<AltarRequirement, CompoundTag> serializedLinks = new LinkedHashMap<>();
     private final Ae2GridNodeComponent<DungeonAltarAutomatorBlockEntity> gridNode = new Ae2GridNodeComponent<>(this, "mainGridNode");
     private final IActionSource actionSource = IActionSource.ofMachine(this);
 
@@ -118,7 +119,7 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         return actionSource;
     }
 
-    public Map<ResourceLocation, Integer> offeringBuffer() {
+    public Map<AltarRequirement, Integer> offeringBuffer() {
         return Map.copyOf(offeringBuffer);
     }
 
@@ -147,10 +148,33 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
             return 0;
         }
         int inserted = stack.getCount();
-        offeringBuffer.merge(itemId, inserted, Integer::sum);
+
+        AltarRequirement targetRequirement = findRequirementForItem(itemId);
+        if (targetRequirement == null) {
+            return 0;
+        }
+
+        offeringBuffer.merge(targetRequirement, inserted, Integer::sum);
         setChanged();
         syncToClient();
         return inserted;
+    }
+
+    private @Nullable AltarRequirement findRequirementForItem(ResourceLocation itemId) {
+        if (!(level instanceof ServerLevel serverLevel) || ownerId == null) {
+            return null;
+        }
+        List<AltarRequirement> requirements = RoguelikeService.altarRequirementsForOwner(serverLevel.getServer(), ownerId);
+        for (AltarRequirement req : requirements) {
+            AltarOfferingData offering = AltarOfferingManager.OFFERINGS.get(req.offeringId());
+            if (offering != null) {
+                ResourceLocation reqItemId = BuiltInRegistries.ITEM.getKey(offering.item());
+                if (itemId.equals(reqItemId) && !req.isComplete()) {
+                    return req;
+                }
+            }
+        }
+        return null;
     }
 
     public void requestMissingItems() {
@@ -190,7 +214,7 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
                 remaining -= inserted;
             }
 
-            if (remaining > 0 && !activeLinks.containsKey(view.itemId()) && Ae2StorageAccess.isCraftable(grid(), new ItemStack(item))) {
+            if (remaining > 0 && !activeLinks.containsKey(view.requirement()) && Ae2StorageAccess.isCraftable(grid(), new ItemStack(item))) {
                 ICraftingLink link = Ae2StorageAccess.requestAutocrafting(
                         grid(),
                         serverLevel,
@@ -199,7 +223,7 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
                         new ItemStack(item, remaining)
                 );
                 if (link != null) {
-                    activeLinks.put(view.itemId(), link);
+                    activeLinks.put(view.requirement(), link);
                 }
             }
         }
@@ -244,9 +268,11 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         ListTag bufferList = tag.getList("offeringBuffer", Tag.TAG_COMPOUND);
         for (Tag bufferTag : bufferList) {
             CompoundTag row = (CompoundTag) bufferTag;
-            ResourceLocation itemId = ResourceLocation.tryParse(row.getString("item"));
-            if (itemId != null) {
-                offeringBuffer.put(itemId, Math.max(0, row.getInt("count")));
+            if (row.hasUUID("reqId")) {
+                UUID reqId = row.getUUID("reqId");
+                int count = Math.max(0, row.getInt("count"));
+                AltarRequirement req = new AltarRequirement(reqId, ResourceLocation.tryParse(row.getString("item")), count, 0);
+                offeringBuffer.put(req, count);
             }
         }
 
@@ -260,8 +286,10 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         for (Tag linkTag : linkList) {
             CompoundTag row = (CompoundTag) linkTag;
             ResourceLocation itemId = ResourceLocation.tryParse(row.getString("item"));
-            if (itemId != null) {
-                serializedLinks.put(itemId, row.getCompound("link"));
+            if (row.hasUUID("reqId") && itemId != null) {
+                UUID reqId = row.getUUID("reqId");
+                AltarRequirement req = new AltarRequirement(reqId, itemId, 1, 0);
+                serializedLinks.put(req, row.getCompound("link"));
             }
         }
     }
@@ -285,9 +313,10 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         tag.put("items", itemList);
 
         ListTag bufferList = new ListTag();
-        for (Map.Entry<ResourceLocation, Integer> entry : offeringBuffer.entrySet()) {
+        for (Map.Entry<AltarRequirement, Integer> entry : offeringBuffer.entrySet()) {
             CompoundTag row = new CompoundTag();
-            row.putString("item", entry.getKey().toString());
+            row.putUUID("reqId", entry.getKey().id());
+            row.putString("item", entry.getKey().offeringId().toString());
             row.putInt("count", entry.getValue());
             bufferList.add(row);
         }
@@ -301,6 +330,9 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         ListTag viewsTag = new ListTag();
         for (RequestView view : requestViews) {
             CompoundTag row = new CompoundTag();
+            if (view.requirement() != null) {
+                row.putUUID("reqId", view.requirement().id());
+            }
             row.putString("item", view.itemId().toString());
             row.putInt("submitted", view.submitted());
             row.putInt("required", view.required());
@@ -313,20 +345,22 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         tag.put("requestViews", viewsTag);
 
         ListTag linkList = new ListTag();
-        for (Map.Entry<ResourceLocation, ICraftingLink> entry : activeLinks.entrySet()) {
+        for (Map.Entry<AltarRequirement, ICraftingLink> entry : activeLinks.entrySet()) {
             CompoundTag row = new CompoundTag();
-            row.putString("item", entry.getKey().toString());
+            row.putUUID("reqId", entry.getKey().id());
+            row.putString("item", entry.getKey().offeringId().toString());
             CompoundTag linkTag = new CompoundTag();
             entry.getValue().writeToNBT(linkTag);
             row.put("link", linkTag);
             linkList.add(row);
         }
-        for (Map.Entry<ResourceLocation, CompoundTag> entry : serializedLinks.entrySet()) {
+        for (Map.Entry<AltarRequirement, CompoundTag> entry : serializedLinks.entrySet()) {
             if (activeLinks.containsKey(entry.getKey())) {
                 continue;
             }
             CompoundTag row = new CompoundTag();
-            row.putString("item", entry.getKey().toString());
+            row.putUUID("reqId", entry.getKey().id());
+            row.putString("item", entry.getKey().offeringId().toString());
             row.put("link", entry.getValue().copy());
             linkList.add(row);
         }
@@ -417,8 +451,7 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
                 continue;
             }
 
-            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(offering.item());
-            int buffered = offeringBuffer.getOrDefault(itemId, 0);
+            int buffered = offeringBuffer.getOrDefault(requirement, 0);
             if (buffered <= 0) {
                 continue;
             }
@@ -430,9 +463,9 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
 
             int remaining = buffered - consumed;
             if (remaining <= 0) {
-                offeringBuffer.remove(itemId);
+                offeringBuffer.remove(requirement);
             } else {
-                offeringBuffer.put(itemId, remaining);
+                offeringBuffer.put(requirement, remaining);
             }
         }
     }
@@ -486,14 +519,17 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         if (!crystalPlaced) {
             ItemStack crystalStack = new ItemStack(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get());
             int buffered = getItem(CRYSTAL_SLOT).isEmpty() ? 0 : 1;
+            ResourceLocation crystalItemId = BuiltInRegistries.ITEM.getKey(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get());
+            AltarRequirement crystalReq = new AltarRequirement(crystalItemId, 1, 0);
             views.add(new RequestView(
-                    BuiltInRegistries.ITEM.getKey(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get()),
+                    crystalReq,
+                    crystalItemId,
                     0,
                     1,
                     buffered,
                     ae2Online() ? Ae2StorageAccess.count(grid(), crystalStack) : 0L,
                     ae2Online() && Ae2StorageAccess.isCraftable(grid(), crystalStack),
-                    activeLinks.containsKey(BuiltInRegistries.ITEM.getKey(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get()))
+                    activeLinks.containsKey(crystalReq)
             ));
         }
 
@@ -505,13 +541,14 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(offering.item());
             ItemStack stack = new ItemStack(offering.item());
             views.add(new RequestView(
+                    requirement,
                     itemId,
                     requirement.submittedAmount(),
                     requirement.requiredAmount(),
-                    offeringBuffer.getOrDefault(itemId, 0),
+                    offeringBuffer.getOrDefault(requirement, 0),
                     ae2Online() ? Ae2StorageAccess.count(grid(), stack) : 0L,
                     ae2Online() && Ae2StorageAccess.isCraftable(grid(), stack),
-                    activeLinks.containsKey(itemId) || (ae2Online() && Ae2StorageAccess.isRequesting(grid(), stack))
+                    activeLinks.containsKey(requirement) || (ae2Online() && Ae2StorageAccess.isRequesting(grid(), stack))
             ));
         }
         return List.copyOf(views);
@@ -547,7 +584,7 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         if (serializedLinks.isEmpty()) {
             return;
         }
-        for (Map.Entry<ResourceLocation, CompoundTag> entry : List.copyOf(serializedLinks.entrySet())) {
+        for (Map.Entry<AltarRequirement, CompoundTag> entry : List.copyOf(serializedLinks.entrySet())) {
             if (activeLinks.containsKey(entry.getKey())) {
                 serializedLinks.remove(entry.getKey());
                 continue;
@@ -582,7 +619,11 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
             if (itemId == null) {
                 continue;
             }
+            AltarRequirement requirement = row.hasUUID("reqId") 
+                ? new AltarRequirement(row.getUUID("reqId"), itemId, row.getInt("required"), row.getInt("submitted"))
+                : null;
             views.add(new RequestView(
+                    requirement,
                     itemId,
                     row.getInt("submitted"),
                     row.getInt("required"),
@@ -702,7 +743,7 @@ public class DungeonAltarAutomatorBlockEntity extends BlockEntity implements Con
         syncToClient();
     }
 
-    public record RequestView(ResourceLocation itemId, int submitted, int required, int buffered, long meAvailable, boolean craftable, boolean requesting) {
+    public record RequestView(AltarRequirement requirement, ResourceLocation itemId, int submitted, int required, int buffered, long meAvailable, boolean craftable, boolean requesting) {
         public int missing() {
             return Math.max(0, required - submitted - buffered);
         }

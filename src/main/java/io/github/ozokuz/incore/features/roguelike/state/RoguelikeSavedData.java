@@ -575,7 +575,11 @@ public class RoguelikeSavedData extends SavedData {
         }
     }
 
-    public record AltarRequirement(ResourceLocation offeringId, int requiredAmount, int submittedAmount) {
+    public record AltarRequirement(UUID id, ResourceLocation offeringId, int requiredAmount, int submittedAmount) {
+        public AltarRequirement(ResourceLocation offeringId, int requiredAmount, int submittedAmount) {
+            this(UUID.randomUUID(), offeringId, requiredAmount, submittedAmount);
+        }
+
         public boolean isComplete() {
             return submittedAmount >= requiredAmount;
         }
@@ -589,11 +593,12 @@ public class RoguelikeSavedData extends SavedData {
                 return this;
             }
 
-            return new AltarRequirement(offeringId, requiredAmount, Math.min(requiredAmount, submittedAmount + amount));
+            return new AltarRequirement(id, offeringId, requiredAmount, Math.min(requiredAmount, submittedAmount + amount));
         }
 
         public CompoundTag toTag() {
             CompoundTag tag = new CompoundTag();
+            tag.putUUID("id", id);
             tag.putString("offeringId", offeringId.toString());
             tag.putInt("required", requiredAmount);
             tag.putInt("submitted", submittedAmount);
@@ -601,6 +606,7 @@ public class RoguelikeSavedData extends SavedData {
         }
 
         public static AltarRequirement fromTag(CompoundTag tag) {
+            UUID id = tag.hasUUID("id") ? tag.getUUID("id") : UUID.randomUUID();
             ResourceLocation offeringId = ResourceLocation.tryParse(tag.getString("offeringId"));
             if (offeringId == null) {
                 return null;
@@ -608,7 +614,7 @@ public class RoguelikeSavedData extends SavedData {
 
             int required = Math.max(1, tag.getInt("required"));
             int submitted = Math.max(0, Math.min(required, tag.getInt("submitted")));
-            return new AltarRequirement(offeringId, required, submitted);
+            return new AltarRequirement(id, offeringId, required, submitted);
         }
     }
 

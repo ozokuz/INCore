@@ -77,9 +77,17 @@ public class MeCrystalAutomationTerminalScreen extends AbstractContainerScreen<M
             guiGraphics.renderItem(new ItemStack(item), 12, y - 2);
         }
         String name = requestItemName(entry.itemId());
-        guiGraphics.drawString(font, Component.literal(name), 32, y, UIScreenTheme.Crafting.BODY_TEXT, false);
+        int nameX = 32;
+        int countsX = 128;
+        int availableWidth = countsX - nameX - 4;
+        if (font.width(name) > availableWidth) {
+            String ellipsis = "...";
+            int ellipsisWidth = font.width(ellipsis);
+            name = font.plainSubstrByWidth(name, Math.max(0, availableWidth - ellipsisWidth)) + ellipsis;
+        }
+        guiGraphics.drawString(font, Component.literal(name), nameX, y, UIScreenTheme.Crafting.BODY_TEXT, false);
         String counts = entry.submitted() + "/" + entry.required() + "  B:" + entry.buffered() + "  ME:" + entry.meAvailable();
-        guiGraphics.drawString(font, Component.literal(counts), 128, y, UIScreenTheme.Crafting.MUTED_TEXT, false);
+        guiGraphics.drawString(font, Component.literal(counts), countsX, y, UIScreenTheme.Crafting.MUTED_TEXT, false);
         Component tail = entry.requesting()
                 ? Component.translatable("screen.incore.me_crystal_automation_terminal.entry.pending")
                 : entry.craftable()
