@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.tasks.network;
 
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -27,6 +29,10 @@ public record TaskClaimRewardsPayload(int claimType) implements CustomPacketPayl
     public static void handle(TaskClaimRewardsPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, PlayerFeatureUnlockIds.TASKS_SCREEN)) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.TASKS_SCREEN));
                 return;
             }
 

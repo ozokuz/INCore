@@ -1,6 +1,6 @@
 {
   "id": "incore:market_basic",
-  "required_level": 5,
+  "required_level": 6,
   "icon_item": "incore:market_terminal",
   "display_name": "Market Terminal"
 }
