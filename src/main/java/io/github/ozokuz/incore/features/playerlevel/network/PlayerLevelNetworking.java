@@ -38,7 +38,7 @@ public final class PlayerLevelNetworking {
         Set<ResourceLocation> unlockedFeatures = PlayerFeatureUnlockService.unlocked(player);
 
         List<PlayerLevelSyncPayload.RewardPreviewEntry> rewardPreviews = new ArrayList<>();
-        for (int previewLevel = level + 1; previewLevel <= lastPreviewLevel; previewLevel++) {
+        for (int previewLevel = 1; previewLevel <= lastPreviewLevel; previewLevel++) {
             int requiredExperience = PlayerLevelManager.getExperienceToNextLevel(previewLevel - 1);
             List<PlayerLevelSyncPayload.RewardEntry> rewards = new ArrayList<>();
             PlayerLevelRewardManager.getRewardsForLevel(previewLevel).stream()
