@@ -28,6 +28,7 @@ import io.github.ozokuz.incore.features.market.MarketEvents;
 import io.github.ozokuz.incore.features.market.command.MarketCommands;
 import io.github.ozokuz.incore.features.market.content.MarketMachineCapabilities;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockManager;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
@@ -168,6 +169,7 @@ public class INCore {
         event.addListener(new EncounterManager());
         event.addListener(new GachaBannerManager());
         event.addListener(new GachaEventCategoryManager());
+        event.addListener(new PlayerFeatureUnlockManager());
         event.addListener(new PlayerLevelRewardManager());
         event.addListener(new TaskDataManager());
         event.addListener(new BattlePassLaneManager());

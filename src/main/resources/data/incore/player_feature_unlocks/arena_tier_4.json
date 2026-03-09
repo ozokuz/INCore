@@ -1,0 +1,6 @@
+{
+  "id": "incore:arena_tier_4",
+  "required_level": 8,
+  "icon_item": "incore:arena_orb",
+  "display_name": "Arena Tier 4"
+}

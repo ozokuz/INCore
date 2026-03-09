@@ -20,6 +20,7 @@ public class PlayerLevelEvents {
 
         PlayerLevelManager.initialize(player);
         PlayerLevelManager.grantPendingRewards(player);
+        PlayerFeatureUnlockService.reconcile(player);
         PlayerLevelNetworking.syncToPlayer(player);
         EntropyNetworking.syncToPlayer(player);
         BattlePassNetworking.syncToPlayer(player);
@@ -36,6 +37,7 @@ public class PlayerLevelEvents {
         }
 
         PlayerLevelManager.copyData(oldPlayer, newPlayer);
+        PlayerFeatureUnlockService.reconcile(newPlayer);
         PlayerLevelNetworking.syncToPlayer(newPlayer);
         BattlePassNetworking.syncToPlayer(newPlayer);
     }

@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_daily_exchange",
+  "required_level": 6,
+  "icon_item": "minecraft:redstone",
+  "display_name": "Shop: Daily Exchange"
+}

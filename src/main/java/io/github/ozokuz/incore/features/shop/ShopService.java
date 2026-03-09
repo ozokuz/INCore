@@ -5,6 +5,8 @@ import dev.ithundxr.createnumismatics.content.backend.BankAccount;
 import io.github.ozokuz.incore.features.gacha.GachaEventRotation;
 import io.github.ozokuz.incore.features.market.MarketBanking;
 import io.github.ozokuz.incore.features.market.MarketTime;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -56,7 +58,7 @@ public final class ShopService {
 
         List<CategoryView> categories = new ArrayList<>();
         for (ShopCategoryDefinition category : ShopCategoryManager.all()) {
-            boolean locked = data.isCategoryLocked(player.getUUID(), category.id());
+            boolean locked = isCategoryLocked(data, player, category.id());
             int stock = category.stockMode() == ShopStockMode.CATEGORY_BUCKET
                     ? stockForCategoryBucket(data, playerState, category)
                     : -1;
@@ -79,7 +81,7 @@ public final class ShopService {
                 continue;
             }
 
-            boolean categoryLocked = data.isCategoryLocked(player.getUUID(), category.id());
+            boolean categoryLocked = isCategoryLocked(data, player, category.id());
             boolean offerLocked = data.isOfferLocked(player.getUUID(), offer.id());
             boolean locked = categoryLocked || offerLocked;
             int availableStock = stockForOffer(data, playerState, category, offer);
@@ -277,8 +279,24 @@ public final class ShopService {
             ShopCategoryDefinition category,
             ShopOfferDefinition offer
     ) {
-        return savedData.isCategoryLocked(player.getUUID(), category.id())
+        return isCategoryLocked(savedData, player, category.id())
                 || savedData.isOfferLocked(player.getUUID(), offer.id());
+    }
+
+    private static boolean isCategoryLocked(ShopSavedData savedData, ServerPlayer player, ResourceLocation categoryId) {
+        ResourceLocation unlockId = requiredUnlockForCategory(categoryId);
+        return savedData.isCategoryLocked(player.getUUID(), categoryId)
+                || (unlockId != null && !PlayerFeatureUnlockService.hasUnlocked(player, unlockId));
+    }
+
+    private static @Nullable ResourceLocation requiredUnlockForCategory(ResourceLocation categoryId) {
+        return switch (categoryId.toString()) {
+            case "incore:basic_supplies" -> PlayerFeatureUnlockIds.SHOP_BASIC_SUPPLIES;
+            case "incore:daily_exchange" -> PlayerFeatureUnlockIds.SHOP_DAILY_EXCHANGE;
+            case "incore:chartered_rotation" -> PlayerFeatureUnlockIds.SHOP_CHARTERED_ROTATION;
+            case "incore:expedition_cache" -> PlayerFeatureUnlockIds.SHOP_EXPEDITION_CACHE;
+            default -> null;
+        };
     }
 
     private static void reconcilePlayerState(

@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.gacha;
 
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -51,6 +52,20 @@ public final class GachaEvents {
         ResourceLocation bannerId = crateBlockEntity.getBannerId();
         if (bannerId == null) {
             player.sendSystemMessage(Component.translatable("incore.gacha.crate.invalid"));
+            event.setCancellationResult(InteractionResult.FAIL);
+            event.setCanceled(true);
+            return;
+        }
+        GachaBannerData banner = GachaBannerManager.get(bannerId);
+        if (banner == null) {
+            player.sendSystemMessage(Component.translatable("incore.gacha.banner.invalid", bannerId.toString()));
+            event.setCancellationResult(InteractionResult.FAIL);
+            event.setCanceled(true);
+            return;
+        }
+        ResourceLocation requiredUnlock = GachaService.requiredUnlockForBanner(banner);
+        if (!PlayerFeatureUnlockService.hasUnlocked(player, requiredUnlock)) {
+            player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(requiredUnlock));
             event.setCancellationResult(InteractionResult.FAIL);
             event.setCanceled(true);
             return;

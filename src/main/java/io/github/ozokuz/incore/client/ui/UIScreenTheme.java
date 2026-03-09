@@ -118,6 +118,7 @@ public enum UIScreenTheme {
         public static final int PLR_REWARD_ENTROPY_FILL = 0xB0193A3A;
         public static final int PLR_REWARD_DEFAULT_FILL = 0xB01A2735;
         public static final int PLR_REWARD_COMMAND_FILL = 0xB03A301B;
+        public static final int PLR_REWARD_FEATURE_FILL = 0xB02C3247;
         public static final int PLR_XP_PILL_FILL_SELECTED = 0xB03A607D;
         public static final int PLR_ROW_FILL_SELECTED = 0xB1263E58;
         public static final int STATUS_LINE_TEXT = 0xB2C6D8;

@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_basic_supplies",
+  "required_level": 4,
+  "icon_item": "minecraft:bread",
+  "display_name": "Shop: Basic Supplies"
+}

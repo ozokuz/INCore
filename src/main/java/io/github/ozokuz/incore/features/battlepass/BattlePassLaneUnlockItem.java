@@ -2,6 +2,8 @@ package io.github.ozokuz.incore.features.battlepass;
 
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.battlepass.network.BattlePassNetworking;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -37,6 +39,14 @@ public class BattlePassLaneUnlockItem extends Item {
         }
 
         laneId = BattlePassLane.normalize(laneId);
+        if ("northium".equals(laneId) && !PlayerFeatureUnlockService.hasUnlocked(serverPlayer, PlayerFeatureUnlockIds.BATTLEPASS_LANE_NORTHIUM_ACCESS)) {
+            serverPlayer.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.BATTLEPASS_LANE_NORTHIUM_ACCESS));
+            return InteractionResultHolder.fail(stack);
+        }
+        if ("integrated".equals(laneId) && !PlayerFeatureUnlockService.hasUnlocked(serverPlayer, PlayerFeatureUnlockIds.BATTLEPASS_LANE_INTEGRATED_ACCESS)) {
+            serverPlayer.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.BATTLEPASS_LANE_INTEGRATED_ACCESS));
+            return InteractionResultHolder.fail(stack);
+        }
         BattlePassProgressManager.LaneManagementResult result = BattlePassProgressManager.unlockLane(serverPlayer, laneId, Instant.now());
         serverPlayer.sendSystemMessage(Component.literal(result.message()));
         BattlePassNetworking.syncToPlayer(serverPlayer);

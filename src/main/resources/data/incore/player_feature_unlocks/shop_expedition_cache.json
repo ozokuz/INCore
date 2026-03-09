@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_expedition_cache",
+  "required_level": 10,
+  "icon_item": "minecraft:ender_pearl",
+  "display_name": "Shop: Expedition Cache"
+}

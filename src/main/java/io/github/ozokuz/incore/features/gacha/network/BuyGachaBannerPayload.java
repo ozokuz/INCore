@@ -1,5 +1,9 @@
 package io.github.ozokuz.incore.features.gacha.network;
 
+import io.github.ozokuz.incore.features.gacha.GachaBannerData;
+import io.github.ozokuz.incore.features.gacha.GachaBannerManager;
+import io.github.ozokuz.incore.features.gacha.GachaService;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -29,6 +33,14 @@ public record BuyGachaBannerPayload(String bannerId) implements CustomPacketPayl
 
             ResourceLocation bannerId = ResourceLocation.tryParse(payload.bannerId());
             if (bannerId == null) {
+                return;
+            }
+            GachaBannerData banner = GachaBannerManager.get(bannerId);
+            if (banner == null) {
+                return;
+            }
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, GachaService.requiredUnlockForBanner(banner))) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(GachaService.requiredUnlockForBanner(banner)));
                 return;
             }
 

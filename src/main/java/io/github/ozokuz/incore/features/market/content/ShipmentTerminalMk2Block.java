@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.market.content;
 
 import com.mojang.serialization.MapCodec;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -40,5 +41,10 @@ public class ShipmentTerminalMk2Block extends ShipmentTerminalBlock {
             return null;
         }
         return (lvl, pos, blockState, blockEntity) -> ShipmentTerminalMk2BlockEntity.tick(lvl, pos, blockState, (ShipmentTerminalMk2BlockEntity) blockEntity);
+    }
+
+    @Override
+    protected net.minecraft.resources.ResourceLocation requiredUnlock() {
+        return PlayerFeatureUnlockIds.MARKET_SHIPMENT_TERMINAL_MK2;
     }
 }

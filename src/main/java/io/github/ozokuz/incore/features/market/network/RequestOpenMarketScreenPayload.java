@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.market.network;
 
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -27,6 +29,10 @@ public record RequestOpenMarketScreenPayload(boolean request, String detailItemI
     public static void handle(RequestOpenMarketScreenPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!payload.request() || !(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, PlayerFeatureUnlockIds.MARKET_BASIC)) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.MARKET_BASIC));
                 return;
             }
             MarketNetworking.openReadOnlyScreenFor(player, parseOptionalItemId(payload.detailItemId()));

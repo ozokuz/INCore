@@ -1,0 +1,6 @@
+{
+  "id": "incore:battlepass_lane_northium_access",
+  "required_level": 6,
+  "icon_item": "incore:battlepass_lane_unlock",
+  "display_name": "Battle Pass: Northium Lane"
+}

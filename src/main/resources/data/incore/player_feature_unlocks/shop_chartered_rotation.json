@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_chartered_rotation",
+  "required_level": 8,
+  "icon_item": "minecraft:diamond",
+  "display_name": "Shop: Chartered Rotation"
+}

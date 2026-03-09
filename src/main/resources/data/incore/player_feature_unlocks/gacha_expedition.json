@@ -1,0 +1,6 @@
+{
+  "id": "incore:gacha_expedition",
+  "required_level": 9,
+  "icon_item": "incore:time_piece",
+  "display_name": "Expedition Banners"
+}

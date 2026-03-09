@@ -2,6 +2,9 @@ package io.github.ozokuz.incore.features.market.network;
 
 import io.github.ozokuz.incore.features.market.MarketItemManager;
 import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMk2BlockEntity;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -41,6 +44,13 @@ public record MarketAutoTraderConfigPayload(long blockPos, String targetItemId, 
                 return;
             }
             if (!autoTrader.canAccess(player)) {
+                return;
+            }
+            ResourceLocation requiredUnlock = autoTrader instanceof MarketAutoTraderMk2BlockEntity
+                    ? PlayerFeatureUnlockIds.MARKET_AUTOTRADER_MK2
+                    : PlayerFeatureUnlockIds.MARKET_AUTOTRADER;
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, requiredUnlock)) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(requiredUnlock));
                 return;
             }
 

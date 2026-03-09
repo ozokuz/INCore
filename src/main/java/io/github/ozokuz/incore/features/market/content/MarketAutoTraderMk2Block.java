@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.market.content;
 
 import com.mojang.serialization.MapCodec;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -40,5 +41,10 @@ public class MarketAutoTraderMk2Block extends MarketAutoTraderBlock {
             return null;
         }
         return (lvl, pos, blockState, blockEntity) -> MarketAutoTraderMk2BlockEntity.tick(lvl, pos, blockState, (MarketAutoTraderMk2BlockEntity) blockEntity);
+    }
+
+    @Override
+    protected net.minecraft.resources.ResourceLocation requiredUnlock() {
+        return PlayerFeatureUnlockIds.MARKET_AUTOTRADER_MK2;
     }
 }
