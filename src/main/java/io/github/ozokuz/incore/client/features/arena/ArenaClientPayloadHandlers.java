@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.client.features.arena;
 
+import io.github.ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import net.minecraft.client.Minecraft;
 
 public final class ArenaClientPayloadHandlers {
@@ -12,6 +13,6 @@ public final class ArenaClientPayloadHandlers {
             screen.updatePayload(json);
             return;
         }
-        minecraft.setScreen(new CombatCatalogScreen(json));
+        minecraft.setScreen(new CombatCatalogScreen(json, StatusScreenReturnTracker.consumePendingParent()));
     }
 }

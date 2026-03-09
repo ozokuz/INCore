@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,6 +58,7 @@ public class TaskOverviewScreen extends Screen {
     private static final int COLOR_CARD_TEXT_MID = UIScreenTheme.BattlepassTasks.TEXT_MUTED;
 
     private Integer previousMenuBlur;
+    private final @Nullable Screen parent;
     private Button claimDailyButton;
     private Button claimWeeklyButton;
     private int weeklyScroll;
@@ -64,7 +66,12 @@ public class TaskOverviewScreen extends Screen {
     private int weeklyScrollbarDragOffset;
 
     public TaskOverviewScreen() {
+        this(null);
+    }
+
+    public TaskOverviewScreen(@Nullable Screen parent) {
         super(Component.translatable("screen.incore.tasks.title"));
+        this.parent = parent;
     }
 
     @Override
@@ -95,6 +102,15 @@ public class TaskOverviewScreen extends Screen {
         }
         this.previousMenuBlur = null;
         super.removed();
+    }
+
+    @Override
+    public void onClose() {
+        if (this.parent != null && this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+            return;
+        }
+        super.onClose();
     }
 
     @Override

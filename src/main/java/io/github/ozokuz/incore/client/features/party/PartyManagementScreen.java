@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.List;
@@ -27,11 +28,17 @@ public class PartyManagementScreen extends Screen {
     private static final int SECTION_GAP = 12;
 
     private Integer previousMenuBlur;
+    private final @Nullable Screen parent;
     private long lastSeenCacheVersion = Long.MIN_VALUE;
     private final Set<UUID> sendingInviteTargetIds = new HashSet<>();
 
     public PartyManagementScreen() {
+        this(null);
+    }
+
+    public PartyManagementScreen(@Nullable Screen parent) {
         super(Component.translatable("screen.incore.party.title"));
+        this.parent = parent;
     }
 
     @Override
@@ -208,6 +215,15 @@ public class PartyManagementScreen extends Screen {
         }
         this.previousMenuBlur = null;
         super.removed();
+    }
+
+    @Override
+    public void onClose() {
+        if (this.parent != null && this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+            return;
+        }
+        super.onClose();
     }
 
     @Override

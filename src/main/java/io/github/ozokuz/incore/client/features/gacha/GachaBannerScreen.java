@@ -27,6 +27,7 @@ public class GachaBannerScreen extends Screen {
     private static final UIScreenTheme THEME = UIScreenTheme.OTHER_CONTENT;
     private static final float COST_SCALE = 0.75F;
     private final GachaService.ScreenData data;
+    private final @Nullable Screen parent;
     private final long openedAtMs;
     private int page;
     private String selectedBannerId;
@@ -34,11 +35,25 @@ public class GachaBannerScreen extends Screen {
     private int totalPages;
 
     public GachaBannerScreen(GachaService.ScreenData data) {
+        this(data, null);
+    }
+
+    public GachaBannerScreen(GachaService.ScreenData data, @Nullable Screen parent) {
         super(Component.translatable("screen.incore.gacha_banners.title"));
         this.data = data;
+        this.parent = parent;
         this.openedAtMs = System.currentTimeMillis();
         this.page = 0;
         this.selectedBannerId = data.banners().isEmpty() ? null : data.banners().getFirst().id();
+    }
+
+    @Override
+    public void onClose() {
+        if (this.parent != null && this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+            return;
+        }
+        super.onClose();
     }
 
     @Override

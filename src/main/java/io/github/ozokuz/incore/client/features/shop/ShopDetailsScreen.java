@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 public class ShopDetailsScreen extends Screen implements ShopPayloadUpdatable {
     private static final UIScreenTheme THEME = UIScreenTheme.MARKET_SHOP;
     private final int returnScrollRow;
+    private final @Nullable Screen parent;
 
     private ShopService.ScreenData data;
     private @Nullable String selectedCategoryId;
@@ -30,8 +31,19 @@ public class ShopDetailsScreen extends Screen implements ShopPayloadUpdatable {
             @Nullable String selectedOfferId,
             int returnScrollRow
     ) {
+        this(data, selectedCategoryId, selectedOfferId, returnScrollRow, null);
+    }
+
+    public ShopDetailsScreen(
+            ShopService.ScreenData data,
+            @Nullable String selectedCategoryId,
+            @Nullable String selectedOfferId,
+            int returnScrollRow,
+            @Nullable Screen parent
+    ) {
         super(Component.translatable("screen.incore.shop.details.title"));
         this.data = data;
+        this.parent = parent;
         this.selectedCategoryId = selectedCategoryId;
         this.selectedOfferId = selectedOfferId;
         this.returnScrollRow = Math.max(0, returnScrollRow);
@@ -57,7 +69,7 @@ public class ShopDetailsScreen extends Screen implements ShopPayloadUpdatable {
         clearWidgets();
 
         addRenderableWidget(Button.builder(Component.translatable("screen.incore.shop.back"), button ->
-                        minecraft.setScreen(new ShopSelectionScreen(data, selectedCategoryId, returnScrollRow)))
+                        minecraft.setScreen(new ShopSelectionScreen(data, selectedCategoryId, returnScrollRow, parent)))
                 .bounds(16, 14, 60, 20)
                 .build());
 
@@ -158,7 +170,7 @@ public class ShopDetailsScreen extends Screen implements ShopPayloadUpdatable {
     @Override
     public void onClose() {
         if (minecraft != null) {
-            minecraft.setScreen(new ShopSelectionScreen(data, selectedCategoryId, returnScrollRow));
+            minecraft.setScreen(new ShopSelectionScreen(data, selectedCategoryId, returnScrollRow, parent));
             return;
         }
         super.onClose();

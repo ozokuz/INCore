@@ -28,16 +28,22 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
     private static final int OFFER_ROW_HEIGHT = 24;
 
     private ShopService.ScreenData data;
+    private final @Nullable Screen parent;
     private @Nullable String selectedCategoryId;
     private int offerScrollRow;
 
     public ShopSelectionScreen(String json) {
-        this(ShopScreenDataUtil.parse(json), null, 0);
+        this(ShopScreenDataUtil.parse(json), null, 0, null);
     }
 
     public ShopSelectionScreen(ShopService.ScreenData data, @Nullable String selectedCategoryId, int offerScrollRow) {
+        this(data, selectedCategoryId, offerScrollRow, null);
+    }
+
+    public ShopSelectionScreen(ShopService.ScreenData data, @Nullable String selectedCategoryId, int offerScrollRow, @Nullable Screen parent) {
         super(Component.translatable("screen.incore.shop.title"));
         this.data = data;
+        this.parent = parent;
         this.selectedCategoryId = selectedCategoryId;
         this.offerScrollRow = Math.max(0, offerScrollRow);
         ensureSelection();
@@ -86,7 +92,7 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
 
         ShopService.OfferView offer = clickedOffer(mouseX, mouseY);
         if (offer != null) {
-            minecraft.setScreen(new ShopDetailsScreen(data, selectedCategoryId, offer.offerId(), offerScrollRow));
+            minecraft.setScreen(new ShopDetailsScreen(data, selectedCategoryId, offer.offerId(), offerScrollRow, parent));
             return true;
         }
 
@@ -118,6 +124,15 @@ public class ShopSelectionScreen extends Screen implements ShopPayloadUpdatable 
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void onClose() {
+        if (this.parent != null && this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+            return;
+        }
+        super.onClose();
     }
 
     private void ensureSelection() {

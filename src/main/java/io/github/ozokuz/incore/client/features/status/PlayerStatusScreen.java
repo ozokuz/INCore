@@ -82,7 +82,10 @@ public class PlayerStatusScreen extends Screen {
         if (isFeatureUnlocked(PlayerFeatureUnlockIds.ARENA_TIER_1.toString())) {
             this.combatCatalogButton = this.addRenderableWidget(Button.builder(
                             Component.translatable("screen.incore.player_status.open_combat_catalog"),
-                            button -> ArenaNetworking.requestOpenCatalog()
+                            button -> {
+                                StatusScreenReturnTracker.prepare(this);
+                                ArenaNetworking.requestOpenCatalog();
+                            }
                     ).bounds(buttonX, catalogButtonY, buttonWidth, BUTTON_HEIGHT)
                     .build());
         }
@@ -308,21 +311,27 @@ public class PlayerStatusScreen extends Screen {
                         INCoreKeyMappings.OPEN_GACHA_BANNERS,
                         Registration.GACHA_RIFT_BLOCK_ITEM.get().getDefaultInstance(),
                         PlayerFeatureUnlockIds.GACHA_BASIC.toString(),
-                        GachaNetworking::requestOpenBannerScreen
+                        () -> {
+                            StatusScreenReturnTracker.prepare(this);
+                            GachaNetworking.requestOpenBannerScreen();
+                        }
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.tasks"),
                         INCoreKeyMappings.OPEN_TASK_OVERVIEW,
                         new ItemStack(Items.WRITABLE_BOOK),
                         PlayerFeatureUnlockIds.TASKS_SCREEN.toString(),
-                        () -> this.minecraft.setScreen(new TaskOverviewScreen())
+                        () -> this.minecraft.setScreen(new TaskOverviewScreen(this))
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.research"),
                         INCoreKeyMappings.OPEN_RESEARCH_TREE,
                         Registration.MODULAR_LAB_BLOCK_ITEM.get().getDefaultInstance(),
                         null,
-                        ResearchNetworking::requestOpen
+                        () -> {
+                            StatusScreenReturnTracker.prepare(this);
+                            ResearchNetworking.requestOpen();
+                        }
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.ftb_quests"),
@@ -343,14 +352,20 @@ public class PlayerStatusScreen extends Screen {
                         INCoreKeyMappings.OPEN_MARKET,
                         Registration.MARKET_TERMINAL_BLOCK_ITEM.get().getDefaultInstance(),
                         PlayerFeatureUnlockIds.MARKET_BASIC.toString(),
-                        MarketNetworking::requestOpenMarketScreen
+                        () -> {
+                            StatusScreenReturnTracker.prepare(this);
+                            MarketNetworking.requestOpenMarketScreen();
+                        }
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.shop"),
                         INCoreKeyMappings.OPEN_SHOP,
                         Registration.CARD_BOOSTER_BOX_ITEM.get().getDefaultInstance(),
                         PlayerFeatureUnlockIds.SHOP_SCREEN.toString(),
-                        ShopNetworking::requestOpenShopScreen
+                        () -> {
+                            StatusScreenReturnTracker.prepare(this);
+                            ShopNetworking.requestOpenShopScreen();
+                        }
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.ftb_teams"),
@@ -364,14 +379,17 @@ public class PlayerStatusScreen extends Screen {
                         INCoreKeyMappings.OPEN_NUMISMATICS_BANK,
                         iconOrDefault("numismatics:spur", new ItemStack(Items.GOLD_NUGGET)),
                         null,
-                        NumismaticsNetworking::requestOpenBankScreen
+                        () -> {
+                            StatusScreenReturnTracker.prepareExternal(this);
+                            NumismaticsNetworking.requestOpenBankScreen();
+                        }
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.party"),
                         INCoreKeyMappings.OPEN_PARTY,
                         new ItemStack(Items.PLAYER_HEAD),
                         null,
-                        () -> this.minecraft.setScreen(new PartyManagementScreen())
+                        () -> this.minecraft.setScreen(new PartyManagementScreen(this))
                 )
         ).stream()
                 .filter(Objects::nonNull)

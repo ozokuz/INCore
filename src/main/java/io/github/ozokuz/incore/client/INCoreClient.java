@@ -12,6 +12,7 @@ import io.github.ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import io.github.ozokuz.incore.client.features.party.PartyManagementScreen;
 import io.github.ozokuz.incore.client.features.battlepass.BattlePassScreen;
 import io.github.ozokuz.incore.client.features.status.PlayerStatusScreen;
+import io.github.ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import io.github.ozokuz.incore.client.features.tasks.TaskOverviewScreen;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.client.features.cards.CardDeckStationScreen;
@@ -106,6 +107,7 @@ public class INCoreClient {
             ResearchRecipeLockClientCache.onWorldJoined();
         }
         hadClientPlayer = hasPlayer;
+        StatusScreenReturnTracker.onClientTick(minecraft);
 
         if (!hasPlayer || minecraft.screen != null) {
             return;

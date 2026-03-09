@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.client.features.market;
 
+import io.github.ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import net.minecraft.client.Minecraft;
 
 public final class MarketClientPayloadHandlers {
@@ -12,7 +13,12 @@ public final class MarketClientPayloadHandlers {
             updatable.updatePayload(json);
             return;
         }
-        minecraft.setScreen(new MarketSelectionScreen(json));
+        minecraft.setScreen(new MarketSelectionScreen(
+                MarketScreenDataUtil.parse(json),
+                0,
+                null,
+                StatusScreenReturnTracker.consumePendingParent()
+        ));
     }
 
     public static void syncMarketSnapshot(String json) {
