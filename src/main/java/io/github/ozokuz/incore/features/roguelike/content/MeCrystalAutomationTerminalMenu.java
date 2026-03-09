@@ -21,7 +21,7 @@ public class MeCrystalAutomationTerminalMenu extends AbstractContainerMenu {
         super(Registration.ME_CRYSTAL_AUTOMATION_TERMINAL_MENU.get(), containerId);
         this.hostPos = hostPos;
         this.side = side;
-        this.part = Objects.requireNonNull(part, "part");
+        this.part = part;
         this.access = ContainerLevelAccess.create(inventory.player.level(), hostPos);
     }
 
@@ -39,6 +39,7 @@ public class MeCrystalAutomationTerminalMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
+        // Quick move (shift-click) is intentionally disabled to prevent accidental transfers
         return ItemStack.EMPTY;
     }
 

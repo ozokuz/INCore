@@ -374,23 +374,35 @@ public final class RoguelikeService {
     }
 
     public static void ensureAltarRequirements(MinecraftServer server, UUID ownerId) {
+        if (ownerId == null) {
+            throw new NullPointerException("ownerId must not be null");
+        }
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         ensureAltarRequirement(server, data, ownerId);
     }
 
     public static List<RoguelikeSavedData.AltarRequirement> altarRequirementsForOwner(MinecraftServer server, UUID ownerId) {
+        if (ownerId == null) {
+            throw new NullPointerException("ownerId must not be null");
+        }
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         ensureAltarRequirement(server, data, ownerId);
         return data.altarRequirements(ownerId);
     }
 
     public static boolean isCrystalPlaced(MinecraftServer server, UUID ownerId) {
+        if (ownerId == null) {
+            throw new NullPointerException("ownerId must not be null");
+        }
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         ensureAltarRequirement(server, data, ownerId);
         return data.isCrystalPlaced(ownerId);
     }
 
     public static boolean isAltarComplete(MinecraftServer server, UUID ownerId) {
+        if (ownerId == null) {
+            throw new NullPointerException("ownerId must not be null");
+        }
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         ensureAltarRequirement(server, data, ownerId);
         return data.isAltarComplete(ownerId);

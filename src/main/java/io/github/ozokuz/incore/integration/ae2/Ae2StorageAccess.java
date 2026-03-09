@@ -66,7 +66,7 @@ public final class Ae2StorageAccess {
 
     public static InsertResult insert(@Nullable IGrid grid, @Nullable IActionSource actionSource, ItemStack stack) {
         if (grid == null || actionSource == null || stack.isEmpty()) {
-            return new InsertResult(ItemStack.EMPTY, 0L);
+            return new InsertResult(stack.copy(), 0L);
         }
 
         MEStorage storage = grid.getStorageService().getInventory();

@@ -353,15 +353,13 @@ public class Registration {
             () -> IMenuTypeExtension.create((id, inv, data) -> {
                 var hostPos = data.readBlockPos();
                 var side = net.minecraft.core.Direction.from3DDataValue(data.readByte());
+                var resolvedPart = MeCrystalAutomationTerminalPart.resolve(inv.player.level(), hostPos, side);
                 return new MeCrystalAutomationTerminalMenu(
                         id,
                         inv,
                         hostPos,
                         side,
-                        java.util.Objects.requireNonNull(
-                                MeCrystalAutomationTerminalPart.resolve(inv.player.level(), hostPos, side),
-                                "Missing ME crystal automation terminal part"
-                        )
+                        resolvedPart
                 );
             })
     );

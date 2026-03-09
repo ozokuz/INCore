@@ -99,6 +99,8 @@ public class DungeonAltarAutomatorBlock extends Block implements EntityBlock {
                 ItemStack stack = automator.getItem(DungeonAltarAutomatorBlockEntity.CRYSTAL_SLOT);
                 if (!stack.isEmpty() && !level.isClientSide) {
                     level.addFreshEntity(new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, stack.copy()));
+                    automator.setItem(DungeonAltarAutomatorBlockEntity.CRYSTAL_SLOT, ItemStack.EMPTY);
+                    automator.setChanged();
                 }
             }
         }

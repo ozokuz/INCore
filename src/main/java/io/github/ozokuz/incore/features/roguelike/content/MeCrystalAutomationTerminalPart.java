@@ -298,6 +298,11 @@ public class MeCrystalAutomationTerminalPart extends AbstractDisplayPart impleme
         data.writeVarInt(status);
         data.writeVarInt(requestViews.size());
         for (DungeonAltarAutomatorBlockEntity.RequestView view : requestViews) {
+            if (view.requirement() != null) {
+                data.writeUUID(view.requirement().id());
+            } else {
+                data.writeUUID(java.util.UUID.randomUUID());
+            }
             data.writeResourceLocation(view.itemId());
             data.writeVarInt(view.submitted());
             data.writeVarInt(view.required());
@@ -317,14 +322,25 @@ public class MeCrystalAutomationTerminalPart extends AbstractDisplayPart impleme
         int size = data.readVarInt();
         List<DungeonAltarAutomatorBlockEntity.RequestView> views = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
+            UUID reqId = data.readUUID();
+            ResourceLocation itemId = data.readResourceLocation();
+            int submitted = data.readVarInt();
+            int required = data.readVarInt();
+            int buffered = data.readVarInt();
+            long meAvailable = data.readVarLong();
+            boolean craftable = data.readBoolean();
+            boolean requesting = data.readBoolean();
+            io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData.AltarRequirement req = 
+                new io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData.AltarRequirement(reqId, itemId, required, submitted);
             views.add(new DungeonAltarAutomatorBlockEntity.RequestView(
-                    data.readResourceLocation(),
-                    data.readVarInt(),
-                    data.readVarInt(),
-                    data.readVarInt(),
-                    data.readVarLong(),
-                    data.readBoolean(),
-                    data.readBoolean()
+                    req,
+                    itemId,
+                    submitted,
+                    required,
+                    buffered,
+                    meAvailable,
+                    craftable,
+                    requesting
             ));
         }
         requestViews = List.copyOf(views);
@@ -381,6 +397,9 @@ public class MeCrystalAutomationTerminalPart extends AbstractDisplayPart impleme
         ListTag viewsTag = new ListTag();
         for (DungeonAltarAutomatorBlockEntity.RequestView view : requestViews) {
             CompoundTag row = new CompoundTag();
+            if (view.requirement() != null) {
+                row.putUUID("reqId", view.requirement().id());
+            }
             row.putString("item", view.itemId().toString());
             row.putInt("submitted", view.submitted());
             row.putInt("required", view.required());
@@ -401,7 +420,11 @@ public class MeCrystalAutomationTerminalPart extends AbstractDisplayPart impleme
             if (itemId == null) {
                 continue;
             }
+            io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData.AltarRequirement requirement = row.hasUUID("reqId")
+                ? new io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData.AltarRequirement(row.getUUID("reqId"), itemId, row.getInt("required"), row.getInt("submitted"))
+                : null;
             views.add(new DungeonAltarAutomatorBlockEntity.RequestView(
+                    requirement,
                     itemId,
                     row.getInt("submitted"),
                     row.getInt("required"),
