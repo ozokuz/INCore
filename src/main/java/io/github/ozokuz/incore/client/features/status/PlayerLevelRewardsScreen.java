@@ -180,28 +180,43 @@ public class PlayerLevelRewardsScreen extends Screen {
 
             boolean hovered = mouseX >= rowX && mouseX < rowRight && mouseY >= rowY && mouseY < rowBottom;
             boolean selected = preview.level() == this.selectedLevel;
+            boolean reached = preview.level() <= PlayerLevelClientCache.getLevel();
 
-            int rowFill = selected ? UIScreenTheme.Info.PLR_ROW_FILL_SELECTED : UIScreenTheme.Info.PLR_ROW_FILL_IDLE;
+            int rowFill = selected
+                    ? (reached ? UIScreenTheme.Info.PLR_ROW_FILL_REACHED_SELECTED : UIScreenTheme.Info.PLR_ROW_FILL_SELECTED)
+                    : (reached ? UIScreenTheme.Info.PLR_ROW_FILL_REACHED : UIScreenTheme.Info.PLR_ROW_FILL_IDLE);
             if (hovered && !selected) {
-                rowFill = UIScreenTheme.Info.PLR_ROW_FILL_CLAIMED;
+                rowFill = reached ? UIScreenTheme.Info.PLR_ROW_FILL_REACHED_HOVER : UIScreenTheme.Info.PLR_ROW_FILL_CLAIMED;
             }
             guiGraphics.fill(rowX, rowY, rowRight, rowBottom, rowFill);
 
-            int borderColor = selected ? withAlpha(UIScreenTheme.Info.PLR_ROW_BORDER_SELECTED_GLOW, 140 + Math.round(70 * pulse)) : (hovered ? UIScreenTheme.Info.PLR_ROW_BORDER_HOVER : UIScreenTheme.Info.PLR_ROW_BORDER_IDLE);
+            int borderColor = selected
+                    ? withAlpha(reached ? UIScreenTheme.Info.PLR_ROW_BORDER_REACHED_SELECTED : UIScreenTheme.Info.PLR_ROW_BORDER_SELECTED_GLOW, 140 + Math.round(70 * pulse))
+                    : (hovered ? (reached ? UIScreenTheme.Info.PLR_ROW_BORDER_REACHED_HOVER : UIScreenTheme.Info.PLR_ROW_BORDER_HOVER) : (reached ? UIScreenTheme.Info.PLR_ROW_BORDER_REACHED : UIScreenTheme.Info.PLR_ROW_BORDER_IDLE));
             drawCardOutline(guiGraphics, rowX, rowY, rowRight, rowBottom, borderColor);
 
-            int accent = selected ? UIScreenTheme.Info.PLR_ROW_ACCENT_SELECTED : UIScreenTheme.Info.PLR_ROW_ACCENT_IDLE;
+            int accent = reached
+                    ? (selected ? UIScreenTheme.Info.PLR_ROW_ACCENT_REACHED_SELECTED : UIScreenTheme.Info.PLR_ROW_ACCENT_REACHED)
+                    : (selected ? UIScreenTheme.Info.PLR_ROW_ACCENT_SELECTED : UIScreenTheme.Info.PLR_ROW_ACCENT_IDLE);
             guiGraphics.fill(rowX, rowY, rowX + 3, rowBottom, accent);
 
+            renderSidebarLevelMarker(guiGraphics, preview, rowX + 8, rowY + 5, reached);
+
             Component levelText = Component.translatable("screen.incore.player_level_rewards.sidebar_level", preview.level());
-            guiGraphics.drawString(this.font, levelText, rowX + 8, rowY + 6, selected ? UIScreenTheme.Info.PLR_ROW_TEXT_SELECTED : UIScreenTheme.Info.PLR_ROW_TEXT_IDLE, false);
+            int levelTextColor = reached
+                    ? (selected ? UIScreenTheme.Info.PLR_ROW_TEXT_REACHED_SELECTED : UIScreenTheme.Info.PLR_ROW_TEXT_REACHED)
+                    : (selected ? UIScreenTheme.Info.PLR_ROW_TEXT_SELECTED : UIScreenTheme.Info.PLR_ROW_TEXT_IDLE);
+            guiGraphics.drawString(this.font, levelText, rowX + 30, rowY + 6, levelTextColor, false);
 
             Component xpText = Component.translatable("screen.incore.player_level_rewards.sidebar_xp", preview.requiredExperience());
             int xpWidth = this.font.width(xpText) + 8;
             int xpX = rowRight - xpWidth - 5;
             int xpY = rowY + 5;
-            guiGraphics.fill(xpX, xpY, xpX + xpWidth, xpY + 11, selected ? UIScreenTheme.Info.PLR_XP_PILL_FILL_SELECTED : UIScreenTheme.Info.PLR_XP_PILL_FILL_IDLE);
-            guiGraphics.drawString(this.font, xpText, xpX + 4, xpY + 2, UIScreenTheme.Info.PLR_XP_PILL_TEXT, false);
+            int xpFill = reached
+                    ? (selected ? UIScreenTheme.Info.PLR_XP_PILL_FILL_REACHED_SELECTED : UIScreenTheme.Info.PLR_XP_PILL_FILL_REACHED)
+                    : (selected ? UIScreenTheme.Info.PLR_XP_PILL_FILL_SELECTED : UIScreenTheme.Info.PLR_XP_PILL_FILL_IDLE);
+            guiGraphics.fill(xpX, xpY, xpX + xpWidth, xpY + 11, xpFill);
+            guiGraphics.drawString(this.font, xpText, xpX + 4, xpY + 2, reached ? UIScreenTheme.Info.PLR_XP_PILL_TEXT_REACHED : UIScreenTheme.Info.PLR_XP_PILL_TEXT, false);
         }
 
         drawSidebarScrollbar(guiGraphics, sidebar, ordered.size());
@@ -640,6 +655,29 @@ public class PlayerLevelRewardsScreen extends Screen {
 
         int count = reward.kind() == PlayerLevelSyncPayload.REWARD_KIND_ITEM ? Math.max(1, reward.amount()) : 1;
         return new ItemStack(item, Math.min(99, count));
+    }
+
+    private void renderSidebarLevelMarker(
+            GuiGraphics guiGraphics,
+            PlayerLevelClientCache.RewardPreview preview,
+            int x,
+            int y,
+            boolean reached
+    ) {
+        int boxRight = x + 16;
+        int boxBottom = y + 16;
+        guiGraphics.fill(x - 1, y - 1, boxRight + 1, boxBottom + 1, reached ? UIScreenTheme.Info.PLR_LEVEL_MARKER_BORDER_REACHED : UIScreenTheme.Info.PLR_LEVEL_MARKER_BORDER);
+        guiGraphics.fill(x, y, boxRight, boxBottom, reached ? UIScreenTheme.Info.PLR_LEVEL_MARKER_FILL_REACHED : UIScreenTheme.Info.PLR_LEVEL_MARKER_FILL);
+        if (reached) {
+            guiGraphics.drawCenteredString(this.font, Component.literal("\u2713"), x + 8, y + 4, UIScreenTheme.Info.PLR_LEVEL_MARKER_CHECK);
+            return;
+        }
+
+        PlayerLevelClientCache.RewardEntry majorReward = preview.rewards().isEmpty() ? null : preview.rewards().getFirst();
+        if (majorReward == null) {
+            return;
+        }
+        guiGraphics.renderItem(iconStackFor(majorReward), x, y);
     }
 
     private void renderRewardTooltip(GuiGraphics guiGraphics, PlayerLevelClientCache.RewardEntry reward, ItemStack iconStack, int mouseX, int mouseY) {
