@@ -23,10 +23,12 @@ import io.github.ozokuz.incore.client.features.market.MarketTerminalCardScreen;
 import io.github.ozokuz.incore.client.features.market.MarketTerminalMeCardScreen;
 import io.github.ozokuz.incore.client.features.market.ShipmentTerminalScreen;
 import io.github.ozokuz.incore.features.researchv2.client.CrudeResearchStationScreen;
+import io.github.ozokuz.incore.features.researchv2.client.PowerInputScreen;
 import io.github.ozokuz.incore.features.researchv2.client.AugmenterScreen;
 import io.github.ozokuz.incore.features.researchv2.client.LogicHousingScreen;
 import io.github.ozokuz.incore.features.researchv2.client.MaterialStorageScreen;
 import io.github.ozokuz.incore.features.researchv2.client.OutputPortScreen;
+import io.github.ozokuz.incore.features.researchv2.client.ResearchControllerScreen;
 import io.github.ozokuz.incore.features.researchv2.client.ResearchDriveScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
@@ -93,6 +95,8 @@ public class INCoreClient {
         event.register(Registration.MATERIAL_STORAGE_MENU.get(), MaterialStorageScreen::new);
         event.register(Registration.OUTPUT_PORT_MENU.get(), OutputPortScreen::new);
         event.register(Registration.AUGMENTER_MENU.get(), AugmenterScreen::new);
+        event.register(Registration.RESEARCH_CONTROLLER_MENU.get(), ResearchControllerScreen::new);
+        event.register(Registration.POWER_INPUT_MENU.get(), PowerInputScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {

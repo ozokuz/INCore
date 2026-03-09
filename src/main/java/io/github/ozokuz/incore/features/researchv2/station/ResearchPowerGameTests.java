@@ -12,7 +12,6 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -129,23 +128,10 @@ public final class ResearchPowerGameTests {
         });
     }
 
-    @GameTest(template = "empty", timeoutTicks = 120)
-    public static void buffer_full_does_not_consume_burnables(GameTestHelper helper) {
-        BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.BURNER_POWER_INPUT_BLOCK.get());
-        bindController(helper, station.controllerPos(), "phase6_burner_full");
-        BurnerPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), BurnerPowerInputBlockEntity.class);
-        input.itemHandler().insertItem(0, new ItemStack(Items.COAL, 1), false);
-
-        helper.runAfterDelay(5, () -> {
-            helper.assertValueEqual(1, input.itemHandler().getStackInSlot(0).getCount(), "expected burnables to remain untouched while no research is consuming power");
-            helper.succeed();
-        });
-    }
-
     @GameTest(template = "empty", timeoutTicks = 80)
     public static void mixed_power_family_station_is_invalid(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        helper.setBlock(station.extraPos(), Registration.BURNER_POWER_INPUT_BLOCK.get());
+        helper.setBlock(station.extraPos(), Registration.MECHANICAL_POWER_INPUT_BLOCK.get());
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_mixed_family");
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "station should be invalid when input families are mixed");
@@ -156,13 +142,13 @@ public final class ResearchPowerGameTests {
     public static void station_requires_single_power_input_type(GameTestHelper helper) {
         BuiltStation station = fillCasingShell(helper);
         helper.setBlock(station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get());
-        helper.setBlock(station.inputPos(), Registration.BURNER_POWER_INPUT_BLOCK.get());
+        helper.setBlock(station.inputPos(), Registration.MECHANICAL_POWER_INPUT_BLOCK.get());
         helper.setBlock(station.extraPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_input_type");
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "station should be invalid with mixed power input block types");
 
-        helper.setBlock(station.extraPos(), Registration.BURNER_POWER_INPUT_BLOCK.get());
+        helper.setBlock(station.extraPos(), Registration.MECHANICAL_POWER_INPUT_BLOCK.get());
         controller = bindController(helper, station.controllerPos(), controller.teamId());
         controller.revalidateStructure();
         helper.assertTrue(controller.isFormed(), "station should allow multiple inputs when they are the same block type");

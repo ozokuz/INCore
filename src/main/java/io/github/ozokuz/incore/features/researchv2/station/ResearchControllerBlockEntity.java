@@ -5,18 +5,24 @@ import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-public class ResearchControllerBlockEntity extends BlockEntity {
+public class ResearchControllerBlockEntity extends BlockEntity implements MenuProvider {
     private static final int REVALIDATE_INTERVAL_TICKS = 20;
 
     private String teamId = "";
@@ -359,6 +365,16 @@ public class ResearchControllerBlockEntity extends BlockEntity {
                 endpoints,
                 connectedParts
         );
+    }
+
+    @Override
+    public @NotNull Component getDisplayName() {
+        return getBlockState().getBlock().getName();
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
+        return new ResearchControllerMenu(containerId, playerInventory, worldPosition);
     }
 
     @Override
