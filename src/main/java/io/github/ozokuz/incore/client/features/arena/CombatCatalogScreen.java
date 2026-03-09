@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +24,18 @@ public class CombatCatalogScreen extends Screen {
     private static final int ROW_HEIGHT = 30;
 
     private ArenaService.ScreenData data;
+    private final @Nullable Screen parent;
     private String selectedCategoryId;
     private String selectedEntryId;
 
     public CombatCatalogScreen(String json) {
+        this(json, null);
+    }
+
+    public CombatCatalogScreen(String json, @Nullable Screen parent) {
         super(Component.translatable("screen.incore.arena_catalog.title"));
         this.data = parse(json);
+        this.parent = parent;
     }
 
     public void updatePayload(String json) {
@@ -264,6 +271,15 @@ public class CombatCatalogScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void onClose() {
+        if (this.parent != null && this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+            return;
+        }
+        super.onClose();
     }
 
     private static ArenaService.ScreenData parse(String json) {

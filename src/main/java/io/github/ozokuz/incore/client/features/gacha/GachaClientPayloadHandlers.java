@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.client.features.gacha;
 
 import com.google.gson.Gson;
+import io.github.ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import io.github.ozokuz.incore.features.gacha.GachaService;
 import net.minecraft.client.Minecraft;
 
@@ -17,6 +18,6 @@ public final class GachaClientPayloadHandlers {
         }
 
         Minecraft minecraft = Minecraft.getInstance();
-        minecraft.setScreen(new GachaBannerScreen(data));
+        minecraft.setScreen(new GachaBannerScreen(data, StatusScreenReturnTracker.consumePendingParent()));
     }
 }

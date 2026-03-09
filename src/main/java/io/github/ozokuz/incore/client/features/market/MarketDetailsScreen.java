@@ -23,13 +23,19 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
     private static final ResourceLocation SPUR_ICON_ITEM = ResourceLocation.parse("numismatics:spur");
 
     private MarketService.ScreenData data;
+    private final @Nullable Screen parent;
     private String selectedItemId;
     private int selectionScrollRow;
     private @Nullable String requestedHistoryForItemId;
 
     public MarketDetailsScreen(MarketService.ScreenData data, String selectedItemId, int selectionScrollRow) {
+        this(data, selectedItemId, selectionScrollRow, null);
+    }
+
+    public MarketDetailsScreen(MarketService.ScreenData data, String selectedItemId, int selectionScrollRow, @Nullable Screen parent) {
         super(Component.translatable("screen.incore.market.details.title"));
         this.data = data;
+        this.parent = parent;
         this.selectedItemId = selectedItemId;
         this.selectionScrollRow = Math.max(0, selectionScrollRow);
     }
@@ -66,7 +72,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
         clearWidgets();
 
         addRenderableWidget(Button.builder(Component.translatable("screen.incore.market.back"), button -> {
-                    minecraft.setScreen(new MarketSelectionScreen(data, selectionScrollRow, selectedItemId));
+                    minecraft.setScreen(new MarketSelectionScreen(data, selectionScrollRow, selectedItemId, parent));
                 }).bounds(16, 14, 60, 20)
                 .build());
 
@@ -165,7 +171,7 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
     @Override
     public void onClose() {
         if (minecraft != null) {
-            minecraft.setScreen(new MarketSelectionScreen(data, selectionScrollRow, selectedItemId));
+            minecraft.setScreen(new MarketSelectionScreen(data, selectionScrollRow, selectedItemId, parent));
             return;
         }
         super.onClose();

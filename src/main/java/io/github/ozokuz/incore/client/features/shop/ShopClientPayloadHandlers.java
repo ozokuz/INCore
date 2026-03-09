@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.client.features.shop;
 
+import io.github.ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import net.minecraft.client.Minecraft;
 
 public final class ShopClientPayloadHandlers {
@@ -12,6 +13,11 @@ public final class ShopClientPayloadHandlers {
             updatable.updatePayload(json);
             return;
         }
-        minecraft.setScreen(new ShopSelectionScreen(json));
+        minecraft.setScreen(new ShopSelectionScreen(
+                ShopScreenDataUtil.parse(json),
+                null,
+                0,
+                StatusScreenReturnTracker.consumePendingParent()
+        ));
     }
 }

@@ -79,6 +79,7 @@ public class ResearchTechTreeScreen extends Screen {
     private int treePanY;
     private long refreshTicks;
     private Integer previousMenuBlur;
+    private final @Nullable Screen parent;
 
     private @Nullable String selectedTechId;
     private @Nullable String selectedTaskId;
@@ -107,7 +108,12 @@ public class ResearchTechTreeScreen extends Screen {
     }
 
     public ResearchTechTreeScreen(String json) {
+        this(json, null);
+    }
+
+    public ResearchTechTreeScreen(String json, @Nullable Screen parent) {
         super(Component.translatable("screen.incore.research.title"));
+        this.parent = parent;
         applyPayload(JsonParser.parseString(json).getAsJsonObject());
     }
 
@@ -160,6 +166,15 @@ public class ResearchTechTreeScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void onClose() {
+        if (this.parent != null && this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+            return;
+        }
+        super.onClose();
     }
 
     @Override

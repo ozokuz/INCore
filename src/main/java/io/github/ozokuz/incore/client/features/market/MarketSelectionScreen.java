@@ -34,18 +34,24 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
     private static final ResourceLocation SPUR_ICON_ITEM = ResourceLocation.parse("numismatics:spur");
 
     private MarketService.ScreenData data;
+    private final @Nullable Screen parent;
     private int scrollRow;
     private @Nullable String selectedItemId;
     private boolean draggingScrollbar;
     private double scrollbarDragOffsetY;
 
     public MarketSelectionScreen(String json) {
-        this(MarketScreenDataUtil.parse(json), 0, null);
+        this(MarketScreenDataUtil.parse(json), 0, null, null);
     }
 
     public MarketSelectionScreen(MarketService.ScreenData data, int scrollRow, @Nullable String selectedItemId) {
+        this(data, scrollRow, selectedItemId, null);
+    }
+
+    public MarketSelectionScreen(MarketService.ScreenData data, int scrollRow, @Nullable String selectedItemId, @Nullable Screen parent) {
         super(Component.translatable("screen.incore.market.title"));
         this.data = data;
+        this.parent = parent;
         this.scrollRow = Math.max(0, scrollRow);
         this.selectedItemId = selectedItemId;
     }
@@ -77,6 +83,15 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
     public void removed() {
         MarketNetworking.subscribeMarketView(false, null, null);
         super.removed();
+    }
+
+    @Override
+    public void onClose() {
+        if (this.parent != null && this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+            return;
+        }
+        super.onClose();
     }
 
     @Override
@@ -129,7 +144,7 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 if (mouseX >= tileX && mouseX < tileX + TILE_WIDTH && mouseY >= tileY && mouseY < tileY + TILE_HEIGHT) {
                     MarketService.ItemView item = ordered.get(index);
                     selectedItemId = item.itemId();
-                    minecraft.setScreen(new MarketDetailsScreen(data, item.itemId(), scrollRow));
+                    minecraft.setScreen(new MarketDetailsScreen(data, item.itemId(), scrollRow, parent));
                     ResourceLocation selectedResourceId = MarketScreenDataUtil.parseItemId(item.itemId());
                     if (selectedResourceId != null) {
                         requestItemDetails(selectedResourceId);

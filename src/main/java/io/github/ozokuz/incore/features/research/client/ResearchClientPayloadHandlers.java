@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.research.client;
 
+import io.github.ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import net.minecraft.client.Minecraft;
 
 public final class ResearchClientPayloadHandlers {
@@ -12,6 +13,6 @@ public final class ResearchClientPayloadHandlers {
             screen.updatePayload(json);
             return;
         }
-        minecraft.setScreen(new ResearchTechTreeScreen(json));
+        minecraft.setScreen(new ResearchTechTreeScreen(json, StatusScreenReturnTracker.consumePendingParent()));
     }
 }
