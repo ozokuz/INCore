@@ -8,6 +8,7 @@ public final class PlayerFeatureUnlockIds {
     public static final ResourceLocation ARENA_TIER_1 = id("arena_tier_1");
     public static final ResourceLocation SHOP_SCREEN = id("shop_screen");
     public static final ResourceLocation SHOP_BASIC_SUPPLIES = id("shop_basic_supplies");
+    public static final ResourceLocation TASKS_SCREEN = id("tasks_screen");
     public static final ResourceLocation MARKET_BASIC = id("market_basic");
     public static final ResourceLocation BATTLEPASS_LANE_NORTHIUM_ACCESS = id("battlepass_lane_northium_access");
     public static final ResourceLocation SHOP_DAILY_EXCHANGE = id("shop_daily_exchange");

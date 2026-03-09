@@ -122,7 +122,9 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_TASK_OVERVIEW.consumeClick()) {
-            minecraft.setScreen(new TaskOverviewScreen());
+            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.TASKS_SCREEN)) {
+                minecraft.setScreen(new TaskOverviewScreen());
+            }
         }
 
         while (INCoreKeyMappings.OPEN_BATTLE_PASS.consumeClick()) {

@@ -1,0 +1,6 @@
+{
+  "id": "incore:tasks_screen",
+  "required_level": 5,
+  "icon_item": "minecraft:writable_book",
+  "display_name": "Tasks"
+}

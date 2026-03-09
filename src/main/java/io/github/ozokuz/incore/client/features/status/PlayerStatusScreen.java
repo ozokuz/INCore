@@ -32,6 +32,7 @@ import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class PlayerStatusScreen extends Screen {
     private static final UIScreenTheme THEME = UIScreenTheme.INFO;
@@ -77,12 +78,14 @@ public class PlayerStatusScreen extends Screen {
                 .build());
 
         int catalogButtonY = layout.entropyY() + layout.entropyHeight() - BUTTON_HEIGHT - 8;
-        this.combatCatalogButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("screen.incore.player_status.open_combat_catalog"),
-                        button -> ArenaNetworking.requestOpenCatalog()
-                ).bounds(buttonX, catalogButtonY, buttonWidth, BUTTON_HEIGHT)
-                .build());
-        this.combatCatalogButton.active = isFeatureUnlocked(PlayerFeatureUnlockIds.ARENA_TIER_1.toString());
+        this.combatCatalogButton = null;
+        if (isFeatureUnlocked(PlayerFeatureUnlockIds.ARENA_TIER_1.toString())) {
+            this.combatCatalogButton = this.addRenderableWidget(Button.builder(
+                            Component.translatable("screen.incore.player_status.open_combat_catalog"),
+                            button -> ArenaNetworking.requestOpenCatalog()
+                    ).bounds(buttonX, catalogButtonY, buttonWidth, BUTTON_HEIGHT)
+                    .build());
+        }
 
         addQuickNavButtons(layout);
         PlayerStatusNetworking.requestCurrencySync();
@@ -152,25 +155,7 @@ public class PlayerStatusScreen extends Screen {
             lines.add(hovered.label());
             lines.add(Component.translatable("screen.incore.player_status.quick_nav_key", hovered.keyMapping().getTranslatedKeyMessage())
                     .withStyle(ChatFormatting.GRAY));
-            if (hovered.featureId() != null && !hovered.button().active) {
-                lines.add(lockedFeatureLine(hovered.featureId()).withStyle(ChatFormatting.RED));
-            }
             guiGraphics.renderComponentTooltip(this.font, lines, mouseX, mouseY);
-        } else if (this.combatCatalogButton != null
-                && mouseX >= this.combatCatalogButton.getX()
-                && mouseX < this.combatCatalogButton.getX() + this.combatCatalogButton.getWidth()
-                && mouseY >= this.combatCatalogButton.getY()
-                && mouseY < this.combatCatalogButton.getY() + this.combatCatalogButton.getHeight()
-                && !this.combatCatalogButton.active) {
-            guiGraphics.renderComponentTooltip(
-                    this.font,
-                    List.of(
-                            Component.translatable("screen.incore.player_status.open_combat_catalog"),
-                            lockedFeatureLine(PlayerFeatureUnlockIds.ARENA_TIER_1.toString()).withStyle(ChatFormatting.RED)
-                    ),
-                    mouseX,
-                    mouseY
-            );
         }
     }
 
@@ -327,7 +312,7 @@ public class PlayerStatusScreen extends Screen {
                         Component.translatable("screen.incore.player_status.nav.tasks"),
                         INCoreKeyMappings.OPEN_TASK_OVERVIEW,
                         new ItemStack(Items.WRITABLE_BOOK),
-                        null,
+                        PlayerFeatureUnlockIds.TASKS_SCREEN.toString(),
                         () -> this.minecraft.setScreen(new TaskOverviewScreen())
                 ),
                 new QuickNavTarget(
@@ -365,18 +350,14 @@ public class PlayerStatusScreen extends Screen {
                         null,
                         () -> this.minecraft.setScreen(new PartyManagementScreen())
                 )
-        );
+        ).stream()
+                .filter(Objects::nonNull)
+                .filter(target -> target.featureId() == null || isFeatureUnlocked(target.featureId()))
+                .toList();
     }
 
     private boolean isFeatureUnlocked(String featureId) {
         return PlayerLevelClientCache.isFeatureUnlocked(featureId);
-    }
-
-    private MutableComponent lockedFeatureLine(String featureId) {
-        return Component.translatable(
-                "screen.incore.player_status.feature_locked",
-                PlayerLevelClientCache.getFeatureRequiredLevel(featureId)
-        );
     }
 
     private static ItemStack iconFromId(String itemIdString) {
