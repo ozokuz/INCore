@@ -10,6 +10,7 @@ import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
+import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
@@ -24,7 +25,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -153,8 +153,10 @@ public class PlayerStatusScreen extends Screen {
         if (hovered != null) {
             List<Component> lines = new ArrayList<>();
             lines.add(hovered.label());
-            lines.add(Component.translatable("screen.incore.player_status.quick_nav_key", hovered.keyMapping().getTranslatedKeyMessage())
-                    .withStyle(ChatFormatting.GRAY));
+            if (hovered.keyMapping() != null) {
+                lines.add(Component.translatable("screen.incore.player_status.quick_nav_key", hovered.keyMapping().getTranslatedKeyMessage())
+                        .withStyle(ChatFormatting.GRAY));
+            }
             guiGraphics.renderComponentTooltip(this.font, lines, mouseX, mouseY);
         }
     }
@@ -323,6 +325,13 @@ public class PlayerStatusScreen extends Screen {
                         ResearchNetworking::requestOpen
                 ),
                 new QuickNavTarget(
+                        Component.translatable("screen.incore.player_status.nav.ftb_quests"),
+                        null,
+                        new ItemStack(Items.BOOK),
+                        null,
+                        this::openFtbQuests
+                ),
+                new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.battle_pass"),
                         INCoreKeyMappings.OPEN_BATTLE_PASS,
                         Registration.BATTLEPASS_LANE_UNLOCK_ITEM.get().getDefaultInstance(),
@@ -342,6 +351,20 @@ public class PlayerStatusScreen extends Screen {
                         Registration.CARD_BOOSTER_BOX_ITEM.get().getDefaultInstance(),
                         PlayerFeatureUnlockIds.SHOP_SCREEN.toString(),
                         ShopNetworking::requestOpenShopScreen
+                ),
+                new QuickNavTarget(
+                        Component.translatable("screen.incore.player_status.nav.ftb_teams"),
+                        null,
+                        new ItemStack(Items.NAME_TAG),
+                        null,
+                        this::openFtbTeams
+                ),
+                new QuickNavTarget(
+                        Component.translatable("screen.incore.player_status.nav.numismatics_bank"),
+                        INCoreKeyMappings.OPEN_NUMISMATICS_BANK,
+                        iconOrDefault("numismatics:spur", new ItemStack(Items.GOLD_NUGGET)),
+                        null,
+                        NumismaticsNetworking::requestOpenBankScreen
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.party"),
@@ -372,6 +395,26 @@ public class PlayerStatusScreen extends Screen {
 
         Item item = BuiltInRegistries.ITEM.get(itemId);
         return item == Items.AIR ? ItemStack.EMPTY : item.getDefaultInstance();
+    }
+
+    private static ItemStack iconOrDefault(String itemIdString, ItemStack fallback) {
+        ItemStack stack = iconFromId(itemIdString);
+        return stack.isEmpty() ? fallback : stack;
+    }
+
+    private void openFtbQuests() {
+        invokeStaticNoArgs("dev.ftb.mods.ftbquests.client.FTBQuestsClient", "openGui");
+    }
+
+    private void openFtbTeams() {
+        invokeStaticNoArgs("dev.ftb.mods.ftbteams.net.OpenGUIMessage", "sendToServer");
+    }
+
+    private void invokeStaticNoArgs(String className, String methodName) {
+        try {
+            Class.forName(className).getMethod(methodName).invoke(null);
+        } catch (ReflectiveOperationException ignored) {
+        }
     }
 
     private void renderCostLine(GuiGraphics guiGraphics, int x, int y, CostRenderLine line) {
