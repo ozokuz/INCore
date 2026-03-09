@@ -112,6 +112,12 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
                 ? Component.translatable("screen.incore.market.mode.terminal")
                 : Component.translatable("screen.incore.market.mode.read_only");
         guiGraphics.drawString(font, mode, 84, 20, data.canTrade() ? UIScreenTheme.MarketShop.MODE_ACTIVE_TEXT : UIScreenTheme.MarketShop.MODE_WARNING_TEXT, false);
+        if (data.ae2Linked()) {
+            Component ae2Status = data.ae2Online()
+                    ? Component.translatable("screen.incore.market.ae2.online")
+                    : Component.translatable("screen.incore.market.ae2.offline");
+            guiGraphics.drawString(font, ae2Status, 210, 20, data.ae2Online() ? UIScreenTheme.MarketShop.TEXT_POSITIVE : UIScreenTheme.MarketShop.TEXT_NEGATIVE, false);
+        }
         renderBalancePanel(guiGraphics, 200, 14, width - 16, 32);
 
         MarketService.ItemView selected = selectedItem();
@@ -129,7 +135,9 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
         guiGraphics.drawString(font, Component.translatable("screen.incore.market.current_price", selected.currentPriceSpur()), 42, 62, UIScreenTheme.MarketShop.TEXT_ACCENT, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.market.base_price", selected.basePriceSpur()), 42, 74, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
         guiGraphics.drawString(font, Component.translatable("screen.incore.market.demand", String.format("%.3f", selected.demandIndex())), 42, 86, UIScreenTheme.MarketShop.TEXT_NEUTRAL, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.market.owned", selected.inventoryCount()), 42, 98, UIScreenTheme.MarketShop.TEXT_MUTED, false);
+        String ownershipKey = data.ae2Linked() ? "screen.incore.market.available" : "screen.incore.market.owned";
+        int shownCount = data.ae2Linked() ? selected.availableCount() : selected.inventoryCount();
+        guiGraphics.drawString(font, Component.translatable(ownershipKey, shownCount), 42, 98, UIScreenTheme.MarketShop.TEXT_MUTED, false);
 
         double change = selected.dayChangePercent();
         int changeColor = change > 0D ? UIScreenTheme.MarketShop.TEXT_POSITIVE : (change < 0D ? UIScreenTheme.MarketShop.TEXT_NEGATIVE : UIScreenTheme.MarketShop.TEXT_NEUTRAL);

@@ -1,6 +1,8 @@
 package io.github.ozokuz.incore.client.compat.jade;
 
 import io.github.ozokuz.incore.INCore;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalMeBlock;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalMeBlockEntity;
 import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlock;
 import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlockEntity;
 import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMk2Block;
@@ -14,9 +16,12 @@ import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabTier;
 import io.github.ozokuz.incore.features.research.MechanicalLabBlock;
 import io.github.ozokuz.incore.features.research.ModularLabBlock;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarAutomatorBlock;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarAutomatorBlockEntity;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreSpotBlock;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreSpotBlockEntity;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneSpotBlock;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -39,8 +44,10 @@ public class INCoreJadePlugin implements IWailaPlugin {
     private static final ModularProvider MODULAR_PROVIDER = new ModularProvider();
     private static final MarketAutoTraderProvider MARKET_AUTOTRADER_PROVIDER = new MarketAutoTraderProvider();
     private static final MarketAutoTraderMk2Provider MARKET_AUTOTRADER_MK2_PROVIDER = new MarketAutoTraderMk2Provider();
+    private static final MarketTerminalMeProvider MARKET_TERMINAL_ME_PROVIDER = new MarketTerminalMeProvider();
     private static final ShipmentTerminalProvider SHIPMENT_TERMINAL_PROVIDER = new ShipmentTerminalProvider();
     private static final ShipmentTerminalMk2Provider SHIPMENT_TERMINAL_MK2_PROVIDER = new ShipmentTerminalMk2Provider();
+    private static final DungeonAltarAutomatorProvider DUNGEON_ALTAR_AUTOMATOR_PROVIDER = new DungeonAltarAutomatorProvider();
     private static final SurfaceOreSpotProvider SURFACE_ORE_SPOT_PROVIDER = new SurfaceOreSpotProvider();
     private static final SurfaceStoneSpotProvider SURFACE_STONE_SPOT_PROVIDER = new SurfaceStoneSpotProvider();
 
@@ -51,8 +58,10 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(MODULAR_PROVIDER, LabBlockEntity.class);
         registration.registerBlockDataProvider(MARKET_AUTOTRADER_PROVIDER, MarketAutoTraderBlockEntity.class);
         registration.registerBlockDataProvider(MARKET_AUTOTRADER_MK2_PROVIDER, MarketAutoTraderMk2BlockEntity.class);
+        registration.registerBlockDataProvider(MARKET_TERMINAL_ME_PROVIDER, MarketTerminalMeBlockEntity.class);
         registration.registerBlockDataProvider(SHIPMENT_TERMINAL_PROVIDER, ShipmentTerminalBlockEntity.class);
         registration.registerBlockDataProvider(SHIPMENT_TERMINAL_MK2_PROVIDER, ShipmentTerminalMk2BlockEntity.class);
+        registration.registerBlockDataProvider(DUNGEON_ALTAR_AUTOMATOR_PROVIDER, DungeonAltarAutomatorBlockEntity.class);
         registration.registerBlockDataProvider(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlockEntity.class);
     }
 
@@ -63,8 +72,10 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(MODULAR_PROVIDER, ModularLabBlock.class);
         registration.registerBlockComponent(MARKET_AUTOTRADER_PROVIDER, MarketAutoTraderBlock.class);
         registration.registerBlockComponent(MARKET_AUTOTRADER_MK2_PROVIDER, MarketAutoTraderMk2Block.class);
+        registration.registerBlockComponent(MARKET_TERMINAL_ME_PROVIDER, MarketTerminalMeBlock.class);
         registration.registerBlockComponent(SHIPMENT_TERMINAL_PROVIDER, ShipmentTerminalBlock.class);
         registration.registerBlockComponent(SHIPMENT_TERMINAL_MK2_PROVIDER, ShipmentTerminalMk2Block.class);
+        registration.registerBlockComponent(DUNGEON_ALTAR_AUTOMATOR_PROVIDER, DungeonAltarAutomatorBlock.class);
         registration.registerBlockComponent(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlock.class);
         registration.registerBlockComponent(SURFACE_STONE_SPOT_PROVIDER, SurfaceStoneSpotBlock.class);
     }
@@ -426,6 +437,79 @@ public class INCoreJadePlugin implements IWailaPlugin {
         }
     }
 
+    private static class MarketTerminalMeProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "market_terminal_me");
+
+        @Override
+        public ResourceLocation getUid() {
+            return uid;
+        }
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof MarketTerminalMeBlockEntity terminal)) {
+                return;
+            }
+            data.putBoolean("has_card", !terminal.cardStack().isEmpty());
+            data.putBoolean("ae2_linked", terminal.ae2Linked());
+            data.putBoolean("ae2_online", terminal.ae2Online());
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (data.isEmpty()) {
+                return;
+            }
+            Component cardText = data.getBoolean("has_card")
+                    ? Component.translatable("jade.incore.market_terminal.card.inserted")
+                    : Component.translatable("jade.incore.market_terminal.card.missing");
+            tooltip.add(Component.translatable("jade.incore.market_terminal.card", cardText));
+            tooltip.add(Component.translatable("jade.incore.market_terminal.me", marketTerminalMeStatusText(data.getBoolean("ae2_linked"), data.getBoolean("ae2_online"))));
+        }
+    }
+
+    private static class DungeonAltarAutomatorProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "dungeon_altar_automator");
+
+        @Override
+        public ResourceLocation getUid() {
+            return uid;
+        }
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof DungeonAltarAutomatorBlockEntity automator)) {
+                return;
+            }
+            data.putInt("status", automator.statusForDisplay());
+            data.putBoolean("ae2_linked", automator.ae2Linked());
+            data.putBoolean("ae2_online", automator.ae2Online());
+            data.putBoolean("crystal_loaded", !automator.getItem(DungeonAltarAutomatorBlockEntity.CRYSTAL_SLOT).isEmpty());
+            if (automator.boundAltarPos() != null) {
+                data.putLong("bound_altar", automator.boundAltarPos().asLong());
+            }
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (data.isEmpty()) {
+                return;
+            }
+            tooltip.add(Component.translatable("jade.incore.automator.status", automatorStatusText(data.getInt("status"))));
+            tooltip.add(Component.translatable("jade.incore.automator.me", marketTerminalMeStatusText(data.getBoolean("ae2_linked"), data.getBoolean("ae2_online"))));
+            Component crystalText = data.getBoolean("crystal_loaded")
+                    ? Component.translatable("jade.incore.automator.crystal.loaded")
+                    : Component.translatable("jade.incore.automator.crystal.empty");
+            tooltip.add(Component.translatable("jade.incore.automator.crystal", crystalText));
+            Component bindingText = data.contains("bound_altar")
+                    ? Component.literal(posText(BlockPos.of(data.getLong("bound_altar"))))
+                    : Component.translatable("jade.incore.automator.binding.none");
+            tooltip.add(Component.translatable("jade.incore.automator.binding", bindingText));
+        }
+    }
+
     private static class SurfaceOreSpotProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
         private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "surface_ore_spot");
 
@@ -509,6 +593,30 @@ public class INCoreJadePlugin implements IWailaPlugin {
             case MarketAutoTraderBlockEntity.STATUS_NO_POWER -> Component.translatable("screen.incore.market.autotrader.status.no_power");
             default -> Component.translatable("screen.incore.market.autotrader.status.ready");
         };
+    }
+
+    private static Component marketTerminalMeStatusText(boolean linked, boolean online) {
+        if (!linked) {
+            return Component.translatable("screen.incore.market.ae2.unlinked");
+        }
+        return online
+                ? Component.translatable("screen.incore.market.ae2.online")
+                : Component.translatable("screen.incore.market.ae2.offline");
+    }
+
+    private static Component automatorStatusText(int status) {
+        return switch (status) {
+            case DungeonAltarAutomatorBlockEntity.STATUS_AE2_OFFLINE -> Component.translatable("incore.roguelike.automator.status.ae2_offline");
+            case DungeonAltarAutomatorBlockEntity.STATUS_NO_CRYSTAL -> Component.translatable("incore.roguelike.automator.status.no_crystal");
+            case DungeonAltarAutomatorBlockEntity.STATUS_REQUESTING -> Component.translatable("incore.roguelike.automator.status.requesting");
+            case DungeonAltarAutomatorBlockEntity.STATUS_ALTAR_COMPLETE -> Component.translatable("incore.roguelike.automator.status.altar_complete");
+            case DungeonAltarAutomatorBlockEntity.STATUS_AWAITING_ITEMS -> Component.translatable("incore.roguelike.automator.status.awaiting_items");
+            default -> Component.translatable("incore.roguelike.automator.status.no_altar_above");
+        };
+    }
+
+    private static String posText(BlockPos pos) {
+        return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
     }
 
     private static String humanizeName(String serializedName) {

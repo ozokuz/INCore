@@ -198,6 +198,12 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 ? Component.translatable("screen.incore.market.mode.terminal")
                 : Component.translatable("screen.incore.market.mode.read_only");
         guiGraphics.drawString(font, mode, PANEL_X, 16, data.canTrade() ? UIScreenTheme.MarketShop.MODE_ACTIVE_TEXT : UIScreenTheme.MarketShop.MODE_WARNING_TEXT, false);
+        if (data.ae2Linked()) {
+            Component ae2Status = data.ae2Online()
+                    ? Component.translatable("screen.incore.market.ae2.online")
+                    : Component.translatable("screen.incore.market.ae2.offline");
+            guiGraphics.drawString(font, ae2Status, PANEL_X + 116, 16, data.ae2Online() ? UIScreenTheme.MarketShop.TEXT_POSITIVE : UIScreenTheme.MarketShop.TEXT_NEGATIVE, false);
+        }
         renderBalancePanel(guiGraphics, width - 200, 14, width - 16, 32);
 
         drawPanel(guiGraphics, PANEL_X - 2, PANEL_Y - 2, panelWidth() + 4, panelHeight() + 4, UIScreenTheme.MarketShop.OUTER_PANEL_FILL, UIScreenTheme.MarketShop.OUTER_PANEL_BORDER);
@@ -229,8 +235,8 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 drawPanel(guiGraphics, tileX, tileY, TILE_WIDTH, TILE_HEIGHT, fillColor, borderColor);
 
                 renderItemIcon(guiGraphics, item.itemId(), tileX + 4, tileY + 4);
-                if (item.inventoryCount() > 0) {
-                    String countText = "x" + item.inventoryCount();
+                if (item.availableCount() > 0) {
+                    String countText = "x" + item.availableCount();
                     guiGraphics.drawString(font, countText, tileX + 4, tileY + 20, UIScreenTheme.MarketShop.TEXT_MUTED, false);
                 }
 

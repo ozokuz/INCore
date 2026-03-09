@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore;
 
+import appeng.api.AECapabilities;
 import io.github.ozokuz.incore.data.ICBlockStateProvider;
 import io.github.ozokuz.incore.data.ICItemModelProvider;
 import io.github.ozokuz.incore.features.arena.data.ArenaCatalogManager;
@@ -27,6 +28,7 @@ import io.github.ozokuz.incore.features.market.MarketItemManager;
 import io.github.ozokuz.incore.features.market.MarketEvents;
 import io.github.ozokuz.incore.features.market.command.MarketCommands;
 import io.github.ozokuz.incore.features.market.content.MarketMachineCapabilities;
+import io.github.ozokuz.incore.features.market.content.MarketTerminalMeBlockEntity;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockManager;
 import io.github.ozokuz.incore.features.playerlevel.PlayerLevelRewardManager;
@@ -48,6 +50,7 @@ import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonSocketManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeManager;
 import io.github.ozokuz.incore.features.roguelike.network.RoguelikeNetworking;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarAutomatorBlockEntity;
 import io.github.ozokuz.incore.features.entropy.command.EntropyCommands;
 import io.github.ozokuz.incore.features.entropy.network.EntropyNetworking;
 import io.github.ozokuz.incore.features.shop.ShopCategoryManager;
@@ -152,6 +155,21 @@ public class INCore {
                     }
                     return lab.labTier() == LabTier.MODULAR ? lab.energyStorage() : null;
                 }
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.DUNGEON_ALTAR_AUTOMATOR_BE.get(),
+                (be, side) -> be.itemHandler()
+        );
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                Registration.MARKET_TERMINAL_ME_BE.get(),
+                (be, context) -> be
+        );
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                Registration.DUNGEON_ALTAR_AUTOMATOR_BE.get(),
+                (be, context) -> be
         );
     }
 

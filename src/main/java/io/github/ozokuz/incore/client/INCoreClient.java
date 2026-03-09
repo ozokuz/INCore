@@ -4,6 +4,7 @@ import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.client.features.roguelike.DungeonAltarRenderer;
 import io.github.ozokuz.incore.client.features.roguelike.DungeonCrystalModificationStationScreen;
+import io.github.ozokuz.incore.client.features.roguelike.MeCrystalAutomationTerminalScreen;
 import io.github.ozokuz.incore.client.features.roguelike.RoguelikePortalRenderer;
 import io.github.ozokuz.incore.client.features.roguelike.RoguelikeMinimapHudFeature;
 import io.github.ozokuz.incore.client.features.party.PartyHudFeature;
@@ -19,6 +20,7 @@ import io.github.ozokuz.incore.client.features.cards.CardDeckStationScreen;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.client.features.market.MarketAutoTraderScreen;
 import io.github.ozokuz.incore.client.features.market.MarketTerminalCardScreen;
+import io.github.ozokuz.incore.client.features.market.MarketTerminalMeCardScreen;
 import io.github.ozokuz.incore.client.features.market.ShipmentTerminalScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
@@ -83,9 +85,11 @@ public class INCoreClient {
         event.register(Registration.DECK_STATION_MENU.get(), CardDeckStationScreen::new);
         event.register(Registration.RESEARCH_LAB_MENU.get(), LabScreen::new);
         event.register(Registration.MARKET_TERMINAL_CARD_MENU.get(), MarketTerminalCardScreen::new);
+        event.register(Registration.MARKET_TERMINAL_ME_CARD_MENU.get(), MarketTerminalMeCardScreen::new);
         event.register(Registration.SHIPMENT_TERMINAL_MENU.get(), ShipmentTerminalScreen::new);
         event.register(Registration.MARKET_AUTOTRADER_MENU.get(), MarketAutoTraderScreen::new);
         event.register(Registration.DUNGEON_CRYSTAL_MODIFICATION_STATION_MENU.get(), DungeonCrystalModificationStationScreen::new);
+        event.register(Registration.ME_CRYSTAL_AUTOMATION_TERMINAL_MENU.get(), MeCrystalAutomationTerminalScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
