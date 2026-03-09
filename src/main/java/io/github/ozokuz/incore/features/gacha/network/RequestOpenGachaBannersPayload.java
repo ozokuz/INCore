@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.gacha.network;
 
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -28,6 +30,10 @@ public record RequestOpenGachaBannersPayload(boolean request) implements CustomP
             }
 
             if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, PlayerFeatureUnlockIds.GACHA_BASIC)) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.GACHA_BASIC));
                 return;
             }
 

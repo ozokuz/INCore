@@ -4,6 +4,8 @@ import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
 import com.simibubi.create.content.equipment.wrench.WrenchItem;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -95,6 +97,10 @@ public class MarketAutoTraderBlock extends HorizontalKineticBlock implements Ent
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.CONSUME;
         }
+        if (!PlayerFeatureUnlockService.hasUnlocked(serverPlayer, requiredUnlock())) {
+            player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(requiredUnlock()));
+            return InteractionResult.FAIL;
+        }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MarketAutoTraderBlockEntity autoTrader) {
@@ -129,6 +135,10 @@ public class MarketAutoTraderBlock extends HorizontalKineticBlock implements Ent
         if (!(blockEntity instanceof MarketAutoTraderBlockEntity autoTrader)) {
             return ItemInteractionResult.CONSUME;
         }
+        if (player instanceof ServerPlayer serverPlayer && !PlayerFeatureUnlockService.hasUnlocked(serverPlayer, requiredUnlock())) {
+            player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(requiredUnlock()));
+            return ItemInteractionResult.FAIL;
+        }
 
         if (player instanceof ServerPlayer serverPlayer) {
             if (!autoTrader.canAccess(player)) {
@@ -138,5 +148,9 @@ public class MarketAutoTraderBlock extends HorizontalKineticBlock implements Ent
             serverPlayer.openMenu(autoTrader, pos);
         }
         return ItemInteractionResult.CONSUME;
+    }
+
+    protected net.minecraft.resources.ResourceLocation requiredUnlock() {
+        return PlayerFeatureUnlockIds.MARKET_AUTOTRADER;
     }
 }

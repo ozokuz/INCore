@@ -666,6 +666,11 @@ public class PlayerLevelRewardsScreen extends Screen {
             lines.add(Component.translatable("screen.incore.player_level_rewards.tooltip_command", reward.text()).withStyle(ChatFormatting.GRAY));
             return lines;
         }
+        if (reward.kind() == PlayerLevelSyncPayload.REWARD_KIND_FEATURE_UNLOCK) {
+            lines.add(Component.translatable("screen.incore.player_level_rewards.tooltip_feature_unlock_title"));
+            lines.add(Component.translatable("screen.incore.player_level_rewards.tooltip_feature_unlock", reward.text(), reward.amount()).withStyle(ChatFormatting.GRAY));
+            return lines;
+        }
 
         lines.add(Component.translatable("screen.incore.player_level_rewards.tooltip_other_title"));
         lines.add(Component.literal(reward.text()).withStyle(ChatFormatting.GRAY));
@@ -676,6 +681,7 @@ public class PlayerLevelRewardsScreen extends Screen {
         return switch (kind) {
             case PlayerLevelSyncPayload.REWARD_KIND_ENTROPY_CAP -> UIScreenTheme.Info.PLR_REWARD_ENTROPY_FILL;
             case PlayerLevelSyncPayload.REWARD_KIND_COMMAND -> UIScreenTheme.Info.PLR_REWARD_COMMAND_FILL;
+            case PlayerLevelSyncPayload.REWARD_KIND_FEATURE_UNLOCK -> UIScreenTheme.Info.PLR_REWARD_FEATURE_FILL;
             default -> UIScreenTheme.Info.PLR_REWARD_DEFAULT_FILL;
         };
     }

@@ -1,5 +1,9 @@
 package io.github.ozokuz.incore.features.arena.network;
 
+import io.github.ozokuz.incore.features.arena.ArenaService;
+import io.github.ozokuz.incore.features.arena.data.ArenaCatalogEntry;
+import io.github.ozokuz.incore.features.arena.data.ArenaCatalogManager;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -29,6 +33,15 @@ public record StartArenaRunPayload(String entryId) implements CustomPacketPayloa
 
             ResourceLocation entryId = ResourceLocation.tryParse(payload.entryId());
             if (entryId == null) {
+                return;
+            }
+            ArenaCatalogEntry entry = ArenaCatalogManager.get(entryId);
+            if (entry == null) {
+                return;
+            }
+            ResourceLocation requiredUnlock = ArenaService.requiredUnlockForGateway(entry.gatewayId());
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, requiredUnlock)) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(requiredUnlock));
                 return;
             }
 

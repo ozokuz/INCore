@@ -111,7 +111,8 @@ public class CombatCatalogScreen extends Screen {
                 ).bounds(this.width - categoryWidth - 12, this.height - 34, categoryWidth, 20)
                 .build());
 
-        startButton.active = selectedEntryId != null;
+        ArenaService.ScreenEntry selectedEntry = selectedEntry();
+        startButton.active = selectedEntryId != null && selectedEntry != null && !selectedEntry.locked();
 
         this.addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> this.onClose())
                 .bounds(16, this.height - 34, 80, 20)
@@ -200,7 +201,20 @@ public class CombatCatalogScreen extends Screen {
             int fill = selected ? UIScreenTheme.OtherContent.CATALOG_ROW_SELECTED_FILL : UIScreenTheme.OtherContent.CATALOG_ROW_FILL;
             guiGraphics.fill(entryLeft + 1, y + 1, entryLeft + entryWidth - 1, y + ROW_HEIGHT - 3, fill);
             themed(guiGraphics).drawBorder(entryLeft, y, entryLeft + entryWidth, y + ROW_HEIGHT - 2, border);
-            guiGraphics.drawString(this.font, Component.literal(entry.difficultyName()), entryLeft + 8, y + 10, selected ? UIScreenTheme.OtherContent.GACHA_TEXT_SELECTED : UIScreenTheme.OtherContent.CATALOG_TEXT_PRIMARY, false);
+            int textColor = entry.locked()
+                    ? UIScreenTheme.OtherContent.CATALOG_TEXT_META
+                    : (selected ? UIScreenTheme.OtherContent.GACHA_TEXT_SELECTED : UIScreenTheme.OtherContent.CATALOG_TEXT_PRIMARY);
+            guiGraphics.drawString(this.font, Component.literal(entry.difficultyName()), entryLeft + 8, y + 6, textColor, false);
+            if (entry.locked()) {
+                guiGraphics.drawString(
+                        this.font,
+                        Component.translatable("screen.incore.arena_catalog.locked", entry.requiredLevel()),
+                        entryLeft + 8,
+                        y + 16,
+                        UIScreenTheme.OtherContent.CATALOG_TEXT_WARNING,
+                        false
+                );
+            }
         }
 
         ArenaService.ScreenEntry selected = selectedEntry();
@@ -217,6 +231,17 @@ public class CombatCatalogScreen extends Screen {
         y += 12;
         guiGraphics.drawString(this.font, Component.literal(selected.difficultyName()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_META, false);
         y += 12;
+        if (selected.locked()) {
+            guiGraphics.drawString(
+                    this.font,
+                    Component.translatable("screen.incore.arena_catalog.locked_details", selected.requiredLevel()),
+                    detailsX,
+                    y,
+                    UIScreenTheme.OtherContent.CATALOG_TEXT_WARNING,
+                    false
+            );
+            y += 12;
+        }
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.gateway", selected.gatewayId()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_META, false);
         y += 12;
         guiGraphics.drawString(this.font, Component.translatable("screen.incore.arena_catalog.entropy", selected.rewardEntropyCost()), detailsX, y, UIScreenTheme.OtherContent.CATALOG_TEXT_WARNING, false);

@@ -1,6 +1,8 @@
 package io.github.ozokuz.incore.features.battlepass.network;
 
 import io.github.ozokuz.incore.features.battlepass.BattlePassProgressManager;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -31,6 +33,10 @@ public record ClaimBattlePassRewardsPayload(boolean request) implements CustomPa
             }
 
             if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, PlayerFeatureUnlockIds.BATTLEPASS_SCREEN)) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.BATTLEPASS_SCREEN).withStyle(ChatFormatting.RED));
                 return;
             }
 

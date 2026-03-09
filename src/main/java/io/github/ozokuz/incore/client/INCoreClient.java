@@ -21,6 +21,8 @@ import io.github.ozokuz.incore.client.features.market.MarketTerminalCardScreen;
 import io.github.ozokuz.incore.client.features.market.ShipmentTerminalScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.research.ManualResearchTaskManager;
 import io.github.ozokuz.incore.features.research.ResearchEntryManager;
 import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
@@ -30,6 +32,8 @@ import io.github.ozokuz.incore.features.research.client.ResearchRecipeLockClient
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -112,7 +116,9 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_GACHA_BANNERS.consumeClick()) {
-            GachaNetworking.requestOpenBannerScreen();
+            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.GACHA_BASIC)) {
+                GachaNetworking.requestOpenBannerScreen();
+            }
         }
 
         while (INCoreKeyMappings.OPEN_TASK_OVERVIEW.consumeClick()) {
@@ -120,7 +126,9 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_BATTLE_PASS.consumeClick()) {
-            minecraft.setScreen(new BattlePassScreen(null));
+            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.BATTLEPASS_SCREEN)) {
+                minecraft.setScreen(new BattlePassScreen(null));
+            }
         }
 
         while (INCoreKeyMappings.OPEN_RESEARCH_TREE.consumeClick()) {
@@ -128,7 +136,9 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_COMBAT_CATALOG.consumeClick()) {
-            ArenaNetworking.requestOpenCatalog();
+            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.ARENA_TIER_1)) {
+                ArenaNetworking.requestOpenCatalog();
+            }
         }
 
         while (INCoreKeyMappings.OPEN_NUMISMATICS_BANK.consumeClick()) {
@@ -136,15 +146,38 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_MARKET.consumeClick()) {
-            MarketNetworking.requestOpenMarketScreen();
+            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.MARKET_BASIC)) {
+                MarketNetworking.requestOpenMarketScreen();
+            }
         }
 
         while (INCoreKeyMappings.OPEN_SHOP.consumeClick()) {
-            ShopNetworking.requestOpenShopScreen();
+            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.SHOP_SCREEN)) {
+                ShopNetworking.requestOpenShopScreen();
+            }
         }
 
         while (INCoreKeyMappings.OPEN_PARTY.consumeClick()) {
             minecraft.setScreen(new PartyManagementScreen());
         }
+    }
+
+    private static boolean ensureFeatureUnlocked(Minecraft minecraft, ResourceLocation featureId) {
+        String rawId = featureId.toString();
+        if (PlayerLevelClientCache.isFeatureUnlocked(rawId)) {
+            return true;
+        }
+
+        if (minecraft.player != null) {
+            minecraft.player.displayClientMessage(
+                    Component.translatable(
+                            "incore.progression.locked_feature",
+                            PlayerLevelClientCache.getFeatureDisplayName(rawId),
+                            PlayerLevelClientCache.getFeatureRequiredLevel(rawId)
+                    ),
+                    true
+            );
+        }
+        return false;
     }
 }

@@ -1,0 +1,6 @@
+{
+  "id": "incore:gacha_basic",
+  "required_level": 2,
+  "icon_item": "incore:gacha_rift",
+  "display_name": "Gacha Banners"
+}

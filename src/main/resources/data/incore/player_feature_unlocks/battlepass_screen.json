@@ -1,0 +1,6 @@
+{
+  "id": "incore:battlepass_screen",
+  "required_level": 1,
+  "icon_item": "incore:battlepass_lane_unlock",
+  "display_name": "Battle Pass"
+}

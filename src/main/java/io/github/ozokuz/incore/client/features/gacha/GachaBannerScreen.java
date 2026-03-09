@@ -115,10 +115,10 @@ public class GachaBannerScreen extends Screen {
                 })
                 .bounds(buyX, exitY, buyWidth, 20)
                 .build();
-        pullButton.active = !basicGuaranteeBlocked;
+        pullButton.active = !basicGuaranteeBlocked && (selectedBanner == null || !selectedBanner.locked());
         this.addRenderableWidget(pullButton);
 
-        if (basicGuaranteeBlocked && selectedBanner != null) {
+        if (basicGuaranteeBlocked && selectedBanner != null && !selectedBanner.locked()) {
             int selectorWidth = 136;
             int selectorX = infoX - 6 - selectorWidth;
             this.addRenderableWidget(Button.builder(
@@ -191,6 +191,15 @@ public class GachaBannerScreen extends Screen {
             String remainingLabel = renderRemainingLabel(banner);
             if (!remainingLabel.isEmpty()) {
                 guiGraphics.drawString(this.font, Component.literal(remainingLabel), textX, y + 15, UIScreenTheme.OtherContent.GACHA_TEXT_SECONDARY, false);
+            } else if (banner.locked()) {
+                guiGraphics.drawString(
+                        this.font,
+                        Component.translatable("screen.incore.gacha_banners.locked", banner.requiredLevel()),
+                        textX,
+                        y + 15,
+                        UIScreenTheme.OtherContent.GACHA_ERROR_TEXT,
+                        false
+                );
             }
         }
 
@@ -207,14 +216,23 @@ public class GachaBannerScreen extends Screen {
         }
 
         guiGraphics.drawString(this.font, Component.literal(selected.name()), mainLeft + 10, mainTop + 8, UIScreenTheme.OtherContent.GACHA_TEXT_PRIMARY);
+        if (selected.locked()) {
+            guiGraphics.drawString(
+                    this.font,
+                    Component.translatable("screen.incore.gacha_banners.locked", selected.requiredLevel()),
+                    mainLeft + 10,
+                    mainTop + 20,
+                    UIScreenTheme.OtherContent.GACHA_ERROR_TEXT
+            );
+        }
         guiGraphics.drawString(
                 this.font,
                 Component.translatable("screen.incore.gacha_banners.type." + selected.type()),
                 mainLeft + 10,
-                mainTop + 20,
+                mainTop + (selected.locked() ? 32 : 20),
                 "basic".equals(selected.type()) ? UIScreenTheme.OtherContent.GACHA_BANNER_TYPE_BASIC_TEXT : UIScreenTheme.OtherContent.GACHA_BANNER_TYPE_LIMITED_TEXT
         );
-        int infoY = mainTop + 32;
+        int infoY = mainTop + (selected.locked() ? 44 : 32);
         guiGraphics.drawString(
                 this.font,
                 Component.translatable("screen.incore.gacha_banners.pity", selected.pityFive(), 40, selected.pitySix(), 80),

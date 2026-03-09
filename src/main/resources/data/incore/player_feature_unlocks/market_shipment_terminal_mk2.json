@@ -1,0 +1,6 @@
+{
+  "id": "incore:market_shipment_terminal_mk2",
+  "required_level": 10,
+  "icon_item": "incore:shipment_terminal_mk2",
+  "display_name": "Shipment Terminal MK2"
+}

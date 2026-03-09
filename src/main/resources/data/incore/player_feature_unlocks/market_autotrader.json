@@ -1,0 +1,6 @@
+{
+  "id": "incore:market_autotrader",
+  "required_level": 9,
+  "icon_item": "incore:market_autotrader",
+  "display_name": "Market Auto-Trader"
+}

@@ -1,6 +1,8 @@
 package io.github.ozokuz.incore.features.shop.network;
 
 import com.google.gson.Gson;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.github.ozokuz.incore.features.shop.ShopService;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -54,6 +56,10 @@ public final class ShopNetworking {
     }
 
     static void handleOpenRequest(ServerPlayer player, RequestOpenShopScreenPayload payload) {
+        if (!PlayerFeatureUnlockService.hasUnlocked(player, PlayerFeatureUnlockIds.SHOP_SCREEN)) {
+            player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.SHOP_SCREEN));
+            return;
+        }
         ShopService.openShopScreen(
                 player,
                 parseOptional(payload.selectedCategoryId()),

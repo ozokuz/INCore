@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_screen",
+  "required_level": 4,
+  "icon_item": "incore:card_booster_box",
+  "display_name": "Shop"
+}

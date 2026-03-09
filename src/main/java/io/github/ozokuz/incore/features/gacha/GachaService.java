@@ -5,6 +5,8 @@ import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import io.github.ozokuz.incore.features.gacha.GachaBannerData.BannerType;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,6 +23,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public final class GachaService {
+    private static final ResourceLocation CHARTERED_CATEGORY_ID = ResourceLocation.parse("incore:chartered");
+    private static final ResourceLocation EXPEDITION_CATEGORY_ID = ResourceLocation.parse("incore:expedition");
     public static final int PULLS_PER_CRATE = 10;
     public static final int FIVE_STAR_PITY_THRESHOLD = 40;
     public static final int SIX_STAR_PITY_THRESHOLD = 80;
@@ -491,6 +495,8 @@ public final class GachaService {
 
     private static BannerView toBannerView(ServerPlayer player, GachaBannerData banner) {
         GachaPityManager.PityState pityState = getNormalizedPityState(player, banner, true);
+        ResourceLocation requiredUnlock = requiredUnlockForBanner(banner);
+        boolean locked = !PlayerFeatureUnlockService.hasUnlocked(player, requiredUnlock);
         List<RewardView> rewards = banner.rewards().stream()
                 .sorted(
                         Comparator.comparingInt(GachaRewardEntry::rarity).reversed()
@@ -521,10 +527,30 @@ public final class GachaService {
                 pityState.basicSelectedSixProgress(),
                 eventFeaturedEligible,
                 banner.bannerType() == BannerType.BASIC && pityState.basicSelectedSixProgress() >= BASIC_SELECTED_SIX_THRESHOLD,
+                locked,
+                PlayerFeatureUnlockService.requiredLevel(requiredUnlock),
                 basicSelectableSix,
                 banner.resolvedFeaturedItems().stream().map(ResourceLocation::toString).toList(),
                 rewards
         );
+    }
+
+    public static ResourceLocation requiredUnlockForBanner(GachaBannerData banner) {
+        if (banner.bannerType() == BannerType.BASIC) {
+            return PlayerFeatureUnlockIds.GACHA_BASIC;
+        }
+        if (isBannerInCategory(banner.id(), CHARTERED_CATEGORY_ID)) {
+            return PlayerFeatureUnlockIds.GACHA_CHARTERED;
+        }
+        if (isBannerInCategory(banner.id(), EXPEDITION_CATEGORY_ID)) {
+            return PlayerFeatureUnlockIds.GACHA_EXPEDITION;
+        }
+        return PlayerFeatureUnlockIds.GACHA_CHARTERED;
+    }
+
+    private static boolean isBannerInCategory(ResourceLocation bannerId, ResourceLocation categoryId) {
+        GachaEventCategoryData category = GachaEventCategoryManager.get(categoryId);
+        return category != null && category.bannerOrder().contains(bannerId);
     }
 
     private static List<ResourceLocation> collectSixStarItemIds(GachaBannerData banner) {
@@ -579,6 +605,8 @@ public final class GachaService {
             int basicSelectedSixPity,
             boolean eventFeaturedPityEnabled,
             boolean basicGuaranteeBlocked,
+            boolean locked,
+            int requiredLevel,
             List<String> basicSelectableSixItems,
             List<String> featuredItems,
             List<RewardView> rewards

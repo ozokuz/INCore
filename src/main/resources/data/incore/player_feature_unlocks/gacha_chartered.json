@@ -1,0 +1,6 @@
+{
+  "id": "incore:gacha_chartered",
+  "required_level": 7,
+  "icon_item": "incore:chartered_time_piece",
+  "display_name": "Chartered Banners"
+}

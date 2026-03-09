@@ -14,11 +14,13 @@ public record PlayerLevelSyncPayload(
         int level,
         int currentExperience,
         int experienceToNextLevel,
+        List<FeatureStateEntry> featureStates,
         List<RewardPreviewEntry> rewardPreviews
 ) implements CustomPacketPayload {
     public static final int REWARD_KIND_ITEM = 0;
     public static final int REWARD_KIND_ENTROPY_CAP = 1;
     public static final int REWARD_KIND_COMMAND = 2;
+    public static final int REWARD_KIND_FEATURE_UNLOCK = 3;
 
     public static final Type<PlayerLevelSyncPayload> TYPE = new Type<>(ResourceLocation.parse("incore:player_level_sync"));
     public static final StreamCodec<ByteBuf, PlayerLevelSyncPayload> STREAM_CODEC = new StreamCodec<>() {
@@ -28,6 +30,16 @@ public record PlayerLevelSyncPayload(
             int level = buf.readVarInt();
             int currentExperience = buf.readVarInt();
             int experienceToNextLevel = buf.readVarInt();
+            int featureCount = buf.readVarInt();
+            List<FeatureStateEntry> featureStates = new ArrayList<>(featureCount);
+            for (int i = 0; i < featureCount; i++) {
+                featureStates.add(new FeatureStateEntry(
+                        buf.readUtf(256),
+                        buf.readVarInt(),
+                        buf.readBoolean(),
+                        buf.readUtf(256)
+                ));
+            }
             int previewCount = buf.readVarInt();
             List<RewardPreviewEntry> previews = new ArrayList<>(previewCount);
 
@@ -46,7 +58,7 @@ public record PlayerLevelSyncPayload(
                 previews.add(new RewardPreviewEntry(previewLevel, requiredExperience, rewards));
             }
 
-            return new PlayerLevelSyncPayload(level, currentExperience, experienceToNextLevel, previews);
+            return new PlayerLevelSyncPayload(level, currentExperience, experienceToNextLevel, featureStates, previews);
         }
 
         @Override
@@ -55,6 +67,13 @@ public record PlayerLevelSyncPayload(
             buf.writeVarInt(payload.level());
             buf.writeVarInt(payload.currentExperience());
             buf.writeVarInt(payload.experienceToNextLevel());
+            buf.writeVarInt(payload.featureStates().size());
+            for (FeatureStateEntry featureState : payload.featureStates()) {
+                buf.writeUtf(featureState.id(), 256);
+                buf.writeVarInt(featureState.requiredLevel());
+                buf.writeBoolean(featureState.unlocked());
+                buf.writeUtf(featureState.displayName(), 256);
+            }
             buf.writeVarInt(payload.rewardPreviews().size());
 
             for (RewardPreviewEntry preview : payload.rewardPreviews()) {
@@ -81,6 +100,14 @@ public record PlayerLevelSyncPayload(
                 payload.level(),
                 payload.currentExperience(),
                 payload.experienceToNextLevel(),
+                payload.featureStates().stream()
+                        .map(feature -> new PlayerLevelClientCache.FeatureState(
+                                feature.id(),
+                                feature.requiredLevel(),
+                                feature.unlocked(),
+                                feature.displayName()
+                        ))
+                        .toList(),
                 payload.rewardPreviews().stream()
                         .map(preview -> new PlayerLevelClientCache.RewardPreview(
                                 preview.level(),
@@ -96,6 +123,9 @@ public record PlayerLevelSyncPayload(
                         ))
                         .toList()
         ));
+    }
+
+    public record FeatureStateEntry(String id, int requiredLevel, boolean unlocked, String displayName) {
     }
 
     public record RewardPreviewEntry(int level, int requiredExperience, List<RewardEntry> rewards) {

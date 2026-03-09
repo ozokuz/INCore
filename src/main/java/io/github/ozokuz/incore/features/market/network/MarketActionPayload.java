@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.market.network;
 
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -34,6 +36,10 @@ public record MarketActionPayload(int action, long terminalPos, String itemId, i
     public static void handle(MarketActionPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, PlayerFeatureUnlockIds.MARKET_BASIC)) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.MARKET_BASIC));
                 return;
             }
             MarketNetworking.handleAction(player, payload);

@@ -10,6 +10,7 @@ import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.entropy.EntropyClientCache;
@@ -23,6 +24,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -45,6 +47,7 @@ public class PlayerStatusScreen extends Screen {
 
     private Integer previousMenuBlur;
     private final List<QuickNavButton> quickNavButtons = new ArrayList<>();
+    private Button combatCatalogButton;
 
     public PlayerStatusScreen() {
         super(Component.translatable("screen.incore.player_status.title"));
@@ -74,11 +77,12 @@ public class PlayerStatusScreen extends Screen {
                 .build());
 
         int catalogButtonY = layout.entropyY() + layout.entropyHeight() - BUTTON_HEIGHT - 8;
-        this.addRenderableWidget(Button.builder(
+        this.combatCatalogButton = this.addRenderableWidget(Button.builder(
                         Component.translatable("screen.incore.player_status.open_combat_catalog"),
                         button -> ArenaNetworking.requestOpenCatalog()
                 ).bounds(buttonX, catalogButtonY, buttonWidth, BUTTON_HEIGHT)
                 .build());
+        this.combatCatalogButton.active = isFeatureUnlocked(PlayerFeatureUnlockIds.ARENA_TIER_1.toString());
 
         addQuickNavButtons(layout);
         PlayerStatusNetworking.requestCurrencySync();
@@ -144,12 +148,25 @@ public class PlayerStatusScreen extends Screen {
         }
 
         if (hovered != null) {
+            List<Component> lines = new ArrayList<>();
+            lines.add(hovered.label());
+            lines.add(Component.translatable("screen.incore.player_status.quick_nav_key", hovered.keyMapping().getTranslatedKeyMessage())
+                    .withStyle(ChatFormatting.GRAY));
+            if (hovered.featureId() != null && !hovered.button().active) {
+                lines.add(lockedFeatureLine(hovered.featureId()).withStyle(ChatFormatting.RED));
+            }
+            guiGraphics.renderComponentTooltip(this.font, lines, mouseX, mouseY);
+        } else if (this.combatCatalogButton != null
+                && mouseX >= this.combatCatalogButton.getX()
+                && mouseX < this.combatCatalogButton.getX() + this.combatCatalogButton.getWidth()
+                && mouseY >= this.combatCatalogButton.getY()
+                && mouseY < this.combatCatalogButton.getY() + this.combatCatalogButton.getHeight()
+                && !this.combatCatalogButton.active) {
             guiGraphics.renderComponentTooltip(
                     this.font,
                     List.of(
-                            hovered.label(),
-                            Component.translatable("screen.incore.player_status.quick_nav_key", hovered.keyMapping().getTranslatedKeyMessage())
-                                    .withStyle(ChatFormatting.GRAY)
+                            Component.translatable("screen.incore.player_status.open_combat_catalog"),
+                            lockedFeatureLine(PlayerFeatureUnlockIds.ARENA_TIER_1.toString()).withStyle(ChatFormatting.RED)
                     ),
                     mouseX,
                     mouseY
@@ -290,7 +307,10 @@ public class PlayerStatusScreen extends Screen {
             Button button = this.addRenderableWidget(Button.builder(Component.empty(), ignored -> target.action().run())
                     .bounds(x, y, buttonWidth, QUICK_NAV_BUTTON_HEIGHT)
                     .build());
-            this.quickNavButtons.add(new QuickNavButton(button, target.icon(), target.label(), target.keyMapping()));
+            if (target.featureId() != null) {
+                button.active = isFeatureUnlocked(target.featureId());
+            }
+            this.quickNavButtons.add(new QuickNavButton(button, target.icon(), target.label(), target.keyMapping(), target.featureId()));
         }
     }
 
@@ -300,44 +320,62 @@ public class PlayerStatusScreen extends Screen {
                         Component.translatable("screen.incore.player_status.nav.gacha"),
                         INCoreKeyMappings.OPEN_GACHA_BANNERS,
                         Registration.GACHA_RIFT_BLOCK_ITEM.get().getDefaultInstance(),
+                        PlayerFeatureUnlockIds.GACHA_BASIC.toString(),
                         GachaNetworking::requestOpenBannerScreen
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.tasks"),
                         INCoreKeyMappings.OPEN_TASK_OVERVIEW,
                         new ItemStack(Items.WRITABLE_BOOK),
+                        null,
                         () -> this.minecraft.setScreen(new TaskOverviewScreen())
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.research"),
                         INCoreKeyMappings.OPEN_RESEARCH_TREE,
                         Registration.MODULAR_LAB_BLOCK_ITEM.get().getDefaultInstance(),
+                        null,
                         ResearchNetworking::requestOpen
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.battle_pass"),
                         INCoreKeyMappings.OPEN_BATTLE_PASS,
                         Registration.BATTLEPASS_LANE_UNLOCK_ITEM.get().getDefaultInstance(),
+                        PlayerFeatureUnlockIds.BATTLEPASS_SCREEN.toString(),
                         () -> this.minecraft.setScreen(new BattlePassScreen(this))
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.market"),
                         INCoreKeyMappings.OPEN_MARKET,
                         Registration.MARKET_TERMINAL_BLOCK_ITEM.get().getDefaultInstance(),
+                        PlayerFeatureUnlockIds.MARKET_BASIC.toString(),
                         MarketNetworking::requestOpenMarketScreen
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.shop"),
                         INCoreKeyMappings.OPEN_SHOP,
                         Registration.CARD_BOOSTER_BOX_ITEM.get().getDefaultInstance(),
+                        PlayerFeatureUnlockIds.SHOP_SCREEN.toString(),
                         ShopNetworking::requestOpenShopScreen
                 ),
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.party"),
                         INCoreKeyMappings.OPEN_PARTY,
                         new ItemStack(Items.PLAYER_HEAD),
+                        null,
                         () -> this.minecraft.setScreen(new PartyManagementScreen())
                 )
+        );
+    }
+
+    private boolean isFeatureUnlocked(String featureId) {
+        return PlayerLevelClientCache.isFeatureUnlocked(featureId);
+    }
+
+    private MutableComponent lockedFeatureLine(String featureId) {
+        return Component.translatable(
+                "screen.incore.player_status.feature_locked",
+                PlayerLevelClientCache.getFeatureRequiredLevel(featureId)
         );
     }
 
@@ -473,10 +511,10 @@ public class PlayerStatusScreen extends Screen {
     private record CostRenderLine(ItemStack stack, String text, int color) {
     }
 
-    private record QuickNavTarget(Component label, KeyMapping keyMapping, ItemStack icon, Runnable action) {
+    private record QuickNavTarget(Component label, KeyMapping keyMapping, ItemStack icon, String featureId, Runnable action) {
     }
 
-    private record QuickNavButton(Button button, ItemStack icon, Component label, KeyMapping keyMapping) {
+    private record QuickNavButton(Button button, ItemStack icon, Component label, KeyMapping keyMapping, String featureId) {
     }
 
     private record Layout(

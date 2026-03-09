@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.arena.network;
 
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,6 +26,10 @@ public record RequestOpenArenaCatalogPayload(boolean request) implements CustomP
     public static void handle(RequestOpenArenaCatalogPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!payload.request() || !(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            if (!PlayerFeatureUnlockService.hasUnlocked(player, PlayerFeatureUnlockIds.ARENA_TIER_1)) {
+                player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.ARENA_TIER_1));
                 return;
             }
 

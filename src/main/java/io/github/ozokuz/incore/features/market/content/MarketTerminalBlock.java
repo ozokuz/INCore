@@ -2,6 +2,8 @@ package io.github.ozokuz.incore.features.market.content;
 
 import com.mojang.serialization.MapCodec;
 import io.github.ozokuz.incore.features.market.MarketService;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -70,6 +72,10 @@ public class MarketTerminalBlock extends BaseEntityBlock {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.CONSUME;
         }
+        if (!PlayerFeatureUnlockService.hasUnlocked(serverPlayer, PlayerFeatureUnlockIds.MARKET_BASIC)) {
+            player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.MARKET_BASIC));
+            return InteractionResult.FAIL;
+        }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MarketTerminalBlockEntity terminal) {
@@ -102,6 +108,10 @@ public class MarketTerminalBlock extends BaseEntityBlock {
 
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return ItemInteractionResult.CONSUME;
+        }
+        if (!PlayerFeatureUnlockService.hasUnlocked(serverPlayer, PlayerFeatureUnlockIds.MARKET_BASIC)) {
+            player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(PlayerFeatureUnlockIds.MARKET_BASIC));
+            return ItemInteractionResult.FAIL;
         }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);

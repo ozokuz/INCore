@@ -27,6 +27,7 @@ public final class PlayerLevelManager {
         data.putInt(KEY_LEVEL, level);
         data.putInt(KEY_EXPERIENCE, clampedExperience);
         data.putInt(KEY_HIGHEST_REWARDED_LEVEL, highestRewarded);
+        PlayerFeatureUnlockService.reconcileUpToLevel(player, level);
     }
 
     public static int getLevel(ServerPlayer player) {
@@ -68,6 +69,8 @@ public final class PlayerLevelManager {
             int highestRewarded = data.getInt(KEY_HIGHEST_REWARDED_LEVEL);
             data.putInt(KEY_HIGHEST_REWARDED_LEVEL, Math.max(highestRewarded, nextLevel));
         }
+
+        PlayerFeatureUnlockService.reconcileUpToLevel(player, nextLevel);
     }
 
     public static void addLevels(ServerPlayer player, int delta, boolean grantRewards) {
@@ -129,6 +132,8 @@ public final class PlayerLevelManager {
         if (oldData.contains(KEY_HIGHEST_REWARDED_LEVEL)) {
             newData.putInt(KEY_HIGHEST_REWARDED_LEVEL, oldData.getInt(KEY_HIGHEST_REWARDED_LEVEL));
         }
+
+        PlayerFeatureUnlockService.copyData(from, to);
     }
 
     private static void addPositiveExperience(ServerPlayer player, int amount) {
@@ -157,6 +162,8 @@ public final class PlayerLevelManager {
         if (level > oldLevel) {
             grantRewardsUpTo(player, oldLevel + 1, level);
         }
+
+        PlayerFeatureUnlockService.reconcileUpToLevel(player, level);
     }
 
     private static void removeExperience(ServerPlayer player, int amount) {

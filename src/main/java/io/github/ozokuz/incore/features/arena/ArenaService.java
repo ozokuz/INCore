@@ -9,6 +9,8 @@ import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateData;
 import io.github.ozokuz.incore.features.arena.data.ArenaCatalogEntry;
 import io.github.ozokuz.incore.features.arena.data.ArenaCatalogManager;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import io.github.ozokuz.incore.features.arena.state.ArenaSavedData;
 import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
@@ -41,7 +43,7 @@ public final class ArenaService {
             return;
         }
 
-        ArenaNetworking.openCatalog(player, GSON.toJson(toScreenData(entries)));
+        ArenaNetworking.openCatalog(player, GSON.toJson(toScreenData(player, entries)));
     }
 
     public static void startRun(ServerPlayer player, ResourceLocation entryId) {
@@ -52,6 +54,11 @@ public final class ArenaService {
         ArenaCatalogEntry entry = ArenaCatalogManager.get(entryId);
         if (entry == null) {
             player.sendSystemMessage(Component.translatable("incore.arena.catalog.entry_missing", entryId.toString()));
+            return;
+        }
+        ResourceLocation requiredUnlock = requiredUnlockForGateway(entry.gatewayId());
+        if (!PlayerFeatureUnlockService.hasUnlocked(player, requiredUnlock)) {
+            player.sendSystemMessage(PlayerFeatureUnlockService.lockedMessage(requiredUnlock));
             return;
         }
 
@@ -307,7 +314,7 @@ public final class ArenaService {
         player.teleportTo(level, pos.getX() + 0.5D, pos.getY() + 0.1D, pos.getZ() + 0.5D, player.getYRot(), player.getXRot());
     }
 
-    private static ScreenData toScreenData(List<ArenaCatalogEntry> entries) {
+    private static ScreenData toScreenData(ServerPlayer player, List<ArenaCatalogEntry> entries) {
         Map<String, String> categoryNames = new LinkedHashMap<>();
         for (ArenaCatalogEntry entry : entries) {
             categoryNames.putIfAbsent(entry.categoryId(), entry.categoryName());
@@ -320,6 +327,8 @@ public final class ArenaService {
                 entry.difficultyId(),
                 entry.difficultyName(),
                 entry.gatewayId().toString(),
+                !PlayerFeatureUnlockService.hasUnlocked(player, requiredUnlockForGateway(entry.gatewayId())),
+                PlayerFeatureUnlockService.requiredLevel(requiredUnlockForGateway(entry.gatewayId())),
                 entry.rewardEntropyCost(),
                 entry.rewardItems().stream()
                         .map(stack -> new RewardView(stack.itemId().toString(), stack.count()))
@@ -331,6 +340,17 @@ public final class ArenaService {
                 categoryNames.entrySet().stream().map(e -> new CategoryView(e.getKey(), e.getValue())).toList(),
                 screenEntries
         );
+    }
+
+    public static ResourceLocation requiredUnlockForGateway(ResourceLocation gatewayId) {
+        return switch (gatewayId.toString()) {
+            case "incore:arena_tier_1" -> PlayerFeatureUnlockIds.ARENA_TIER_1;
+            case "incore:arena_tier_2" -> PlayerFeatureUnlockIds.ARENA_TIER_2;
+            case "incore:arena_tier_3" -> PlayerFeatureUnlockIds.ARENA_TIER_3;
+            case "incore:arena_tier_4" -> PlayerFeatureUnlockIds.ARENA_TIER_4;
+            case "incore:arena_tier_5" -> PlayerFeatureUnlockIds.ARENA_TIER_5;
+            default -> PlayerFeatureUnlockIds.ARENA_TIER_1;
+        };
     }
 
     private static void buildArena(ServerLevel level, BlockPos origin) {
@@ -440,6 +460,8 @@ public final class ArenaService {
             String difficultyId,
             String difficultyName,
             String gatewayId,
+            boolean locked,
+            int requiredLevel,
             int rewardEntropyCost,
             List<RewardView> rewardItems,
             String rewardSummary
