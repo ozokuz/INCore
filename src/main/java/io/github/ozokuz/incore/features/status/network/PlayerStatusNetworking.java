@@ -15,7 +15,7 @@ public final class PlayerStatusNetworking {
     }
 
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1");
+        PayloadRegistrar registrar = event.registrar("2");
         registrar.playToClient(
                 PlayerStatusCurrencySyncPayload.TYPE,
                 PlayerStatusCurrencySyncPayload.STREAM_CODEC,

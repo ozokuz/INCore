@@ -821,7 +821,7 @@ public class RoguelikeSavedData extends SavedData {
         public static ObjectiveResolution fromString(String raw) {
             try {
                 return ObjectiveResolution.valueOf(raw);
-            } catch (Exception ignored) {
+            } catch (IllegalArgumentException ignored) {
                 return ACTIVE;
             }
         }

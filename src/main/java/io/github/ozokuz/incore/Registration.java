@@ -92,6 +92,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -108,6 +109,7 @@ import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 import com.mojang.serialization.Codec;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class Registration {
@@ -482,8 +484,13 @@ public class Registration {
                 output.accept(DUNGEON_CRYSTAL_ITEM.get());
                 output.accept(DUNGEON_COMPLETION_CRATE_ITEM.get());
                 output.accept(DUNGEON_SCAVENGER_TOKEN_ITEM.get());
-                output.accept(LOCKED_RECOVERY_STRONGBOX_BLOCK_ITEM.get());
-                output.accept(RECOVERY_STRONGBOX_KEY_ITEM.get());
+                ItemStack debugRecoveryStrongbox = LOCKED_RECOVERY_STRONGBOX_BLOCK_ITEM.get().getDefaultInstance();
+                ItemStack debugRecoveryKey = RECOVERY_STRONGBOX_KEY_ITEM.get().getDefaultInstance();
+                String debugRecoveryId = UUID.fromString("00000000-0000-0000-0000-000000000001").toString();
+                debugRecoveryStrongbox.set(RECOVERY_STRONGBOX_ID.get(), debugRecoveryId);
+                debugRecoveryKey.set(RECOVERY_STRONGBOX_ID.get(), debugRecoveryId);
+                output.accept(debugRecoveryStrongbox);
+                output.accept(debugRecoveryKey);
                 output.accept(ENCOUNTER_SPAWNER_BLOCK_ITEM.get());
                 output.accept(ENCOUNTER_WAND_ITEM.get());
 

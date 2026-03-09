@@ -436,14 +436,14 @@ public final class RoguelikeService {
             return DungeonObjectiveManager.pickRandom(random);
         }
 
-        DungeonObjectiveData objectiveData = DungeonObjectiveManager.getObjective(customObjectiveId);
+        ResourceLocation resolvedObjectiveId = DungeonObjectiveIds.resolve(customObjectiveId);
+        DungeonObjectiveData objectiveData = DungeonObjectiveManager.getObjective(resolvedObjectiveId);
         if (objectiveData == null) {
             player.sendSystemMessage(
                     Component.translatable("incore.roguelike.portal.invalid_objective", customObjectiveId.toString()));
             return Optional.empty();
         }
 
-        ResourceLocation resolvedObjectiveId = DungeonObjectiveIds.resolve(customObjectiveId);
         return Optional.of(new DungeonObjectiveManager.PickedObjective(resolvedObjectiveId, objectiveData));
     }
 

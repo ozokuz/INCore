@@ -6,9 +6,12 @@ public enum DungeonDeathDifficulty {
     HARDCORE;
 
     public static DungeonDeathDifficulty fromString(String raw) {
+        if (raw == null) {
+            return SOFTCORE;
+        }
         try {
             return DungeonDeathDifficulty.valueOf(raw);
-        } catch (Exception ignored) {
+        } catch (IllegalArgumentException ignored) {
             return SOFTCORE;
         }
     }

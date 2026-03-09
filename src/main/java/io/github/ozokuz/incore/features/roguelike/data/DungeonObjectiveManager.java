@@ -42,7 +42,10 @@ public class DungeonObjectiveManager extends SimpleJsonResourceReloadListener {
             }
         }
 
-        INCore.LOGGER.info("Loaded {} roguelike dungeon objectives", OBJECTIVES.size());
+        long canonicalCount = OBJECTIVES.entrySet().stream()
+                .filter(entry -> DungeonObjectiveIds.resolve(entry.getKey()).equals(entry.getKey()))
+                .count();
+        INCore.LOGGER.info("Loaded {} roguelike dungeon objectives", canonicalCount);
     }
 
     public static Optional<PickedObjective> pickRandom(RandomSource random) {
