@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.UUID;
 
-public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Container, MenuProvider {
+public class MarketAutoTraderBlockEntity extends KineticBlockEntity implements Container, MenuProvider {
     public static final int CARD_SLOT = 0;
     public static final int OUTPUT_START = 1;
     public static final int OUTPUT_COUNT = 27;
@@ -72,7 +72,7 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
         public int get(int index) {
             return switch (index) {
                 case 0 -> progress;
-                case 1 -> Math.max(1, Config.MARKET_AUTOBUYER_INTERVAL_TICKS.get());
+                case 1 -> Math.max(1, Config.MARKET_AUTOTRADER_INTERVAL_TICKS.get());
                 case 2 -> status;
                 case 3 -> priceCapSpur;
                 case 4 -> batchSize;
@@ -102,11 +102,11 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
         }
     };
 
-    public MarketAutoBuyerBlockEntity(BlockPos pos, BlockState state) {
-        this(Registration.MARKET_AUTOBUYER_BE.get(), pos, state);
+    public MarketAutoTraderBlockEntity(BlockPos pos, BlockState state) {
+        this(Registration.MARKET_AUTOTRADER_BE.get(), pos, state);
     }
 
-    protected MarketAutoBuyerBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
+    protected MarketAutoTraderBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
         super(blockEntityType, pos, state);
     }
 
@@ -114,7 +114,7 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
     }
 
-    public static void tick(Level level, BlockPos pos, BlockState state, MarketAutoBuyerBlockEntity be) {
+    public static void tick(Level level, BlockPos pos, BlockState state, MarketAutoTraderBlockEntity be) {
         be.tick();
         if (level.isClientSide) {
             return;
@@ -217,7 +217,7 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
         status = STATUS_READY;
         progress++;
 
-        int interval = Math.max(1, Config.MARKET_AUTOBUYER_INTERVAL_TICKS.get());
+        int interval = Math.max(1, Config.MARKET_AUTOTRADER_INTERVAL_TICKS.get());
         if (progress < interval) {
             setChanged();
             return;
@@ -269,7 +269,7 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
     }
 
     public int maxProgressForDisplay() {
-        return Math.max(1, Config.MARKET_AUTOBUYER_INTERVAL_TICKS.get());
+        return Math.max(1, Config.MARKET_AUTOTRADER_INTERVAL_TICKS.get());
     }
 
     public int statusForDisplay() {
@@ -470,12 +470,12 @@ public class MarketAutoBuyerBlockEntity extends KineticBlockEntity implements Co
 
     @Override
     public @NotNull Component getDisplayName() {
-        return Component.translatable("block.incore.market_autobuyer");
+        return Component.translatable("block.incore.market_autotrader");
     }
 
     @Override
     public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
-        return new MarketAutoBuyerMenu(containerId, playerInventory, this);
+        return new MarketAutoTraderMenu(containerId, playerInventory, this);
     }
 
     @Override

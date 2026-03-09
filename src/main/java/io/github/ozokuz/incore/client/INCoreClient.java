@@ -2,8 +2,8 @@ package io.github.ozokuz.incore.client;
 
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
-import io.github.ozokuz.incore.client.features.roguelike.RoguelikeAltarRenderer;
-import io.github.ozokuz.incore.client.features.roguelike.CustomDungeonCrystalForgeScreen;
+import io.github.ozokuz.incore.client.features.roguelike.DungeonAltarRenderer;
+import io.github.ozokuz.incore.client.features.roguelike.DungeonCrystalModificationStationScreen;
 import io.github.ozokuz.incore.client.features.roguelike.RoguelikePortalRenderer;
 import io.github.ozokuz.incore.client.features.roguelike.RoguelikeMinimapHudFeature;
 import io.github.ozokuz.incore.client.features.party.PartyHudFeature;
@@ -16,7 +16,7 @@ import io.github.ozokuz.incore.client.features.tasks.TaskOverviewScreen;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.client.features.cards.CardDeckStationScreen;
 import io.github.ozokuz.incore.features.gacha.network.GachaNetworking;
-import io.github.ozokuz.incore.client.features.market.MarketAutoBuyerScreen;
+import io.github.ozokuz.incore.client.features.market.MarketAutoTraderScreen;
 import io.github.ozokuz.incore.client.features.market.MarketTerminalCardScreen;
 import io.github.ozokuz.incore.client.features.market.ShipmentTerminalScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
@@ -79,8 +79,8 @@ public class INCoreClient {
         event.register(Registration.RESEARCH_LAB_MENU.get(), LabScreen::new);
         event.register(Registration.MARKET_TERMINAL_CARD_MENU.get(), MarketTerminalCardScreen::new);
         event.register(Registration.SHIPMENT_TERMINAL_MENU.get(), ShipmentTerminalScreen::new);
-        event.register(Registration.MARKET_AUTOBUYER_MENU.get(), MarketAutoBuyerScreen::new);
-        event.register(Registration.CUSTOM_DUNGEON_CRYSTAL_FORGE_MENU.get(), CustomDungeonCrystalForgeScreen::new);
+        event.register(Registration.MARKET_AUTOTRADER_MENU.get(), MarketAutoTraderScreen::new);
+        event.register(Registration.DUNGEON_CRYSTAL_MODIFICATION_STATION_MENU.get(), DungeonCrystalModificationStationScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
@@ -91,7 +91,7 @@ public class INCoreClient {
     }
 
     private void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(Registration.ROGUELIKE_ALTAR_BE.get(), RoguelikeAltarRenderer::new);
+        event.registerBlockEntityRenderer(Registration.DUNGEON_ALTAR_BE.get(), DungeonAltarRenderer::new);
         event.registerBlockEntityRenderer(Registration.ROGUELIKE_PORTAL_BE.get(), RoguelikePortalRenderer::new);
     }
 

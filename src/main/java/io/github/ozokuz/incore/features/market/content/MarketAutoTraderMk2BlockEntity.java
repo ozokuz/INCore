@@ -14,7 +14,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketAutoBuyerMk2BlockEntity extends MarketAutoBuyerBlockEntity {
+public class MarketAutoTraderMk2BlockEntity extends MarketAutoTraderBlockEntity {
     private static final int ENERGY_CAPACITY = 65_536;
     private static final int FE_PER_TICK = 256;
 
@@ -38,11 +38,11 @@ public class MarketAutoBuyerMk2BlockEntity extends MarketAutoBuyerBlockEntity {
         }
     };
 
-    public MarketAutoBuyerMk2BlockEntity(BlockPos pos, BlockState state) {
-        super(Registration.MARKET_AUTOBUYER_MK2_BE.get(), pos, state);
+    public MarketAutoTraderMk2BlockEntity(BlockPos pos, BlockState state) {
+        super(Registration.MARKET_AUTOTRADER_MK2_BE.get(), pos, state);
     }
 
-    public static void tick(Level level, BlockPos pos, BlockState state, MarketAutoBuyerMk2BlockEntity be) {
+    public static void tick(Level level, BlockPos pos, BlockState state, MarketAutoTraderMk2BlockEntity be) {
         be.tick();
         if (level.isClientSide) {
             return;
@@ -100,6 +100,6 @@ public class MarketAutoBuyerMk2BlockEntity extends MarketAutoBuyerBlockEntity {
 
     @Override
     public @NotNull Component getDisplayName() {
-        return Component.translatable("block.incore.market_autobuyer_mk2");
+        return Component.translatable("block.incore.market_autotrader_mk2");
     }
 }

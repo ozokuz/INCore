@@ -69,10 +69,6 @@ public class MarketDetailsScreen extends Screen implements MarketPayloadUpdatabl
                     minecraft.setScreen(new MarketSelectionScreen(data, selectionScrollRow, selectedItemId));
                 }).bounds(16, 14, 60, 20)
                 .build());
-        addRenderableWidget(Button.builder(Component.translatable("screen.incore.market.refresh"), button -> {
-                    requestSelectedSnapshot();
-                }).bounds(width - 98, 14, 82, 20)
-                .build());
 
         if (data == null || !data.canTrade() || data.terminalPos() == null || selectedItem() == null) {
             return;

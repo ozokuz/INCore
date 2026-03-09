@@ -22,17 +22,17 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CustomDungeonCrystalForgeBlock extends BaseEntityBlock {
-    public static final MapCodec<CustomDungeonCrystalForgeBlock> CODEC = simpleCodec(CustomDungeonCrystalForgeBlock::new);
+public class DungeonCrystalModificationStationBlock extends BaseEntityBlock {
+    public static final MapCodec<DungeonCrystalModificationStationBlock> CODEC = simpleCodec(DungeonCrystalModificationStationBlock::new);
 
-    public CustomDungeonCrystalForgeBlock() {
+    public DungeonCrystalModificationStationBlock() {
         this(Properties.of()
                 .mapColor(MapColor.METAL)
                 .strength(3.0F)
                 .sound(SoundType.METAL));
     }
 
-    public CustomDungeonCrystalForgeBlock(Properties properties) {
+    public DungeonCrystalModificationStationBlock(Properties properties) {
         super(properties);
     }
 
@@ -48,7 +48,7 @@ public class CustomDungeonCrystalForgeBlock extends BaseEntityBlock {
 
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-        return new CustomDungeonCrystalForgeBlockEntity(pos, state);
+        return new DungeonCrystalModificationStationBlockEntity(pos, state);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class CustomDungeonCrystalForgeBlock extends BaseEntityBlock {
     protected void onRemove(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof CustomDungeonCrystalForgeBlockEntity forge) {
+            if (blockEntity instanceof DungeonCrystalModificationStationBlockEntity forge) {
                 for (ItemStack stack : forge.inputContents()) {
                     if (!stack.isEmpty()) {
                         popResource(level, pos, stack);

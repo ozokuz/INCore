@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "incore:block/market_autotrader" },
+    "facing=east": { "model": "incore:block/market_autotrader", "y": 90 },
+    "facing=south": { "model": "incore:block/market_autotrader", "y": 180 },
+    "facing=west": { "model": "incore:block/market_autotrader", "y": 270 }
+  }
+}

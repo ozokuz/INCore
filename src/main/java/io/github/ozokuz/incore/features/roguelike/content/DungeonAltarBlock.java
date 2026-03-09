@@ -25,8 +25,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RoguelikeAltarBlock extends Block implements EntityBlock {
-    public RoguelikeAltarBlock() {
+public class DungeonAltarBlock extends Block implements EntityBlock {
+    public DungeonAltarBlock() {
         super(BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_BLACK)
                 .strength(4.0F)
@@ -73,7 +73,7 @@ public class RoguelikeAltarBlock extends Block implements EntityBlock {
         }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof RoguelikeAltarBlockEntity altar) {
+        if (blockEntity instanceof DungeonAltarBlockEntity altar) {
             altar.setOwner(player.getUUID());
         }
     }
@@ -81,7 +81,7 @@ public class RoguelikeAltarBlock extends Block implements EntityBlock {
     @Override
     public void onRemove(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof RoguelikeAltarBlockEntity altar && altar.crystalPlaced()) {
+        if (blockEntity instanceof DungeonAltarBlockEntity altar && altar.crystalPlaced()) {
             if (!level.isClientSide) {
                 ItemStack crystalStack = new ItemStack(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get());
                 ItemEntity itemEntity = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, crystalStack);
@@ -93,11 +93,11 @@ public class RoguelikeAltarBlock extends Block implements EntityBlock {
 
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-        return new RoguelikeAltarBlockEntity(pos, state);
+        return new DungeonAltarBlockEntity(pos, state);
     }
 
     @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
-        return type == Registration.ROGUELIKE_ALTAR_BE.get() ? RoguelikeAltarBlockEntity::tick : null;
+        return type == Registration.DUNGEON_ALTAR_BE.get() ? DungeonAltarBlockEntity::tick : null;
     }
 }

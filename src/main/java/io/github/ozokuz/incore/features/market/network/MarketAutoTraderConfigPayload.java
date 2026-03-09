@@ -1,7 +1,7 @@
 package io.github.ozokuz.incore.features.market.network;
 
 import io.github.ozokuz.incore.features.market.MarketItemManager;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlockEntity;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -11,18 +11,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record MarketAutoBuyerConfigPayload(long blockPos, String targetItemId, int priceCapSpur, int batchSize) implements CustomPacketPayload {
-    public static final Type<MarketAutoBuyerConfigPayload> TYPE = new Type<>(ResourceLocation.parse("incore:market_autobuyer_config"));
-    public static final StreamCodec<ByteBuf, MarketAutoBuyerConfigPayload> STREAM_CODEC = StreamCodec.composite(
+public record MarketAutoTraderConfigPayload(long blockPos, String targetItemId, int priceCapSpur, int batchSize) implements CustomPacketPayload {
+    public static final Type<MarketAutoTraderConfigPayload> TYPE = new Type<>(ResourceLocation.parse("incore:market_autotrader_config"));
+    public static final StreamCodec<ByteBuf, MarketAutoTraderConfigPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_LONG,
-            MarketAutoBuyerConfigPayload::blockPos,
+            MarketAutoTraderConfigPayload::blockPos,
             ByteBufCodecs.STRING_UTF8,
-            MarketAutoBuyerConfigPayload::targetItemId,
+            MarketAutoTraderConfigPayload::targetItemId,
             ByteBufCodecs.VAR_INT,
-            MarketAutoBuyerConfigPayload::priceCapSpur,
+            MarketAutoTraderConfigPayload::priceCapSpur,
             ByteBufCodecs.VAR_INT,
-            MarketAutoBuyerConfigPayload::batchSize,
-            MarketAutoBuyerConfigPayload::new
+            MarketAutoTraderConfigPayload::batchSize,
+            MarketAutoTraderConfigPayload::new
     );
 
     @Override
@@ -30,32 +30,32 @@ public record MarketAutoBuyerConfigPayload(long blockPos, String targetItemId, i
         return TYPE;
     }
 
-    public static void handle(MarketAutoBuyerConfigPayload payload, IPayloadContext context) {
+    public static void handle(MarketAutoTraderConfigPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
 
             BlockPos pos = BlockPos.of(payload.blockPos());
-            if (!(player.level().getBlockEntity(pos) instanceof MarketAutoBuyerBlockEntity autoBuyer)) {
+            if (!(player.level().getBlockEntity(pos) instanceof MarketAutoTraderBlockEntity autoTrader)) {
                 return;
             }
-            if (!autoBuyer.canAccess(player)) {
+            if (!autoTrader.canAccess(player)) {
                 return;
             }
 
             String raw = payload.targetItemId() == null ? "" : payload.targetItemId().trim();
             if (raw.isEmpty()) {
-                autoBuyer.setTargetItemId(null);
+                autoTrader.setTargetItemId(null);
             } else {
                 ResourceLocation itemId = ResourceLocation.tryParse(raw);
                 if (itemId != null && MarketItemManager.isTradeable(itemId)) {
-                    autoBuyer.setTargetItemId(itemId);
+                    autoTrader.setTargetItemId(itemId);
                 }
             }
 
-            autoBuyer.setPriceCapSpur(payload.priceCapSpur());
-            autoBuyer.setBatchSize(payload.batchSize());
+            autoTrader.setPriceCapSpur(payload.priceCapSpur());
+            autoTrader.setBatchSize(payload.batchSize());
         });
     }
 }

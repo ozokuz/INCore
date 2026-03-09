@@ -27,14 +27,14 @@ import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketAutoBuyerBlock extends HorizontalKineticBlock implements EntityBlock {
-    public static final MapCodec<MarketAutoBuyerBlock> CODEC = simpleCodec(MarketAutoBuyerBlock::new);
+public class MarketAutoTraderBlock extends HorizontalKineticBlock implements EntityBlock {
+    public static final MapCodec<MarketAutoTraderBlock> CODEC = simpleCodec(MarketAutoTraderBlock::new);
 
-    public MarketAutoBuyerBlock() {
+    public MarketAutoTraderBlock() {
         this(Properties.of().mapColor(MapColor.METAL).strength(3.2F).sound(SoundType.METAL));
     }
 
-    public MarketAutoBuyerBlock(Properties properties) {
+    public MarketAutoTraderBlock(Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(HORIZONTAL_FACING, Direction.NORTH));
     }
@@ -51,16 +51,16 @@ public class MarketAutoBuyerBlock extends HorizontalKineticBlock implements Enti
 
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-        return new MarketAutoBuyerBlockEntity(pos, state);
+        return new MarketAutoTraderBlockEntity(pos, state);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> blockEntityType) {
-        if (blockEntityType != Registration.MARKET_AUTOBUYER_BE.get()) {
+        if (blockEntityType != Registration.MARKET_AUTOTRADER_BE.get()) {
             return null;
         }
-        return (lvl, pos, blockState, blockEntity) -> MarketAutoBuyerBlockEntity.tick(lvl, pos, blockState, (MarketAutoBuyerBlockEntity) blockEntity);
+        return (lvl, pos, blockState, blockEntity) -> MarketAutoTraderBlockEntity.tick(lvl, pos, blockState, (MarketAutoTraderBlockEntity) blockEntity);
     }
 
     @Override
@@ -81,8 +81,8 @@ public class MarketAutoBuyerBlock extends HorizontalKineticBlock implements Enti
         }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof MarketAutoBuyerBlockEntity autoBuyer) {
-            autoBuyer.setOwner(player.getUUID());
+        if (blockEntity instanceof MarketAutoTraderBlockEntity autoTrader) {
+            autoTrader.setOwner(player.getUUID());
         }
     }
 
@@ -97,12 +97,12 @@ public class MarketAutoBuyerBlock extends HorizontalKineticBlock implements Enti
         }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof MarketAutoBuyerBlockEntity autoBuyer) {
-            if (!autoBuyer.canAccess(player)) {
+        if (blockEntity instanceof MarketAutoTraderBlockEntity autoTrader) {
+            if (!autoTrader.canAccess(player)) {
                 player.sendSystemMessage(Component.translatable("incore.market.not_allowed"));
                 return InteractionResult.FAIL;
             }
-            serverPlayer.openMenu(autoBuyer, pos);
+            serverPlayer.openMenu(autoTrader, pos);
         }
         return InteractionResult.CONSUME;
     }
@@ -126,16 +126,16 @@ public class MarketAutoBuyerBlock extends HorizontalKineticBlock implements Enti
         }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof MarketAutoBuyerBlockEntity autoBuyer)) {
+        if (!(blockEntity instanceof MarketAutoTraderBlockEntity autoTrader)) {
             return ItemInteractionResult.CONSUME;
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
-            if (!autoBuyer.canAccess(player)) {
+            if (!autoTrader.canAccess(player)) {
                 player.sendSystemMessage(Component.translatable("incore.market.not_allowed"));
                 return ItemInteractionResult.FAIL;
             }
-            serverPlayer.openMenu(autoBuyer, pos);
+            serverPlayer.openMenu(autoTrader, pos);
         }
         return ItemInteractionResult.CONSUME;
     }

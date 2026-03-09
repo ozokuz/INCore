@@ -9,7 +9,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class MarketAutoBuyerMenu extends AbstractContainerMenu {
+public class MarketAutoTraderMenu extends AbstractContainerMenu {
     public static final int CARD_X = 24;
     public static final int CARD_Y = 176;
     public static final int OUTPUT_X = 56;
@@ -18,11 +18,11 @@ public class MarketAutoBuyerMenu extends AbstractContainerMenu {
     public static final int PLAYER_INVENTORY_Y = 238;
     public static final int HOTBAR_Y = 296;
 
-    private final MarketAutoBuyerBlockEntity blockEntity;
+    private final MarketAutoTraderBlockEntity blockEntity;
     private final ContainerData data;
 
-    public MarketAutoBuyerMenu(int containerId, Inventory playerInventory, MarketAutoBuyerBlockEntity blockEntity) {
-        super(Registration.MARKET_AUTOBUYER_MENU.get(), containerId);
+    public MarketAutoTraderMenu(int containerId, Inventory playerInventory, MarketAutoTraderBlockEntity blockEntity) {
+        super(Registration.MARKET_AUTOTRADER_MENU.get(), containerId);
         this.blockEntity = blockEntity;
         this.data = blockEntity.data;
 
@@ -30,10 +30,10 @@ public class MarketAutoBuyerMenu extends AbstractContainerMenu {
             addDataSlot(net.minecraft.world.inventory.DataSlot.forContainer(data, i));
         }
 
-        addSlot(new Slot(blockEntity, MarketAutoBuyerBlockEntity.CARD_SLOT, CARD_X, CARD_Y) {
+        addSlot(new Slot(blockEntity, MarketAutoTraderBlockEntity.CARD_SLOT, CARD_X, CARD_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return blockEntity.canPlaceItem(MarketAutoBuyerBlockEntity.CARD_SLOT, stack);
+                return blockEntity.canPlaceItem(MarketAutoTraderBlockEntity.CARD_SLOT, stack);
             }
 
             @Override
@@ -44,7 +44,7 @@ public class MarketAutoBuyerMenu extends AbstractContainerMenu {
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                int slot = MarketAutoBuyerBlockEntity.OUTPUT_START + col + row * 9;
+                int slot = MarketAutoTraderBlockEntity.OUTPUT_START + col + row * 9;
                 addSlot(new Slot(blockEntity, slot, OUTPUT_X + col * 18, OUTPUT_Y + row * 18) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {
@@ -75,14 +75,14 @@ public class MarketAutoBuyerMenu extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         ItemStack copy = stack.copy();
 
-        int machineSlots = MarketAutoBuyerBlockEntity.SLOT_COUNT;
+        int machineSlots = MarketAutoTraderBlockEntity.SLOT_COUNT;
         if (index < machineSlots) {
             if (!moveItemStackTo(stack, machineSlots, this.slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
         } else {
-            if (!blockEntity.canPlaceItem(MarketAutoBuyerBlockEntity.CARD_SLOT, stack)
-                    || !moveItemStackTo(stack, MarketAutoBuyerBlockEntity.CARD_SLOT, MarketAutoBuyerBlockEntity.CARD_SLOT + 1, false)) {
+            if (!blockEntity.canPlaceItem(MarketAutoTraderBlockEntity.CARD_SLOT, stack)
+                    || !moveItemStackTo(stack, MarketAutoTraderBlockEntity.CARD_SLOT, MarketAutoTraderBlockEntity.CARD_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         }

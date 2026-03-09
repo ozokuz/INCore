@@ -2,7 +2,7 @@ package io.github.ozokuz.incore.features.roguelike;
 
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
-import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalDataUtil;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingData;
@@ -55,7 +55,7 @@ public final class RoguelikeService {
     private RoguelikeService() {
     }
 
-    public static void tickAltar(ServerLevel level, BlockPos altarPos, RoguelikeAltarBlockEntity altar) {
+    public static void tickAltar(ServerLevel level, BlockPos altarPos, DungeonAltarBlockEntity altar) {
         UUID ownerId = altar.ownerId();
         if (ownerId == null) {
             syncAltarDisplay(List.of(), altar);
@@ -110,7 +110,7 @@ public final class RoguelikeService {
         showAltarRequirement(serverPlayer, altarPos);
 
         BlockEntity blockEntity = serverPlayer.serverLevel().getBlockEntity(altarPos);
-        if (blockEntity instanceof RoguelikeAltarBlockEntity altar) {
+        if (blockEntity instanceof DungeonAltarBlockEntity altar) {
             altar.setCrystalPlaced(true);
             syncAltarDisplay(data.altarRequirements(ownerId), altar);
         }
@@ -158,7 +158,7 @@ public final class RoguelikeService {
         showAltarRequirement(serverPlayer, altarPos);
 
         BlockEntity blockEntity = serverPlayer.serverLevel().getBlockEntity(altarPos);
-        if (blockEntity instanceof RoguelikeAltarBlockEntity altar) {
+        if (blockEntity instanceof DungeonAltarBlockEntity altar) {
             altar.setCrystalPlaced(false);
             syncAltarDisplay(data.altarRequirements(ownerId), altar);
         }
@@ -361,7 +361,7 @@ public final class RoguelikeService {
 
     private static UUID resolveAltarOwner(ServerPlayer player, BlockPos altarPos) {
         BlockEntity blockEntity = player.serverLevel().getBlockEntity(altarPos);
-        if (!(blockEntity instanceof RoguelikeAltarBlockEntity altar)) {
+        if (!(blockEntity instanceof DungeonAltarBlockEntity altar)) {
             return null;
         }
 
@@ -613,8 +613,8 @@ public final class RoguelikeService {
     }
 
     private static void syncAltarDisplay(List<RoguelikeSavedData.AltarRequirement> requirements,
-            RoguelikeAltarBlockEntity altar) {
-        List<RoguelikeAltarBlockEntity.DisplayEntry> entries = new ArrayList<>();
+            DungeonAltarBlockEntity altar) {
+        List<DungeonAltarBlockEntity.DisplayEntry> entries = new ArrayList<>();
         for (RoguelikeSavedData.AltarRequirement requirement : requirements) {
             AltarOfferingData offering = AltarOfferingManager.OFFERINGS.get(requirement.offeringId());
             if (offering == null) {
@@ -622,7 +622,7 @@ public final class RoguelikeService {
             }
 
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(offering.item());
-            entries.add(new RoguelikeAltarBlockEntity.DisplayEntry(itemId, requirement.submittedAmount(),
+            entries.add(new DungeonAltarBlockEntity.DisplayEntry(itemId, requirement.submittedAmount(),
                     requirement.requiredAmount()));
         }
 

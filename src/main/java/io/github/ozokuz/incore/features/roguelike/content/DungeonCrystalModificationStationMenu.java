@@ -8,19 +8,15 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
+public class DungeonCrystalModificationStationMenu extends AbstractContainerMenu {
     public static final int INPUT_X = 22;
     public static final int INPUT_Y = 40;
     public static final int THEME_X = 62;
     public static final int THEME_Y = 40;
     public static final int OBJECTIVE_X = 110;
     public static final int OBJECTIVE_Y = 40;
-    public static final int MODIFIER_ONE_X = 22;
-    public static final int MODIFIER_ONE_Y = 76;
-    public static final int MODIFIER_TWO_X = 44;
-    public static final int MODIFIER_TWO_Y = 76;
-    public static final int MODIFIER_THREE_X = 66;
-    public static final int MODIFIER_THREE_Y = 76;
+    public static final int[] MODIFIER_X = {20, 42, 64, 86, 108, 130};
+    public static final int MODIFIER_Y = 76;
     public static final int OUTPUT_X = 188;
     public static final int OUTPUT_Y = 40;
 
@@ -28,21 +24,21 @@ public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
     public static final int PLAYER_INV_Y = 122;
     public static final int HOTBAR_Y = PLAYER_INV_Y + 58;
 
-    private final CustomDungeonCrystalForgeBlockEntity blockEntity;
+    private final DungeonCrystalModificationStationBlockEntity blockEntity;
     private final ContainerLevelAccess access;
 
-    public CustomDungeonCrystalForgeMenu(int containerId, Inventory playerInventory, CustomDungeonCrystalForgeBlockEntity blockEntity) {
-        super(Registration.CUSTOM_DUNGEON_CRYSTAL_FORGE_MENU.get(), containerId);
+    public DungeonCrystalModificationStationMenu(int containerId, Inventory playerInventory, DungeonCrystalModificationStationBlockEntity blockEntity) {
+        super(Registration.DUNGEON_CRYSTAL_MODIFICATION_STATION_MENU.get(), containerId);
         this.blockEntity = blockEntity;
         this.access = ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos());
 
-        addSlot(new InputCrystalSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.INPUT_SLOT, INPUT_X, INPUT_Y));
-        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.THEME_SLOT, THEME_X, THEME_Y));
-        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.OBJECTIVE_SLOT, OBJECTIVE_X, OBJECTIVE_Y));
-        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START, MODIFIER_ONE_X, MODIFIER_ONE_Y));
-        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START + 1, MODIFIER_TWO_X, MODIFIER_TWO_Y));
-        addSlot(new SelectorSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.MODIFIER_START + 2, MODIFIER_THREE_X, MODIFIER_THREE_Y));
-        addSlot(new OutputSlot(blockEntity, CustomDungeonCrystalForgeBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
+        addSlot(new InputCrystalSlot(blockEntity, DungeonCrystalModificationStationBlockEntity.INPUT_SLOT, INPUT_X, INPUT_Y));
+        addSlot(new SelectorSlot(blockEntity, DungeonCrystalModificationStationBlockEntity.THEME_SLOT, THEME_X, THEME_Y));
+        addSlot(new SelectorSlot(blockEntity, DungeonCrystalModificationStationBlockEntity.OBJECTIVE_SLOT, OBJECTIVE_X, OBJECTIVE_Y));
+        for (int i = 0; i < DungeonCrystalModificationStationBlockEntity.MODIFIER_COUNT; i++) {
+            addSlot(new SelectorSlot(blockEntity, DungeonCrystalModificationStationBlockEntity.MODIFIER_START + i, MODIFIER_X[i], MODIFIER_Y));
+        }
+        addSlot(new OutputSlot(blockEntity, DungeonCrystalModificationStationBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -64,17 +60,17 @@ public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
 
         ItemStack stack = slot.getItem();
         ItemStack copy = stack.copy();
-        int forgeSlotCount = CustomDungeonCrystalForgeBlockEntity.SLOT_COUNT;
+        int forgeSlotCount = DungeonCrystalModificationStationBlockEntity.SLOT_COUNT;
 
         if (index < forgeSlotCount) {
             if (!moveItemStackTo(stack, forgeSlotCount, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
         } else if (stack.is(Registration.EMPTY_DUNGEON_CRYSTAL_ITEM.get())) {
-            if (!moveItemStackTo(stack, CustomDungeonCrystalForgeBlockEntity.INPUT_SLOT, CustomDungeonCrystalForgeBlockEntity.INPUT_SLOT + 1, false)) {
+            if (!moveItemStackTo(stack, DungeonCrystalModificationStationBlockEntity.INPUT_SLOT, DungeonCrystalModificationStationBlockEntity.INPUT_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (!moveItemStackTo(stack, CustomDungeonCrystalForgeBlockEntity.THEME_SLOT, CustomDungeonCrystalForgeBlockEntity.OUTPUT_SLOT, false)) {
+        } else if (!moveItemStackTo(stack, DungeonCrystalModificationStationBlockEntity.THEME_SLOT, DungeonCrystalModificationStationBlockEntity.OUTPUT_SLOT, false)) {
             return ItemStack.EMPTY;
         }
 
@@ -89,7 +85,7 @@ public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, Registration.CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK.get());
+        return stillValid(access, player, Registration.DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK.get());
     }
 
     public boolean validPreview() {
@@ -97,7 +93,7 @@ public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
     }
 
     private static class InputCrystalSlot extends Slot {
-        private InputCrystalSlot(CustomDungeonCrystalForgeBlockEntity blockEntity, int slot, int x, int y) {
+        private InputCrystalSlot(DungeonCrystalModificationStationBlockEntity blockEntity, int slot, int x, int y) {
             super(blockEntity, slot, x, y);
         }
 
@@ -108,7 +104,7 @@ public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
     }
 
     private static class SelectorSlot extends Slot {
-        private SelectorSlot(CustomDungeonCrystalForgeBlockEntity blockEntity, int slot, int x, int y) {
+        private SelectorSlot(DungeonCrystalModificationStationBlockEntity blockEntity, int slot, int x, int y) {
             super(blockEntity, slot, x, y);
         }
 
@@ -119,9 +115,9 @@ public class CustomDungeonCrystalForgeMenu extends AbstractContainerMenu {
     }
 
     private static class OutputSlot extends Slot {
-        private final CustomDungeonCrystalForgeBlockEntity blockEntity;
+        private final DungeonCrystalModificationStationBlockEntity blockEntity;
 
-        private OutputSlot(CustomDungeonCrystalForgeBlockEntity blockEntity, int slot, int x, int y) {
+        private OutputSlot(DungeonCrystalModificationStationBlockEntity blockEntity, int slot, int x, int y) {
             super(blockEntity, slot, x, y);
             this.blockEntity = blockEntity;
         }

@@ -1,8 +1,0 @@
-{
-  "variants": {
-    "facing=north": { "model": "incore:block/market_autobuyer" },
-    "facing=east": { "model": "incore:block/market_autobuyer", "y": 90 },
-    "facing=south": { "model": "incore:block/market_autobuyer", "y": 180 },
-    "facing=west": { "model": "incore:block/market_autobuyer", "y": 270 }
-  }
-}

@@ -45,6 +45,8 @@ public class PlayerLevelRewardsScreen extends Screen {
     private int selectedLevel = -1;
     private int sidebarScroll;
     private boolean pendingInitialFocus = true;
+    private boolean draggingSidebarScrollbar;
+    private double sidebarScrollbarDragOffsetY;
 
     public PlayerLevelRewardsScreen(Screen parent) {
         super(Component.translatable("screen.incore.player_level_rewards.title"));
@@ -331,10 +333,29 @@ public class PlayerLevelRewardsScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
             SidebarMetrics sidebar = sidebarMetrics(layout());
+            List<PlayerLevelClientCache.RewardPreview> ordered = getOrderedPreviews();
+            if (isMouseOverSidebarScrollTrack(mouseX, mouseY, sidebar)) {
+                int maxScroll = maxSidebarScroll(ordered.size(), sidebar);
+                if (maxScroll <= 0) {
+                    return true;
+                }
+
+                int thumbHeight = sidebarThumbHeight(sidebar, ordered.size());
+                int thumbTop = sidebarThumbTop(sidebar, ordered.size());
+                if (mouseY >= thumbTop && mouseY < thumbTop + thumbHeight) {
+                    this.draggingSidebarScrollbar = true;
+                    this.sidebarScrollbarDragOffsetY = mouseY - thumbTop;
+                } else {
+                    this.draggingSidebarScrollbar = true;
+                    this.sidebarScrollbarDragOffsetY = thumbHeight / 2.0D;
+                    setSidebarScrollFromThumbTop(mouseY - this.sidebarScrollbarDragOffsetY, sidebar, ordered.size());
+                }
+                return true;
+            }
+
             if (mouseX >= sidebar.rowsLeft() && mouseX < sidebar.rowsRight() && mouseY >= sidebar.rowsTop() && mouseY < sidebar.rowsBottom()) {
                 int row = (int) ((mouseY - sidebar.rowsTop()) / LEVEL_CARD_HEIGHT);
                 int index = this.sidebarScroll + row;
-                List<PlayerLevelClientCache.RewardPreview> ordered = getOrderedPreviews();
                 if (index >= 0 && index < ordered.size()) {
                     this.selectedLevel = ordered.get(index).level();
                     return true;
@@ -343,6 +364,24 @@ public class PlayerLevelRewardsScreen extends Screen {
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (button == 0 && this.draggingSidebarScrollbar) {
+            SidebarMetrics sidebar = sidebarMetrics(layout());
+            setSidebarScrollFromThumbTop(mouseY - this.sidebarScrollbarDragOffsetY, sidebar, getOrderedPreviews().size());
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0) {
+            this.draggingSidebarScrollbar = false;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
@@ -512,22 +551,73 @@ public class PlayerLevelRewardsScreen extends Screen {
         guiGraphics.fill(trackLeft, trackTop, trackRight, trackTop + 1, UIScreenTheme.Info.PLR_SCROLL_TRACK_TOP);
         guiGraphics.fill(trackLeft, trackBottom - 1, trackRight, trackBottom, UIScreenTheme.Info.PLR_SCROLL_TRACK_BOTTOM);
 
-        int maxScroll = Math.max(0, totalRows - sidebar.visibleRows());
+        int maxScroll = maxSidebarScroll(totalRows, sidebar);
         if (maxScroll <= 0) {
             guiGraphics.fill(trackLeft + 1, trackTop + 1, trackRight - 1, trackBottom - 1, UIScreenTheme.Info.PLR_SCROLL_TRACK_EMPTY_FILL);
             return;
         }
 
-        int thumbHeight = Math.max(MIN_SCROLLBAR_THUMB_HEIGHT, Math.round((float) trackHeight * (float) sidebar.visibleRows() / (float) totalRows));
-        thumbHeight = Math.min(trackHeight, thumbHeight);
-        int thumbTravel = Math.max(0, trackHeight - thumbHeight);
-        int thumbOffset = Math.round((float) this.sidebarScroll / (float) maxScroll * (float) thumbTravel);
-        int thumbTop = trackTop + thumbOffset;
+        int thumbHeight = sidebarThumbHeight(sidebar, totalRows);
+        int thumbTop = sidebarThumbTop(sidebar, totalRows);
         int thumbBottom = thumbTop + thumbHeight;
 
         guiGraphics.fill(trackLeft + 1, thumbTop, trackRight - 1, thumbBottom, UIScreenTheme.Info.PLR_SCROLL_THUMB_FILL);
         guiGraphics.fill(trackLeft + 1, thumbTop, trackRight - 1, thumbTop + 1, UIScreenTheme.Info.PLR_SCROLL_THUMB_TOP);
         guiGraphics.fill(trackLeft + 1, thumbBottom - 1, trackRight - 1, thumbBottom, UIScreenTheme.Info.PLR_SCROLL_THUMB_BOTTOM);
+    }
+
+    private static int maxSidebarScroll(int totalRows, SidebarMetrics sidebar) {
+        return Math.max(0, totalRows - sidebar.visibleRows());
+    }
+
+    private static boolean isMouseOverSidebarScrollTrack(double mouseX, double mouseY, SidebarMetrics sidebar) {
+        return mouseX >= sidebar.scrollTrackLeft()
+                && mouseX < sidebar.scrollTrackRight()
+                && mouseY >= sidebar.rowsTop()
+                && mouseY < sidebar.rowsBottom();
+    }
+
+    private int sidebarThumbHeight(SidebarMetrics sidebar, int totalRows) {
+        int trackHeight = Math.max(1, sidebar.rowsBottom() - sidebar.rowsTop());
+        int thumbHeight = Math.max(
+                MIN_SCROLLBAR_THUMB_HEIGHT,
+                Math.round((float) trackHeight * (float) sidebar.visibleRows() / (float) Math.max(1, totalRows))
+        );
+        return Math.min(trackHeight, thumbHeight);
+    }
+
+    private int sidebarThumbTop(SidebarMetrics sidebar, int totalRows) {
+        int maxScroll = maxSidebarScroll(totalRows, sidebar);
+        if (maxScroll <= 0) {
+            return sidebar.rowsTop();
+        }
+
+        int trackHeight = Math.max(1, sidebar.rowsBottom() - sidebar.rowsTop());
+        int thumbHeight = sidebarThumbHeight(sidebar, totalRows);
+        int thumbTravel = Math.max(0, trackHeight - thumbHeight);
+        int thumbOffset = Math.round((float) this.sidebarScroll / (float) maxScroll * (float) thumbTravel);
+        return sidebar.rowsTop() + thumbOffset;
+    }
+
+    private void setSidebarScrollFromThumbTop(double thumbTop, SidebarMetrics sidebar, int totalRows) {
+        int maxScroll = maxSidebarScroll(totalRows, sidebar);
+        if (maxScroll <= 0) {
+            this.sidebarScroll = 0;
+            return;
+        }
+
+        int trackTop = sidebar.rowsTop();
+        int trackHeight = Math.max(1, sidebar.rowsBottom() - sidebar.rowsTop());
+        int thumbHeight = sidebarThumbHeight(sidebar, totalRows);
+        int thumbTravel = Math.max(0, trackHeight - thumbHeight);
+        if (thumbTravel <= 0) {
+            this.sidebarScroll = 0;
+            return;
+        }
+
+        double clampedThumbTop = Mth.clamp(thumbTop, trackTop, trackTop + thumbTravel);
+        double progress = (clampedThumbTop - trackTop) / thumbTravel;
+        this.sidebarScroll = Math.clamp((int) Math.round(progress * maxScroll), 0, maxScroll);
     }
 
     private static void drawProgressBar(GuiGraphics guiGraphics, int x, int y, int width, int currentExperience, int experienceToNextLevel) {

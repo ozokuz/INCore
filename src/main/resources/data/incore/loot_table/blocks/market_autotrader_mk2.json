@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "incore:market_autobuyer_mk2"
+          "name": "incore:market_autotrader_mk2"
         }
       ],
       "conditions": [

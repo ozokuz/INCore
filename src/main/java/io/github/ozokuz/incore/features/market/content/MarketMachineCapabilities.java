@@ -25,20 +25,20 @@ public final class MarketMachineCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
-                Registration.MARKET_AUTOBUYER_BE.get(),
+                Registration.MARKET_AUTOTRADER_BE.get(),
                 (be, side) -> new RangedWrapper(
                         new InvWrapper(be),
-                        MarketAutoBuyerBlockEntity.OUTPUT_START,
-                        MarketAutoBuyerBlockEntity.SLOT_COUNT
+                        MarketAutoTraderBlockEntity.OUTPUT_START,
+                        MarketAutoTraderBlockEntity.SLOT_COUNT
                 )
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
-                Registration.MARKET_AUTOBUYER_MK2_BE.get(),
+                Registration.MARKET_AUTOTRADER_MK2_BE.get(),
                 (be, side) -> new RangedWrapper(
                         new InvWrapper(be),
-                        MarketAutoBuyerBlockEntity.OUTPUT_START,
-                        MarketAutoBuyerBlockEntity.SLOT_COUNT
+                        MarketAutoTraderBlockEntity.OUTPUT_START,
+                        MarketAutoTraderBlockEntity.SLOT_COUNT
                 )
         );
         event.registerBlockEntity(
@@ -48,8 +48,8 @@ public final class MarketMachineCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.EnergyStorage.BLOCK,
-                Registration.MARKET_AUTOBUYER_MK2_BE.get(),
-                MarketAutoBuyerMk2BlockEntity::getEnergyStorage
+                Registration.MARKET_AUTOTRADER_MK2_BE.get(),
+                MarketAutoTraderMk2BlockEntity::getEnergyStorage
         );
     }
 

@@ -201,9 +201,9 @@ public class Config {
             .comment("Shipment terminal sell interval in ticks.")
             .defineInRange("marketShipmentIntervalTicks", 40, 1, Integer.MAX_VALUE);
 
-    public static final ModConfigSpec.IntValue MARKET_AUTOBUYER_INTERVAL_TICKS = BUILDER
-            .comment("Market autobuyer purchase interval in ticks.")
-            .defineInRange("marketAutobuyerIntervalTicks", 40, 1, Integer.MAX_VALUE);
+    public static final ModConfigSpec.IntValue MARKET_AUTOTRADER_INTERVAL_TICKS = BUILDER
+            .comment("Market autotrader purchase interval in ticks.")
+            .defineInRange("marketAutotraderIntervalTicks", 40, 1, Integer.MAX_VALUE);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 }

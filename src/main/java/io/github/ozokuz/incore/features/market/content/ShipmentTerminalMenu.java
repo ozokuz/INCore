@@ -9,6 +9,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class ShipmentTerminalMenu extends AbstractContainerMenu {
+    public static final int INPUT_COLUMNS = 6;
+    public static final int INPUT_ROWS = 3;
     public static final int INPUT_X = 26;
     public static final int INPUT_Y = 80;
     public static final int CARD_X = 186;
@@ -29,9 +31,9 @@ public class ShipmentTerminalMenu extends AbstractContainerMenu {
         addDataSlot(net.minecraft.world.inventory.DataSlot.forContainer(this.data, 1));
         addDataSlot(net.minecraft.world.inventory.DataSlot.forContainer(this.data, 2));
 
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                int slot = col + row * 3;
+        for (int row = 0; row < INPUT_ROWS; row++) {
+            for (int col = 0; col < INPUT_COLUMNS; col++) {
+                int slot = col + row * INPUT_COLUMNS;
                 addSlot(new Slot(blockEntity, slot, INPUT_X + col * 18, INPUT_Y + row * 18) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {

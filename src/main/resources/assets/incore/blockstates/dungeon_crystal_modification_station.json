@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "incore:block/dungeon_crystal_modification_station"
+    }
+  }
+}

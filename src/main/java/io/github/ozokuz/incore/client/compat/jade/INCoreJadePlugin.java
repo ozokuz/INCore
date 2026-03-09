@@ -1,10 +1,10 @@
 package io.github.ozokuz.incore.client.compat.jade;
 
 import io.github.ozokuz.incore.INCore;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlock;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMk2Block;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMk2BlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlock;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMk2Block;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMk2BlockEntity;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlock;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMk2Block;
@@ -37,8 +37,8 @@ public class INCoreJadePlugin implements IWailaPlugin {
     private static final BurnerProvider BURNER_PROVIDER = new BurnerProvider();
     private static final MechanicalProvider MECHANICAL_PROVIDER = new MechanicalProvider();
     private static final ModularProvider MODULAR_PROVIDER = new ModularProvider();
-    private static final MarketAutoBuyerProvider MARKET_AUTOBUYER_PROVIDER = new MarketAutoBuyerProvider();
-    private static final MarketAutoBuyerMk2Provider MARKET_AUTOBUYER_MK2_PROVIDER = new MarketAutoBuyerMk2Provider();
+    private static final MarketAutoTraderProvider MARKET_AUTOTRADER_PROVIDER = new MarketAutoTraderProvider();
+    private static final MarketAutoTraderMk2Provider MARKET_AUTOTRADER_MK2_PROVIDER = new MarketAutoTraderMk2Provider();
     private static final ShipmentTerminalProvider SHIPMENT_TERMINAL_PROVIDER = new ShipmentTerminalProvider();
     private static final ShipmentTerminalMk2Provider SHIPMENT_TERMINAL_MK2_PROVIDER = new ShipmentTerminalMk2Provider();
     private static final SurfaceOreSpotProvider SURFACE_ORE_SPOT_PROVIDER = new SurfaceOreSpotProvider();
@@ -49,8 +49,8 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(BURNER_PROVIDER, LabBlockEntity.class);
         registration.registerBlockDataProvider(MECHANICAL_PROVIDER, LabBlockEntity.class);
         registration.registerBlockDataProvider(MODULAR_PROVIDER, LabBlockEntity.class);
-        registration.registerBlockDataProvider(MARKET_AUTOBUYER_PROVIDER, MarketAutoBuyerBlockEntity.class);
-        registration.registerBlockDataProvider(MARKET_AUTOBUYER_MK2_PROVIDER, MarketAutoBuyerMk2BlockEntity.class);
+        registration.registerBlockDataProvider(MARKET_AUTOTRADER_PROVIDER, MarketAutoTraderBlockEntity.class);
+        registration.registerBlockDataProvider(MARKET_AUTOTRADER_MK2_PROVIDER, MarketAutoTraderMk2BlockEntity.class);
         registration.registerBlockDataProvider(SHIPMENT_TERMINAL_PROVIDER, ShipmentTerminalBlockEntity.class);
         registration.registerBlockDataProvider(SHIPMENT_TERMINAL_MK2_PROVIDER, ShipmentTerminalMk2BlockEntity.class);
         registration.registerBlockDataProvider(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlockEntity.class);
@@ -61,8 +61,8 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(BURNER_PROVIDER, BurnerLabBlock.class);
         registration.registerBlockComponent(MECHANICAL_PROVIDER, MechanicalLabBlock.class);
         registration.registerBlockComponent(MODULAR_PROVIDER, ModularLabBlock.class);
-        registration.registerBlockComponent(MARKET_AUTOBUYER_PROVIDER, MarketAutoBuyerBlock.class);
-        registration.registerBlockComponent(MARKET_AUTOBUYER_MK2_PROVIDER, MarketAutoBuyerMk2Block.class);
+        registration.registerBlockComponent(MARKET_AUTOTRADER_PROVIDER, MarketAutoTraderBlock.class);
+        registration.registerBlockComponent(MARKET_AUTOTRADER_MK2_PROVIDER, MarketAutoTraderMk2Block.class);
         registration.registerBlockComponent(SHIPMENT_TERMINAL_PROVIDER, ShipmentTerminalBlock.class);
         registration.registerBlockComponent(SHIPMENT_TERMINAL_MK2_PROVIDER, ShipmentTerminalMk2Block.class);
         registration.registerBlockComponent(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlock.class);
@@ -198,10 +198,10 @@ public class INCoreJadePlugin implements IWailaPlugin {
         }
     }
 
-    private abstract static class BaseMarketAutoBuyerProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+    private abstract static class BaseMarketAutoTraderProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
         private final ResourceLocation uid;
 
-        protected BaseMarketAutoBuyerProvider(String uidPath) {
+        protected BaseMarketAutoTraderProvider(String uidPath) {
             this.uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, uidPath);
         }
 
@@ -212,27 +212,27 @@ public class INCoreJadePlugin implements IWailaPlugin {
 
         @Override
         public void appendServerData(CompoundTag data, BlockAccessor accessor) {
-            MarketAutoBuyerBlockEntity autoBuyer = autoBuyerIfSupported(accessor);
-            if (autoBuyer == null) {
+            MarketAutoTraderBlockEntity autoTrader = autoTraderIfSupported(accessor);
+            if (autoTrader == null) {
                 return;
             }
 
-            data.putInt("status", autoBuyer.statusForDisplay());
-            data.putInt("progress", autoBuyer.progressForDisplay());
-            data.putInt("max_progress", autoBuyer.maxProgressForDisplay());
-            data.putInt("price_cap", autoBuyer.priceCapSpurForDisplay());
-            data.putInt("batch_size", autoBuyer.batchSizeForDisplay());
-            data.putBoolean("enabled", autoBuyer.statusForDisplay() != MarketAutoBuyerBlockEntity.STATUS_DISABLED);
-            ResourceLocation targetItemId = autoBuyer.targetItemIdForDisplay();
+            data.putInt("status", autoTrader.statusForDisplay());
+            data.putInt("progress", autoTrader.progressForDisplay());
+            data.putInt("max_progress", autoTrader.maxProgressForDisplay());
+            data.putInt("price_cap", autoTrader.priceCapSpurForDisplay());
+            data.putInt("batch_size", autoTrader.batchSizeForDisplay());
+            data.putBoolean("enabled", autoTrader.statusForDisplay() != MarketAutoTraderBlockEntity.STATUS_DISABLED);
+            ResourceLocation targetItemId = autoTrader.targetItemIdForDisplay();
             if (targetItemId != null) {
                 data.putString("target_item_id", targetItemId.toString());
             }
-            appendPowerServerData(data, autoBuyer);
+            appendPowerServerData(data, autoTrader);
         }
 
         @Override
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-            if (autoBuyerIfSupported(accessor) == null) {
+            if (autoTraderIfSupported(accessor) == null) {
                 return;
             }
 
@@ -241,74 +241,74 @@ public class INCoreJadePlugin implements IWailaPlugin {
                 return;
             }
 
-            Component statusText = autoBuyerStatusText(data.getInt("status"));
-            tooltip.add(Component.translatable("jade.incore.autobuyer.status", statusText));
+            Component statusText = autoTraderStatusText(data.getInt("status"));
+            tooltip.add(Component.translatable("jade.incore.autotrader.status", statusText));
             tooltip.add(Component.translatable(
-                    "jade.incore.autobuyer.progress",
+                    "jade.incore.autotrader.progress",
                     data.getInt("progress"),
                     data.getInt("max_progress")
             ));
             String targetId = data.getString("target_item_id");
             Component targetText = targetId.isBlank()
-                    ? Component.translatable("jade.incore.autobuyer.target.none")
+                    ? Component.translatable("jade.incore.autotrader.target.none")
                     : Component.literal(targetId);
-            tooltip.add(Component.translatable("jade.incore.autobuyer.target", targetText));
-            tooltip.add(Component.translatable("jade.incore.autobuyer.price_cap", data.getInt("price_cap")));
-            tooltip.add(Component.translatable("jade.incore.autobuyer.batch_size", data.getInt("batch_size")));
+            tooltip.add(Component.translatable("jade.incore.autotrader.target", targetText));
+            tooltip.add(Component.translatable("jade.incore.autotrader.price_cap", data.getInt("price_cap")));
+            tooltip.add(Component.translatable("jade.incore.autotrader.batch_size", data.getInt("batch_size")));
             Component enabledText = data.getBoolean("enabled")
-                    ? Component.translatable("jade.incore.autobuyer.enabled.on")
-                    : Component.translatable("jade.incore.autobuyer.enabled.off");
-            tooltip.add(Component.translatable("jade.incore.autobuyer.enabled", enabledText));
+                    ? Component.translatable("jade.incore.autotrader.enabled.on")
+                    : Component.translatable("jade.incore.autotrader.enabled.off");
+            tooltip.add(Component.translatable("jade.incore.autotrader.enabled", enabledText));
             appendPowerTooltip(tooltip, data);
         }
 
-        protected abstract MarketAutoBuyerBlockEntity autoBuyerIfSupported(BlockAccessor accessor);
+        protected abstract MarketAutoTraderBlockEntity autoTraderIfSupported(BlockAccessor accessor);
 
-        protected abstract void appendPowerServerData(CompoundTag data, MarketAutoBuyerBlockEntity autoBuyer);
+        protected abstract void appendPowerServerData(CompoundTag data, MarketAutoTraderBlockEntity autoTrader);
 
         protected abstract void appendPowerTooltip(ITooltip tooltip, CompoundTag data);
     }
 
-    private static class MarketAutoBuyerProvider extends BaseMarketAutoBuyerProvider {
-        private MarketAutoBuyerProvider() {
-            super("market_autobuyer");
+    private static class MarketAutoTraderProvider extends BaseMarketAutoTraderProvider {
+        private MarketAutoTraderProvider() {
+            super("market_autotrader");
         }
 
         @Override
-        protected MarketAutoBuyerBlockEntity autoBuyerIfSupported(BlockAccessor accessor) {
-            if (!(accessor.getBlockEntity() instanceof MarketAutoBuyerBlockEntity autoBuyer)) {
+        protected MarketAutoTraderBlockEntity autoTraderIfSupported(BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof MarketAutoTraderBlockEntity autoTrader)) {
                 return null;
             }
-            return autoBuyer instanceof MarketAutoBuyerMk2BlockEntity ? null : autoBuyer;
+            return autoTrader instanceof MarketAutoTraderMk2BlockEntity ? null : autoTrader;
         }
 
         @Override
-        protected void appendPowerServerData(CompoundTag data, MarketAutoBuyerBlockEntity autoBuyer) {
-            data.putInt("rpm", autoBuyer.rpmForDisplay());
+        protected void appendPowerServerData(CompoundTag data, MarketAutoTraderBlockEntity autoTrader) {
+            data.putInt("rpm", autoTrader.rpmForDisplay());
         }
 
         @Override
         protected void appendPowerTooltip(ITooltip tooltip, CompoundTag data) {
-            tooltip.add(Component.translatable("jade.incore.autobuyer.rpm", data.getInt("rpm")));
+            tooltip.add(Component.translatable("jade.incore.autotrader.rpm", data.getInt("rpm")));
         }
     }
 
-    private static class MarketAutoBuyerMk2Provider extends BaseMarketAutoBuyerProvider {
-        private MarketAutoBuyerMk2Provider() {
-            super("market_autobuyer_mk2");
+    private static class MarketAutoTraderMk2Provider extends BaseMarketAutoTraderProvider {
+        private MarketAutoTraderMk2Provider() {
+            super("market_autotrader_mk2");
         }
 
         @Override
-        protected MarketAutoBuyerBlockEntity autoBuyerIfSupported(BlockAccessor accessor) {
-            if (!(accessor.getBlockEntity() instanceof MarketAutoBuyerMk2BlockEntity autoBuyer)) {
+        protected MarketAutoTraderBlockEntity autoTraderIfSupported(BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof MarketAutoTraderMk2BlockEntity autoTrader)) {
                 return null;
             }
-            return autoBuyer;
+            return autoTrader;
         }
 
         @Override
-        protected void appendPowerServerData(CompoundTag data, MarketAutoBuyerBlockEntity autoBuyer) {
-            if (!(autoBuyer instanceof MarketAutoBuyerMk2BlockEntity mk2)) {
+        protected void appendPowerServerData(CompoundTag data, MarketAutoTraderBlockEntity autoTrader) {
+            if (!(autoTrader instanceof MarketAutoTraderMk2BlockEntity mk2)) {
                 return;
             }
             data.putInt("fe", mk2.energyStoredForDisplay());
@@ -317,7 +317,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
 
         @Override
         protected void appendPowerTooltip(ITooltip tooltip, CompoundTag data) {
-            tooltip.add(Component.translatable("jade.incore.autobuyer.energy", data.getInt("fe"), data.getInt("fe_cap")));
+            tooltip.add(Component.translatable("jade.incore.autotrader.energy", data.getInt("fe"), data.getInt("fe_cap")));
         }
     }
 
@@ -496,18 +496,18 @@ public class INCoreJadePlugin implements IWailaPlugin {
         };
     }
 
-    private static Component autoBuyerStatusText(int status) {
+    private static Component autoTraderStatusText(int status) {
         return switch (status) {
-            case MarketAutoBuyerBlockEntity.STATUS_DISABLED -> Component.translatable("screen.incore.market.autobuyer.status.disabled");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_CARD -> Component.translatable("screen.incore.market.autobuyer.status.no_card");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_TARGET -> Component.translatable("screen.incore.market.autobuyer.status.no_target");
-            case MarketAutoBuyerBlockEntity.STATUS_PRICE_TOO_HIGH -> Component.translatable("screen.incore.market.autobuyer.status.price_too_high");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_FUNDS -> Component.translatable("screen.incore.market.autobuyer.status.no_funds");
-            case MarketAutoBuyerBlockEntity.STATUS_OUTPUT_FULL -> Component.translatable("screen.incore.market.autobuyer.status.output_full");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_RPM -> Component.translatable("screen.incore.market.autobuyer.status.no_rpm");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_STRESS -> Component.translatable("screen.incore.market.autobuyer.status.no_stress");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_POWER -> Component.translatable("screen.incore.market.autobuyer.status.no_power");
-            default -> Component.translatable("screen.incore.market.autobuyer.status.ready");
+            case MarketAutoTraderBlockEntity.STATUS_DISABLED -> Component.translatable("screen.incore.market.autotrader.status.disabled");
+            case MarketAutoTraderBlockEntity.STATUS_NO_CARD -> Component.translatable("screen.incore.market.autotrader.status.no_card");
+            case MarketAutoTraderBlockEntity.STATUS_NO_TARGET -> Component.translatable("screen.incore.market.autotrader.status.no_target");
+            case MarketAutoTraderBlockEntity.STATUS_PRICE_TOO_HIGH -> Component.translatable("screen.incore.market.autotrader.status.price_too_high");
+            case MarketAutoTraderBlockEntity.STATUS_NO_FUNDS -> Component.translatable("screen.incore.market.autotrader.status.no_funds");
+            case MarketAutoTraderBlockEntity.STATUS_OUTPUT_FULL -> Component.translatable("screen.incore.market.autotrader.status.output_full");
+            case MarketAutoTraderBlockEntity.STATUS_NO_RPM -> Component.translatable("screen.incore.market.autotrader.status.no_rpm");
+            case MarketAutoTraderBlockEntity.STATUS_NO_STRESS -> Component.translatable("screen.incore.market.autotrader.status.no_stress");
+            case MarketAutoTraderBlockEntity.STATUS_NO_POWER -> Component.translatable("screen.incore.market.autotrader.status.no_power");
+            default -> Component.translatable("screen.incore.market.autotrader.status.ready");
         };
     }
 

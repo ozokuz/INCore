@@ -3,7 +3,7 @@ package io.github.ozokuz.incore.client.features.roguelike;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.github.ozokuz.incore.Registration;
-import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarBlockEntity;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -17,19 +17,19 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class RoguelikeAltarRenderer implements BlockEntityRenderer<RoguelikeAltarBlockEntity> {
+public class DungeonAltarRenderer implements BlockEntityRenderer<DungeonAltarBlockEntity> {
     private final ItemRenderer itemRenderer;
     private final Font font;
     private final EntityRenderDispatcher entityRenderDispatcher;
 
-    public RoguelikeAltarRenderer(BlockEntityRendererProvider.Context context) {
+    public DungeonAltarRenderer(BlockEntityRendererProvider.Context context) {
         this.itemRenderer = context.getItemRenderer();
         this.font = context.getFont();
         this.entityRenderDispatcher = context.getEntityRenderer();
     }
 
     @Override
-    public void render(RoguelikeAltarBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(DungeonAltarBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         var entries = blockEntity.displayEntries();
         int fullBright = LightTexture.FULL_BRIGHT;
         float time = (blockEntity.getLevel() == null ? 0.0F : blockEntity.getLevel().getGameTime()) + partialTick;

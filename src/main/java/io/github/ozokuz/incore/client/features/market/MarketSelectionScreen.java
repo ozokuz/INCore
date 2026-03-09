@@ -69,10 +69,6 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
                 .bounds(width - 90, height - 26, 80, 20)
                 .build());
 
-        addRenderableWidget(Button.builder(Component.translatable("screen.incore.market.refresh"), button -> refreshSnapshot())
-                .bounds(width - 186, 10, 82, 20)
-                .build());
-
         clampScroll();
         MarketNetworking.subscribeMarketView(true, data == null ? null : data.terminalPos(), null);
     }
@@ -244,15 +240,6 @@ public class MarketSelectionScreen extends Screen implements MarketPayloadUpdata
     @Override
     public boolean isPauseScreen() {
         return false;
-    }
-
-    private void refreshSnapshot() {
-        Long terminalPos = data == null ? null : data.terminalPos();
-        if (terminalPos != null) {
-            MarketNetworking.sendRefresh(terminalPos);
-        } else {
-            MarketNetworking.requestOpenMarketScreen();
-        }
     }
 
     private void requestItemDetails(ResourceLocation itemId) {

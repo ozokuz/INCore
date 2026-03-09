@@ -28,11 +28,11 @@ import io.github.ozokuz.incore.features.cards.DecryptorBlock;
 import io.github.ozokuz.incore.features.vendingmachine.VendingMachineBlock;
 import io.github.ozokuz.incore.features.vendingmachine.VendingMachineBlockEntity;
 import io.github.ozokuz.incore.features.vendingmachine.VendingMachineDiscountCharmItem;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlock;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMk2Block;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMk2BlockEntity;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMenu;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlock;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMk2Block;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMk2BlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMenu;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalCardMenu;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlock;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
@@ -63,14 +63,14 @@ import io.github.ozokuz.incore.features.research.SpeedModuleCardItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCompletionCrateItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonObjectiveAltarBlock;
-import io.github.ozokuz.incore.features.roguelike.content.CustomDungeonCrystalForgeBlock;
-import io.github.ozokuz.incore.features.roguelike.content.CustomDungeonCrystalForgeBlockEntity;
-import io.github.ozokuz.incore.features.roguelike.content.CustomDungeonCrystalForgeMenu;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalModificationStationBlock;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalModificationStationBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalModificationStationMenu;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonReturnPortalBlock;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonScavengerTokenItem;
 import io.github.ozokuz.incore.features.roguelike.content.EmptyDungeonCrystalItem;
-import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlock;
-import io.github.ozokuz.incore.features.roguelike.content.RoguelikeAltarBlockEntity;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarBlock;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonAltarBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlock;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.worldgen.DungeonChunkGenerator;
@@ -186,26 +186,26 @@ public class Registration {
             () -> BlockEntityType.Builder.of(ShipmentTerminalMk2BlockEntity::new, SHIPMENT_TERMINAL_MK2_BLOCK.get()).build(null)
     );
     public static final DeferredItem<BlockItem> SHIPMENT_TERMINAL_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("shipment_terminal_mk2", SHIPMENT_TERMINAL_MK2_BLOCK);
-    public static final DeferredBlock<Block> MARKET_AUTOBUYER_BLOCK = BLOCKS.register("market_autobuyer", () -> new MarketAutoBuyerBlock());
-    public static final Supplier<BlockEntityType<MarketAutoBuyerBlockEntity>> MARKET_AUTOBUYER_BE = BLOCK_ENTITY_TYPES.register(
-            "market_autobuyer",
-            () -> BlockEntityType.Builder.of(MarketAutoBuyerBlockEntity::new, MARKET_AUTOBUYER_BLOCK.get()).build(null)
+    public static final DeferredBlock<Block> MARKET_AUTOTRADER_BLOCK = BLOCKS.register("market_autotrader", () -> new MarketAutoTraderBlock());
+    public static final Supplier<BlockEntityType<MarketAutoTraderBlockEntity>> MARKET_AUTOTRADER_BE = BLOCK_ENTITY_TYPES.register(
+            "market_autotrader",
+            () -> BlockEntityType.Builder.of(MarketAutoTraderBlockEntity::new, MARKET_AUTOTRADER_BLOCK.get()).build(null)
     );
-    public static final Supplier<MenuType<MarketAutoBuyerMenu>> MARKET_AUTOBUYER_MENU = MENU_TYPES.register(
-            "market_autobuyer",
-            () -> IMenuTypeExtension.create((id, inv, data) -> new MarketAutoBuyerMenu(
+    public static final Supplier<MenuType<MarketAutoTraderMenu>> MARKET_AUTOTRADER_MENU = MENU_TYPES.register(
+            "market_autotrader",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new MarketAutoTraderMenu(
                     id,
                     inv,
-                    (MarketAutoBuyerBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+                    (MarketAutoTraderBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
             ))
     );
-    public static final DeferredItem<BlockItem> MARKET_AUTOBUYER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autobuyer", MARKET_AUTOBUYER_BLOCK);
-    public static final DeferredBlock<Block> MARKET_AUTOBUYER_MK2_BLOCK = BLOCKS.register("market_autobuyer_mk2", () -> new MarketAutoBuyerMk2Block());
-    public static final Supplier<BlockEntityType<MarketAutoBuyerMk2BlockEntity>> MARKET_AUTOBUYER_MK2_BE = BLOCK_ENTITY_TYPES.register(
-            "market_autobuyer_mk2",
-            () -> BlockEntityType.Builder.of(MarketAutoBuyerMk2BlockEntity::new, MARKET_AUTOBUYER_MK2_BLOCK.get()).build(null)
+    public static final DeferredItem<BlockItem> MARKET_AUTOTRADER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autotrader", MARKET_AUTOTRADER_BLOCK);
+    public static final DeferredBlock<Block> MARKET_AUTOTRADER_MK2_BLOCK = BLOCKS.register("market_autotrader_mk2", () -> new MarketAutoTraderMk2Block());
+    public static final Supplier<BlockEntityType<MarketAutoTraderMk2BlockEntity>> MARKET_AUTOTRADER_MK2_BE = BLOCK_ENTITY_TYPES.register(
+            "market_autotrader_mk2",
+            () -> BlockEntityType.Builder.of(MarketAutoTraderMk2BlockEntity::new, MARKET_AUTOTRADER_MK2_BLOCK.get()).build(null)
     );
-    public static final DeferredItem<BlockItem> MARKET_AUTOBUYER_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autobuyer_mk2", MARKET_AUTOBUYER_MK2_BLOCK);
+    public static final DeferredItem<BlockItem> MARKET_AUTOTRADER_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autotrader_mk2", MARKET_AUTOTRADER_MK2_BLOCK);
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_BLOCK = BLOCKS.register("cinnabar_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
@@ -290,23 +290,23 @@ public class Registration {
     public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
 
-    public static final DeferredBlock<Block> ROGUELIKE_ALTAR_BLOCK = BLOCKS.register("roguelike_altar", RoguelikeAltarBlock::new);
-    public static final Supplier<BlockEntityType<RoguelikeAltarBlockEntity>> ROGUELIKE_ALTAR_BE = BLOCK_ENTITY_TYPES.register("roguelike_altar", () -> BlockEntityType.Builder.of(RoguelikeAltarBlockEntity::new, ROGUELIKE_ALTAR_BLOCK.get()).build(null));
-    public static final DeferredItem<BlockItem> ROGUELIKE_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("roguelike_altar", ROGUELIKE_ALTAR_BLOCK);
-    public static final DeferredBlock<Block> CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK = BLOCKS.register("custom_dungeon_crystal_forge", () -> new CustomDungeonCrystalForgeBlock());
-    public static final Supplier<BlockEntityType<CustomDungeonCrystalForgeBlockEntity>> CUSTOM_DUNGEON_CRYSTAL_FORGE_BE = BLOCK_ENTITY_TYPES.register(
-            "custom_dungeon_crystal_forge",
-            () -> BlockEntityType.Builder.of(CustomDungeonCrystalForgeBlockEntity::new, CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK.get()).build(null)
+    public static final DeferredBlock<Block> DUNGEON_ALTAR_BLOCK = BLOCKS.register("dungeon_altar", DungeonAltarBlock::new);
+    public static final Supplier<BlockEntityType<DungeonAltarBlockEntity>> DUNGEON_ALTAR_BE = BLOCK_ENTITY_TYPES.register("dungeon_altar", () -> BlockEntityType.Builder.of(DungeonAltarBlockEntity::new, DUNGEON_ALTAR_BLOCK.get()).build(null));
+    public static final DeferredItem<BlockItem> DUNGEON_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_altar", DUNGEON_ALTAR_BLOCK);
+    public static final DeferredBlock<Block> DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK = BLOCKS.register("dungeon_crystal_modification_station", () -> new DungeonCrystalModificationStationBlock());
+    public static final Supplier<BlockEntityType<DungeonCrystalModificationStationBlockEntity>> DUNGEON_CRYSTAL_MODIFICATION_STATION_BE = BLOCK_ENTITY_TYPES.register(
+            "dungeon_crystal_modification_station",
+            () -> BlockEntityType.Builder.of(DungeonCrystalModificationStationBlockEntity::new, DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK.get()).build(null)
     );
-    public static final Supplier<MenuType<CustomDungeonCrystalForgeMenu>> CUSTOM_DUNGEON_CRYSTAL_FORGE_MENU = MENU_TYPES.register(
-            "custom_dungeon_crystal_forge",
-            () -> IMenuTypeExtension.create((id, inv, data) -> new CustomDungeonCrystalForgeMenu(
+    public static final Supplier<MenuType<DungeonCrystalModificationStationMenu>> DUNGEON_CRYSTAL_MODIFICATION_STATION_MENU = MENU_TYPES.register(
+            "dungeon_crystal_modification_station",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new DungeonCrystalModificationStationMenu(
                     id,
                     inv,
-                    (CustomDungeonCrystalForgeBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+                    (DungeonCrystalModificationStationBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
             ))
     );
-    public static final DeferredItem<BlockItem> CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("custom_dungeon_crystal_forge", CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK);
+    public static final DeferredItem<BlockItem> DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_crystal_modification_station", DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK);
     public static final DeferredBlock<Block> DUNGEON_OBJECTIVE_ALTAR_BLOCK = BLOCKS.register("dungeon_objective_altar", DungeonObjectiveAltarBlock::new);
     public static final DeferredItem<BlockItem> DUNGEON_OBJECTIVE_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_objective_altar", DUNGEON_OBJECTIVE_ALTAR_BLOCK);
     public static final DeferredBlock<Block> ROGUELIKE_PORTAL_BLOCK = BLOCKS.register("roguelike_portal", RoguelikePortalBlock::new);
@@ -384,8 +384,8 @@ public class Registration {
             .icon(() -> DUNGEON_CRYSTAL_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 // Crystal Making
-                output.accept(ROGUELIKE_ALTAR_BLOCK_ITEM.get());
-                output.accept(CUSTOM_DUNGEON_CRYSTAL_FORGE_BLOCK_ITEM.get());
+                output.accept(DUNGEON_ALTAR_BLOCK_ITEM.get());
+                output.accept(DUNGEON_CRYSTAL_MODIFICATION_STATION_BLOCK_ITEM.get());
                 output.accept(EMPTY_DUNGEON_CRYSTAL_ITEM.get());
 
                 // Ore Spots
@@ -423,8 +423,8 @@ public class Registration {
                 output.accept(MARKET_TERMINAL_BLOCK_ITEM.get());
                 output.accept(SHIPMENT_TERMINAL_BLOCK_ITEM.get());
                 output.accept(SHIPMENT_TERMINAL_MK2_BLOCK_ITEM.get());
-                output.accept(MARKET_AUTOBUYER_BLOCK_ITEM.get());
-                output.accept(MARKET_AUTOBUYER_MK2_BLOCK_ITEM.get());
+                output.accept(MARKET_AUTOTRADER_BLOCK_ITEM.get());
+                output.accept(MARKET_AUTOTRADER_MK2_BLOCK_ITEM.get());
 
                 // Entropy
                 output.accept(ENTROPY_BOOSTER_SMALL_ITEM.get());

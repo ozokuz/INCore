@@ -47,8 +47,8 @@ public class ShipmentTerminalScreen extends AbstractContainerScreen<ShipmentTerm
                 UIScreenTheme.Machine.PROGRESS_FRAME_BORDER
         );
 
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
+        for (int row = 0; row < ShipmentTerminalMenu.INPUT_ROWS; row++) {
+            for (int col = 0; col < ShipmentTerminalMenu.INPUT_COLUMNS; col++) {
                 drawSlotFrame(guiGraphics, x + ShipmentTerminalMenu.INPUT_X + col * 18, y + ShipmentTerminalMenu.INPUT_Y + row * 18);
             }
         }

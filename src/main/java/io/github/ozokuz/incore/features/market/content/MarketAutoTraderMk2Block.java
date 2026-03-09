@@ -12,33 +12,33 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketAutoBuyerMk2Block extends MarketAutoBuyerBlock {
-    public static final MapCodec<MarketAutoBuyerMk2Block> CODEC = simpleCodec(MarketAutoBuyerMk2Block::new);
+public class MarketAutoTraderMk2Block extends MarketAutoTraderBlock {
+    public static final MapCodec<MarketAutoTraderMk2Block> CODEC = simpleCodec(MarketAutoTraderMk2Block::new);
 
-    public MarketAutoBuyerMk2Block() {
-        this(BlockBehaviour.Properties.ofFullCopy(Registration.MARKET_AUTOBUYER_BLOCK.get()));
+    public MarketAutoTraderMk2Block() {
+        this(BlockBehaviour.Properties.ofFullCopy(Registration.MARKET_AUTOTRADER_BLOCK.get()));
     }
 
-    public MarketAutoBuyerMk2Block(BlockBehaviour.Properties properties) {
+    public MarketAutoTraderMk2Block(BlockBehaviour.Properties properties) {
         super(properties);
     }
 
     @Override
-    protected @NotNull MapCodec<? extends MarketAutoBuyerBlock> codec() {
+    protected @NotNull MapCodec<? extends MarketAutoTraderBlock> codec() {
         return CODEC;
     }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-        return new MarketAutoBuyerMk2BlockEntity(pos, state);
+        return new MarketAutoTraderMk2BlockEntity(pos, state);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> blockEntityType) {
-        if (blockEntityType != Registration.MARKET_AUTOBUYER_MK2_BE.get()) {
+        if (blockEntityType != Registration.MARKET_AUTOTRADER_MK2_BE.get()) {
             return null;
         }
-        return (lvl, pos, blockState, blockEntity) -> MarketAutoBuyerMk2BlockEntity.tick(lvl, pos, blockState, (MarketAutoBuyerMk2BlockEntity) blockEntity);
+        return (lvl, pos, blockState, blockEntity) -> MarketAutoTraderMk2BlockEntity.tick(lvl, pos, blockState, (MarketAutoTraderMk2BlockEntity) blockEntity);
     }
 }

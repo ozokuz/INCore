@@ -24,14 +24,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class RoguelikeAltarBlockEntity extends BlockEntity {
+public class DungeonAltarBlockEntity extends BlockEntity {
     private List<DisplayEntry> displayEntries = List.of();
     @Nullable
     private UUID ownerId;
     private boolean crystalPlaced;
 
-    public RoguelikeAltarBlockEntity(BlockPos pos, BlockState blockState) {
-        super(Registration.ROGUELIKE_ALTAR_BE.get(), pos, blockState);
+    public DungeonAltarBlockEntity(BlockPos pos, BlockState blockState) {
+        super(Registration.DUNGEON_ALTAR_BE.get(), pos, blockState);
     }
 
     public List<DisplayEntry> displayEntries() {
@@ -132,7 +132,7 @@ public class RoguelikeAltarBlockEntity extends BlockEntity {
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos pos, BlockState state, T blockEntity) {
-        if (!(blockEntity instanceof RoguelikeAltarBlockEntity altar) || level.isClientSide) {
+        if (!(blockEntity instanceof DungeonAltarBlockEntity altar) || level.isClientSide) {
             return;
         }
 

@@ -37,9 +37,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class ShipmentTerminalBlockEntity extends KineticBlockEntity implements Container, MenuProvider {
-    public static final int INPUT_SLOT_COUNT = 9;
-    public static final int CARD_SLOT = 9;
-    public static final int SLOT_COUNT = 10;
+    public static final int INPUT_SLOT_COUNT = 18;
+    public static final int CARD_SLOT = INPUT_SLOT_COUNT;
+    public static final int SLOT_COUNT = CARD_SLOT + 1;
 
     public static final int STATUS_IDLE = 0;
     public static final int STATUS_DISABLED = 1;

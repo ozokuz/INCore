@@ -136,7 +136,7 @@ public class INCore {
         ));
         event.enqueueWork(() -> {
             BlockStressValues.IMPACTS.register(Registration.SHIPMENT_TERMINAL_BLOCK.get(), () -> 1024.0D);
-            BlockStressValues.IMPACTS.register(Registration.MARKET_AUTOBUYER_BLOCK.get(), () -> 1024.0D);
+            BlockStressValues.IMPACTS.register(Registration.MARKET_AUTOTRADER_BLOCK.get(), () -> 1024.0D);
         });
     }
 

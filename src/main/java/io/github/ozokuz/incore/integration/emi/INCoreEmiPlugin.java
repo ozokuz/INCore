@@ -7,7 +7,7 @@ import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.Bounds;
-import io.github.ozokuz.incore.client.features.market.MarketAutoBuyerScreen;
+import io.github.ozokuz.incore.client.features.market.MarketAutoTraderScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 
@@ -15,9 +15,9 @@ import net.minecraft.world.item.ItemStack;
 public class INCoreEmiPlugin implements EmiPlugin {
     @Override
     public void register(EmiRegistry registry) {
-        registry.addDragDropHandler(MarketAutoBuyerScreen.class, new EmiDragDropHandler<>() {
+        registry.addDragDropHandler(MarketAutoTraderScreen.class, new EmiDragDropHandler<>() {
             @Override
-            public boolean dropStack(MarketAutoBuyerScreen screen, EmiIngredient stack, int x, int y) {
+            public boolean dropStack(MarketAutoTraderScreen screen, EmiIngredient stack, int x, int y) {
                 Bounds bounds = ghostTargetBounds(screen);
                 if (!bounds.contains(x, y)) {
                     return false;
@@ -34,7 +34,7 @@ public class INCoreEmiPlugin implements EmiPlugin {
             }
 
             @Override
-            public void render(MarketAutoBuyerScreen screen, EmiIngredient dragged, GuiGraphics draw, int mouseX, int mouseY, float delta) {
+            public void render(MarketAutoTraderScreen screen, EmiIngredient dragged, GuiGraphics draw, int mouseX, int mouseY, float delta) {
                 Bounds bounds = ghostTargetBounds(screen);
                 int color = bounds.contains(mouseX, mouseY) ? 0x8844DD44 : 0x5522AA22;
                 draw.fill(bounds.x(), bounds.y(), bounds.x() + bounds.width(), bounds.y() + bounds.height(), color);
@@ -42,7 +42,7 @@ public class INCoreEmiPlugin implements EmiPlugin {
         });
     }
 
-    private static Bounds ghostTargetBounds(MarketAutoBuyerScreen screen) {
+    private static Bounds ghostTargetBounds(MarketAutoTraderScreen screen) {
         return new Bounds(screen.ghostSlotLeft(), screen.ghostSlotTop(), 18, 18);
     }
 }

@@ -31,21 +31,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class CustomDungeonCrystalForgeBlockEntity extends BlockEntity implements MenuProvider, Container {
+public class DungeonCrystalModificationStationBlockEntity extends BlockEntity implements MenuProvider, Container {
     public static final int INPUT_SLOT = 0;
     public static final int THEME_SLOT = 1;
     public static final int OBJECTIVE_SLOT = 2;
     public static final int MODIFIER_START = 3;
-    public static final int MODIFIER_COUNT = 3;
-    public static final int OUTPUT_SLOT = 6;
-    public static final int SLOT_COUNT = 7;
+    public static final int MODIFIER_COUNT = 6;
+    public static final int OUTPUT_SLOT = MODIFIER_START + MODIFIER_COUNT;
+    public static final int SLOT_COUNT = OUTPUT_SLOT + 1;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private boolean validPreview;
     private boolean updatingOutput;
 
-    public CustomDungeonCrystalForgeBlockEntity(BlockPos pos, BlockState blockState) {
-        super(Registration.CUSTOM_DUNGEON_CRYSTAL_FORGE_BE.get(), pos, blockState);
+    public DungeonCrystalModificationStationBlockEntity(BlockPos pos, BlockState blockState) {
+        super(Registration.DUNGEON_CRYSTAL_MODIFICATION_STATION_BE.get(), pos, blockState);
     }
 
     public boolean validPreview() {
@@ -180,13 +180,13 @@ public class CustomDungeonCrystalForgeBlockEntity extends BlockEntity implements
 
     @Override
     public @NotNull Component getDisplayName() {
-        return Component.translatable("block.incore.custom_dungeon_crystal_forge");
+        return Component.translatable("block.incore.dungeon_crystal_modification_station");
     }
 
     @Override
     public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory, @NotNull Player player) {
         refreshPreview();
-        return new CustomDungeonCrystalForgeMenu(containerId, inventory, this);
+        return new DungeonCrystalModificationStationMenu(containerId, inventory, this);
     }
 
     @Override

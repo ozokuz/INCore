@@ -22,7 +22,7 @@ public final class MarketNetworking {
         registrar.playToClient(MarketSnapshotSyncPayload.TYPE, MarketSnapshotSyncPayload.STREAM_CODEC, MarketSnapshotSyncPayload::handle);
         registrar.playToServer(RequestOpenMarketScreenPayload.TYPE, RequestOpenMarketScreenPayload.STREAM_CODEC, RequestOpenMarketScreenPayload::handle);
         registrar.playToServer(MarketActionPayload.TYPE, MarketActionPayload.STREAM_CODEC, MarketActionPayload::handle);
-        registrar.playToServer(MarketAutoBuyerConfigPayload.TYPE, MarketAutoBuyerConfigPayload.STREAM_CODEC, MarketAutoBuyerConfigPayload::handle);
+        registrar.playToServer(MarketAutoTraderConfigPayload.TYPE, MarketAutoTraderConfigPayload.STREAM_CODEC, MarketAutoTraderConfigPayload::handle);
         registrar.playToServer(MarketViewSubscriptionPayload.TYPE, MarketViewSubscriptionPayload.STREAM_CODEC, MarketViewSubscriptionPayload::handle);
     }
 
@@ -68,8 +68,8 @@ public final class MarketNetworking {
         ));
     }
 
-    public static void sendAutoBuyerConfig(long blockPos, String targetItemId, int priceCapSpur, int batchSize) {
-        PacketDistributor.sendToServer(new MarketAutoBuyerConfigPayload(
+    public static void sendAutoTraderConfig(long blockPos, String targetItemId, int priceCapSpur, int batchSize) {
+        PacketDistributor.sendToServer(new MarketAutoTraderConfigPayload(
                 blockPos,
                 targetItemId == null ? "" : targetItemId,
                 Math.max(1, priceCapSpur),

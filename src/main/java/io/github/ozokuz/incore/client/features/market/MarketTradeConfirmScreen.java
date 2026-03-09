@@ -14,14 +14,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class MarketTradeConfirmScreen extends Screen {
+public class MarketTradeConfirmScreen extends Screen implements MarketPayloadUpdatable {
     private static final UIScreenTheme THEME = UIScreenTheme.CONFIRMATION;
     private static final int PANEL_WIDTH = 420;
     private static final int PANEL_HEIGHT = 190;
     private static final ResourceLocation SPUR_ICON_ITEM = ResourceLocation.parse("numismatics:spur");
 
     private final Screen parent;
-    private final MarketService.ScreenData data;
+    private MarketService.ScreenData data;
     private final String selectedItemId;
     private final boolean isBuy;
     private int quantity = 1;
@@ -83,8 +83,16 @@ public class MarketTradeConfirmScreen extends Screen {
                 .build());
         plusButton.active = quantity < maxQty;
 
+        Button maxButton = this.addRenderableWidget(Button.builder(Component.translatable("screen.incore.market.confirm.max"), button -> {
+                    quantity = Math.max(1, maxQty);
+                    rebuildWidgets();
+                })
+                .bounds(left + 140, buttonY, 46, 20)
+                .build());
+        maxButton.active = quantity < maxQty;
+
         this.addRenderableWidget(Button.builder(Component.translatable("gui.cancel"), button -> this.minecraft.setScreen(parent))
-                .bounds(left + 186, buttonY, 84, 20)
+                .bounds(left + 194, buttonY, 76, 20)
                 .build());
 
         Button confirmButton = this.addRenderableWidget(Button.builder(
@@ -103,6 +111,17 @@ public class MarketTradeConfirmScreen extends Screen {
                 .bounds(left + 278, buttonY, 120, 20)
                 .build());
         confirmButton.active = canAfford(item);
+    }
+
+    @Override
+    public void updatePayload(String json) {
+        this.data = MarketScreenDataUtil.parse(json);
+        if (this.parent instanceof MarketPayloadUpdatable updatable) {
+            updatable.updatePayload(json);
+        }
+        if (this.minecraft != null) {
+            rebuildWidgets();
+        }
     }
 
     @Override
@@ -220,6 +239,24 @@ public class MarketTradeConfirmScreen extends Screen {
                     afterItems >= 0 ? UIScreenTheme.Confirmation.DELTA_POSITIVE_TEXT : UIScreenTheme.Confirmation.DELTA_NEGATIVE_TEXT
             );
         }
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (scrollY == 0.0D) {
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
+
+        MarketService.ItemView item = selectedItem();
+        int maxQty = Math.max(1, maxQuantity(item));
+        int nextQuantity = Math.clamp(quantity + (scrollY > 0.0D ? 1 : -1), 1, maxQty);
+        if (nextQuantity == quantity) {
+            return true;
+        }
+
+        quantity = nextQuantity;
+        rebuildWidgets();
+        return true;
     }
 
     private void drawScaledCenteredString(GuiGraphics guiGraphics, String text, int centerX, int y, float scale, int color) {

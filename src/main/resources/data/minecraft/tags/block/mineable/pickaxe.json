@@ -24,6 +24,6 @@
     "incore:quartz_ore_stone_slab",
     "incore:market_terminal",
     "incore:shipment_terminal",
-    "incore:market_autobuyer"
+    "incore:market_autotrader"
   ]
 }

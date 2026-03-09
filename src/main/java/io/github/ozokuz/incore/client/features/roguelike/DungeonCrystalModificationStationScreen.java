@@ -2,7 +2,7 @@ package io.github.ozokuz.incore.client.features.roguelike;
 
 import io.github.ozokuz.incore.client.ui.UIScreenTheme;
 import io.github.ozokuz.incore.client.ui.render.ThemedUi;
-import io.github.ozokuz.incore.features.roguelike.content.CustomDungeonCrystalForgeMenu;
+import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalModificationStationMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 import java.util.List;
 
-public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<CustomDungeonCrystalForgeMenu> {
+public class DungeonCrystalModificationStationScreen extends AbstractContainerScreen<DungeonCrystalModificationStationMenu> {
     private static final UIScreenTheme THEME = UIScreenTheme.CRAFTING;
     private static final int INPUT_PANEL_X = 8;
     private static final int INPUT_PANEL_Y = 24;
@@ -41,7 +41,7 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
     private static final int STATUS_PANEL_H = 14;
     private static final int INV_PANEL_Y = 108;
 
-    public CustomDungeonCrystalForgeScreen(CustomDungeonCrystalForgeMenu menu, Inventory playerInventory, Component title) {
+    public DungeonCrystalModificationStationScreen(DungeonCrystalModificationStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 248;
         this.imageHeight = 210;
@@ -57,44 +57,44 @@ public class CustomDungeonCrystalForgeScreen extends AbstractContainerScreen<Cus
         ui.drawPanel(x + INPUT_PANEL_X, y + INPUT_PANEL_Y, INPUT_PANEL_W, INPUT_PANEL_H);
         ui.drawPanel(x + RESULT_PANEL_X, y + RESULT_PANEL_Y, RESULT_PANEL_W, RESULT_PANEL_H);
         ui.drawPanel(x + INVENTORY_PANEL_X, y + INVENTORY_PANEL_Y, INVENTORY_PANEL_W, INVENTORY_PANEL_H);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.INPUT_X, y + CustomDungeonCrystalForgeMenu.INPUT_Y);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.THEME_X, y + CustomDungeonCrystalForgeMenu.THEME_Y);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.OBJECTIVE_X, y + CustomDungeonCrystalForgeMenu.OBJECTIVE_Y);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_ONE_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_ONE_Y);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_TWO_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_TWO_Y);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.MODIFIER_THREE_X, y + CustomDungeonCrystalForgeMenu.MODIFIER_THREE_Y);
-        drawSlot(guiGraphics, x + CustomDungeonCrystalForgeMenu.OUTPUT_X, y + CustomDungeonCrystalForgeMenu.OUTPUT_Y);
+        drawSlot(guiGraphics, x + DungeonCrystalModificationStationMenu.INPUT_X, y + DungeonCrystalModificationStationMenu.INPUT_Y);
+        drawSlot(guiGraphics, x + DungeonCrystalModificationStationMenu.THEME_X, y + DungeonCrystalModificationStationMenu.THEME_Y);
+        drawSlot(guiGraphics, x + DungeonCrystalModificationStationMenu.OBJECTIVE_X, y + DungeonCrystalModificationStationMenu.OBJECTIVE_Y);
+        for (int modifierX : DungeonCrystalModificationStationMenu.MODIFIER_X) {
+            drawSlot(guiGraphics, x + modifierX, y + DungeonCrystalModificationStationMenu.MODIFIER_Y);
+        }
+        drawSlot(guiGraphics, x + DungeonCrystalModificationStationMenu.OUTPUT_X, y + DungeonCrystalModificationStationMenu.OUTPUT_Y);
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 drawSlot(guiGraphics,
-                        x + CustomDungeonCrystalForgeMenu.PLAYER_INV_X + col * 18,
-                        y + CustomDungeonCrystalForgeMenu.PLAYER_INV_Y + row * 18);
+                        x + DungeonCrystalModificationStationMenu.PLAYER_INV_X + col * 18,
+                        y + DungeonCrystalModificationStationMenu.PLAYER_INV_Y + row * 18);
             }
         }
         for (int col = 0; col < 9; col++) {
             drawSlot(guiGraphics,
-                    x + CustomDungeonCrystalForgeMenu.PLAYER_INV_X + col * 18,
-                    y + CustomDungeonCrystalForgeMenu.HOTBAR_Y);
+                    x + DungeonCrystalModificationStationMenu.PLAYER_INV_X + col * 18,
+                    y + DungeonCrystalModificationStationMenu.HOTBAR_Y);
         }
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         guiGraphics.drawString(font, title, 11, 9, UIScreenTheme.Crafting.TITLE_TEXT, false);
-        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.input"), CustomDungeonCrystalForgeMenu.INPUT_X + 8, 28);
-        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.theme"), CustomDungeonCrystalForgeMenu.THEME_X + 8, 28);
-        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.custom_crystal_forge.objective"), CustomDungeonCrystalForgeMenu.OBJECTIVE_X + 8, 28);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.modifiers"), 12, 62, UIScreenTheme.Crafting.BODY_TEXT, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.custom_crystal_forge.output"), RESULT_PANEL_X + 4, 28, UIScreenTheme.Crafting.BODY_TEXT, false);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.dungeon_crystal_modification_station.input"), DungeonCrystalModificationStationMenu.INPUT_X + 8, 28);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.dungeon_crystal_modification_station.theme"), DungeonCrystalModificationStationMenu.THEME_X + 8, 28);
+        drawCenteredLabel(guiGraphics, Component.translatable("screen.incore.dungeon_crystal_modification_station.objective"), DungeonCrystalModificationStationMenu.OBJECTIVE_X + 8, 28);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.dungeon_crystal_modification_station.modifiers"), 12, 62, UIScreenTheme.Crafting.BODY_TEXT, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.dungeon_crystal_modification_station.output"), RESULT_PANEL_X + 4, 28, UIScreenTheme.Crafting.BODY_TEXT, false);
         int statusColor = menu.validPreview() ? UIScreenTheme.Crafting.SUCCESS_TEXT : UIScreenTheme.Crafting.DANGER_TEXT;
         String statusKey = menu.validPreview()
-                ? "screen.incore.custom_crystal_forge.status.ready"
-                : "screen.incore.custom_crystal_forge.status.invalid";
+                ? "screen.incore.dungeon_crystal_modification_station.status.ready"
+                : "screen.incore.dungeon_crystal_modification_station.status.invalid";
         drawWrapped(guiGraphics, Component.translatable(statusKey), RESULT_PANEL_X + 4, 62, RESULT_PANEL_W - 4, 2, statusColor);
         drawWrapped(
                 guiGraphics,
-                Component.translatable("screen.incore.custom_crystal_forge.hint"),
+                Component.translatable("screen.incore.dungeon_crystal_modification_station.hint"),
                 RESULT_PANEL_X + 4,
                 80,
                 RESULT_PANEL_W - 4,

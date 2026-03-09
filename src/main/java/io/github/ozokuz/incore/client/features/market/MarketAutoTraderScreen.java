@@ -3,8 +3,8 @@ package io.github.ozokuz.incore.client.features.market;
 import io.github.ozokuz.incore.client.ui.UIScreenTheme;
 import io.github.ozokuz.incore.client.ui.render.ThemedButton;
 import io.github.ozokuz.incore.client.ui.render.ThemedUi;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerBlockEntity;
-import io.github.ozokuz.incore.features.market.content.MarketAutoBuyerMenu;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderBlockEntity;
+import io.github.ozokuz.incore.features.market.content.MarketAutoTraderMenu;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuyerMenu> {
+public class MarketAutoTraderScreen extends AbstractContainerScreen<MarketAutoTraderMenu> {
     private static final UIScreenTheme THEME = UIScreenTheme.MACHINE;
     private static final int TEXT_COLOR = THEME.theme().text().secondary();
     private static final int ACCENT_TEXT = UIScreenTheme.Machine.TITLE_TEXT;
@@ -42,7 +42,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     private @Nullable ResourceLocation ghostTargetItemId;
     private ItemStack ghostTargetPreview = ItemStack.EMPTY;
 
-    public MarketAutoBuyerScreen(MarketAutoBuyerMenu menu, Inventory playerInventory, Component title) {
+    public MarketAutoTraderScreen(MarketAutoTraderMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 230;
         this.imageHeight = 326;
@@ -102,7 +102,7 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
     }
 
     private void sendConfigUpdate(String targetItemId, int priceCap, int batchSize) {
-        MarketNetworking.sendAutoBuyerConfig(
+        MarketNetworking.sendAutoTraderConfig(
                 menu.positionAccessor().asLong(),
                 targetItemId,
                 priceCap,
@@ -157,14 +157,14 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
                 UIScreenTheme.Machine.SECTION_FILL, UIScreenTheme.Machine.SECTION_BORDER);
 
         // Card slot frame
-        drawSlotFrame(guiGraphics, x + MarketAutoBuyerMenu.CARD_X, y + MarketAutoBuyerMenu.CARD_Y);
+        drawSlotFrame(guiGraphics, x + MarketAutoTraderMenu.CARD_X, y + MarketAutoTraderMenu.CARD_Y);
 
         // Output slot frames (3 rows x 9 cols)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 drawSlotFrame(guiGraphics,
-                        x + MarketAutoBuyerMenu.OUTPUT_X + col * 18,
-                        y + MarketAutoBuyerMenu.OUTPUT_Y + row * 18);
+                        x + MarketAutoTraderMenu.OUTPUT_X + col * 18,
+                        y + MarketAutoTraderMenu.OUTPUT_Y + row * 18);
             }
         }
 
@@ -176,23 +176,23 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 drawSlotFrame(guiGraphics,
-                        x + MarketAutoBuyerMenu.PLAYER_INVENTORY_X + col * 18,
-                        y + MarketAutoBuyerMenu.PLAYER_INVENTORY_Y + row * 18);
+                        x + MarketAutoTraderMenu.PLAYER_INVENTORY_X + col * 18,
+                        y + MarketAutoTraderMenu.PLAYER_INVENTORY_Y + row * 18);
             }
         }
         for (int col = 0; col < 9; col++) {
             drawSlotFrame(guiGraphics,
-                    x + MarketAutoBuyerMenu.PLAYER_INVENTORY_X + col * 18,
-                    y + MarketAutoBuyerMenu.HOTBAR_Y);
+                    x + MarketAutoTraderMenu.PLAYER_INVENTORY_X + col * 18,
+                    y + MarketAutoTraderMenu.HOTBAR_Y);
         }
 
         // Status indicator light
         int statusColor = switch (menu.status()) {
-            case MarketAutoBuyerBlockEntity.STATUS_READY -> UIScreenTheme.Machine.STATUS_READY_TEXT;
-            case MarketAutoBuyerBlockEntity.STATUS_DISABLED -> UIScreenTheme.Machine.STATUS_DISABLED_TEXT;
-            case MarketAutoBuyerBlockEntity.STATUS_PRICE_TOO_HIGH, MarketAutoBuyerBlockEntity.STATUS_NO_FUNDS,
-                 MarketAutoBuyerBlockEntity.STATUS_NO_STRESS, MarketAutoBuyerBlockEntity.STATUS_NO_POWER -> UIScreenTheme.Machine.STATUS_ERROR_TEXT;
-            case MarketAutoBuyerBlockEntity.STATUS_NO_RPM -> UIScreenTheme.Machine.STATUS_WARNING_TEXT;
+            case MarketAutoTraderBlockEntity.STATUS_READY -> UIScreenTheme.Machine.STATUS_READY_TEXT;
+            case MarketAutoTraderBlockEntity.STATUS_DISABLED -> UIScreenTheme.Machine.STATUS_DISABLED_TEXT;
+            case MarketAutoTraderBlockEntity.STATUS_PRICE_TOO_HIGH, MarketAutoTraderBlockEntity.STATUS_NO_FUNDS,
+                 MarketAutoTraderBlockEntity.STATUS_NO_STRESS, MarketAutoTraderBlockEntity.STATUS_NO_POWER -> UIScreenTheme.Machine.STATUS_ERROR_TEXT;
+            case MarketAutoTraderBlockEntity.STATUS_NO_RPM -> UIScreenTheme.Machine.STATUS_WARNING_TEXT;
             default -> UIScreenTheme.Machine.STATUS_WARNING_TEXT;
         };
         guiGraphics.fill(x + imageWidth - 24, y + STATUS_Y + 8, x + imageWidth - 16, y + STATUS_Y + 16, statusColor);
@@ -207,16 +207,16 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         guiGraphics.drawString(this.font, Component.literal("Status"), 12, STATUS_Y + 5, TEXT_COLOR, false);
 
         Component status = switch (menu.status()) {
-            case MarketAutoBuyerBlockEntity.STATUS_DISABLED -> Component.translatable("screen.incore.market.autobuyer.status.disabled");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_CARD -> Component.translatable("screen.incore.market.autobuyer.status.no_card");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_TARGET -> Component.translatable("screen.incore.market.autobuyer.status.no_target");
-            case MarketAutoBuyerBlockEntity.STATUS_PRICE_TOO_HIGH -> Component.translatable("screen.incore.market.autobuyer.status.price_too_high");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_FUNDS -> Component.translatable("screen.incore.market.autobuyer.status.no_funds");
-            case MarketAutoBuyerBlockEntity.STATUS_OUTPUT_FULL -> Component.translatable("screen.incore.market.autobuyer.status.output_full");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_RPM -> Component.translatable("screen.incore.market.autobuyer.status.no_rpm");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_STRESS -> Component.translatable("screen.incore.market.autobuyer.status.no_stress");
-            case MarketAutoBuyerBlockEntity.STATUS_NO_POWER -> Component.translatable("screen.incore.market.autobuyer.status.no_power");
-            default -> Component.translatable("screen.incore.market.autobuyer.status.ready");
+            case MarketAutoTraderBlockEntity.STATUS_DISABLED -> Component.translatable("screen.incore.market.autotrader.status.disabled");
+            case MarketAutoTraderBlockEntity.STATUS_NO_CARD -> Component.translatable("screen.incore.market.autotrader.status.no_card");
+            case MarketAutoTraderBlockEntity.STATUS_NO_TARGET -> Component.translatable("screen.incore.market.autotrader.status.no_target");
+            case MarketAutoTraderBlockEntity.STATUS_PRICE_TOO_HIGH -> Component.translatable("screen.incore.market.autotrader.status.price_too_high");
+            case MarketAutoTraderBlockEntity.STATUS_NO_FUNDS -> Component.translatable("screen.incore.market.autotrader.status.no_funds");
+            case MarketAutoTraderBlockEntity.STATUS_OUTPUT_FULL -> Component.translatable("screen.incore.market.autotrader.status.output_full");
+            case MarketAutoTraderBlockEntity.STATUS_NO_RPM -> Component.translatable("screen.incore.market.autotrader.status.no_rpm");
+            case MarketAutoTraderBlockEntity.STATUS_NO_STRESS -> Component.translatable("screen.incore.market.autotrader.status.no_stress");
+            case MarketAutoTraderBlockEntity.STATUS_NO_POWER -> Component.translatable("screen.incore.market.autotrader.status.no_power");
+            default -> Component.translatable("screen.incore.market.autotrader.status.ready");
         };
         List<FormattedCharSequence> statusLines = font.split(status, imageWidth - 72);
         for (int i = 0; i < statusLines.size() && i < 2; i++) {
@@ -224,9 +224,9 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
         }
 
         // Target section
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.autobuyer.target"),
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.autotrader.target"),
                 12, TARGET_Y + 4, ACCENT_TEXT, false);
-        guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.autobuyer.target_hint"),
+        guiGraphics.drawString(this.font, Component.translatable("screen.incore.market.autotrader.target_hint"),
                 36, GHOST_SLOT_Y + 3, THEME.theme().text().muted(), false);
 
         // Cap and Stacks values - right-aligned next to the buttons
@@ -237,9 +237,9 @@ public class MarketAutoBuyerScreen extends AbstractContainerScreen<MarketAutoBuy
 
         // Card + Output labels
         guiGraphics.drawString(this.font, Component.literal("Card"),
-                MarketAutoBuyerMenu.CARD_X - 4, MarketAutoBuyerMenu.CARD_Y - 12, TEXT_COLOR, false);
+                MarketAutoTraderMenu.CARD_X - 4, MarketAutoTraderMenu.CARD_Y - 12, TEXT_COLOR, false);
         guiGraphics.drawString(this.font, Component.literal("Output"),
-                MarketAutoBuyerMenu.OUTPUT_X, CARD_OUTPUT_Y + 4, TEXT_COLOR, false);
+                MarketAutoTraderMenu.OUTPUT_X, CARD_OUTPUT_Y + 4, TEXT_COLOR, false);
 
         // Inventory label
         guiGraphics.drawString(this.font, this.playerInventoryTitle, 12, INV_Y + 4, TEXT_COLOR, false);

@@ -14,7 +14,7 @@
       "item": "minecraft:gold_ingot"
     },
     "T": {
-      "item": "incore:market_autobuyer"
+      "item": "incore:market_autotrader"
     },
     "C": {
       "item": "minecraft:comparator"
@@ -24,7 +24,7 @@
     }
   },
   "result": {
-    "id": "incore:market_autobuyer_mk2",
+    "id": "incore:market_autotrader_mk2",
     "count": 1
   }
 }
