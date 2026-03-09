@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import java.util.List;
+import java.util.Objects;
 
 public record DungeonWorldPlan(
         BlockPos startRoomOrigin,
@@ -30,7 +31,7 @@ public record DungeonWorldPlan(
 
     public List<BlockPos> featurePositions(String type) {
         return features.stream()
-                .filter(feature -> feature.type().equals(type))
+                .filter(feature -> Objects.equals(feature.type(), type))
                 .map(FeaturePlacement::pos)
                 .toList();
     }
@@ -68,7 +69,6 @@ public record DungeonWorldPlan(
         public FeaturePlacement {
             type = type == null ? "" : type;
             pos = pos == null ? BlockPos.ZERO : pos.immutable();
-            markerId = markerId;
             spawnOffset = spawnOffset == null ? BlockPos.ZERO : spawnOffset.immutable();
             blockEntityData = blockEntityData == null ? null : blockEntityData.copy();
         }

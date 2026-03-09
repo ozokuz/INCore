@@ -81,7 +81,7 @@ public final class DungeonInstanceManager {
     private static final int MINIMAP_CENTER_CELL = DungeonLayoutGenerator.CENTER_CELL;
     private static final Map<Long, Map<UUID, Set<Integer>>> REVEALED_ROOMS = new HashMap<>();
     private static final Map<UUID, Long> LAST_GRAPH_SYNC_INSTANCE = new HashMap<>();
-    private static final Set<UUID> PENDING_DROP_SUPPRESSION = new HashSet<>();
+    private static final Map<UUID, PendingDeathOutcome> PENDING_DEATH_OUTCOMES = new HashMap<>();
 
     private DungeonInstanceManager() {
     }
@@ -519,11 +519,11 @@ public final class DungeonInstanceManager {
 
         RoguelikeSavedData data = RoguelikeSavedData.get(server);
         data.getRun(player.getUUID()).ifPresent(run -> {
-            List<RoguelikeSavedData.ItemStackRecord> capturedInventory = captureInventory(player);
             DungeonDeathDifficulty difficulty = data.dungeonDeathDifficulty(player.getUUID());
-            applyDeathOutcome(data, player, difficulty, capturedInventory);
-            clearInventory(player);
-            PENDING_DROP_SUPPRESSION.add(player.getUUID());
+            PENDING_DEATH_OUTCOMES.put(
+                    player.getUUID(),
+                    new PendingDeathOutcome(difficulty, Math.clamp(player.getInventory().selected, 0, 8))
+            );
 
             data.setPendingReturn(player.getUUID(), run.returnDimensionKey(), run.returnPos());
             data.clearRun(player.getUUID());
@@ -537,9 +537,14 @@ public final class DungeonInstanceManager {
     }
 
     public static void onPlayerDrops(ServerPlayer player, LivingDropsEvent event) {
-        if (PENDING_DROP_SUPPRESSION.remove(player.getUUID())) {
-            event.getDrops().clear();
+        PendingDeathOutcome outcome = PENDING_DEATH_OUTCOMES.remove(player.getUUID());
+        if (outcome == null || player.getServer() == null) {
+            return;
         }
+
+        RoguelikeSavedData data = RoguelikeSavedData.get(player.getServer());
+        applyDeathOutcome(data, player, outcome, captureDropSnapshot(player, event));
+        event.getDrops().clear();
     }
 
     public static void onPlayerRespawn(ServerPlayer player) {
@@ -1206,10 +1211,12 @@ public final class DungeonInstanceManager {
     private static void applyDeathOutcome(
             RoguelikeSavedData data,
             ServerPlayer player,
-            DungeonDeathDifficulty difficulty,
+            PendingDeathOutcome outcome,
             List<RoguelikeSavedData.ItemStackRecord> capturedInventory
     ) {
-        DungeonDeathDifficulty effectiveDifficulty = difficulty == null ? DungeonDeathDifficulty.SOFTCORE : difficulty;
+        DungeonDeathDifficulty effectiveDifficulty = outcome == null || outcome.difficulty() == null
+                ? DungeonDeathDifficulty.SOFTCORE
+                : outcome.difficulty();
         switch (effectiveDifficulty) {
             case HARDCORE -> player.sendSystemMessage(Component.translatable("incore.roguelike.death.hardcore").withStyle(ChatFormatting.RED));
             case MEDIUMCORE -> {
@@ -1221,7 +1228,7 @@ public final class DungeonInstanceManager {
             case SOFTCORE -> {
                 data.setPendingInventoryRestore(new RoguelikeSavedData.PendingInventoryRestore(
                         player.getUUID(),
-                        Math.clamp(player.getInventory().selected, 0, 8),
+                        outcome == null ? 0 : outcome.selectedSlot(),
                         capturedInventory
                 ));
                 deductSoftcorePenalty(player);
@@ -1240,30 +1247,18 @@ public final class DungeonInstanceManager {
         }
     }
 
-    private static List<RoguelikeSavedData.ItemStackRecord> captureInventory(ServerPlayer player) {
+    private static List<RoguelikeSavedData.ItemStackRecord> captureDropSnapshot(ServerPlayer player, LivingDropsEvent event) {
         List<RoguelikeSavedData.ItemStackRecord> captured = new ArrayList<>();
-        for (int slot = 0; slot < player.getInventory().items.size(); slot++) {
-            ItemStack stack = player.getInventory().items.get(slot);
+        for (var itemEntity : event.getDrops()) {
+            ItemStack stack = itemEntity.getItem();
             if (!stack.isEmpty()) {
-                captured.add(RoguelikeSavedData.ItemStackRecord.of(slot, stack, player.registryAccess()));
-            }
-        }
-        for (int slot = 0; slot < player.getInventory().armor.size(); slot++) {
-            ItemStack stack = player.getInventory().armor.get(slot);
-            if (!stack.isEmpty()) {
-                captured.add(RoguelikeSavedData.ItemStackRecord.of(100 + slot, stack, player.registryAccess()));
-            }
-        }
-        for (int slot = 0; slot < player.getInventory().offhand.size(); slot++) {
-            ItemStack stack = player.getInventory().offhand.get(slot);
-            if (!stack.isEmpty()) {
-                captured.add(RoguelikeSavedData.ItemStackRecord.of(150 + slot, stack, player.registryAccess()));
+                captured.add(RoguelikeSavedData.ItemStackRecord.of(-1, stack, player.registryAccess()));
             }
         }
         return List.copyOf(captured);
     }
 
-    private static void clearInventory(ServerPlayer player) {
+    private static void restoreInventory(ServerPlayer player, RoguelikeSavedData.PendingInventoryRestore restore) {
         for (int slot = 0; slot < player.getInventory().items.size(); slot++) {
             player.getInventory().items.set(slot, ItemStack.EMPTY);
         }
@@ -1273,11 +1268,6 @@ public final class DungeonInstanceManager {
         for (int slot = 0; slot < player.getInventory().offhand.size(); slot++) {
             player.getInventory().offhand.set(slot, ItemStack.EMPTY);
         }
-        player.containerMenu.broadcastChanges();
-    }
-
-    private static void restoreInventory(ServerPlayer player, RoguelikeSavedData.PendingInventoryRestore restore) {
-        clearInventory(player);
         for (RoguelikeSavedData.ItemStackRecord record : restore.contents()) {
             ItemStack stack = record.toStack(player.registryAccess());
             if (stack.isEmpty()) {
@@ -1453,5 +1443,8 @@ public final class DungeonInstanceManager {
     }
 
     private record EncounterModifierProfile(double spawnChance, double mobHealthMultiplier, double mobDamageMultiplier) {
+    }
+
+    private record PendingDeathOutcome(DungeonDeathDifficulty difficulty, int selectedSlot) {
     }
 }
