@@ -18,7 +18,6 @@ import java.util.Set;
 public final class ResearchDiskData {
     private static final String KEY_TIER = "incore:disk_tier";
     private static final String KEY_SNAPSHOTS = "incore:disk_snapshots";
-    private static final String KEY_LOCKED = "incore:disk_locked";
 
     private ResearchDiskData() {
     }
@@ -49,13 +48,11 @@ public final class ResearchDiskData {
     }
 
     public static boolean isLocked(ItemStack stack) {
-        return readRoot(stack).getBoolean(KEY_LOCKED);
+        return false;
     }
 
     public static void setLocked(ItemStack stack, boolean locked) {
-        CompoundTag tag = readRoot(stack);
-        tag.putBoolean(KEY_LOCKED, locked);
-        writeRoot(stack, tag);
+        // Research disks no longer persist an in-use lock bit.
     }
 
     public static List<Snapshot> readSnapshots(ItemStack stack) {
@@ -128,6 +125,16 @@ public final class ResearchDiskData {
             break;
         }
         writeSnapshots(stack, snapshots);
+    }
+
+    public static void clearSnapshots(ItemStack stack, ResourceLocation nodeId) {
+        List<Snapshot> snapshots = new ArrayList<>(readSnapshots(stack));
+        snapshots.removeIf(snapshot -> snapshot.nodeId().equals(nodeId));
+        writeSnapshots(stack, snapshots);
+    }
+
+    public static boolean hasCorruption(ItemStack stack) {
+        return readSnapshots(stack).stream().anyMatch(snapshot -> !snapshot.corruptedSegments().isEmpty());
     }
 
     private static CompoundTag readRoot(ItemStack stack) {

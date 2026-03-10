@@ -714,9 +714,6 @@ public final class ResearchManager {
                 continue;
             }
             activeRuns.add(resolvedRun);
-            if (controller != null && ResearchStationRuntime.hasWritableDisk(controller)) {
-                ResearchStationRuntime.setDiskLocked(controller, true);
-            }
         }
 
         sortActiveRuns(activeRuns, stationOrder);
@@ -747,7 +744,6 @@ public final class ResearchManager {
                     modifiers.bonusRunChanceBps(),
                     modifiers.corruptionMultiplierBps()
             ));
-            ResearchStationRuntime.setDiskLocked(nextController, true);
             ResearchV2LifecycleCallbacks.onResearchStarted(teamId, nodeId, adjustedRunTickRequired);
             changed = true;
         }
@@ -768,7 +764,6 @@ public final class ResearchManager {
                 continue;
             }
 
-            ResearchStationRuntime.setDiskLocked(controller, true);
             int rpPerTick = computePowerCostPerTick(node.researchPower(), activeRun.runTickProgress(), activeRun.runTickRequired(), activeRun.powerMultiplier());
             if (controller.consumeResearchPower(rpPerTick) < rpPerTick) {
                 noPower = true;
@@ -807,7 +802,7 @@ public final class ResearchManager {
             )) {
                 nextCompletedRuns = Math.min(requiredRuns, nextCompletedRuns + 1);
             }
-            ResearchStationRuntime.setDiskLocked(controller, false);
+            ResearchStationRuntime.flushDriveOutput(controller);
 
             if (nextCompletedRuns >= requiredRuns) {
                 ResearchStationRuntime.writeDiskSnapshot(
@@ -1149,7 +1144,7 @@ public final class ResearchManager {
         }
         ResearchControllerBlockEntity controller = ResearchMultiblockStationRegistry.controllerByStationId(server, teamId, stationId);
         if (controller != null) {
-            ResearchStationRuntime.setDiskLocked(controller, false);
+            ResearchStationRuntime.flushDriveOutput(controller);
         }
     }
 
