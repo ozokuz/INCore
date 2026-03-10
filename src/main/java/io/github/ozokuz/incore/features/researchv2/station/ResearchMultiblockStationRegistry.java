@@ -1,9 +1,11 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +56,54 @@ public final class ResearchMultiblockStationRegistry {
                 .comparing((ResearchControllerBlockEntity controller) -> controller.getLevel().dimension().location().toString())
                 .thenComparing(controller -> controller.getBlockPos().asLong()));
         return List.copyOf(matched);
+    }
+
+    public static List<ResearchControllerBlockEntity> controllersForLevel(ServerLevel level) {
+        if (level == null) {
+            return List.of();
+        }
+
+        List<ResearchControllerBlockEntity> matched = new ArrayList<>();
+        Iterator<ResearchControllerBlockEntity> iterator = CONTROLLERS.iterator();
+        while (iterator.hasNext()) {
+            ResearchControllerBlockEntity controller = iterator.next();
+            if (controller == null || controller.isRemoved() || controller.getLevel() == null || controller.getLevel().isClientSide) {
+                iterator.remove();
+                continue;
+            }
+            if (controller.getLevel() != level) {
+                continue;
+            }
+            if (controller.isFormed()) {
+                matched.add(controller);
+            }
+        }
+
+        matched.sort(Comparator.comparing(controller -> controller.getBlockPos().asLong()));
+        return List.copyOf(matched);
+    }
+
+    public static Set<String> teamIds(MinecraftServer server) {
+        if (server == null) {
+            return Set.of();
+        }
+        Set<String> teamIds = new LinkedHashSet<>();
+        Iterator<ResearchControllerBlockEntity> iterator = CONTROLLERS.iterator();
+        while (iterator.hasNext()) {
+            ResearchControllerBlockEntity controller = iterator.next();
+            if (controller == null || controller.isRemoved() || controller.getLevel() == null || controller.getLevel().isClientSide) {
+                iterator.remove();
+                continue;
+            }
+            if (controller.getLevel().getServer() != server) {
+                iterator.remove();
+                continue;
+            }
+            if (controller.isFormed() && controller.teamId() != null && !controller.teamId().isBlank()) {
+                teamIds.add(controller.teamId());
+            }
+        }
+        return Set.copyOf(teamIds);
     }
 
     public static List<ResearchStationDescriptor> stationsForTeam(MinecraftServer server, String teamId) {

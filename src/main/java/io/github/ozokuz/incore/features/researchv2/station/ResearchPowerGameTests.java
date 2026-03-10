@@ -3,8 +3,11 @@ package io.github.ozokuz.incore.features.researchv2.station;
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchNetworkSavedData;
+import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.state.TeamResearchState;
+import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -28,7 +31,7 @@ public final class ResearchPowerGameTests {
     @GameTest(template = "empty", timeoutTicks = 120)
     public static void electric_core_fills_controller_buffer(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_electric_fill");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase6_electric_fill", station.controllerPos()));
         ElectricPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), ElectricPowerInputBlockEntity.class);
         chargeElectricInput(input, 4_000);
 
@@ -41,13 +44,13 @@ public final class ResearchPowerGameTests {
     @GameTest(template = "empty", timeoutTicks = 120)
     public static void electric_input_tiers_scale_fe_buffer_capacity(GameTestHelper helper) {
         BuiltStation t1Station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        bindController(helper, t1Station.controllerPos(), "phase7_fe_buffer_t1");
+        bindController(helper, t1Station.controllerPos(), teamId(helper, "phase7_fe_buffer_t1", t1Station.controllerPos()));
         ElectricPowerInputBlockEntity t1Input = requireBlockEntity(helper, t1Station.inputPos(), ElectricPowerInputBlockEntity.class);
 
         BuiltStation t4Station = fillCasingShell(helper, 6, 1, 1);
         placeController(helper, t4Station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Direction.NORTH);
         helper.setBlock(t4Station.inputPos(), Registration.ELECTRIC_POWER_INPUT_T4_BLOCK.get());
-        bindController(helper, t4Station.controllerPos(), "phase7_fe_buffer_t4");
+        bindController(helper, t4Station.controllerPos(), teamId(helper, "phase7_fe_buffer_t4", t4Station.controllerPos()));
         ElectricPowerInputBlockEntity t4Input = requireBlockEntity(helper, t4Station.inputPos(), ElectricPowerInputBlockEntity.class);
 
         helper.assertTrue(t4Input.energyCapacity() > t1Input.energyCapacity(), "higher-tier electric input should expose a larger FE buffer");
@@ -62,7 +65,7 @@ public final class ResearchPowerGameTests {
     @GameTest(template = "empty", timeoutTicks = 900)
     public static void electric_core_advances_research(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_research_progress");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase6_research_progress", station.controllerPos()));
         ElectricPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), ElectricPowerInputBlockEntity.class);
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
         LogicHousingBlockEntity logicHousing = requireBlockEntity(helper, station.logicHousingPos(), LogicHousingBlockEntity.class);
@@ -93,10 +96,114 @@ public final class ResearchPowerGameTests {
         ));
     }
 
+    @GameTest(template = "empty", timeoutTicks = 900)
+    public static void linked_stations_share_materials_and_power(GameTestHelper helper) {
+        BuiltStation stationA = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
+        BuiltStation stationB = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get(), 6, 1, 1);
+
+        ResearchControllerBlockEntity controllerA = bindController(helper, stationA.controllerPos(), teamId(helper, "phase8_linked_team", stationA.controllerPos()));
+        ResearchControllerBlockEntity controllerB = bindController(helper, stationB.controllerPos(), controllerA.teamId());
+        ElectricPowerInputBlockEntity inputA = requireBlockEntity(helper, stationA.inputPos(), ElectricPowerInputBlockEntity.class);
+        ElectricPowerInputBlockEntity inputB = requireBlockEntity(helper, stationB.inputPos(), ElectricPowerInputBlockEntity.class);
+        ResearchDriveBlockEntity driveA = requireBlockEntity(helper, stationA.researchDrivePos(), ResearchDriveBlockEntity.class);
+        LogicHousingBlockEntity logicA = requireBlockEntity(helper, stationA.logicHousingPos(), LogicHousingBlockEntity.class);
+        MaterialStorageBlockEntity storageA = requireBlockEntity(helper, stationA.materialStoragePos(), MaterialStorageBlockEntity.class);
+        MaterialStorageBlockEntity storageB = requireBlockEntity(helper, stationB.materialStoragePos(), MaterialStorageBlockEntity.class);
+
+        chargeElectricInput(inputA, 30_000);
+        chargeElectricInput(inputB, 30_000);
+        driveA.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
+        logicA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get()));
+        storageA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 1));
+        storageB.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 2));
+
+        BlockPos portA = placeLinkPort(helper, stationA.sparePos());
+        BlockPos portB = placeLinkPort(helper, stationB.sparePos());
+        connectPorts(helper, portA, portB);
+
+        MinecraftServer server = helper.getLevel().getServer();
+        helper.assertTrue(server != null, "expected game test server");
+        TeamResearchState state = ResearchManager.ensureTeamState(server, controllerA.teamId());
+        state.discoveredNodes().add(SIGNAL_CALIBRATION);
+        ResearchNetworkSavedData.get(server).setDirty();
+        helper.assertValueEqual(1, StationNetworkService.snapshot(server, controllerA.teamId()).stationNetworkCount(), "expected stations to merge into one network");
+        helper.assertValueEqual(2, StationNetworkService.snapshot(server, controllerA.teamId()).linkedStationCount(), "expected both stations to be linked");
+        helper.assertTrue(
+                ResearchManager.queueResearch(server, controllerA.teamId(), SIGNAL_CALIBRATION),
+                "expected linked team to queue signal_calibration: "
+                        + ResearchManager.explainQueueFailure(server, controllerA.teamId(), SIGNAL_CALIBRATION)
+        );
+
+        helper.succeedWhen(() -> {
+            TeamResearchState currentState = ResearchManager.ensureTeamState(server, controllerA.teamId());
+            String queueDetails = currentState.researchQueue().isEmpty()
+                    ? "empty"
+                    : currentState.researchQueue().get(0).status()
+                    + " progress="
+                    + currentState.researchQueue().get(0).runTickProgress()
+                    + "/"
+                    + currentState.researchQueue().get(0).runTickRequired()
+                    + " runs="
+                    + currentState.researchQueue().get(0).completedRuns()
+                    + "/"
+                    + currentState.researchQueue().get(0).requiredRuns();
+            helper.assertTrue(
+                    ResearchManager.isResearched(server, controllerA.teamId(), SIGNAL_CALIBRATION),
+                    "expected linked stations to finish research using combined power and materials; queue="
+                            + queueDetails
+                            + " availablePower="
+                            + ResearchProviderManager.availablePower(server, controllerA.teamId())
+                            + " networks="
+                            + StationNetworkService.snapshot(server, controllerA.teamId()).stationNetworkCount()
+            );
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 240)
+    public static void second_unlinked_network_pauses_active_queue(GameTestHelper helper) {
+        BuiltStation stationA = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
+        ResearchControllerBlockEntity controllerA = bindController(helper, stationA.controllerPos(), teamId(helper, "phase8_conflict_team", stationA.controllerPos()));
+        ElectricPowerInputBlockEntity inputA = requireBlockEntity(helper, stationA.inputPos(), ElectricPowerInputBlockEntity.class);
+        ResearchDriveBlockEntity driveA = requireBlockEntity(helper, stationA.researchDrivePos(), ResearchDriveBlockEntity.class);
+        LogicHousingBlockEntity logicA = requireBlockEntity(helper, stationA.logicHousingPos(), LogicHousingBlockEntity.class);
+        MaterialStorageBlockEntity storageA = requireBlockEntity(helper, stationA.materialStoragePos(), MaterialStorageBlockEntity.class);
+
+        chargeElectricInput(inputA, 2_000);
+        driveA.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
+        logicA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get()));
+        storageA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 3));
+
+        MinecraftServer server = helper.getLevel().getServer();
+        helper.assertTrue(server != null, "expected game test server");
+        TeamResearchState state = ResearchManager.ensureTeamState(server, controllerA.teamId());
+        state.discoveredNodes().add(SIGNAL_CALIBRATION);
+        ResearchNetworkSavedData.get(server).setDirty();
+        helper.assertTrue(
+                ResearchManager.queueResearch(server, controllerA.teamId(), SIGNAL_CALIBRATION),
+                "expected first station to queue signal_calibration: "
+                        + ResearchManager.explainQueueFailure(server, controllerA.teamId(), SIGNAL_CALIBRATION)
+        );
+
+        helper.runAfterDelay(10, () -> {
+            BuiltStation stationB = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get(), 6, 1, 1);
+            bindController(helper, stationB.controllerPos(), controllerA.teamId());
+        });
+
+        helper.succeedWhen(() -> {
+            TeamResearchState currentState = ResearchManager.ensureTeamState(server, controllerA.teamId());
+            helper.assertFalse(currentState.researchQueue().isEmpty(), "expected queued research to remain present");
+            helper.assertTrue(
+                    currentState.researchQueue().get(0).status() == ResearchQueueStatus.PAUSED_NETWORK_CONFLICT,
+                    "expected queue to pause because the team has multiple unlinked station networks"
+            );
+            helper.assertValueEqual(2, StationNetworkService.snapshot(server, controllerA.teamId()).stationNetworkCount(), "expected two separate station networks");
+        });
+    }
+
     @GameTest(template = "empty", timeoutTicks = 120)
     public static void controller_tier_changes_capacity_and_category_gate(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controllerT1 = bindController(helper, station.controllerPos(), "phase6_tier_swap");
+        ResearchControllerBlockEntity controllerT1 = bindController(helper, station.controllerPos(), teamId(helper, "phase6_tier_swap", station.controllerPos()));
         helper.assertValueEqual(0, controllerT1.rpCapacity(), "controller should not expose an RP buffer");
 
         MinecraftServer server = helper.getLevel().getServer();
@@ -117,7 +224,7 @@ public final class ResearchPowerGameTests {
     @GameTest(template = "empty", timeoutTicks = 120)
     public static void buffer_full_does_not_consume_fe(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        bindController(helper, station.controllerPos(), "phase6_fe_full");
+        bindController(helper, station.controllerPos(), teamId(helper, "phase6_fe_full", station.controllerPos()));
         ElectricPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), ElectricPowerInputBlockEntity.class);
         chargeElectricInput(input, 2_000);
         int before = input.energyStored();
@@ -132,7 +239,7 @@ public final class ResearchPowerGameTests {
     public static void mixed_power_family_station_is_invalid(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
         helper.setBlock(station.extraPos(), Registration.MECHANICAL_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_mixed_family");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase6_mixed_family", station.controllerPos()));
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "station should be invalid when input families are mixed");
         helper.succeed();
@@ -144,7 +251,7 @@ public final class ResearchPowerGameTests {
         helper.setBlock(station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get());
         helper.setBlock(station.inputPos(), Registration.MECHANICAL_POWER_INPUT_BLOCK.get());
         helper.setBlock(station.extraPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_input_type");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase6_input_type", station.controllerPos()));
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "station should be invalid with mixed power input block types");
 
@@ -159,7 +266,7 @@ public final class ResearchPowerGameTests {
     public static void station_requires_one_or_more_inputs(GameTestHelper helper) {
         BuiltStation station = fillCasingShell(helper);
         placeController(helper, station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Direction.NORTH);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_input_count");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase6_input_count", station.controllerPos()));
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "station should be invalid without a power input");
         helper.succeed();
@@ -170,7 +277,7 @@ public final class ResearchPowerGameTests {
         BuiltStation station = fillCasingShell(helper);
         placeController(helper, station.controllerPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Direction.SOUTH);
         helper.setBlock(station.inputPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_controller_facing");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase6_controller_facing", station.controllerPos()));
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "controller should face outward from the multiblock");
         helper.succeed();
@@ -181,7 +288,7 @@ public final class ResearchPowerGameTests {
         BuiltStation station = fillCasingShell(helper);
         placeController(helper, station.inputPos(), Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Direction.NORTH);
         helper.setBlock(station.controllerPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.inputPos(), "phase6_controller_column");
+        ResearchControllerBlockEntity controller = bindController(helper, station.inputPos(), teamId(helper, "phase6_controller_column", station.inputPos()));
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "controller should only form in the center column of the outward face");
         helper.succeed();
@@ -190,7 +297,7 @@ public final class ResearchPowerGameTests {
     @GameTest(template = "empty", timeoutTicks = 160)
     public static void mechanical_input_requires_operational_create_network(GameTestHelper helper) {
         BuiltStation station = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.MECHANICAL_POWER_INPUT_BLOCK.get());
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase6_mechanical");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase6_mechanical", station.controllerPos()));
         MechanicalPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), MechanicalPowerInputBlockEntity.class);
 
         input.setSpeed(32.0F);
@@ -205,7 +312,11 @@ public final class ResearchPowerGameTests {
     }
 
     private static BuiltStation buildStation(GameTestHelper helper, net.minecraft.world.level.block.Block controllerBlock, net.minecraft.world.level.block.Block inputBlock) {
-        BuiltStation station = fillCasingShell(helper);
+        return buildStation(helper, controllerBlock, inputBlock, 1, 1, 1);
+    }
+
+    private static BuiltStation buildStation(GameTestHelper helper, net.minecraft.world.level.block.Block controllerBlock, net.minecraft.world.level.block.Block inputBlock, int minX, int minY, int minZ) {
+        BuiltStation station = fillCasingShell(helper, minX, minY, minZ);
         placeController(helper, station.controllerPos(), controllerBlock, Direction.NORTH);
         helper.setBlock(station.inputPos(), inputBlock);
         return station;
@@ -282,6 +393,39 @@ public final class ResearchPowerGameTests {
             }
             remaining -= received;
         }
+    }
+
+    private static BlockPos placeLinkPort(GameTestHelper helper, BlockPos portPos) {
+        helper.setBlock(
+                portPos,
+                Registration.LINKING_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
+        );
+        return portPos;
+    }
+
+    private static void connectPorts(GameTestHelper helper, BlockPos firstPort, BlockPos secondPort) {
+        BlockPos current = firstPort;
+        int liftY = Math.max(firstPort.getY(), secondPort.getY()) + 1;
+        while (current.getY() < liftY) {
+            current = current.above();
+            helper.setBlock(current, Registration.RESEARCH_LINK_CABLE_BLOCK.get());
+        }
+        while (current.getX() != secondPort.getX()) {
+            current = current.getX() < secondPort.getX() ? current.east() : current.west();
+            helper.setBlock(current, Registration.RESEARCH_LINK_CABLE_BLOCK.get());
+        }
+        while (current.getZ() != secondPort.getZ()) {
+            current = current.getZ() < secondPort.getZ() ? current.south() : current.north();
+            helper.setBlock(current, Registration.RESEARCH_LINK_CABLE_BLOCK.get());
+        }
+        while (current.getY() > secondPort.getY() + 1) {
+            current = current.below();
+            helper.setBlock(current, Registration.RESEARCH_LINK_CABLE_BLOCK.get());
+        }
+    }
+
+    private static String teamId(GameTestHelper helper, String base, BlockPos controllerPos) {
+        return base + "_" + helper.absolutePos(controllerPos).asLong();
     }
 
     private record BuiltStation(

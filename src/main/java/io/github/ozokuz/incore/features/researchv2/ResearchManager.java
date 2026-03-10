@@ -20,6 +20,8 @@ import io.github.ozokuz.incore.features.researchv2.station.ResearchStationRuntim
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationAugmentSummary;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationServices;
+import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
+import io.github.ozokuz.incore.features.researchv2.station.network.TeamStationNetworkSnapshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -70,6 +72,9 @@ public final class ResearchManager {
         if (!hasValidNetwork(state) || !isNodeInActiveNetwork(state, nodeId)) {
             return false;
         }
+        if (hasStationNetworkConflict(server, teamId)) {
+            return false;
+        }
 
         ResearchNodeDefinition node = ResearchRegistry.nodes().get(nodeId);
         if (node == null) {
@@ -99,6 +104,9 @@ public final class ResearchManager {
         }
         if (!hasValidNetwork(state)) {
             return "team has no active research network";
+        }
+        if (hasStationNetworkConflict(server, teamId)) {
+            return "team has multiple unlinked research station networks";
         }
         if (!isNodeInActiveNetwork(state, nodeId)) {
             return "node is not in the team's active network";
@@ -145,11 +153,10 @@ public final class ResearchManager {
 
         ResearchNetworkSavedData data = ResearchNetworkSavedData.get(server);
         TeamResearchState state = ensureTeamState(server, teamId);
-        List<String> assignedStations = ResearchMultiblockStationRegistry.stationsForTeam(server, teamId).stream()
-                .map(ResearchStationDescriptor::stationId)
-                .filter(id -> id != null && !id.isBlank())
-                .limit(1)
-                .toList();
+        ResearchControllerBlockEntity executor = StationNetworkService.resolveAssignedExecutor(server, teamId, List.of(), false);
+        List<String> assignedStations = executor == null || executor.stationId().isBlank()
+                ? List.of()
+                : List.of(executor.stationId());
         state.researchQueue().add(new ResearchQueueEntry(
                 nodeId,
                 0,
@@ -178,26 +185,58 @@ public final class ResearchManager {
         ResearchQueueEntry head = state.researchQueue().get(0);
         ResourceLocation nodeId = head.nodeId();
         ResearchNodeDefinition node = ResearchRegistry.nodes().get(nodeId);
+        ResearchControllerBlockEntity previouslyAssignedController = resolveStoredAssignedController(server, teamId, head.assignedStationIds());
 
         if (node == null || !isNodeInActiveNetwork(state, nodeId)) {
+            if (previouslyAssignedController != null) {
+                ResearchStationRuntime.setDiskLocked(previouslyAssignedController, false);
+            }
             state.researchQueue().remove(0);
             data.setDirty();
             return true;
         }
 
         if (state.completedNodes().contains(nodeId)) {
+            if (previouslyAssignedController != null) {
+                ResearchStationRuntime.setDiskLocked(previouslyAssignedController, false);
+            }
             state.researchQueue().remove(0);
             data.setDirty();
             return true;
         }
 
+        TeamStationNetworkSnapshot networkSnapshot = StationNetworkService.snapshot(server, teamId);
         int runTickRequired = resolveRunTickRequired(head, node);
         int runTickProgress = Math.min(runTickRequired, Math.max(0, head.runTickProgress()));
         int requiredRuns = resolveRequiredRuns(head, node);
         int completedRuns = Math.max(0, Math.min(head.completedRuns(), requiredRuns));
         boolean runInputsCommitted = head.runInputsCommitted();
-        ResearchControllerBlockEntity assignedController = ResearchStationRuntime.resolveAssignedController(server, teamId, head.assignedStationIds());
-        List<String> assignedStations = assignedController == null ? head.assignedStationIds() : List.of(assignedController.stationId());
+        if (!networkSnapshot.stationNetworkValid()) {
+            if (previouslyAssignedController != null) {
+                ResearchStationRuntime.setDiskLocked(previouslyAssignedController, false);
+            }
+            return updateQueueHead(
+                    state,
+                    node,
+                    runTickProgress,
+                    runTickRequired,
+                    completedRuns,
+                    requiredRuns,
+                    runInputsCommitted,
+                    ResearchQueueStatus.PAUSED_NETWORK_CONFLICT,
+                    false,
+                    data,
+                    modifiersFromEntry(head),
+                    head.assignedStationIds()
+            );
+        }
+
+        List<ResearchControllerBlockEntity> executableControllers = StationNetworkService.executableControllers(server, teamId);
+        ResearchControllerBlockEntity assignedController = StationNetworkService.resolveAssignedExecutor(server, teamId, head.assignedStationIds(), false);
+        List<String> assignedStations = assignedController == null ? List.of() : List.of(assignedController.stationId());
+        if (previouslyAssignedController != null && previouslyAssignedController != assignedController) {
+            ResearchStationRuntime.setDiskLocked(previouslyAssignedController, false);
+        }
         if (!assignedStations.equals(head.assignedStationIds())) {
             updateQueueHead(
                     state,
@@ -259,12 +298,13 @@ public final class ResearchManager {
                     : Math.max(1, (int) Math.ceil(Math.max(1, node.researchTime()) * modifiers.speedMultiplier()));
 
             boolean canCommitInputs;
-            if (assignedController != null) {
-                canCommitInputs = ResearchStationRuntime.hasWritableDisk(assignedController)
-                        && ResearchStationRuntime.hasRequiredModules(assignedController, cost.requiredLogicModules())
-                        && ResearchStationRuntime.hasRequiredMaterials(assignedController, cost.requiredResearchMaterials())
-                        && ResearchStationRuntime.consumeRequiredModules(assignedController, nodeId, completedRuns, cost.requiredLogicModules())
-                        && ResearchStationRuntime.consumeRequiredMaterials(assignedController, cost.requiredResearchMaterials());
+            if (!executableControllers.isEmpty()) {
+                canCommitInputs = assignedController != null
+                        && ResearchStationRuntime.hasWritableDisk(assignedController)
+                        && ResearchStationRuntime.hasRequiredModules(executableControllers, cost.requiredLogicModules())
+                        && ResearchStationRuntime.hasRequiredMaterials(executableControllers, cost.requiredResearchMaterials())
+                        && ResearchStationRuntime.consumeRequiredModules(executableControllers, assignedController, nodeId, completedRuns, cost.requiredLogicModules())
+                        && ResearchStationRuntime.consumeRequiredMaterials(executableControllers, cost.requiredResearchMaterials());
             } else {
                 canCommitInputs = ResearchProviderManager.hasRequiredModules(server, teamId, cost)
                         && ResearchProviderManager.hasRequiredMaterials(server, teamId, cost)
@@ -311,9 +351,7 @@ public final class ResearchManager {
 
         RunModifierState activeModifiers = modifiersFromEntry(head);
         int rpPerTick = computePowerCostPerTick(node.researchPower(), runTickProgress, runTickRequired, activeModifiers.powerMultiplier());
-        boolean consumedPower = assignedController != null
-                ? assignedController.consumeResearchPower(rpPerTick) >= rpPerTick
-                : ResearchProviderManager.consumePower(server, teamId, rpPerTick);
+        boolean consumedPower = ResearchProviderManager.consumePower(server, teamId, rpPerTick);
         if (!consumedPower) {
             return updateQueueHead(
                     state,
@@ -539,13 +577,27 @@ public final class ResearchManager {
 
     public static String snapshotJson(MinecraftServer server, String teamId) {
         TeamResearchState state = ensureTeamState(server, teamId);
+        TeamStationNetworkSnapshot stationNetworkSnapshot = StationNetworkService.snapshot(server, teamId);
         int effectiveControllerTier = effectiveControllerTier(server, teamId, state);
-        List<ResearchStationDescriptor> stations = ResearchMultiblockStationRegistry.stationsForTeam(server, teamId);
+        List<ResearchStationDescriptor> stations = ResearchMultiblockStationRegistry.stationsForTeam(server, teamId).stream()
+                .map(station -> {
+                    String stationNetworkId = stationNetworkSnapshot.stationNetworkIdsByStationId().getOrDefault(station.stationId(), "");
+                    boolean linked = stationNetworkSnapshot.linkedStationIds().contains(station.stationId());
+                    boolean hasLinkPort = stationNetworkSnapshot.stationsWithLinkPort().contains(station.stationId());
+                    return station.withStationNetwork(stationNetworkId, !linked, linked, hasLinkPort);
+                })
+                .toList();
 
         JsonObject root = new JsonObject();
         root.addProperty("teamId", teamId);
         root.addProperty("activeNetworkId", state.activeNetworkId() == null ? "" : state.activeNetworkId().toString());
-        root.addProperty("researchEnabled", hasValidNetwork(state));
+        root.addProperty("researchEnabled", hasValidNetwork(state) && stationNetworkSnapshot.stationNetworkValid());
+        root.addProperty("stationNetworkCount", stationNetworkSnapshot.stationNetworkCount());
+        root.addProperty("stationNetworkValid", stationNetworkSnapshot.stationNetworkValid());
+        root.addProperty("stationNetworkStatus", stationNetworkSnapshot.stationNetworkStatus());
+        root.addProperty("stationNetworkWarning", stationNetworkSnapshot.stationNetworkWarning());
+        root.addProperty("activeStationCount", stationNetworkSnapshot.activeStationCount());
+        root.addProperty("linkedStationCount", stationNetworkSnapshot.linkedStationCount());
         root.addProperty("controllerTier", effectiveControllerTier);
         root.addProperty("focusModeEnabled", effectiveControllerTier >= 3);
         root.addProperty("stationCount", stations.size());
@@ -573,6 +625,10 @@ public final class ResearchManager {
             row.addProperty("activePowerMultiplier", station.activePowerMultiplier());
             row.addProperty("activeBonusRunChance", station.activeBonusRunChance());
             row.addProperty("activeCorruptionMultiplier", station.activeCorruptionMultiplier());
+            row.addProperty("stationNetworkId", station.stationNetworkId());
+            row.addProperty("singletonNetwork", station.singletonNetwork());
+            row.addProperty("linked", station.linked());
+            row.addProperty("hasLinkPort", station.hasLinkPort());
             row.add("controllerPos", toJsonPos(station.controllerPos()));
 
             JsonObject endpoints = new JsonObject();
@@ -752,6 +808,10 @@ public final class ResearchManager {
         return nodes.contains(nodeId);
     }
 
+    private static boolean hasStationNetworkConflict(MinecraftServer server, String teamId) {
+        return StationNetworkService.snapshot(server, teamId).stationNetworkCount() > 1;
+    }
+
     private static boolean isBasicCategory(ResourceLocation categoryId) {
         return categoryId != null && TIER0_CATEGORY_WHITELIST.contains(categoryId);
     }
@@ -871,11 +931,27 @@ public final class ResearchManager {
             return;
         }
         for (ResearchQueueEntry entry : entries) {
-            ResearchControllerBlockEntity controller = ResearchStationRuntime.resolveAssignedController(server, teamId, entry.assignedStationIds());
+            ResearchControllerBlockEntity controller = resolveStoredAssignedController(server, teamId, entry.assignedStationIds());
             if (controller != null) {
                 ResearchStationRuntime.setDiskLocked(controller, false);
             }
         }
+    }
+
+    private static ResearchControllerBlockEntity resolveStoredAssignedController(MinecraftServer server, String teamId, List<String> assignedStationIds) {
+        if (server == null || teamId == null || teamId.isBlank() || assignedStationIds == null) {
+            return null;
+        }
+        for (String stationId : assignedStationIds) {
+            if (stationId == null || stationId.isBlank()) {
+                continue;
+            }
+            ResearchControllerBlockEntity controller = ResearchMultiblockStationRegistry.controllerByStationId(server, teamId, stationId);
+            if (controller != null && controller.isFormed()) {
+                return controller;
+            }
+        }
+        return null;
     }
 
     private static JsonObject toJsonPos(BlockPos pos) {

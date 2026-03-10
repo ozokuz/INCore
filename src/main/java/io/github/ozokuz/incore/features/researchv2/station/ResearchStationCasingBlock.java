@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
 import com.mojang.serialization.MapCodec;
+import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -30,6 +31,7 @@ public class ResearchStationCasingBlock extends Block {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (!level.isClientSide && !state.is(oldState.getBlock())) {
             ResearchStationMultiblockOrchestrator.onBlockChanged(level, pos);
+            StationNetworkService.onTopologyChanged(level);
         }
     }
 
@@ -37,6 +39,7 @@ public class ResearchStationCasingBlock extends Block {
     protected void onRemove(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide && !state.is(newState.getBlock())) {
             ResearchStationMultiblockOrchestrator.onBlockChanged(level, pos);
+            StationNetworkService.onTopologyChanged(level);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

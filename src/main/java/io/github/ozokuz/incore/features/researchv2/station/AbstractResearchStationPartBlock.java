@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
+import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -51,6 +52,7 @@ public abstract class AbstractResearchStationPartBlock extends BaseEntityBlock {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (!level.isClientSide && !state.is(oldState.getBlock())) {
             ResearchStationMultiblockOrchestrator.onBlockChanged(level, pos);
+            StationNetworkService.onTopologyChanged(level);
         }
     }
 
@@ -61,6 +63,7 @@ public abstract class AbstractResearchStationPartBlock extends BaseEntityBlock {
                 inventoryPart.dropContents();
             }
             ResearchStationMultiblockOrchestrator.onBlockChanged(level, pos);
+            StationNetworkService.onTopologyChanged(level);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

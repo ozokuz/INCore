@@ -323,6 +323,8 @@ public class Registration {
     public static final DeferredBlock<Block> MATERIAL_STORAGE_T4_BLOCK = BLOCKS.register("material_storage_t4", () -> new MaterialStorageBlock(4, BlockBehaviour.Properties.of()));
     public static final DeferredBlock<Block> OUTPUT_PORT_BLOCK = BLOCKS.register("output_port", () -> new OutputPortBlock());
     public static final DeferredBlock<Block> AUGMENTER_BLOCK = BLOCKS.register("augmenter", () -> new AugmenterBlock());
+    public static final DeferredBlock<Block> LINKING_PORT_BLOCK = BLOCKS.register("linking_port", () -> new LinkingPortBlock());
+    public static final DeferredBlock<Block> RESEARCH_LINK_CABLE_BLOCK = BLOCKS.register("research_link_cable", () -> new ResearchLinkCableBlock());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T1_BLOCK = BLOCKS.register("research_controller_t1", () -> new ResearchControllerTier1Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T2_BLOCK = BLOCKS.register("research_controller_t2", () -> new ResearchControllerTier2Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T3_BLOCK = BLOCKS.register("research_controller_t3", () -> new ResearchControllerTier3Block());
@@ -387,6 +389,10 @@ public class Registration {
     public static final Supplier<BlockEntityType<AugmenterBlockEntity>> AUGMENTER_BE = BLOCK_ENTITY_TYPES.register(
             "augmenter",
             () -> BlockEntityType.Builder.of(AugmenterBlockEntity::new, AUGMENTER_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<LinkingPortBlockEntity>> LINKING_PORT_BE = BLOCK_ENTITY_TYPES.register(
+            "linking_port",
+            () -> BlockEntityType.Builder.of(LinkingPortBlockEntity::new, LINKING_PORT_BLOCK.get()).build(null)
     );
     public static final Supplier<BlockEntityType<MechanicalPowerInputBlockEntity>> MECHANICAL_POWER_INPUT_BE = BLOCK_ENTITY_TYPES.register(
             "mechanical_power_input",
@@ -454,6 +460,8 @@ public class Registration {
     public static final DeferredItem<BlockItem> MATERIAL_STORAGE_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("material_storage_t4", MATERIAL_STORAGE_T4_BLOCK);
     public static final DeferredItem<BlockItem> OUTPUT_PORT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("output_port", OUTPUT_PORT_BLOCK);
     public static final DeferredItem<BlockItem> AUGMENTER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("augmenter", AUGMENTER_BLOCK);
+    public static final DeferredItem<BlockItem> LINKING_PORT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("linking_port", LINKING_PORT_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_LINK_CABLE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_link_cable", RESEARCH_LINK_CABLE_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T1_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t1", RESEARCH_CONTROLLER_T1_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t2", RESEARCH_CONTROLLER_T2_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t3", RESEARCH_CONTROLLER_T3_BLOCK);
@@ -701,6 +709,8 @@ public class Registration {
                 output.accept(MATERIAL_STORAGE_T4_BLOCK_ITEM.get());
                 output.accept(OUTPUT_PORT_BLOCK_ITEM.get());
                 output.accept(AUGMENTER_BLOCK_ITEM.get());
+                output.accept(LINKING_PORT_BLOCK_ITEM.get());
+                output.accept(RESEARCH_LINK_CABLE_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T1_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T2_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T3_BLOCK_ITEM.get());

@@ -122,6 +122,91 @@ public final class ResearchStationRuntime {
         return true;
     }
 
+    public static boolean hasRequiredModules(List<ResearchControllerBlockEntity> controllers, List<ResearchCostDefinition.LogicModuleRequirement> requirements) {
+        Map<String, Integer> required = foldModuleRequirements(requirements);
+        if (required.isEmpty()) {
+            return true;
+        }
+
+        Map<String, Integer> available = new LinkedHashMap<>();
+        for (ResearchControllerBlockEntity controller : controllers) {
+            LogicHousingBlockEntity housing = resolveLogicHousing(controller);
+            if (housing == null) {
+                continue;
+            }
+            countFreshModuleDurability(housing).forEach((tier, amount) -> available.merge(tier, amount, Integer::sum));
+        }
+        for (Map.Entry<String, Integer> entry : required.entrySet()) {
+            if (available.getOrDefault(entry.getKey(), 0) < entry.getValue()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean consumeRequiredModules(
+            List<ResearchControllerBlockEntity> controllers,
+            ResearchControllerBlockEntity executor,
+            ResourceLocation nodeId,
+            int completedRuns,
+            List<ResearchCostDefinition.LogicModuleRequirement> requirements
+    ) {
+        if (controllers == null || controllers.isEmpty()) {
+            return false;
+        }
+        if (!hasRequiredModules(controllers, requirements)) {
+            return false;
+        }
+
+        Map<String, Integer> remainingByTier = new LinkedHashMap<>(foldModuleRequirements(requirements));
+        for (Map.Entry<String, Integer> entry : remainingByTier.entrySet()) {
+            int remaining = entry.getValue();
+            LogicModuleTier tier = LogicModuleTier.fromSerialized(entry.getKey());
+            if (tier == null) {
+                return false;
+            }
+
+            for (ResearchControllerBlockEntity controller : controllers) {
+                LogicHousingBlockEntity housing = resolveLogicHousing(controller);
+                if (housing == null) {
+                    continue;
+                }
+                for (int slot = 0; slot < housing.activeSlotCount() && remaining > 0; slot++) {
+                    ItemStack stack = housing.rawItemHandler().getStackInSlot(slot);
+                    if (!isMatchingFreshModule(stack, tier)) {
+                        continue;
+                    }
+
+                    int maxDamage = stack.getMaxDamage();
+                    int available = Math.max(0, maxDamage - stack.getDamageValue());
+                    if (available <= 0) {
+                        continue;
+                    }
+
+                    int consume = Math.min(remaining, available);
+                    remaining -= consume;
+                    int nextDamage = stack.getDamageValue() + consume;
+                    if (nextDamage >= maxDamage) {
+                        ResearchControllerBlockEntity outputOwner = executor == null ? controller : executor;
+                        ItemStack replacement = exhaustedReplacement(outputOwner, nodeId, completedRuns, tier, slot);
+                        housing.rawItemHandler().setStackInSlot(slot, ItemStack.EMPTY);
+                        emitLogicOutput(outputOwner, housing, replacement);
+                    } else {
+                        stack.setDamageValue(nextDamage);
+                        housing.rawItemHandler().setStackInSlot(slot, stack);
+                    }
+                }
+                if (remaining <= 0) {
+                    break;
+                }
+            }
+            if (remaining > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static boolean hasRequiredMaterials(ResearchControllerBlockEntity controller, List<ResearchCostDefinition.ResearchMaterialRequirement> requirements) {
         MaterialStorageBlockEntity storage = resolveMaterialStorage(controller);
         if (storage == null) {
@@ -159,6 +244,65 @@ public final class ResearchStationRuntime {
                 stack.shrink(consume);
                 remaining -= consume;
                 storage.rawItemHandler().setStackInSlot(slot, stack);
+            }
+            if (remaining > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean hasRequiredMaterials(List<ResearchControllerBlockEntity> controllers, List<ResearchCostDefinition.ResearchMaterialRequirement> requirements) {
+        Map<String, Integer> available = new LinkedHashMap<>();
+        for (ResearchControllerBlockEntity controller : controllers) {
+            MaterialStorageBlockEntity storage = resolveMaterialStorage(controller);
+            if (storage == null) {
+                continue;
+            }
+            ResearchStationServices.countMaterials(storage).forEach((materialId, amount) -> available.merge(materialId, amount, Integer::sum));
+        }
+        for (ResearchCostDefinition.ResearchMaterialRequirement requirement : requirements) {
+            if (available.getOrDefault(requirement.materialId(), 0) < Math.max(0, requirement.count())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean consumeRequiredMaterials(List<ResearchControllerBlockEntity> controllers, List<ResearchCostDefinition.ResearchMaterialRequirement> requirements) {
+        if (controllers == null || controllers.isEmpty()) {
+            return false;
+        }
+        if (!hasRequiredMaterials(controllers, requirements)) {
+            return false;
+        }
+
+        for (ResearchCostDefinition.ResearchMaterialRequirement requirement : requirements) {
+            int remaining = Math.max(0, requirement.count());
+            ResourceLocation materialId = ResourceLocation.tryParse(requirement.materialId());
+            ResearchMaterialDefinition definition = materialId == null ? null : ResearchMaterialManager.get(materialId);
+            if (definition == null) {
+                return false;
+            }
+
+            for (ResearchControllerBlockEntity controller : controllers) {
+                MaterialStorageBlockEntity storage = resolveMaterialStorage(controller);
+                if (storage == null) {
+                    continue;
+                }
+                for (int slot = 0; slot < storage.activeSlotCount() && remaining > 0; slot++) {
+                    ItemStack stack = storage.rawItemHandler().getStackInSlot(slot);
+                    if (stack.isEmpty() || !BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(definition.itemId())) {
+                        continue;
+                    }
+                    int consume = Math.min(remaining, stack.getCount());
+                    stack.shrink(consume);
+                    remaining -= consume;
+                    storage.rawItemHandler().setStackInSlot(slot, stack);
+                }
+                if (remaining <= 0) {
+                    break;
+                }
             }
             if (remaining > 0) {
                 return false;

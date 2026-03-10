@@ -234,13 +234,43 @@ public class ResearchV2TreeScreen extends Screen {
                 0xFFAFC5E4,
                 false
         );
+        guiGraphics.drawString(
+                font,
+                Component.translatable("screen.incore.research_v2.station_networks", snapshot.stationNetworkCount(), snapshot.activeStationCount(), snapshot.linkedStationCount()),
+                leftX,
+                rowY + 12,
+                snapshot.stationNetworkValid() ? 0xFFAFC5E4 : 0xFFFFB47A,
+                false
+        );
+        guiGraphics.drawString(
+                font,
+                Component.translatable(snapshot.stationNetworkValid()
+                        ? "screen.incore.research_v2.network_status.ok"
+                        : "screen.incore.research_v2.network_status.conflict"),
+                leftX,
+                rowY + 24,
+                snapshot.stationNetworkValid() ? 0xFF8FD7B6 : 0xFFFF8E6E,
+                false
+        );
+        int selectionY = rowY + 38;
+        if (!snapshot.stationNetworkWarning().isBlank()) {
+            guiGraphics.drawString(
+                    font,
+                    Component.translatable(snapshot.stationNetworkWarning()),
+                    leftX,
+                    rowY + 36,
+                    0xFFFF8E6E,
+                    false
+            );
+            selectionY += 12;
+        }
 
         if (selected == null) {
             guiGraphics.drawString(
                     font,
                     Component.translatable("screen.incore.research_v2.no_selection"),
                     leftX,
-                    rowY + 16,
+                    selectionY,
                     0xFFB8C4D6,
                     false
             );
@@ -248,15 +278,15 @@ public class ResearchV2TreeScreen extends Screen {
         }
 
         String title = trimToWidth(nodeDisplayName(selected), leftW - 8);
-        guiGraphics.drawString(font, Component.literal(title), leftX, rowY + 16, 0xFFF2F6FF, false);
-        guiGraphics.drawString(font, Component.literal(nodeStatusLabel(selected)), leftX, rowY + 30, 0xFF9DB7D9, false);
+        guiGraphics.drawString(font, Component.literal(title), leftX, selectionY, 0xFFF2F6FF, false);
+        guiGraphics.drawString(font, Component.literal(nodeStatusLabel(selected)), leftX, selectionY + 14, 0xFF9DB7D9, false);
 
         if (!canShowRequirements(selected)) {
             guiGraphics.drawString(
                     font,
                     Component.translatable("screen.incore.research_v2.hidden_requirements"),
                     rightX,
-                    rowY + 4,
+                    selectionY + 4,
                     0xFF9AA8BC,
                     false
             );
@@ -267,7 +297,7 @@ public class ResearchV2TreeScreen extends Screen {
                 font,
                 Component.translatable("screen.incore.research_v2.requirement_time", selected.researchTime()),
                 rightX,
-                rowY + 4,
+                selectionY + 4,
                 0xFFE0ECFF,
                 false
         );
@@ -275,7 +305,7 @@ public class ResearchV2TreeScreen extends Screen {
                 font,
                 Component.translatable("screen.incore.research_v2.requirement_runs", selected.requiredRuns()),
                 rightX,
-                rowY + 14,
+                selectionY + 14,
                 0xFFE0ECFF,
                 false
         );
@@ -283,7 +313,7 @@ public class ResearchV2TreeScreen extends Screen {
                 font,
                 Component.translatable("screen.incore.research_v2.requirement_modules", trimToWidth(formatModuleRequirements(selected), rightW - 52)),
                 rightX,
-                rowY + 26,
+                selectionY + 26,
                 0xFFCBDBF0,
                 false
         );
@@ -291,7 +321,7 @@ public class ResearchV2TreeScreen extends Screen {
                 font,
                 Component.translatable("screen.incore.research_v2.requirement_materials", trimToWidth(formatMaterialRequirements(selected), rightW - 56)),
                 rightX,
-                rowY + 40,
+                selectionY + 40,
                 0xFFCBDBF0,
                 false
         );
@@ -705,7 +735,9 @@ public class ResearchV2TreeScreen extends Screen {
     }
 
     private boolean canQueueNode(ResearchV2ClientCache.NodeEntry node) {
-        return isDiscovered(node)
+        return snapshot.researchEnabled()
+                && snapshot.stationNetworkValid()
+                && isDiscovered(node)
                 && !isCompleted(node)
                 && !isQueued(node.id())
                 && node.treeId().equals(selectedTreeId());

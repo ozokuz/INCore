@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "incore:block/linking_port"
+    },
+    "facing=south": {
+      "model": "incore:block/linking_port"
+    },
+    "facing=west": {
+      "model": "incore:block/linking_port"
+    },
+    "facing=east": {
+      "model": "incore:block/linking_port"
+    }
+  }
+}
