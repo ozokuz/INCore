@@ -1,8 +1,10 @@
 {
   "variants": {
-    "facing=north": { "model": "incore:block/material_storage" },
-    "facing=south": { "model": "incore:block/material_storage", "y": 180 },
-    "facing=west": { "model": "incore:block/material_storage", "y": 270 },
-    "facing=east": { "model": "incore:block/material_storage", "y": 90 }
+    "facing=north": { "model": "incore:block/material_storage", "uvlock": true },
+    "facing=south": { "model": "incore:block/material_storage", "y": 180, "uvlock": true },
+    "facing=west": { "model": "incore:block/material_storage", "y": 270, "uvlock": true },
+    "facing=east": { "model": "incore:block/material_storage", "y": 90, "uvlock": true },
+    "facing=up": { "model": "incore:block/material_storage", "x": 270, "uvlock": true },
+    "facing=down": { "model": "incore:block/material_storage", "x": 90, "uvlock": true }
   }
 }

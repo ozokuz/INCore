@@ -17,6 +17,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -49,17 +51,17 @@ public final class ResearchFunctionalBlocksGameTests {
         helper.assertFalse(controller.isFormed(), "station should fail with duplicate logic housing");
 
         helper.setBlock(station.outputPortPos(), Registration.RESEARCH_STATION_CASING_BLOCK.get());
-        helper.setBlock(station.secondOutputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.secondOutputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
         controller = bindController(helper, station.controllerPos(), controller.teamId());
         helper.assertTrue(controller.isFormed(), "expected station to reform after restoring the core shape");
 
-        helper.setBlock(station.outputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.augmenterPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.outputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.augmenterPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
         controller.revalidateStructure();
         helper.assertFalse(controller.isFormed(), "station should fail with more than two output ports");
 
-        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
         controller = bindController(helper, station.controllerPos(), controller.teamId());
         helper.assertTrue(controller.isFormed(), "station should reform after restoring the augmenter");
 
@@ -85,8 +87,8 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 80)
     public static void tiered_housing_and_storage_increase_slot_counts(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_T3_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_T4_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_T3_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_T4_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
 
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_tiered_parts", station.controllerPos()));
         helper.assertTrue(controller.isFormed(), "expected station with tiered housing and storage to form");
@@ -160,7 +162,7 @@ public final class ResearchFunctionalBlocksGameTests {
         outputPort.insertOutput(new ItemStack(Registration.USED_LOGIC_MODULE_T4_ITEM.get(), 1));
         drive.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
 
-        var front = outputPort.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        var front = outputPort.getBlockState().getValue(BlockStateProperties.FACING);
         helper.assertTrue(outputPort.frontExtractView(front) != null, "expected output port capability");
         helper.assertTrue(outputPort.frontExtractView(front).extractItem(0, 1, true).is(Registration.USED_LOGIC_MODULE_T4_ITEM.get()), "logic mode should expose output inventory");
 
@@ -174,7 +176,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 80)
     public static void two_output_ports_can_target_both_output_types(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        helper.setBlock(station.secondOutputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.secondOutputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
 
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_dual_output", station.controllerPos()));
         helper.assertValueEqual(2, controller.outputPortPositions().size(), "station should allow two output ports");
@@ -188,8 +190,8 @@ public final class ResearchFunctionalBlocksGameTests {
         drivePort.setMode(OutputPortMode.DRIVE);
         ResearchStationRuntime.setDiskLocked(controller, false);
 
-        Direction logicFront = logicPort.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-        Direction driveFront = drivePort.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        Direction logicFront = logicPort.getBlockState().getValue(BlockStateProperties.FACING);
+        Direction driveFront = drivePort.getBlockState().getValue(BlockStateProperties.FACING);
         helper.assertTrue(logicPort.frontExtractView(logicFront).extractItem(0, 1, true).is(Registration.USED_LOGIC_MODULE_T4_ITEM.get()), "first output port should expose logic items");
         helper.assertTrue(drivePort.frontExtractView(driveFront).extractItem(0, 1, true).is(Registration.RESEARCH_DISK_T1_ITEM.get()), "second output port should expose drive items");
         helper.succeed();
@@ -273,11 +275,41 @@ public final class ResearchFunctionalBlocksGameTests {
             helper.assertTrue(drive.itemHandler().extractItem(0, 1, true).isEmpty(), "manual extraction should be blocked while locked");
 
             outputPort.setMode(OutputPortMode.DRIVE);
-            Direction front = outputPort.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+            Direction front = outputPort.getBlockState().getValue(BlockStateProperties.FACING);
             helper.assertTrue(outputPort.frontExtractView(front) != null, "expected output port capability");
             helper.assertTrue(outputPort.frontExtractView(front).extractItem(0, 1, true).isEmpty(), "output port extraction should be blocked while locked");
             helper.succeed();
         });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 80)
+    public static void multiblock_capabilities_only_expose_front_face_and_support_vertical_facing(GameTestHelper helper) {
+        FunctionalStation station = buildFunctionalStation(helper);
+        helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP));
+        helper.setBlock(station.researchDrivePos(), Registration.RESEARCH_DRIVE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP));
+        helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP));
+        helper.setBlock(station.outputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP));
+        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP));
+        helper.setBlock(station.inputPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP));
+        helper.setBlock(station.secondOutputPortPos(), Registration.LINKING_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP));
+
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase8_vertical_fronts", station.controllerPos()));
+        helper.assertTrue(controller.isFormed(), "station should still form when capability blocks face up");
+
+        helper.assertTrue(itemCapability(helper, station.logicHousingPos(), Direction.UP) != null, "logic housing should expose items on its front");
+        helper.assertTrue(itemCapability(helper, station.logicHousingPos(), Direction.NORTH) == null, "logic housing should reject side access");
+        helper.assertTrue(itemCapability(helper, station.researchDrivePos(), Direction.UP) != null, "research drive should expose items on its front");
+        helper.assertTrue(itemCapability(helper, station.researchDrivePos(), Direction.NORTH) == null, "research drive should reject side access");
+        helper.assertTrue(itemCapability(helper, station.materialStoragePos(), Direction.UP) != null, "material storage should expose items on its front");
+        helper.assertTrue(itemCapability(helper, station.materialStoragePos(), Direction.NORTH) == null, "material storage should reject side access");
+        helper.assertTrue(itemCapability(helper, station.augmenterPos(), Direction.UP) != null, "augmenter should expose items on its front");
+        helper.assertTrue(itemCapability(helper, station.augmenterPos(), Direction.NORTH) == null, "augmenter should reject side access");
+        helper.assertTrue(itemCapability(helper, station.outputPortPos(), Direction.UP) != null, "output port should expose output on its front");
+        helper.assertTrue(itemCapability(helper, station.outputPortPos(), Direction.NORTH) == null, "output port should reject side access");
+        helper.assertTrue(energyCapability(helper, station.inputPos(), Direction.UP) != null, "electric input should expose energy on its front");
+        helper.assertTrue(energyCapability(helper, station.inputPos(), Direction.NORTH) == null, "electric input should reject side access");
+        helper.assertValueEqual(Direction.UP, helper.getBlockState(station.secondOutputPortPos()).getValue(BlockStateProperties.FACING), "linking port should support vertical front facing");
+        helper.succeed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 400)
@@ -332,12 +364,12 @@ public final class ResearchFunctionalBlocksGameTests {
             }
         }
 
-        helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.researchDrivePos(), Registration.RESEARCH_DRIVE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.outputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.inputPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.researchDrivePos(), Registration.RESEARCH_DRIVE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.outputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.inputPos(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
         placeController(helper, station.controllerPos(), Direction.NORTH);
         return station;
     }
@@ -365,7 +397,7 @@ public final class ResearchFunctionalBlocksGameTests {
 
     private static void chargeElectricInput(ElectricPowerInputBlockEntity input, int amount) {
         int remaining = Math.max(0, amount);
-        Direction front = input.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        Direction front = input.getBlockState().getValue(BlockStateProperties.FACING);
         var storage = input.getEnergyStorage(front);
         if (storage == null) {
             for (Direction direction : Direction.values()) {
@@ -394,6 +426,14 @@ public final class ResearchFunctionalBlocksGameTests {
             }
         }
         throw new IllegalStateException("expected deterministic corruption window for test seed");
+    }
+
+    private static net.neoforged.neoforge.items.IItemHandler itemCapability(GameTestHelper helper, BlockPos pos, Direction side) {
+        return BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, helper.getLevel(), helper.absolutePos(pos), side).getCapability();
+    }
+
+    private static net.neoforged.neoforge.energy.IEnergyStorage energyCapability(GameTestHelper helper, BlockPos pos, Direction side) {
+        return BlockCapabilityCache.create(Capabilities.EnergyStorage.BLOCK, helper.getLevel(), helper.absolutePos(pos), side).getCapability();
     }
 
     private record FunctionalStation(

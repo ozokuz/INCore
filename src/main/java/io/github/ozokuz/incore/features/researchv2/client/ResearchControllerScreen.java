@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.researchv2.client;
 
 import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerMenu;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchPowerFamily;
+import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -9,6 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class ResearchControllerScreen extends StationStatusScreen<ResearchControllerMenu> {
     public ResearchControllerScreen(ResearchControllerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+        this.imageHeight = 178;
     }
 
     @Override
@@ -40,6 +42,10 @@ public class ResearchControllerScreen extends StationStatusScreen<ResearchContro
         drawKeyValue(guiGraphics, leftColumn, y + 84, Component.translatable("screen.incore.research_controller.network_mode"), Component.translatable(menu.stationNetworkLinked() ? "screen.incore.research_controller.network_mode.linked" : "screen.incore.research_controller.network_mode.singleton"), menu.stationNetworkLinked() ? okColor() : valueColor());
         drawKeyValue(guiGraphics, rightColumn, y + 84, Component.translatable("screen.incore.research_controller.team_networks"), Component.literal(Integer.toString(menu.teamStationNetworkCount())), menu.teamStationNetworkValid() ? valueColor() : warnColor());
         drawKeyValue(guiGraphics, leftColumn, y + 96, Component.translatable("screen.incore.research_controller.network_status"), Component.translatable(menu.teamStationNetworkValid() ? "screen.incore.research_controller.network_status.valid" : "screen.incore.research_controller.network_status.blocked"), menu.teamStationNetworkValid() ? okColor() : warnColor());
+        drawKeyValue(guiGraphics, rightColumn, y + 96, Component.translatable("screen.incore.research_controller.run"), runValue(), menu.hasActiveRun() ? okColor() : valueColor());
+        drawKeyValue(guiGraphics, leftColumn, y + 108, Component.translatable("screen.incore.research_controller.run_progress"), progressValue(), menu.hasActiveRun() ? valueColor() : warnColor());
+        drawKeyValue(guiGraphics, rightColumn, y + 108, Component.translatable("screen.incore.research_controller.run_status"), runStatus(menu.queueStatus()), runStatusColor(menu.queueStatus()));
+        drawRunBar(guiGraphics, left + 18, y + 124, imageWidth - 36, menu.runProgressScaled(imageWidth - 36), menu.hasActiveRun());
     }
 
     private static Component powerFamily(ResearchPowerFamily family) {
@@ -55,5 +61,44 @@ public class ResearchControllerScreen extends StationStatusScreen<ResearchContro
 
     private static Component presence(boolean present) {
         return Component.translatable(present ? "screen.incore.common.present" : "screen.incore.common.missing");
+    }
+
+    private Component runValue() {
+        if (!menu.hasActiveRun()) {
+            return Component.translatable("screen.incore.research_controller.run.none");
+        }
+        return Component.literal(Math.min(menu.requiredRuns(), menu.completedRuns() + 1) + "/" + menu.requiredRuns());
+    }
+
+    private Component progressValue() {
+        if (!menu.hasActiveRun()) {
+            return Component.translatable("screen.incore.research_controller.run.none");
+        }
+        return Component.literal(menu.runTickProgress() + "/" + menu.runTickRequired());
+    }
+
+    private Component runStatus(ResearchQueueStatus status) {
+        if (status == null) {
+            return Component.translatable("screen.incore.research_controller.run_status.idle");
+        }
+        return switch (status) {
+            case QUEUED -> Component.translatable("screen.incore.research_controller.run_status.queued");
+            case RUNNING -> Component.translatable("screen.incore.research_controller.run_status.running");
+            case PAUSED_MISSING_INPUTS -> Component.translatable("screen.incore.research_controller.run_status.missing_inputs");
+            case PAUSED_NO_POWER -> Component.translatable("screen.incore.research_controller.run_status.no_power");
+            case PAUSED_NETWORK_CONFLICT -> Component.translatable("screen.incore.research_controller.run_status.network_conflict");
+        };
+    }
+
+    private int runStatusColor(ResearchQueueStatus status) {
+        return status == ResearchQueueStatus.RUNNING ? okColor() : (status == null ? valueColor() : warnColor());
+    }
+
+    private void drawRunBar(GuiGraphics guiGraphics, int x, int y, int width, int fill, boolean active) {
+        guiGraphics.fill(x, y, x + width, y + 6, 0xFF243143);
+        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + 5, 0xFF101722);
+        if (active && fill > 0) {
+            guiGraphics.fill(x + 1, y + 1, x + Math.min(width - 1, fill), y + 5, 0xFF55A9E6);
+        }
     }
 }

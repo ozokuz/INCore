@@ -1,6 +1,9 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueEntry;
+import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import io.github.ozokuz.incore.features.researchv2.station.network.TeamStationNetworkSnapshot;
 import net.minecraft.core.BlockPos;
@@ -29,6 +32,11 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
     private boolean stationNetworkLinked;
     private int teamStationNetworkCount;
     private boolean teamStationNetworkValid;
+    private int runTickProgress;
+    private int runTickRequired = 1;
+    private int completedRuns;
+    private int requiredRuns = 1;
+    private int queueStatusOrdinal = -1;
 
     public ResearchControllerMenu(int containerId, Inventory playerInventory, BlockPos blockPos) {
         super(Registration.RESEARCH_CONTROLLER_MENU.get(), containerId);
@@ -108,6 +116,26 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
                 () -> networkSnapshot(blockEntity).stationNetworkValid() ? 1 : 0,
                 value -> teamStationNetworkValid = value > 0
         ));
+        addDataSlot(slot(
+                () -> queueHead(blockEntity) == null ? 0 : queueHead(blockEntity).runTickProgress(),
+                value -> runTickProgress = Math.max(0, value)
+        ));
+        addDataSlot(slot(
+                () -> queueHead(blockEntity) == null ? 1 : Math.max(1, queueHead(blockEntity).runTickRequired()),
+                value -> runTickRequired = Math.max(1, value)
+        ));
+        addDataSlot(slot(
+                () -> queueHead(blockEntity) == null ? 0 : queueHead(blockEntity).completedRuns(),
+                value -> completedRuns = Math.max(0, value)
+        ));
+        addDataSlot(slot(
+                () -> queueHead(blockEntity) == null ? 1 : Math.max(1, queueHead(blockEntity).requiredRuns()),
+                value -> requiredRuns = Math.max(1, value)
+        ));
+        addDataSlot(slot(
+                () -> queueHead(blockEntity) == null ? -1 : queueHead(blockEntity).status().ordinal(),
+                value -> queueStatusOrdinal = value
+        ));
     }
 
     private static DataSlot slot(IntSupplier getter, IntConsumer setter) {
@@ -149,6 +177,12 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
         stationNetworkLinked = blockEntity != null && snapshot.linkedStationIds().contains(blockEntity.stationId());
         teamStationNetworkCount = snapshot.stationNetworkCount();
         teamStationNetworkValid = snapshot.stationNetworkValid();
+        ResearchQueueEntry head = queueHead(blockEntity);
+        runTickProgress = head == null ? 0 : Math.max(0, head.runTickProgress());
+        runTickRequired = head == null ? 1 : Math.max(1, head.runTickRequired());
+        completedRuns = head == null ? 0 : Math.max(0, head.completedRuns());
+        requiredRuns = head == null ? 1 : Math.max(1, head.requiredRuns());
+        queueStatusOrdinal = head == null ? -1 : head.status().ordinal();
     }
 
     @Override
@@ -234,11 +268,50 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
         return teamStationNetworkValid;
     }
 
+    public int runTickProgress() {
+        return runTickProgress;
+    }
+
+    public int runTickRequired() {
+        return runTickRequired;
+    }
+
+    public int completedRuns() {
+        return completedRuns;
+    }
+
+    public int requiredRuns() {
+        return requiredRuns;
+    }
+
+    public boolean hasActiveRun() {
+        return queueStatusOrdinal >= 0;
+    }
+
+    public ResearchQueueStatus queueStatus() {
+        return queueStatusOrdinal < 0 || queueStatusOrdinal >= ResearchQueueStatus.values().length
+                ? null
+                : ResearchQueueStatus.values()[queueStatusOrdinal];
+    }
+
+    public int runProgressScaled(int width) {
+        int total = Math.max(1, runTickRequired());
+        return Math.clamp((runTickProgress() * width) / total, 0, width);
+    }
+
     private static TeamStationNetworkSnapshot networkSnapshot(ResearchControllerBlockEntity blockEntity) {
         if (blockEntity == null || blockEntity.getLevel() == null || blockEntity.getLevel().getServer() == null || blockEntity.teamId().isBlank()) {
             return TeamStationNetworkSnapshot.empty(blockEntity == null ? "" : blockEntity.teamId());
         }
         return StationNetworkService.snapshot(blockEntity.getLevel().getServer(), blockEntity.teamId());
+    }
+
+    private static ResearchQueueEntry queueHead(ResearchControllerBlockEntity blockEntity) {
+        if (blockEntity == null || blockEntity.getLevel() == null || blockEntity.getLevel().getServer() == null || blockEntity.teamId().isBlank()) {
+            return null;
+        }
+        var state = ResearchManager.ensureTeamState(blockEntity.getLevel().getServer(), blockEntity.teamId());
+        return state.researchQueue().isEmpty() ? null : state.researchQueue().get(0);
     }
 
     @FunctionalInterface

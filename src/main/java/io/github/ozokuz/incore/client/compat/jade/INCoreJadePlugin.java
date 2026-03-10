@@ -15,6 +15,8 @@ import io.github.ozokuz.incore.features.research.BurnerLabBlock;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabTier;
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
+import io.github.ozokuz.incore.features.researchv2.model.ResearchNodeDefinition;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.station.AbstractResearchControllerBlock;
 import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlock;
@@ -40,6 +42,8 @@ import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
 import snownee.jade.api.WailaPlugin;
 import snownee.jade.api.config.IPluginConfig;
+import snownee.jade.api.ui.BoxStyle;
+import snownee.jade.api.ui.IElementHelper;
 
 import java.util.Locale;
 
@@ -687,6 +691,22 @@ public class INCoreJadePlugin implements IWailaPlugin {
                     data.putDouble("augment_corruption", descriptor.activeCorruptionMultiplier());
                 }
             }
+            if (accessor.getLevel() != null && accessor.getLevel().getServer() != null && !controller.teamId().isBlank()) {
+                var state = ResearchManager.ensureTeamState(accessor.getLevel().getServer(), controller.teamId());
+                if (!state.researchQueue().isEmpty()) {
+                    var head = state.researchQueue().get(0);
+                    data.putString("active_node", head.nodeId().toString());
+                    ResearchNodeDefinition node = ResearchRegistry.nodes().get(head.nodeId());
+                    if (node != null) {
+                        data.putString("active_node_name", node.name());
+                    }
+                    data.putInt("queue_status", head.status().ordinal());
+                    data.putInt("run_tick_progress", head.runTickProgress());
+                    data.putInt("run_tick_required", head.runTickRequired());
+                    data.putInt("completed_runs", head.completedRuns());
+                    data.putInt("required_runs", head.requiredRuns());
+                }
+            }
         }
 
         @Override
@@ -723,6 +743,30 @@ public class INCoreJadePlugin implements IWailaPlugin {
                         data.getDouble("augment_bonus"),
                         data.getDouble("augment_corruption"))));
             }
+            int queueStatus = data.contains("queue_status") ? data.getInt("queue_status") : -1;
+            if (queueStatus < 0) {
+                tooltip.add(Component.translatable("jade.incore.research_controller.idle"));
+                return;
+            }
+            int requiredRuns = Math.max(1, data.getInt("required_runs"));
+            int completedRuns = Math.max(0, Math.min(data.getInt("completed_runs"), requiredRuns));
+            tooltip.add(Component.translatable("jade.incore.research_controller.run", Math.min(requiredRuns, completedRuns + 1), requiredRuns));
+            tooltip.add(Component.translatable("jade.incore.research_controller.progress", data.getInt("run_tick_progress"), data.getInt("run_tick_required")));
+            float progress = Math.max(0.0F, Math.min(1.0F, data.getInt("run_tick_progress") / (float) Math.max(1, data.getInt("run_tick_required"))));
+            IElementHelper elements = IElementHelper.get();
+            tooltip.add(elements.progress(
+                    progress,
+                    Component.empty(),
+                    elements.progressStyle().color(0xFF55A9E6).textColor(0xFFFFFFFF),
+                    BoxStyle.getNestedBox(),
+                    false
+            ));
+            if (data.contains("active_node_name")) {
+                tooltip.add(Component.translatable("jade.incore.research_controller.node", data.getString("active_node_name")));
+            } else if (data.contains("active_node")) {
+                tooltip.add(Component.translatable("jade.incore.research_controller.node", data.getString("active_node")));
+            }
+            tooltip.add(Component.translatable("jade.incore.research_controller.status", crudeStationStatusText(queueStatus)));
         }
     }
 
@@ -788,6 +832,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
             case RUNNING -> Component.translatable("screen.incore.crude_research_station.status.running");
             case PAUSED_MISSING_INPUTS -> Component.translatable("screen.incore.crude_research_station.status.missing_inputs");
             case PAUSED_NO_POWER -> Component.translatable("screen.incore.crude_research_station.status.no_power");
+            case PAUSED_NETWORK_CONFLICT -> Component.translatable("screen.incore.research_controller.run_status.network_conflict");
             default -> Component.translatable("screen.incore.crude_research_station.status.queued");
         };
     }

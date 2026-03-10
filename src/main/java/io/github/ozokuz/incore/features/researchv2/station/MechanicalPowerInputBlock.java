@@ -1,7 +1,7 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
 import com.mojang.serialization.MapCodec;
-import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
+import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,7 +26,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MechanicalPowerInputBlock extends HorizontalKineticBlock implements EntityBlock, ResearchPowerInputBlockProvider {
+public class MechanicalPowerInputBlock extends DirectionalKineticBlock implements EntityBlock, ResearchPowerInputBlockProvider {
     public static final MapCodec<MechanicalPowerInputBlock> CODEC = simpleCodec(MechanicalPowerInputBlock::new);
 
     public MechanicalPowerInputBlock() {
@@ -35,11 +35,11 @@ public class MechanicalPowerInputBlock extends HorizontalKineticBlock implements
 
     public MechanicalPowerInputBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(HORIZONTAL_FACING, Direction.NORTH));
+        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
     }
 
     @Override
-    protected @NotNull MapCodec<? extends HorizontalKineticBlock> codec() {
+    protected @NotNull MapCodec<? extends DirectionalKineticBlock> codec() {
         return CODEC;
     }
 
@@ -74,12 +74,12 @@ public class MechanicalPowerInputBlock extends HorizontalKineticBlock implements
 
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return face == state.getValue(HORIZONTAL_FACING);
+        return face == state.getValue(FACING);
     }
 
     @Override
     public Direction.Axis getRotationAxis(BlockState state) {
-        return state.getValue(HORIZONTAL_FACING).getAxis();
+        return state.getValue(FACING).getAxis();
     }
 
     @Override

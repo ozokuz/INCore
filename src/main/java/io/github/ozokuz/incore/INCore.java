@@ -173,30 +173,22 @@ public class INCore {
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 Registration.LOGIC_HOUSING_BE.get(),
-                (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
-                        ? blockEntity.frontInsertView()
-                        : blockEntity.itemHandler()
+                (blockEntity, side) -> blockEntity.automationView(side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 Registration.RESEARCH_DRIVE_BE.get(),
-                (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
-                        ? blockEntity.frontInsertView()
-                        : blockEntity.itemHandler()
+                (blockEntity, side) -> blockEntity.automationView(side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 Registration.MATERIAL_STORAGE_BE.get(),
-                (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
-                        ? blockEntity.frontInsertView()
-                        : blockEntity.itemHandler()
+                (blockEntity, side) -> blockEntity.automationView(side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 Registration.AUGMENTER_BE.get(),
-                (blockEntity, side) -> side != null && side == blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)
-                        ? blockEntity.frontInsertView()
-                        : blockEntity.itemHandler()
+                (blockEntity, side) -> blockEntity.automationView(side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,

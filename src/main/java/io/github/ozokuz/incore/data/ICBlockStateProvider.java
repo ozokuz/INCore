@@ -43,11 +43,7 @@ public class ICBlockStateProvider extends BlockStateProvider {
     private void registerMachineBlock(Block block, String name, String frontTexture) {
         ModelFile model = machineModel(name, frontTexture);
         getVariantBuilder(block).forAllStates(state -> {
-            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            return ConfiguredModel.builder()
-                    .modelFile(model)
-                    .rotationY(((int) facing.toYRot() + 180) % 360)
-                    .build();
+            return directionalModel(model, state.getValue(BlockStateProperties.FACING));
         });
         simpleBlockItem(block, model);
     }
@@ -55,13 +51,29 @@ public class ICBlockStateProvider extends BlockStateProvider {
     private void registerMechanicalInputBlock(String name, String frontTexture) {
         ModelFile model = machineModel(name, frontTexture);
         getVariantBuilder(Registration.MECHANICAL_POWER_INPUT_BLOCK.get()).forAllStates(state -> {
-            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            return ConfiguredModel.builder()
-                    .modelFile(model)
-                    .rotationY(((int) facing.toYRot() + 180) % 360)
-                    .build();
+            return directionalModel(model, state.getValue(BlockStateProperties.FACING));
         });
         simpleBlockItem(Registration.MECHANICAL_POWER_INPUT_BLOCK.get(), model);
+    }
+
+    private ConfiguredModel[] directionalModel(ModelFile model, Direction facing) {
+        int rotationX = switch (facing) {
+            case UP -> 270;
+            case DOWN -> 90;
+            default -> 0;
+        };
+        int rotationY = switch (facing) {
+            case SOUTH -> 180;
+            case WEST -> 270;
+            case EAST -> 90;
+            default -> 0;
+        };
+        return ConfiguredModel.builder()
+                .modelFile(model)
+                .rotationX(rotationX)
+                .rotationY(rotationY)
+                .uvLock(true)
+                .build();
     }
 
     private ModelFile machineModel(String name, String frontTexture) {

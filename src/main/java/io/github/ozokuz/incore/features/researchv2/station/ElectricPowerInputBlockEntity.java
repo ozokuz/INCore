@@ -107,7 +107,7 @@ public class ElectricPowerInputBlockEntity extends BlockEntity implements IResea
     }
 
     public @Nullable IEnergyStorage getEnergyStorage(@Nullable Direction side) {
-        if (side == null || side != getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)) {
+        if (!ResearchStationFacing.isFrontFace(getBlockState(), side)) {
             return null;
         }
         return externalEnergyView;
