@@ -28,7 +28,7 @@ public class ResearchDriveBlockEntity extends AbstractInventoryStationPartBlockE
 
         @Override
         public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return isExtractionLocked(slot) ? ItemStack.EMPTY : rawItemHandler().extractItem(slot, amount, simulate);
+            return rawItemHandler().extractItem(slot, amount, simulate);
         }
 
         @Override
@@ -69,15 +69,6 @@ public class ResearchDriveBlockEntity extends AbstractInventoryStationPartBlockE
     public ItemStack mountedDisk() {
         return rawItemHandler().getStackInSlot(0);
     }
-
-    private boolean isExtractionLocked(int slot) {
-        if (slot != 0) {
-            return false;
-        }
-        ItemStack disk = mountedDisk();
-        return !disk.isEmpty() && ResearchDiskData.isLocked(disk);
-    }
-
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory playerInventory) {
         return new ResearchDriveMenu(containerId, playerInventory, this);

@@ -168,8 +168,9 @@ public final class ResearchFunctionalBlocksGameTests {
 
         outputPort.rawItemHandler().setStackInSlot(0, ItemStack.EMPTY);
         outputPort.toggleMode();
-        ResearchStationRuntime.setDiskLocked(controller, false);
-        helper.assertTrue(outputPort.frontExtractView(front).extractItem(0, 1, true).is(Registration.RESEARCH_DISK_T1_ITEM.get()), "drive mode should expose routed disk output");
+        ResearchStationRuntime.flushDriveOutput(controller);
+        helper.assertTrue(outputPort.frontExtractView(front).extractItem(0, 1, true).isEmpty(), "clean disks should remain mounted and not route to drive output");
+        helper.assertTrue(drive.mountedDisk().is(Registration.RESEARCH_DISK_T1_ITEM.get()), "clean disk should stay in the drive");
         helper.succeed();
     }
 
@@ -187,13 +188,15 @@ public final class ResearchFunctionalBlocksGameTests {
 
         logicPort.insertOutput(new ItemStack(Registration.USED_LOGIC_MODULE_T4_ITEM.get()));
         drive.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
+        int ordinal = findCorruptionWindowOrdinal(controller, SIGNAL_CALIBRATION, 1, ResearchDiskTier.T1.corruptionChance(), ResearchDiskTier.T4.corruptionChance());
+        ResearchStationRuntime.writeDiskSnapshot(controller, SIGNAL_CALIBRATION, 1, 3, ordinal, false, 1.0D);
         drivePort.setMode(OutputPortMode.DRIVE);
-        ResearchStationRuntime.setDiskLocked(controller, false);
+        ResearchStationRuntime.flushDriveOutput(controller);
 
         Direction logicFront = logicPort.getBlockState().getValue(BlockStateProperties.FACING);
         Direction driveFront = drivePort.getBlockState().getValue(BlockStateProperties.FACING);
         helper.assertTrue(logicPort.frontExtractView(logicFront).extractItem(0, 1, true).is(Registration.USED_LOGIC_MODULE_T4_ITEM.get()), "first output port should expose logic items");
-        helper.assertTrue(drivePort.frontExtractView(driveFront).extractItem(0, 1, true).is(Registration.RESEARCH_DISK_T1_ITEM.get()), "second output port should expose drive items");
+        helper.assertTrue(drivePort.frontExtractView(driveFront).extractItem(0, 1, true).is(Registration.RESEARCH_DISK_T1_ITEM.get()), "corrupted disk should route through the drive output port");
         helper.succeed();
     }
 
@@ -206,8 +209,7 @@ public final class ResearchFunctionalBlocksGameTests {
 
         ResearchStationRuntime.writeDiskSnapshot(controller, SIGNAL_CALIBRATION, 1, 3, 1, false, 1.0D);
         ResearchStationRuntime.writeDiskSnapshot(controller, SIGNAL_CALIBRATION, 3, 3, 2, true, 1.0D);
-        helper.assertValueEqual(1, ResearchDiskData.readSnapshots(drive.mountedDisk()).size(), "expected one node snapshot");
-        helper.assertTrue(ResearchDiskData.readSnapshots(drive.mountedDisk()).get(0).completed(), "expected final snapshot marked completed");
+        helper.assertValueEqual(0, ResearchDiskData.readSnapshots(drive.mountedDisk()).size(), "completed research should be erased from the disk");
         helper.succeed();
     }
 
@@ -229,7 +231,7 @@ public final class ResearchFunctionalBlocksGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 240)
-    public static void mounted_disk_cannot_be_extracted_while_station_is_active(GameTestHelper helper) {
+    public static void mounted_disk_can_be_extracted_while_station_is_active(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_lock", station.controllerPos()));
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
@@ -272,13 +274,12 @@ public final class ResearchFunctionalBlocksGameTests {
                             + state.completedNodes().contains(SIGNAL_CALIBRATION)
             );
             helper.assertTrue(!state.researchQueue().isEmpty(), "expected queued research to still be active");
-            helper.assertTrue(ResearchDiskData.isLocked(drive.mountedDisk()), "expected mounted disk to be locked during active research");
-            helper.assertTrue(drive.itemHandler().extractItem(0, 1, true).isEmpty(), "manual extraction should be blocked while locked");
+            helper.assertTrue(drive.itemHandler().extractItem(0, 1, true).is(Registration.RESEARCH_DISK_T1_ITEM.get()), "manual extraction should remain available during active research");
 
             outputPort.setMode(OutputPortMode.DRIVE);
             Direction front = outputPort.getBlockState().getValue(BlockStateProperties.FACING);
             helper.assertTrue(outputPort.frontExtractView(front) != null, "expected output port capability");
-            helper.assertTrue(outputPort.frontExtractView(front).extractItem(0, 1, true).isEmpty(), "output port extraction should be blocked while locked");
+            helper.assertTrue(outputPort.frontExtractView(front).extractItem(0, 1, true).isEmpty(), "drive output should remain empty until a corrupted disk is flushed");
             helper.succeed();
         });
     }

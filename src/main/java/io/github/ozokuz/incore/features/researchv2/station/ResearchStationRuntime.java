@@ -49,22 +49,6 @@ public final class ResearchStationRuntime {
         return drive != null && !drive.mountedDisk().isEmpty() && StationInventoryRules.isResearchDisk(drive.mountedDisk());
     }
 
-    public static void setDiskLocked(ResearchControllerBlockEntity controller, boolean locked) {
-        ResearchDriveBlockEntity drive = resolveDrive(controller);
-        if (drive == null) {
-            return;
-        }
-        ItemStack disk = drive.mountedDisk();
-        if (disk.isEmpty() || !StationInventoryRules.isResearchDisk(disk)) {
-            return;
-        }
-        ResearchDiskData.setLocked(disk, locked);
-        drive.setChanged();
-        if (!locked) {
-            flushDriveOutput(controller, drive);
-        }
-    }
-
     public static boolean hasRequiredModules(ResearchControllerBlockEntity controller, List<ResearchCostDefinition.LogicModuleRequirement> requirements) {
         LogicHousingBlockEntity housing = resolveLogicHousing(controller);
         if (housing == null) {
@@ -322,6 +306,13 @@ public final class ResearchStationRuntime {
         }
 
         List<ResearchDiskData.Snapshot> snapshots = new ArrayList<>(ResearchDiskData.readSnapshots(disk));
+        if (completed) {
+            snapshots.removeIf(snapshot -> snapshot.nodeId().equals(nodeId));
+            ResearchDiskData.writeSnapshots(disk, snapshots);
+            drive.setChanged();
+            return;
+        }
+
         Set<Integer> corruptedSegments = new LinkedHashSet<>();
         for (ResearchDiskData.Snapshot snapshot : snapshots) {
             if (snapshot.nodeId().equals(nodeId)) {
@@ -479,7 +470,7 @@ public final class ResearchStationRuntime {
             return;
         }
         ItemStack disk = drive.mountedDisk();
-        if (disk.isEmpty() || ResearchDiskData.isLocked(disk)) {
+        if (disk.isEmpty() || !ResearchDiskData.hasCorruption(disk)) {
             return;
         }
         ItemStack remaining = insertIntoMatchingOutputPorts(controller, OutputPortMode.DRIVE, disk.copy());
