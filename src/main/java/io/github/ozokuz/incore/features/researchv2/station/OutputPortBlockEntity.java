@@ -92,7 +92,7 @@ public class OutputPortBlockEntity extends AbstractInventoryStationPartBlockEnti
     }
 
     public @Nullable IItemHandler frontExtractView(@Nullable Direction side) {
-        if (side == null || side != getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)) {
+        if (!ResearchStationFacing.isFrontFace(getBlockState(), side)) {
             return null;
         }
         return frontExtractView;

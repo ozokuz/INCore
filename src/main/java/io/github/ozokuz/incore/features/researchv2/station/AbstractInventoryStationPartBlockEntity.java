@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.Direction;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -108,6 +109,13 @@ public abstract class AbstractInventoryStationPartBlockEntity extends AbstractRe
         return activeView;
     }
 
+    public @Nullable IItemHandler automationView(@Nullable Direction side) {
+        if (side == null) {
+            return itemHandler();
+        }
+        return isFrontFace(side) ? itemHandler() : null;
+    }
+
     public IItemHandler frontInsertView() {
         return frontInsertView;
     }
@@ -122,6 +130,14 @@ public abstract class AbstractInventoryStationPartBlockEntity extends AbstractRe
 
     public boolean isSlotActive(int slot) {
         return slot >= 0 && slot < activeSlotCount();
+    }
+
+    protected Direction frontFace() {
+        return ResearchStationFacing.frontFace(getBlockState());
+    }
+
+    protected boolean isFrontFace(@Nullable Direction side) {
+        return ResearchStationFacing.isFrontFace(getBlockState(), side);
     }
 
     public int stationTier() {

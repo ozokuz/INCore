@@ -38,7 +38,7 @@ public abstract class AbstractResearchPowerInputBlock extends BaseEntityBlock im
         super(properties);
         this.family = family;
         this.powerTier = Math.max(1, powerTier);
-        registerDefaultState(defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        registerDefaultState(defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
     }
 
     @Override
@@ -58,17 +58,17 @@ public abstract class AbstractResearchPowerInputBlock extends BaseEntityBlock im
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+        return ResearchStationFacing.stateForPlacement(defaultBlockState(), context);
     }
 
     @Override
     protected @NotNull BlockState rotate(@NotNull BlockState state, Rotation rotation) {
-        return state.setValue(BlockStateProperties.HORIZONTAL_FACING, rotation.rotate(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
+        return ResearchStationFacing.rotate(state, rotation);
     }
 
     @Override
     protected @NotNull BlockState mirror(@NotNull BlockState state, Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
+        return ResearchStationFacing.mirror(state, mirror);
     }
 
     @Override
@@ -123,6 +123,6 @@ public abstract class AbstractResearchPowerInputBlock extends BaseEntityBlock im
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(BlockStateProperties.HORIZONTAL_FACING);
+        builder.add(BlockStateProperties.FACING);
     }
 }

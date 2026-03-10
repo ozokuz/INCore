@@ -30,7 +30,7 @@ public class LinkingPortBlock extends BaseEntityBlock {
 
     public LinkingPortBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        registerDefaultState(defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
     }
 
     @Override
@@ -50,17 +50,17 @@ public class LinkingPortBlock extends BaseEntityBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+        return ResearchStationFacing.stateForPlacement(defaultBlockState(), context);
     }
 
     @Override
     protected @NotNull BlockState rotate(@NotNull BlockState state, Rotation rotation) {
-        return state.setValue(BlockStateProperties.HORIZONTAL_FACING, rotation.rotate(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
+        return ResearchStationFacing.rotate(state, rotation);
     }
 
     @Override
     protected @NotNull BlockState mirror(@NotNull BlockState state, Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
+        return ResearchStationFacing.mirror(state, mirror);
     }
 
     @Override
@@ -83,6 +83,6 @@ public class LinkingPortBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(BlockStateProperties.HORIZONTAL_FACING);
+        builder.add(BlockStateProperties.FACING);
     }
 }

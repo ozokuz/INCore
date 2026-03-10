@@ -346,11 +346,11 @@ public final class ResearchPowerGameTests {
                 }
             }
         }
-        helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.researchDrivePos(), Registration.RESEARCH_DRIVE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.outputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
-        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.researchDrivePos(), Registration.RESEARCH_DRIVE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.outputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+        helper.setBlock(station.augmenterPos(), Registration.AUGMENTER_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
         return station;
     }
 
@@ -376,7 +376,7 @@ public final class ResearchPowerGameTests {
 
     private static void chargeElectricInput(ElectricPowerInputBlockEntity input, int amount) {
         int remaining = Math.max(0, amount);
-        Direction front = input.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        Direction front = input.getBlockState().getValue(BlockStateProperties.FACING);
         var storage = input.getEnergyStorage(front);
         if (storage == null) {
             for (Direction direction : Direction.values()) {
@@ -398,7 +398,7 @@ public final class ResearchPowerGameTests {
     private static BlockPos placeLinkPort(GameTestHelper helper, BlockPos portPos) {
         helper.setBlock(
                 portPos,
-                Registration.LINKING_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
+                Registration.LINKING_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH)
         );
         return portPos;
     }

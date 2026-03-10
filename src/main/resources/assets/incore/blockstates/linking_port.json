@@ -1,16 +1,33 @@
 {
   "variants": {
     "facing=north": {
-      "model": "incore:block/linking_port"
+      "model": "incore:block/linking_port",
+      "uvlock": true
     },
     "facing=south": {
-      "model": "incore:block/linking_port"
+      "model": "incore:block/linking_port",
+      "y": 180,
+      "uvlock": true
     },
     "facing=west": {
-      "model": "incore:block/linking_port"
+      "model": "incore:block/linking_port",
+      "y": 270,
+      "uvlock": true
     },
     "facing=east": {
-      "model": "incore:block/linking_port"
+      "model": "incore:block/linking_port",
+      "y": 90,
+      "uvlock": true
+    },
+    "facing=up": {
+      "model": "incore:block/linking_port",
+      "x": 270,
+      "uvlock": true
+    },
+    "facing=down": {
+      "model": "incore:block/linking_port",
+      "x": 90,
+      "uvlock": true
     }
   }
 }
