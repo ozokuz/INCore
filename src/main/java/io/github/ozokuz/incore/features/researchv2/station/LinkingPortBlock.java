@@ -1,16 +1,11 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
+import com.mojang.serialization.MapCodec;
 import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -18,37 +13,34 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractResearchPowerInputBlock extends BaseEntityBlock implements ResearchPowerInputBlockProvider {
-    private final ResearchPowerFamily family;
-    private final int powerTier;
+public class LinkingPortBlock extends BaseEntityBlock {
+    public static final MapCodec<LinkingPortBlock> CODEC = simpleCodec(LinkingPortBlock::new);
 
-    protected AbstractResearchPowerInputBlock(ResearchPowerFamily family) {
-        this(family, 1, Properties.of().mapColor(MapColor.METAL).strength(3.0F).sound(SoundType.METAL));
+    public LinkingPortBlock() {
+        this(Properties.of().mapColor(MapColor.METAL).strength(3.0F).sound(SoundType.METAL));
     }
 
-    protected AbstractResearchPowerInputBlock(ResearchPowerFamily family, int powerTier, Properties properties) {
+    public LinkingPortBlock(Properties properties) {
         super(properties);
-        this.family = family;
-        this.powerTier = Math.max(1, powerTier);
         registerDefaultState(defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 
     @Override
-    public final ResearchPowerFamily family() {
-        return family;
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override
-    public final int powerTier() {
-        return powerTier;
+    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+        return new LinkingPortBlockEntity(pos, state);
     }
 
     @Override
@@ -69,38 +61,6 @@ public abstract class AbstractResearchPowerInputBlock extends BaseEntityBlock im
     @Override
     protected @NotNull BlockState mirror(@NotNull BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
-    }
-
-    @Override
-    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hitResult) {
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
-
-        if (level.getBlockEntity(pos) instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(provider, pos);
-        }
-        return InteractionResult.CONSUME;
-    }
-
-    @Override
-    protected @NotNull ItemInteractionResult useItemOn(
-            @NotNull ItemStack stack,
-            @NotNull BlockState state,
-            @NotNull Level level,
-            @NotNull BlockPos pos,
-            @NotNull Player player,
-            @NotNull InteractionHand hand,
-            @NotNull BlockHitResult hitResult
-    ) {
-        if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
-        }
-
-        if (level.getBlockEntity(pos) instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(provider, pos);
-        }
-        return ItemInteractionResult.CONSUME;
     }
 
     @Override

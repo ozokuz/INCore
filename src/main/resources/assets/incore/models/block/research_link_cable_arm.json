@@ -1,0 +1,23 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "incore:block/link_cable",
+		"particle": "incore:block/link_cable"
+	},
+	"elements": [
+		{
+			"from": [5, 11, 5],
+			"to": [11, 16, 11],
+			"rotation": {"angle": 0, "axis": "y", "origin": [6, 13, 11]},
+			"faces": {
+				"north": {"uv": [0, 5, 5, 11], "rotation": 270, "texture": "#0"},
+				"east": {"uv": [0, 5, 6, 10], "texture": "#0"},
+				"south": {"uv": [0, 5, 5, 11], "rotation": 90, "texture": "#0"},
+				"west": {"uv": [0, 5, 5, 11], "rotation": 270, "texture": "#0"},
+				"up": {"uv": [0, 5, 6, 11], "rotation": 90, "texture": "#0"},
+				"down": {"uv": [0, 5, 6, 11], "rotation": 90, "texture": "#0"}
+			}
+		}
+	]
+}

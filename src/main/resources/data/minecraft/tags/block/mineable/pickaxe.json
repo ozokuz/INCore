@@ -33,6 +33,8 @@
     "incore:research_controller_t2",
     "incore:research_controller_t3",
     "incore:research_controller_t4",
+    "incore:linking_port",
+    "incore:research_link_cable",
     "incore:mechanical_power_input",
     "incore:electric_power_input",
     "incore:electric_power_input_t2",

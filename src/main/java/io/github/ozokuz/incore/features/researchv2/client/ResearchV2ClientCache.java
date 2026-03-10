@@ -33,6 +33,12 @@ public final class ResearchV2ClientCache {
         String teamId = stringOr(root, "teamId", "");
         String activeNetworkId = stringOr(root, "activeNetworkId", "");
         boolean researchEnabled = boolOr(root, "researchEnabled", false);
+        int stationNetworkCount = intOr(root, "stationNetworkCount", 0);
+        boolean stationNetworkValid = boolOr(root, "stationNetworkValid", true);
+        String stationNetworkStatus = stringOr(root, "stationNetworkStatus", "none");
+        String stationNetworkWarning = stringOr(root, "stationNetworkWarning", "");
+        int activeStationCount = intOr(root, "activeStationCount", 0);
+        int linkedStationCount = intOr(root, "linkedStationCount", 0);
         int controllerTier = intOr(root, "controllerTier", 0);
         boolean focusModeEnabled = boolOr(root, "focusModeEnabled", false);
         int stationCount = intOr(root, "stationCount", 0);
@@ -63,6 +69,12 @@ public final class ResearchV2ClientCache {
                 teamId,
                 activeNetworkId,
                 researchEnabled,
+                Math.max(0, stationNetworkCount),
+                stationNetworkValid,
+                stationNetworkStatus,
+                stationNetworkWarning,
+                Math.max(0, activeStationCount),
+                Math.max(0, linkedStationCount),
                 Math.max(0, controllerTier),
                 focusModeEnabled,
                 Math.max(0, stationCount),
@@ -287,6 +299,11 @@ public final class ResearchV2ClientCache {
                     readPosition(materialStorage),
                     readPositions(outputPorts),
                     readPosition(augmenter)
+                    ,
+                    stringOr(row, "stationNetworkId", ""),
+                    boolOr(row, "singletonNetwork", false),
+                    boolOr(row, "linked", false),
+                    boolOr(row, "hasLinkPort", false)
             ));
         }
         stations.sort(Comparator.comparing(StationEntry::stationId));
@@ -447,6 +464,12 @@ public final class ResearchV2ClientCache {
             String teamId,
             String activeNetworkId,
             boolean researchEnabled,
+            int stationNetworkCount,
+            boolean stationNetworkValid,
+            String stationNetworkStatus,
+            String stationNetworkWarning,
+            int activeStationCount,
+            int linkedStationCount,
             int controllerTier,
             boolean focusModeEnabled,
             int stationCount,
@@ -470,6 +493,12 @@ public final class ResearchV2ClientCache {
                     "",
                     "",
                     false,
+                    0,
+                    true,
+                    "none",
+                    "",
+                    0,
+                    0,
                     0,
                     false,
                     0,
@@ -557,7 +586,11 @@ public final class ResearchV2ClientCache {
             PositionEntry researchDrivePos,
             PositionEntry materialStoragePos,
             List<PositionEntry> outputPortPositions,
-            PositionEntry augmenterPos
+            PositionEntry augmenterPos,
+            String stationNetworkId,
+            boolean singletonNetwork,
+            boolean linked,
+            boolean hasLinkPort
     ) {
     }
 

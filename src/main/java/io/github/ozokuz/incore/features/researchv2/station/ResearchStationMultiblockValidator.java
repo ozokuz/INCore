@@ -127,7 +127,7 @@ public final class ResearchStationMultiblockValidator {
                             return ResearchStationTopology.unformed();
                         }
                         augmenterPos = pos.immutable();
-                    } else if (state.getBlock() != casingBlock) {
+                    } else if (!(state.getBlock() instanceof LinkingPortBlock) && state.getBlock() != casingBlock) {
                         return ResearchStationTopology.unformed();
                     }
 

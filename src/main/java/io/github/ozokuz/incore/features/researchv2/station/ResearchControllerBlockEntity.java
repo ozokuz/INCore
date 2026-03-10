@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.researchv2.station;
 
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -49,6 +50,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         if (level != null && !level.isClientSide) {
             ResearchMultiblockStationRegistry.register(this);
             revalidateStructure();
+            StationNetworkService.onTopologyChanged(level);
         }
     }
 
@@ -63,6 +65,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 );
             }
             ResearchMultiblockStationRegistry.unregister(this);
+            StationNetworkService.onTopologyChanged(level);
         }
         super.setRemoved();
     }
@@ -94,6 +97,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         this.teamId = normalized;
         if (level != null && !level.isClientSide) {
             ResearchMultiblockStationRegistry.register(this);
+            StationNetworkService.onTopologyChanged(level);
         }
         setChanged();
     }
@@ -276,6 +280,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
 
         if (changed) {
             setChanged();
+            StationNetworkService.onTopologyChanged(level);
 
             if (!previousFormed && formed) {
                 INCore.LOGGER.info(
@@ -363,7 +368,11 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 augmentSummary.bonusRunChance(),
                 augmentSummary.corruptionMultiplier(),
                 endpoints,
-                connectedParts
+                connectedParts,
+                "",
+                true,
+                false,
+                false
         );
     }
 

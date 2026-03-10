@@ -27,7 +27,11 @@ public record ResearchStationDescriptor(
         double activeBonusRunChance,
         double activeCorruptionMultiplier,
         ResearchStationEndpoints endpoints,
-        List<BlockPos> connectedParts
+        List<BlockPos> connectedParts,
+        String stationNetworkId,
+        boolean singletonNetwork,
+        boolean linked,
+        boolean hasLinkPort
 ) {
     public ResearchStationDescriptor {
         stationId = stationId == null ? "" : stationId;
@@ -50,5 +54,38 @@ public record ResearchStationDescriptor(
         outputPortModes = outputPortModes == null ? "NONE" : outputPortModes;
         endpoints = endpoints == null ? new ResearchStationEndpoints(List.of(), List.of(), null, null, null, List.of(), null) : endpoints;
         connectedParts = connectedParts == null ? List.of() : List.copyOf(connectedParts);
+        stationNetworkId = stationNetworkId == null ? "" : stationNetworkId;
+    }
+
+    public ResearchStationDescriptor withStationNetwork(String stationNetworkId, boolean singletonNetwork, boolean linked, boolean hasLinkPort) {
+        return new ResearchStationDescriptor(
+                stationId,
+                teamId,
+                dimensionId,
+                controllerPos,
+                stationTier,
+                formed,
+                rpBuffer,
+                rpCapacity,
+                slotCapacity,
+                availableResearchPower,
+                powerFamily,
+                powerInputTier,
+                outputPortModes,
+                mountedDiskTier,
+                mountedDiskSnapshotCount,
+                mountedDiskCorruptedSegmentCount,
+                mountedDiskCorruptedSnapshotCount,
+                activeSpeedMultiplier,
+                activePowerMultiplier,
+                activeBonusRunChance,
+                activeCorruptionMultiplier,
+                endpoints,
+                connectedParts,
+                stationNetworkId,
+                singletonNetwork,
+                linked,
+                hasLinkPort
+        );
     }
 }

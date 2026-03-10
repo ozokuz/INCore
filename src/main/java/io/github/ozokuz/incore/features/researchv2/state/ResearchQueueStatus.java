@@ -6,7 +6,8 @@ public enum ResearchQueueStatus {
     QUEUED,
     RUNNING,
     PAUSED_MISSING_INPUTS,
-    PAUSED_NO_POWER;
+    PAUSED_NO_POWER,
+    PAUSED_NETWORK_CONFLICT;
 
     public static ResearchQueueStatus fromSerialized(@Nullable String value, int ignoredProgress) {
         if (value != null) {

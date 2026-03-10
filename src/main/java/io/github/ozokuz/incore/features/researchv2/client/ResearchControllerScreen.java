@@ -36,6 +36,10 @@ public class ResearchControllerScreen extends StationStatusScreen<ResearchContro
         drawKeyValue(guiGraphics, rightColumn, y + 36, Component.translatable("screen.incore.research_controller.drive"), presence(menu.hasResearchDrive()), menu.hasResearchDrive() ? okColor() : warnColor());
         drawKeyValue(guiGraphics, rightColumn, y + 48, Component.translatable("screen.incore.research_controller.storage"), presence(menu.hasMaterialStorage()), menu.hasMaterialStorage() ? okColor() : warnColor());
         drawKeyValue(guiGraphics, rightColumn, y + 60, Component.translatable("screen.incore.research_controller.augmenter"), presence(menu.hasAugmenter()), menu.hasAugmenter() ? okColor() : warnColor());
+        drawKeyValue(guiGraphics, rightColumn, y + 72, Component.translatable("screen.incore.research_controller.link_port"), presence(menu.hasLinkPort()), menu.hasLinkPort() ? okColor() : warnColor());
+        drawKeyValue(guiGraphics, leftColumn, y + 84, Component.translatable("screen.incore.research_controller.network_mode"), Component.translatable(menu.stationNetworkLinked() ? "screen.incore.research_controller.network_mode.linked" : "screen.incore.research_controller.network_mode.singleton"), menu.stationNetworkLinked() ? okColor() : valueColor());
+        drawKeyValue(guiGraphics, rightColumn, y + 84, Component.translatable("screen.incore.research_controller.team_networks"), Component.literal(Integer.toString(menu.teamStationNetworkCount())), menu.teamStationNetworkValid() ? valueColor() : warnColor());
+        drawKeyValue(guiGraphics, leftColumn, y + 96, Component.translatable("screen.incore.research_controller.network_status"), Component.translatable(menu.teamStationNetworkValid() ? "screen.incore.research_controller.network_status.valid" : "screen.incore.research_controller.network_status.blocked"), menu.teamStationNetworkValid() ? okColor() : warnColor());
     }
 
     private static Component powerFamily(ResearchPowerFamily family) {

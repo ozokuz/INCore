@@ -33,7 +33,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 80)
     public static void station_requires_core_functional_blocks_only(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_shape");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_shape", station.controllerPos()));
         helper.assertTrue(controller.isFormed(), "expected station with all functional blocks to form");
 
         helper.setBlock(station.outputPortPos(), Registration.RESEARCH_STATION_CASING_BLOCK.get());
@@ -72,7 +72,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 80)
     public static void material_storage_counts_registered_materials(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_materials");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_materials", station.controllerPos()));
         MaterialStorageBlockEntity storage = requireBlockEntity(helper, station.materialStoragePos(), MaterialStorageBlockEntity.class);
         storage.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 3));
 
@@ -88,7 +88,7 @@ public final class ResearchFunctionalBlocksGameTests {
         helper.setBlock(station.logicHousingPos(), Registration.LOGIC_HOUSING_T3_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
         helper.setBlock(station.materialStoragePos(), Registration.MATERIAL_STORAGE_T4_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
 
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_tiered_parts");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_tiered_parts", station.controllerPos()));
         helper.assertTrue(controller.isFormed(), "expected station with tiered housing and storage to form");
 
         LogicHousingBlockEntity logicHousing = requireBlockEntity(helper, station.logicHousingPos(), LogicHousingBlockEntity.class);
@@ -101,7 +101,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 80)
     public static void logic_module_exhaustion_returns_expected_items(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_logic");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_logic", station.controllerPos()));
         LogicHousingBlockEntity logicHousing = requireBlockEntity(helper, station.logicHousingPos(), LogicHousingBlockEntity.class);
         OutputPortBlockEntity outputPort = requireBlockEntity(helper, station.outputPortPos(), OutputPortBlockEntity.class);
 
@@ -153,7 +153,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 80)
     public static void output_port_switches_between_logic_and_drive(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_output");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_output", station.controllerPos()));
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
         OutputPortBlockEntity outputPort = requireBlockEntity(helper, station.outputPortPos(), OutputPortBlockEntity.class);
 
@@ -176,7 +176,7 @@ public final class ResearchFunctionalBlocksGameTests {
         FunctionalStation station = buildFunctionalStation(helper);
         helper.setBlock(station.secondOutputPortPos(), Registration.OUTPUT_PORT_BLOCK.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
 
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_dual_output");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_dual_output", station.controllerPos()));
         helper.assertValueEqual(2, controller.outputPortPositions().size(), "station should allow two output ports");
 
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
@@ -198,7 +198,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 120)
     public static void disk_writes_snapshots_for_completed_runs(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_disk");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_disk", station.controllerPos()));
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
         drive.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
 
@@ -212,7 +212,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void disk_corruption_is_tiered_and_deterministic(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_corruption");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_corruption", station.controllerPos()));
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
         int ordinal = findCorruptionWindowOrdinal(controller, SIGNAL_CALIBRATION, 1, ResearchDiskTier.T1.corruptionChance(), ResearchDiskTier.T4.corruptionChance());
 
@@ -229,7 +229,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 240)
     public static void mounted_disk_cannot_be_extracted_while_station_is_active(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_lock");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_lock", station.controllerPos()));
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
         LogicHousingBlockEntity logicHousing = requireBlockEntity(helper, station.logicHousingPos(), LogicHousingBlockEntity.class);
         MaterialStorageBlockEntity storage = requireBlockEntity(helper, station.materialStoragePos(), MaterialStorageBlockEntity.class);
@@ -261,7 +261,13 @@ public final class ResearchFunctionalBlocksGameTests {
         ResearchNetworkSavedData.get(server).setDirty();
 
         helper.runAfterDelay(5, () -> {
-            helper.assertTrue(ResearchManager.tickResearch(server, controller.teamId()), "tick should activate queued research");
+            helper.assertTrue(
+                    ResearchManager.tickResearch(server, controller.teamId()),
+                    "tick should activate queued research; queueSize="
+                            + state.researchQueue().size()
+                            + " completed="
+                            + state.completedNodes().contains(SIGNAL_CALIBRATION)
+            );
             helper.assertTrue(!state.researchQueue().isEmpty(), "expected queued research to still be active");
             helper.assertTrue(ResearchDiskData.isLocked(drive.mountedDisk()), "expected mounted disk to be locked during active research");
             helper.assertTrue(drive.itemHandler().extractItem(0, 1, true).isEmpty(), "manual extraction should be blocked while locked");
@@ -277,7 +283,7 @@ public final class ResearchFunctionalBlocksGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void augments_change_research_runtime(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
-        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), "phase7_augments");
+        ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_augments", station.controllerPos()));
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
         LogicHousingBlockEntity logicHousing = requireBlockEntity(helper, station.logicHousingPos(), LogicHousingBlockEntity.class);
         MaterialStorageBlockEntity storage = requireBlockEntity(helper, station.materialStoragePos(), MaterialStorageBlockEntity.class);
@@ -351,6 +357,10 @@ public final class ResearchFunctionalBlocksGameTests {
         Object blockEntity = helper.getBlockEntity(pos);
         helper.assertTrue(type.isInstance(blockEntity), "expected block entity " + type.getSimpleName() + " at " + pos);
         return type.cast(blockEntity);
+    }
+
+    private static String teamId(GameTestHelper helper, String base, BlockPos controllerPos) {
+        return base + "_" + helper.absolutePos(controllerPos).asLong();
     }
 
     private static void chargeElectricInput(ElectricPowerInputBlockEntity input, int amount) {

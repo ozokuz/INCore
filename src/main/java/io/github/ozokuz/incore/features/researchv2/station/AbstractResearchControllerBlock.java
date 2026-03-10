@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import io.github.ozokuz.incore.features.researchv2.team.ResearchTeamResolver;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -115,6 +116,7 @@ public abstract class AbstractResearchControllerBlock extends BaseEntityBlock {
         if (blockEntity instanceof ResearchControllerBlockEntity controller) {
             controller.setTeamId(ResearchTeamResolver.resolveTeamId(serverPlayer));
             controller.revalidateStructure();
+            StationNetworkService.onTopologyChanged(level);
         }
     }
 
@@ -123,6 +125,7 @@ public abstract class AbstractResearchControllerBlock extends BaseEntityBlock {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (!level.isClientSide && !state.is(oldState.getBlock())) {
             ResearchStationMultiblockOrchestrator.onBlockChanged(level, pos);
+            StationNetworkService.onTopologyChanged(level);
         }
     }
 
@@ -130,6 +133,7 @@ public abstract class AbstractResearchControllerBlock extends BaseEntityBlock {
     protected void onRemove(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide && !state.is(newState.getBlock())) {
             ResearchStationMultiblockOrchestrator.onBlockChanged(level, pos);
+            StationNetworkService.onTopologyChanged(level);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

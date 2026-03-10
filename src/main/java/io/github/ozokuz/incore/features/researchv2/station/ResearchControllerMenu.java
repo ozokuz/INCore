@@ -1,6 +1,8 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
+import io.github.ozokuz.incore.features.researchv2.station.network.TeamStationNetworkSnapshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -23,6 +25,10 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
     private boolean hasResearchDrive;
     private boolean hasMaterialStorage;
     private boolean hasAugmenter;
+    private boolean hasLinkPort;
+    private boolean stationNetworkLinked;
+    private int teamStationNetworkCount;
+    private boolean teamStationNetworkValid;
 
     public ResearchControllerMenu(int containerId, Inventory playerInventory, BlockPos blockPos) {
         super(Registration.RESEARCH_CONTROLLER_MENU.get(), containerId);
@@ -82,6 +88,26 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
                 () -> blockEntity != null && blockEntity.augmenterPos() != null ? 1 : 0,
                 value -> hasAugmenter = value > 0
         ));
+        addDataSlot(slot(
+                () -> blockEntity != null && StationNetworkService.hasLinkPort(blockEntity) ? 1 : 0,
+                value -> hasLinkPort = value > 0
+        ));
+        addDataSlot(slot(
+                () -> blockEntity != null && !StationNetworkService.stationNetworkId(blockEntity).isBlank()
+                        && StationNetworkService.snapshot(blockEntity.getLevel().getServer(), blockEntity.teamId()).linkedStationIds().contains(blockEntity.stationId()) ? 1 : 0,
+                value -> stationNetworkLinked = value > 0
+        ));
+        addDataSlot(slot(
+                () -> {
+                    TeamStationNetworkSnapshot snapshot = networkSnapshot(blockEntity);
+                    return snapshot.stationNetworkCount();
+                },
+                value -> teamStationNetworkCount = Math.max(0, value)
+        ));
+        addDataSlot(slot(
+                () -> networkSnapshot(blockEntity).stationNetworkValid() ? 1 : 0,
+                value -> teamStationNetworkValid = value > 0
+        ));
     }
 
     private static DataSlot slot(IntSupplier getter, IntConsumer setter) {
@@ -118,6 +144,11 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
         hasResearchDrive = blockEntity != null && blockEntity.researchDrivePos() != null;
         hasMaterialStorage = blockEntity != null && blockEntity.materialStoragePos() != null;
         hasAugmenter = blockEntity != null && blockEntity.augmenterPos() != null;
+        TeamStationNetworkSnapshot snapshot = networkSnapshot(blockEntity);
+        hasLinkPort = blockEntity != null && StationNetworkService.hasLinkPort(blockEntity);
+        stationNetworkLinked = blockEntity != null && snapshot.linkedStationIds().contains(blockEntity.stationId());
+        teamStationNetworkCount = snapshot.stationNetworkCount();
+        teamStationNetworkValid = snapshot.stationNetworkValid();
     }
 
     @Override
@@ -185,6 +216,29 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
 
     public boolean hasAugmenter() {
         return hasAugmenter;
+    }
+
+    public boolean hasLinkPort() {
+        return hasLinkPort;
+    }
+
+    public boolean stationNetworkLinked() {
+        return stationNetworkLinked;
+    }
+
+    public int teamStationNetworkCount() {
+        return teamStationNetworkCount;
+    }
+
+    public boolean teamStationNetworkValid() {
+        return teamStationNetworkValid;
+    }
+
+    private static TeamStationNetworkSnapshot networkSnapshot(ResearchControllerBlockEntity blockEntity) {
+        if (blockEntity == null || blockEntity.getLevel() == null || blockEntity.getLevel().getServer() == null || blockEntity.teamId().isBlank()) {
+            return TeamStationNetworkSnapshot.empty(blockEntity == null ? "" : blockEntity.teamId());
+        }
+        return StationNetworkService.snapshot(blockEntity.getLevel().getServer(), blockEntity.teamId());
     }
 
     @FunctionalInterface

@@ -4,6 +4,7 @@ import io.github.ozokuz.incore.features.researchv2.model.ResearchCostDefinition;
 import io.github.ozokuz.incore.features.researchv2.provider.ILogicModuleProvider;
 import io.github.ozokuz.incore.features.researchv2.provider.IResearchMaterialProvider;
 import io.github.ozokuz.incore.features.researchv2.provider.IResearchPowerProvider;
+import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import net.minecraft.server.MinecraftServer;
 
 import java.util.List;
@@ -47,7 +48,7 @@ public final class HybridResearchStationResourceProvider implements ILogicModule
         }
 
         int remaining = required;
-        for (ResearchControllerBlockEntity controller : ResearchMultiblockStationRegistry.controllersForTeam(server, teamId)) {
+        for (ResearchControllerBlockEntity controller : StationNetworkService.executableControllers(server, teamId)) {
             if (remaining <= 0) {
                 break;
             }
@@ -67,7 +68,7 @@ public final class HybridResearchStationResourceProvider implements ILogicModule
         }
 
         long total = crudeProvider.availablePower(server, teamId);
-        for (ResearchControllerBlockEntity controller : ResearchMultiblockStationRegistry.controllersForTeam(server, teamId)) {
+        for (ResearchControllerBlockEntity controller : StationNetworkService.executableControllers(server, teamId)) {
             total += controller.availableResearchPower(Integer.MAX_VALUE);
             if (total >= Integer.MAX_VALUE) {
                 return Integer.MAX_VALUE;
