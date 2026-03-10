@@ -72,6 +72,20 @@ public final class ResearchFunctionalBlocksGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 80)
+    public static void stations_cannot_share_walls(GameTestHelper helper) {
+        FunctionalStation first = buildFunctionalStation(helper, 1, 1, 1);
+        FunctionalStation second = buildFunctionalStation(helper, 3, 1, 1);
+
+        ResearchControllerBlockEntity firstController = bindController(helper, first.controllerPos(), teamId(helper, "phase8_wall_share_a", first.controllerPos()));
+        ResearchControllerBlockEntity secondController = bindController(helper, second.controllerPos(), teamId(helper, "phase8_wall_share_b", second.controllerPos()));
+
+        helper.assertFalse(firstController.isFormed() && secondController.isFormed(), "wall-sharing stations must not both form");
+        firstController.revalidateStructure();
+        helper.assertFalse(firstController.isFormed() && secondController.isFormed(), "revalidation must continue rejecting wall-sharing stations");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 80)
     public static void material_storage_counts_registered_materials(GameTestHelper helper) {
         FunctionalStation station = buildFunctionalStation(helper);
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_materials", station.controllerPos()));
@@ -347,20 +361,24 @@ public final class ResearchFunctionalBlocksGameTests {
     }
 
     private static FunctionalStation buildFunctionalStation(GameTestHelper helper) {
+        return buildFunctionalStation(helper, 1, 1, 1);
+    }
+
+    private static FunctionalStation buildFunctionalStation(GameTestHelper helper, int minX, int minY, int minZ) {
         FunctionalStation station = new FunctionalStation(
-                new BlockPos(2, 2, 1),
-                new BlockPos(1, 2, 1),
-                new BlockPos(1, 1, 1),
-                new BlockPos(2, 1, 1),
-                new BlockPos(3, 1, 1),
-                new BlockPos(2, 1, 2),
-                new BlockPos(3, 2, 2),
-                new BlockPos(1, 1, 2)
+                new BlockPos(minX + 1, minY + 1, minZ),
+                new BlockPos(minX, minY + 1, minZ),
+                new BlockPos(minX, minY, minZ),
+                new BlockPos(minX + 1, minY, minZ),
+                new BlockPos(minX + 2, minY, minZ),
+                new BlockPos(minX + 1, minY, minZ + 1),
+                new BlockPos(minX + 2, minY + 1, minZ + 1),
+                new BlockPos(minX, minY, minZ + 1)
         );
 
-        for (int x = 1; x <= 3; x++) {
-            for (int y = 1; y <= 2; y++) {
-                for (int z = 1; z <= 2; z++) {
+        for (int x = minX; x <= minX + 2; x++) {
+            for (int y = minY; y <= minY + 1; y++) {
+                for (int z = minZ; z <= minZ + 1; z++) {
                     helper.setBlock(new BlockPos(x, y, z), Registration.RESEARCH_STATION_CASING_BLOCK.get());
                 }
             }

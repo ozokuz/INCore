@@ -3,6 +3,7 @@ package io.github.ozokuz.incore.features.researchv2.station;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -10,7 +11,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class ResearchStationMultiblockValidator {
     private static final int MIN_HEIGHT = 2;
@@ -148,6 +151,10 @@ public final class ResearchStationMultiblockValidator {
             return ResearchStationTopology.unformed();
         }
 
+        if (sharesPartsWithAnotherStation(level, controllerPos, connected)) {
+            return ResearchStationTopology.unformed();
+        }
+
         for (BlockPos inputPos : inputs) {
             BlockState inputState = level.getBlockState(inputPos);
             if (!(inputState.getBlock() instanceof ResearchPowerInputBlockProvider inputBlock)
@@ -173,6 +180,25 @@ public final class ResearchStationMultiblockValidator {
                 powerFamily,
                 powerInputTier
         );
+    }
+
+    private static boolean sharesPartsWithAnotherStation(Level level, BlockPos controllerPos, List<BlockPos> connectedParts) {
+        if (!(level instanceof ServerLevel serverLevel) || connectedParts.isEmpty()) {
+            return false;
+        }
+
+        Set<BlockPos> claimedParts = new HashSet<>(connectedParts);
+        for (ResearchControllerBlockEntity otherController : ResearchMultiblockStationRegistry.controllersForLevel(serverLevel)) {
+            if (otherController == null || otherController.getBlockPos().equals(controllerPos)) {
+                continue;
+            }
+            for (BlockPos otherPart : otherController.connectedParts()) {
+                if (claimedParts.contains(otherPart)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean isValidControllerPlacement(
