@@ -46,7 +46,7 @@ public record ResearchV2RepairDiskSegmentPayload(long blockPos, String nodeId, i
 
             var state = ResearchManager.ensureTeamState(player.serverLevel().getServer(), teamId);
             boolean running = !state.researchQueue().isEmpty()
-                    && drive.stationId().equals(state.researchQueue().get(0).assignedStationIds().stream().findFirst().orElse(""))
+                    && state.researchQueue().get(0).assignedStationIds().contains(drive.stationId())
                     && state.researchQueue().get(0).status() == io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus.RUNNING;
             if (running) {
                 return;

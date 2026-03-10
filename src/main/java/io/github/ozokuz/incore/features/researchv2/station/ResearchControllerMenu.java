@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.researchv2.station;
 
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.state.ActiveResearchRun;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueEntry;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
@@ -117,11 +118,11 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
                 value -> teamStationNetworkValid = value > 0
         ));
         addDataSlot(slot(
-                () -> queueHead(blockEntity) == null ? 0 : queueHead(blockEntity).runTickProgress(),
+                () -> displayRun(blockEntity) == null ? 0 : displayRun(blockEntity).runTickProgress(),
                 value -> runTickProgress = Math.max(0, value)
         ));
         addDataSlot(slot(
-                () -> queueHead(blockEntity) == null ? 1 : Math.max(1, queueHead(blockEntity).runTickRequired()),
+                () -> displayRun(blockEntity) == null ? 1 : Math.max(1, displayRun(blockEntity).runTickRequired()),
                 value -> runTickRequired = Math.max(1, value)
         ));
         addDataSlot(slot(
@@ -178,8 +179,9 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
         teamStationNetworkCount = snapshot.stationNetworkCount();
         teamStationNetworkValid = snapshot.stationNetworkValid();
         ResearchQueueEntry head = queueHead(blockEntity);
-        runTickProgress = head == null ? 0 : Math.max(0, head.runTickProgress());
-        runTickRequired = head == null ? 1 : Math.max(1, head.runTickRequired());
+        ActiveResearchRun displayRun = displayRun(blockEntity);
+        runTickProgress = displayRun == null ? (head == null ? 0 : Math.max(0, head.runTickProgress())) : Math.max(0, displayRun.runTickProgress());
+        runTickRequired = displayRun == null ? (head == null ? 1 : Math.max(1, head.runTickRequired())) : Math.max(1, displayRun.runTickRequired());
         completedRuns = head == null ? 0 : Math.max(0, head.completedRuns());
         requiredRuns = head == null ? 1 : Math.max(1, head.requiredRuns());
         queueStatusOrdinal = head == null ? -1 : head.status().ordinal();
@@ -312,6 +314,11 @@ public class ResearchControllerMenu extends AbstractContainerMenu {
         }
         var state = ResearchManager.ensureTeamState(blockEntity.getLevel().getServer(), blockEntity.teamId());
         return state.researchQueue().isEmpty() ? null : state.researchQueue().get(0);
+    }
+
+    private static ActiveResearchRun displayRun(ResearchControllerBlockEntity blockEntity) {
+        ResearchQueueEntry head = queueHead(blockEntity);
+        return head == null || blockEntity == null ? null : head.activeRun(blockEntity.stationId());
     }
 
     @FunctionalInterface
