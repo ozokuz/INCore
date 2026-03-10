@@ -258,7 +258,8 @@ public final class ResearchFunctionalBlocksGameTests {
                 10_000,
                 0,
                 10_000,
-                List.of(controller.stationId())
+                List.of(controller.stationId()),
+                List.of()
         ));
         ResearchNetworkSavedData.get(server).setDirty();
 

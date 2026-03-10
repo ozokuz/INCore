@@ -15,8 +15,9 @@ import io.github.ozokuz.incore.features.research.BurnerLabBlock;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabTier;
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
-import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
 import io.github.ozokuz.incore.features.researchv2.model.ResearchNodeDefinition;
+import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
+import io.github.ozokuz.incore.features.researchv2.state.ActiveResearchRun;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.station.AbstractResearchControllerBlock;
 import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlock;
@@ -695,14 +696,15 @@ public class INCoreJadePlugin implements IWailaPlugin {
                 var state = ResearchManager.ensureTeamState(accessor.getLevel().getServer(), controller.teamId());
                 if (!state.researchQueue().isEmpty()) {
                     var head = state.researchQueue().get(0);
+                    ActiveResearchRun activeRun = head.activeRun(controller.stationId());
                     data.putString("active_node", head.nodeId().toString());
                     ResearchNodeDefinition node = ResearchRegistry.nodes().get(head.nodeId());
                     if (node != null) {
                         data.putString("active_node_name", node.name());
                     }
                     data.putInt("queue_status", head.status().ordinal());
-                    data.putInt("run_tick_progress", head.runTickProgress());
-                    data.putInt("run_tick_required", head.runTickRequired());
+                    data.putInt("run_tick_progress", activeRun == null ? head.runTickProgress() : activeRun.runTickProgress());
+                    data.putInt("run_tick_required", activeRun == null ? head.runTickRequired() : activeRun.runTickRequired());
                     data.putInt("completed_runs", head.completedRuns());
                     data.putInt("required_runs", head.requiredRuns());
                 }

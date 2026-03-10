@@ -10,6 +10,7 @@ import io.github.ozokuz.incore.features.researchv2.model.ResearchPowerDefinition
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
+import io.github.ozokuz.incore.features.researchv2.state.ActiveResearchRun;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchNetworkSavedData;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueEntry;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
@@ -26,10 +27,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 
+import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -168,7 +172,8 @@ public final class ResearchManager {
                 10_000,
                 0,
                 10_000,
-                assignedStations
+                assignedStations,
+                List.of()
         ));
         data.setDirty();
         ResearchV2Networking.syncTeam(server, teamId);
@@ -185,21 +190,16 @@ public final class ResearchManager {
         ResearchQueueEntry head = state.researchQueue().get(0);
         ResourceLocation nodeId = head.nodeId();
         ResearchNodeDefinition node = ResearchRegistry.nodes().get(nodeId);
-        ResearchControllerBlockEntity previouslyAssignedController = resolveStoredAssignedController(server, teamId, head.assignedStationIds());
 
         if (node == null || !isNodeInActiveNetwork(state, nodeId)) {
-            if (previouslyAssignedController != null) {
-                ResearchStationRuntime.setDiskLocked(previouslyAssignedController, false);
-            }
+            unlockEntry(server, teamId, head);
             state.researchQueue().remove(0);
             data.setDirty();
             return true;
         }
 
         if (state.completedNodes().contains(nodeId)) {
-            if (previouslyAssignedController != null) {
-                ResearchStationRuntime.setDiskLocked(previouslyAssignedController, false);
-            }
+            unlockEntry(server, teamId, head);
             state.researchQueue().remove(0);
             data.setDirty();
             return true;
@@ -210,11 +210,8 @@ public final class ResearchManager {
         int runTickProgress = Math.min(runTickRequired, Math.max(0, head.runTickProgress()));
         int requiredRuns = resolveRequiredRuns(head, node);
         int completedRuns = Math.max(0, Math.min(head.completedRuns(), requiredRuns));
-        boolean runInputsCommitted = head.runInputsCommitted();
         if (!networkSnapshot.stationNetworkValid()) {
-            if (previouslyAssignedController != null) {
-                ResearchStationRuntime.setDiskLocked(previouslyAssignedController, false);
-            }
+            unlockEntryRuns(server, teamId, head.activeRuns());
             return updateQueueHead(
                     state,
                     node,
@@ -222,44 +219,20 @@ public final class ResearchManager {
                     runTickRequired,
                     completedRuns,
                     requiredRuns,
-                    runInputsCommitted,
+                    head.runInputsCommitted(),
                     ResearchQueueStatus.PAUSED_NETWORK_CONFLICT,
                     false,
                     data,
                     modifiersFromEntry(head),
-                    head.assignedStationIds()
+                    head.assignedStationIds(),
+                    head.activeRuns()
             );
         }
 
         List<ResearchControllerBlockEntity> executableControllers = StationNetworkService.executableControllers(server, teamId);
-        ResearchControllerBlockEntity assignedController = StationNetworkService.resolveAssignedExecutor(server, teamId, head.assignedStationIds(), false);
-        List<String> assignedStations = assignedController == null ? List.of() : List.of(assignedController.stationId());
-        if (previouslyAssignedController != null && previouslyAssignedController != assignedController) {
-            ResearchStationRuntime.setDiskLocked(previouslyAssignedController, false);
-        }
-        if (!assignedStations.equals(head.assignedStationIds())) {
-            updateQueueHead(
-                    state,
-                    node,
-                    runTickProgress,
-                    runTickRequired,
-                    completedRuns,
-                    requiredRuns,
-                    runInputsCommitted,
-                    head.status(),
-                    true,
-                    data,
-                    new RunModifierState(head.runPowerMultiplierBps(), head.runBonusRunChanceBps(), head.runCorruptionMultiplierBps()),
-                    assignedStations
-            );
-            head = state.researchQueue().get(0);
-        }
-        if (assignedController != null) {
-            ResearchStationRuntime.setDiskLocked(assignedController, true);
-        }
-
         if (!state.discoveredNodes().contains(nodeId)
                 || !state.completedNodes().containsAll(node.prerequisites())) {
+            unlockEntryRuns(server, teamId, head.activeRuns());
             return updateQueueHead(
                     state,
                     node,
@@ -267,19 +240,18 @@ public final class ResearchManager {
                     runTickRequired,
                     completedRuns,
                     requiredRuns,
-                    runInputsCommitted,
+                    head.runInputsCommitted(),
                     ResearchQueueStatus.PAUSED_MISSING_INPUTS,
                     false,
                     data,
                     modifiersFromEntry(head),
-                    assignedStations
+                    head.assignedStationIds(),
+                    head.activeRuns()
             );
         }
 
         if (completedRuns >= requiredRuns) {
-            if (assignedController != null) {
-                ResearchStationRuntime.setDiskLocked(assignedController, false);
-            }
+            unlockEntry(server, teamId, head);
             state.discoveredNodes().add(nodeId);
             state.completedNodes().add(nodeId);
             state.researchQueue().remove(0);
@@ -288,162 +260,10 @@ public final class ResearchManager {
             return true;
         }
 
-        if (!runInputsCommitted) {
-            ResearchCostDefinition cost = node.researchCost();
-            RunModifierState modifiers = assignedController == null
-                    ? modifiersFromEntry(head)
-                    : resolveRunModifiers(assignedController, node);
-            int adjustedRunTickRequired = assignedController == null
-                    ? runTickRequired
-                    : Math.max(1, (int) Math.ceil(Math.max(1, node.researchTime()) * modifiers.speedMultiplier()));
-
-            boolean canCommitInputs;
-            if (!executableControllers.isEmpty()) {
-                canCommitInputs = assignedController != null
-                        && ResearchStationRuntime.hasWritableDisk(assignedController)
-                        && ResearchStationRuntime.hasRequiredModules(executableControllers, cost.requiredLogicModules())
-                        && ResearchStationRuntime.hasRequiredMaterials(executableControllers, cost.requiredResearchMaterials())
-                        && ResearchStationRuntime.consumeRequiredModules(executableControllers, assignedController, nodeId, completedRuns, cost.requiredLogicModules())
-                        && ResearchStationRuntime.consumeRequiredMaterials(executableControllers, cost.requiredResearchMaterials());
-            } else {
-                canCommitInputs = ResearchProviderManager.hasRequiredModules(server, teamId, cost)
-                        && ResearchProviderManager.hasRequiredMaterials(server, teamId, cost)
-                        && ResearchProviderManager.consumeRequiredModules(server, teamId, cost)
-                        && ResearchProviderManager.consumeRequiredMaterials(server, teamId, cost);
-            }
-
-            if (!canCommitInputs) {
-                return updateQueueHead(
-                        state,
-                        node,
-                        runTickProgress,
-                        adjustedRunTickRequired,
-                        completedRuns,
-                        requiredRuns,
-                        false,
-                        ResearchQueueStatus.PAUSED_MISSING_INPUTS,
-                        false,
-                        data,
-                        modifiers,
-                        assignedStations
-                );
-            }
-
-            updateQueueHead(
-                    state,
-                    node,
-                    runTickProgress,
-                    adjustedRunTickRequired,
-                    completedRuns,
-                    requiredRuns,
-                    true,
-                    ResearchQueueStatus.RUNNING,
-                    true,
-                    data,
-                    modifiers,
-                    assignedStations
-            );
-            runTickRequired = adjustedRunTickRequired;
-            ResearchV2LifecycleCallbacks.onResearchStarted(teamId, nodeId, adjustedRunTickRequired);
-            runInputsCommitted = true;
-            head = state.researchQueue().get(0);
+        if (!executableControllers.isEmpty()) {
+            return tickStationBackedResearch(server, teamId, state, data, head, node, executableControllers, completedRuns, requiredRuns);
         }
-
-        RunModifierState activeModifiers = modifiersFromEntry(head);
-        int rpPerTick = computePowerCostPerTick(node.researchPower(), runTickProgress, runTickRequired, activeModifiers.powerMultiplier());
-        boolean consumedPower = ResearchProviderManager.consumePower(server, teamId, rpPerTick);
-        if (!consumedPower) {
-            return updateQueueHead(
-                    state,
-                    node,
-                    runTickProgress,
-                    runTickRequired,
-                    completedRuns,
-                    requiredRuns,
-                    runInputsCommitted,
-                    ResearchQueueStatus.PAUSED_NO_POWER,
-                    false,
-                    data,
-                    activeModifiers,
-                    assignedStations
-            );
-        }
-
-        int nextRunTickProgress = Math.min(runTickRequired, runTickProgress + 1);
-        updateQueueHead(
-                state,
-                node,
-                nextRunTickProgress,
-                runTickRequired,
-                completedRuns,
-                requiredRuns,
-                runInputsCommitted,
-                ResearchQueueStatus.RUNNING,
-                true,
-                data,
-                activeModifiers,
-                assignedStations
-        );
-        ResearchV2LifecycleCallbacks.onResearchProgress(teamId, nodeId, nextRunTickProgress, runTickRequired, rpPerTick);
-
-        if (nextRunTickProgress >= runTickRequired) {
-            int nextCompletedRuns = completedRuns + 1;
-            if (assignedController != null) {
-                ResearchStationRuntime.writeDiskSnapshot(
-                        assignedController,
-                        nodeId,
-                        nextCompletedRuns,
-                        requiredRuns,
-                        nextCompletedRuns,
-                        false,
-                        activeModifiers.corruptionMultiplier()
-                );
-                if (ResearchDeterministicRng.rollChance(
-                        teamId,
-                        assignedController.stationId(),
-                        nodeId,
-                        nextCompletedRuns,
-                        "bonus_run",
-                        activeModifiers.bonusRunChance()
-                )) {
-                    nextCompletedRuns = Math.min(requiredRuns, nextCompletedRuns + 1);
-                }
-            }
-            if (nextCompletedRuns < requiredRuns) {
-                return updateQueueHead(
-                        state,
-                        node,
-                        0,
-                        runTickRequired,
-                        nextCompletedRuns,
-                        requiredRuns,
-                        false,
-                        ResearchQueueStatus.QUEUED,
-                        true,
-                        data,
-                        RunModifierState.DEFAULT,
-                        assignedStations
-                );
-            }
-            if (assignedController != null) {
-                ResearchStationRuntime.writeDiskSnapshot(
-                        assignedController,
-                        nodeId,
-                        nextCompletedRuns,
-                        requiredRuns,
-                        nextCompletedRuns + 1,
-                        true,
-                        activeModifiers.corruptionMultiplier()
-                );
-                ResearchStationRuntime.setDiskLocked(assignedController, false);
-            }
-            state.discoveredNodes().add(nodeId);
-            state.completedNodes().add(nodeId);
-            state.researchQueue().remove(0);
-            data.setDirty();
-            ResearchV2LifecycleCallbacks.onResearchCompleted(teamId, nodeId);
-        }
-        return true;
+        return tickFallbackResearch(server, teamId, state, data, head, node, runTickRequired, runTickProgress, completedRuns, requiredRuns);
     }
 
     public static boolean grantDiscovery(MinecraftServer server, String teamId, ResourceLocation nodeId, String reason) {
@@ -680,6 +500,19 @@ public final class ResearchManager {
             JsonArray assignedStations = new JsonArray();
             entry.assignedStationIds().forEach(assignedStations::add);
             row.add("assignedStationIds", assignedStations);
+            row.addProperty("activeRunCount", entry.activeRuns().size());
+            JsonArray activeRuns = new JsonArray();
+            entry.activeRuns().forEach(activeRun -> {
+                JsonObject activeRunRow = new JsonObject();
+                activeRunRow.addProperty("stationId", activeRun.stationId());
+                activeRunRow.addProperty("runTickProgress", activeRun.runTickProgress());
+                activeRunRow.addProperty("runTickRequired", activeRun.runTickRequired());
+                activeRunRow.addProperty("runPowerMultiplierBps", activeRun.runPowerMultiplierBps());
+                activeRunRow.addProperty("runBonusRunChanceBps", activeRun.runBonusRunChanceBps());
+                activeRunRow.addProperty("runCorruptionMultiplierBps", activeRun.runCorruptionMultiplierBps());
+                activeRuns.add(activeRunRow);
+            });
+            row.add("activeRuns", activeRuns);
             queue.add(row);
         });
         root.add("researchQueue", queue);
@@ -826,6 +659,343 @@ public final class ResearchManager {
         return true;
     }
 
+    private static boolean tickStationBackedResearch(
+            MinecraftServer server,
+            String teamId,
+            TeamResearchState state,
+            ResearchNetworkSavedData data,
+            ResearchQueueEntry head,
+            ResearchNodeDefinition node,
+            List<ResearchControllerBlockEntity> executableControllers,
+            int completedRuns,
+            int requiredRuns
+    ) {
+        ResourceLocation nodeId = head.nodeId();
+        ResearchCostDefinition cost = node.researchCost();
+        Map<String, ResearchControllerBlockEntity> controllersById = new LinkedHashMap<>();
+        Map<String, Integer> stationOrder = new LinkedHashMap<>();
+        for (int index = 0; index < executableControllers.size(); index++) {
+            ResearchControllerBlockEntity controller = executableControllers.get(index);
+            controllersById.put(controller.stationId(), controller);
+            stationOrder.put(controller.stationId(), index);
+        }
+
+        boolean changed = false;
+        List<ActiveResearchRun> activeRuns = new ArrayList<>();
+        Set<String> usedStationIds = new LinkedHashSet<>();
+        for (ActiveResearchRun existingRun : head.activeRuns()) {
+            if (existingRun == null || existingRun.stationId().isBlank()) {
+                changed = true;
+                continue;
+            }
+
+            ResearchControllerBlockEntity controller = controllersById.get(existingRun.stationId());
+            ActiveResearchRun resolvedRun = existingRun;
+            if (controller == null) {
+                ResearchControllerBlockEntity replacement = findAvailableController(executableControllers, usedStationIds, false);
+                if (replacement == null) {
+                    changed = true;
+                    continue;
+                }
+                resolvedRun = existingRun.withStationId(replacement.stationId());
+                controller = replacement;
+                changed = true;
+            } else if (!ResearchStationRuntime.hasWritableDisk(controller)) {
+                ResearchControllerBlockEntity replacement = findAvailableController(executableControllers, usedStationIds, true);
+                if (replacement != null && !replacement.stationId().equals(existingRun.stationId())) {
+                    resolvedRun = existingRun.withStationId(replacement.stationId());
+                    controller = replacement;
+                    changed = true;
+                }
+            }
+
+            if (!usedStationIds.add(resolvedRun.stationId())) {
+                changed = true;
+                continue;
+            }
+            activeRuns.add(resolvedRun);
+            if (controller != null && ResearchStationRuntime.hasWritableDisk(controller)) {
+                ResearchStationRuntime.setDiskLocked(controller, true);
+            }
+        }
+
+        sortActiveRuns(activeRuns, stationOrder);
+
+        boolean missingInputs = false;
+        while ((completedRuns + activeRuns.size()) < requiredRuns && activeRuns.size() < executableControllers.size()) {
+            ResearchControllerBlockEntity nextController = findAvailableController(executableControllers, usedStationIds, false);
+            if (nextController == null) {
+                break;
+            }
+            usedStationIds.add(nextController.stationId());
+            if (!ResearchStationRuntime.hasWritableDisk(nextController)
+                    || !ResearchStationRuntime.hasRequiredModules(nextController, cost.requiredLogicModules())
+                    || !ResearchStationRuntime.hasRequiredMaterials(nextController, cost.requiredResearchMaterials())
+                    || !ResearchStationRuntime.consumeRequiredModules(nextController, nodeId, completedRuns, cost.requiredLogicModules())
+                    || !ResearchStationRuntime.consumeRequiredMaterials(nextController, cost.requiredResearchMaterials())) {
+                missingInputs = true;
+                continue;
+            }
+
+            RunModifierState modifiers = resolveRunModifiers(nextController, node);
+            int adjustedRunTickRequired = Math.max(1, (int) Math.ceil(Math.max(1, node.researchTime()) * modifiers.speedMultiplier()));
+            activeRuns.add(new ActiveResearchRun(
+                    nextController.stationId(),
+                    0,
+                    adjustedRunTickRequired,
+                    modifiers.powerMultiplierBps(),
+                    modifiers.bonusRunChanceBps(),
+                    modifiers.corruptionMultiplierBps()
+            ));
+            ResearchStationRuntime.setDiskLocked(nextController, true);
+            ResearchV2LifecycleCallbacks.onResearchStarted(teamId, nodeId, adjustedRunTickRequired);
+            changed = true;
+        }
+
+        sortActiveRuns(activeRuns, stationOrder);
+        boolean progressedAny = false;
+        boolean noPower = false;
+        boolean finished = false;
+        int nextCompletedRuns = completedRuns;
+        List<ActiveResearchRun> nextActiveRuns = new ArrayList<>();
+
+        for (int index = 0; index < activeRuns.size(); index++) {
+            ActiveResearchRun activeRun = activeRuns.get(index);
+            ResearchControllerBlockEntity controller = controllersById.get(activeRun.stationId());
+            if (controller == null || !ResearchStationRuntime.hasWritableDisk(controller)) {
+                missingInputs = true;
+                nextActiveRuns.add(activeRun);
+                continue;
+            }
+
+            ResearchStationRuntime.setDiskLocked(controller, true);
+            int rpPerTick = computePowerCostPerTick(node.researchPower(), activeRun.runTickProgress(), activeRun.runTickRequired(), activeRun.powerMultiplier());
+            if (controller.consumeResearchPower(rpPerTick) < rpPerTick) {
+                noPower = true;
+                nextActiveRuns.add(activeRun);
+                continue;
+            }
+
+            int nextRunTickProgress = Math.min(activeRun.runTickRequired(), activeRun.runTickProgress() + 1);
+            ResearchV2LifecycleCallbacks.onResearchProgress(teamId, nodeId, nextRunTickProgress, activeRun.runTickRequired(), rpPerTick);
+            progressedAny = true;
+            changed = true;
+
+            if (nextRunTickProgress < activeRun.runTickRequired()) {
+                nextActiveRuns.add(activeRun.withProgress(nextRunTickProgress));
+                continue;
+            }
+
+            int writeOrdinal = Math.min(requiredRuns, nextCompletedRuns + 1);
+            ResearchStationRuntime.writeDiskSnapshot(
+                    controller,
+                    nodeId,
+                    writeOrdinal,
+                    requiredRuns,
+                    writeOrdinal,
+                    false,
+                    activeRun.corruptionMultiplier()
+            );
+            nextCompletedRuns = Math.min(requiredRuns, nextCompletedRuns + 1);
+            if (ResearchDeterministicRng.rollChance(
+                    teamId,
+                    controller.stationId(),
+                    nodeId,
+                    writeOrdinal,
+                    "bonus_run",
+                    activeRun.bonusRunChance()
+            )) {
+                nextCompletedRuns = Math.min(requiredRuns, nextCompletedRuns + 1);
+            }
+            ResearchStationRuntime.setDiskLocked(controller, false);
+
+            if (nextCompletedRuns >= requiredRuns) {
+                ResearchStationRuntime.writeDiskSnapshot(
+                        controller,
+                        nodeId,
+                        nextCompletedRuns,
+                        requiredRuns,
+                        nextCompletedRuns + 1,
+                        true,
+                        activeRun.corruptionMultiplier()
+                );
+                for (int remaining = index + 1; remaining < activeRuns.size(); remaining++) {
+                    unlockControllerRun(server, teamId, activeRuns.get(remaining).stationId());
+                }
+                finished = true;
+                break;
+            }
+        }
+
+        sortActiveRuns(nextActiveRuns, stationOrder);
+        if (finished) {
+            state.discoveredNodes().add(nodeId);
+            state.completedNodes().add(nodeId);
+            state.researchQueue().remove(0);
+            data.setDirty();
+            ResearchV2LifecycleCallbacks.onResearchCompleted(teamId, nodeId);
+            return true;
+        }
+
+        ResearchQueueStatus nextStatus;
+        if (!nextActiveRuns.isEmpty()) {
+            nextStatus = progressedAny ? ResearchQueueStatus.RUNNING : (noPower ? ResearchQueueStatus.PAUSED_NO_POWER : ResearchQueueStatus.PAUSED_MISSING_INPUTS);
+        } else {
+            nextStatus = missingInputs ? ResearchQueueStatus.PAUSED_MISSING_INPUTS : ResearchQueueStatus.QUEUED;
+        }
+
+        return updateQueueHead(
+                state,
+                node,
+                nextActiveRuns.isEmpty() ? 0 : nextActiveRuns.get(0).runTickProgress(),
+                nextActiveRuns.isEmpty() ? Math.max(1, node.researchTime()) : nextActiveRuns.get(0).runTickRequired(),
+                nextCompletedRuns,
+                requiredRuns,
+                !nextActiveRuns.isEmpty(),
+                nextStatus,
+                changed,
+                data,
+                nextActiveRuns.isEmpty()
+                        ? RunModifierState.DEFAULT
+                        : new RunModifierState(
+                        nextActiveRuns.get(0).runPowerMultiplierBps(),
+                        nextActiveRuns.get(0).runBonusRunChanceBps(),
+                        nextActiveRuns.get(0).runCorruptionMultiplierBps()
+                ),
+                nextActiveRuns.stream().map(ActiveResearchRun::stationId).distinct().toList(),
+                nextActiveRuns
+        );
+    }
+
+    private static boolean tickFallbackResearch(
+            MinecraftServer server,
+            String teamId,
+            TeamResearchState state,
+            ResearchNetworkSavedData data,
+            ResearchQueueEntry head,
+            ResearchNodeDefinition node,
+            int runTickRequired,
+            int runTickProgress,
+            int completedRuns,
+            int requiredRuns
+    ) {
+        boolean runInputsCommitted = head.runInputsCommitted();
+        if (!runInputsCommitted) {
+            ResearchCostDefinition cost = node.researchCost();
+            RunModifierState modifiers = modifiersFromEntry(head);
+            boolean canCommitInputs = ResearchProviderManager.hasRequiredModules(server, teamId, cost)
+                    && ResearchProviderManager.hasRequiredMaterials(server, teamId, cost)
+                    && ResearchProviderManager.consumeRequiredModules(server, teamId, cost)
+                    && ResearchProviderManager.consumeRequiredMaterials(server, teamId, cost);
+
+            if (!canCommitInputs) {
+                return updateQueueHead(
+                        state,
+                        node,
+                        runTickProgress,
+                        runTickRequired,
+                        completedRuns,
+                        requiredRuns,
+                        false,
+                        ResearchQueueStatus.PAUSED_MISSING_INPUTS,
+                        false,
+                        data,
+                        modifiers,
+                        List.of(),
+                        List.of()
+                );
+            }
+
+            updateQueueHead(
+                    state,
+                    node,
+                    runTickProgress,
+                    runTickRequired,
+                    completedRuns,
+                    requiredRuns,
+                    true,
+                    ResearchQueueStatus.RUNNING,
+                    true,
+                    data,
+                    modifiers,
+                    List.of(),
+                    List.of()
+            );
+            ResearchV2LifecycleCallbacks.onResearchStarted(teamId, head.nodeId(), runTickRequired);
+            runInputsCommitted = true;
+            head = state.researchQueue().get(0);
+        }
+
+        RunModifierState activeModifiers = modifiersFromEntry(head);
+        int rpPerTick = computePowerCostPerTick(node.researchPower(), runTickProgress, runTickRequired, activeModifiers.powerMultiplier());
+        boolean consumedPower = ResearchProviderManager.consumePower(server, teamId, rpPerTick);
+        if (!consumedPower) {
+            return updateQueueHead(
+                    state,
+                    node,
+                    runTickProgress,
+                    runTickRequired,
+                    completedRuns,
+                    requiredRuns,
+                    runInputsCommitted,
+                    ResearchQueueStatus.PAUSED_NO_POWER,
+                    false,
+                    data,
+                    activeModifiers,
+                    List.of(),
+                    List.of()
+            );
+        }
+
+        int nextRunTickProgress = Math.min(runTickRequired, runTickProgress + 1);
+        updateQueueHead(
+                state,
+                node,
+                nextRunTickProgress,
+                runTickRequired,
+                completedRuns,
+                requiredRuns,
+                runInputsCommitted,
+                ResearchQueueStatus.RUNNING,
+                true,
+                data,
+                activeModifiers,
+                List.of(),
+                List.of()
+        );
+        ResearchV2LifecycleCallbacks.onResearchProgress(teamId, head.nodeId(), nextRunTickProgress, runTickRequired, rpPerTick);
+
+        if (nextRunTickProgress < runTickRequired) {
+            return true;
+        }
+
+        int nextCompletedRuns = completedRuns + 1;
+        if (nextCompletedRuns < requiredRuns) {
+            return updateQueueHead(
+                    state,
+                    node,
+                    0,
+                    runTickRequired,
+                    nextCompletedRuns,
+                    requiredRuns,
+                    false,
+                    ResearchQueueStatus.QUEUED,
+                    true,
+                    data,
+                    RunModifierState.DEFAULT,
+                    List.of(),
+                    List.of()
+            );
+        }
+
+        state.discoveredNodes().add(head.nodeId());
+        state.completedNodes().add(head.nodeId());
+        state.researchQueue().remove(0);
+        data.setDirty();
+        ResearchV2LifecycleCallbacks.onResearchCompleted(teamId, head.nodeId());
+        return true;
+    }
+
     private static int effectiveControllerTier(MinecraftServer server, String teamId, TeamResearchState state) {
         int tier = state == null ? 0 : Math.max(0, state.controllerTier());
         for (ResearchStationDescriptor descriptor : ResearchMultiblockStationRegistry.stationsForTeam(server, teamId)) {
@@ -872,13 +1042,29 @@ public final class ResearchManager {
             boolean forceDirty,
             ResearchNetworkSavedData data,
             RunModifierState modifiers,
-            List<String> assignedStations
+            List<String> assignedStations,
+            List<ActiveResearchRun> activeRuns
     ) {
         if (state.researchQueue().isEmpty()) {
             return false;
         }
 
         ResearchQueueEntry existing = state.researchQueue().get(0);
+        List<ActiveResearchRun> normalizedActiveRuns = activeRuns == null ? existing.activeRuns() : List.copyOf(activeRuns);
+        List<String> normalizedAssignedStations = assignedStations == null ? existing.assignedStationIds() : List.copyOf(assignedStations);
+        if (!normalizedActiveRuns.isEmpty()) {
+            ActiveResearchRun primaryRun = normalizedActiveRuns.get(0);
+            runTickProgress = primaryRun.runTickProgress();
+            runTickRequired = primaryRun.runTickRequired();
+            runInputsCommitted = true;
+            modifiers = new RunModifierState(
+                    primaryRun.runPowerMultiplierBps(),
+                    primaryRun.runBonusRunChanceBps(),
+                    primaryRun.runCorruptionMultiplierBps()
+            );
+            normalizedAssignedStations = normalizedActiveRuns.stream().map(ActiveResearchRun::stationId).distinct().toList();
+        }
+
         int normalizedRunTickRequired = runTickRequired <= 0 ? Math.max(1, node.researchTime()) : runTickRequired;
         int normalizedRunTickProgress = Math.max(0, Math.min(runTickProgress, normalizedRunTickRequired));
         int normalizedRequiredRuns = requiredRuns <= 0 ? Math.max(1, node.requiredRuns()) : requiredRuns;
@@ -894,7 +1080,8 @@ public final class ResearchManager {
                 modifiers.powerMultiplierBps(),
                 modifiers.bonusRunChanceBps(),
                 modifiers.corruptionMultiplierBps(),
-                assignedStations == null ? existing.assignedStationIds() : List.copyOf(assignedStations)
+                normalizedAssignedStations,
+                normalizedActiveRuns
         );
 
         boolean changed = forceDirty || !existing.equals(replacement);
@@ -931,11 +1118,59 @@ public final class ResearchManager {
             return;
         }
         for (ResearchQueueEntry entry : entries) {
-            ResearchControllerBlockEntity controller = resolveStoredAssignedController(server, teamId, entry.assignedStationIds());
-            if (controller != null) {
-                ResearchStationRuntime.setDiskLocked(controller, false);
+            unlockEntry(server, teamId, entry);
+        }
+    }
+
+    private static void unlockEntry(MinecraftServer server, String teamId, ResearchQueueEntry entry) {
+        if (entry == null) {
+            return;
+        }
+        unlockEntryRuns(server, teamId, entry.activeRuns());
+        for (String stationId : entry.assignedStationIds()) {
+            unlockControllerRun(server, teamId, stationId);
+        }
+    }
+
+    private static void unlockEntryRuns(MinecraftServer server, String teamId, List<ActiveResearchRun> activeRuns) {
+        if (activeRuns == null) {
+            return;
+        }
+        for (ActiveResearchRun activeRun : activeRuns) {
+            if (activeRun != null) {
+                unlockControllerRun(server, teamId, activeRun.stationId());
             }
         }
+    }
+
+    private static void unlockControllerRun(MinecraftServer server, String teamId, String stationId) {
+        if (stationId == null || stationId.isBlank()) {
+            return;
+        }
+        ResearchControllerBlockEntity controller = ResearchMultiblockStationRegistry.controllerByStationId(server, teamId, stationId);
+        if (controller != null) {
+            ResearchStationRuntime.setDiskLocked(controller, false);
+        }
+    }
+
+    private static ResearchControllerBlockEntity findAvailableController(
+            List<ResearchControllerBlockEntity> executableControllers,
+            Set<String> usedStationIds,
+            boolean requireWritableDisk
+    ) {
+        for (ResearchControllerBlockEntity controller : executableControllers) {
+            if (usedStationIds.contains(controller.stationId())) {
+                continue;
+            }
+            if (!requireWritableDisk || ResearchStationRuntime.hasWritableDisk(controller)) {
+                return controller;
+            }
+        }
+        return null;
+    }
+
+    private static void sortActiveRuns(List<ActiveResearchRun> activeRuns, Map<String, Integer> stationOrder) {
+        activeRuns.sort(Comparator.comparingInt(run -> stationOrder.getOrDefault(run.stationId(), Integer.MAX_VALUE)));
     }
 
     private static ResearchControllerBlockEntity resolveStoredAssignedController(MinecraftServer server, String teamId, List<String> assignedStationIds) {

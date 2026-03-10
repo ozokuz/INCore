@@ -8,7 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public record ResearchQueueEntry(
         ResourceLocation nodeId,
@@ -21,8 +23,22 @@ public record ResearchQueueEntry(
         int runPowerMultiplierBps,
         int runBonusRunChanceBps,
         int runCorruptionMultiplierBps,
-        List<String> assignedStationIds
+        List<String> assignedStationIds,
+        List<ActiveResearchRun> activeRuns
 ) {
+    public ResearchQueueEntry {
+        assignedStationIds = assignedStationIds == null ? List.of() : List.copyOf(assignedStationIds);
+        activeRuns = activeRuns == null ? List.of() : List.copyOf(activeRuns);
+        if (!activeRuns.isEmpty()) {
+            Set<String> activeStationIds = new LinkedHashSet<>();
+            activeRuns.stream()
+                    .map(ActiveResearchRun::stationId)
+                    .filter(id -> id != null && !id.isBlank())
+                    .forEach(activeStationIds::add);
+            assignedStationIds = List.copyOf(activeStationIds);
+        }
+    }
+
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.putString("nodeId", nodeId.toString());
@@ -38,6 +54,9 @@ public record ResearchQueueEntry(
         ListTag stations = new ListTag();
         assignedStationIds.forEach(id -> stations.add(StringTag.valueOf(id)));
         tag.put("assignedStationIds", stations);
+        ListTag activeRunTags = new ListTag();
+        activeRuns.forEach(run -> activeRunTags.add(run.toTag()));
+        tag.put("activeRuns", activeRunTags);
         return tag;
     }
 
@@ -65,6 +84,30 @@ public record ResearchQueueEntry(
         for (Tag stationTag : listTag) {
             stations.add(stationTag.getAsString());
         }
+
+        List<ActiveResearchRun> activeRuns = new ArrayList<>();
+        ListTag activeRunTags = tag.getList("activeRuns", Tag.TAG_COMPOUND);
+        for (Tag activeRunTag : activeRunTags) {
+            ActiveResearchRun activeRun = ActiveResearchRun.fromTag((CompoundTag) activeRunTag);
+            if (activeRun != null) {
+                activeRuns.add(activeRun);
+            }
+        }
+
+        if (activeRuns.isEmpty() && runInputsCommitted && !stations.isEmpty()) {
+            String stationId = stations.get(0);
+            if (stationId != null && !stationId.isBlank()) {
+                activeRuns.add(new ActiveResearchRun(
+                        stationId,
+                        runTickProgress,
+                        runTickRequired,
+                        runPowerMultiplierBps <= 0 ? 10_000 : runPowerMultiplierBps,
+                        Math.max(0, runBonusRunChanceBps),
+                        runCorruptionMultiplierBps <= 0 ? 10_000 : runCorruptionMultiplierBps
+                ));
+            }
+        }
+
         return new ResearchQueueEntry(
                 nodeId,
                 runTickProgress,
@@ -76,7 +119,24 @@ public record ResearchQueueEntry(
                 runPowerMultiplierBps,
                 runBonusRunChanceBps,
                 runCorruptionMultiplierBps,
-                List.copyOf(stations)
+                List.copyOf(stations),
+                List.copyOf(activeRuns)
         );
+    }
+
+    public @Nullable ActiveResearchRun primaryActiveRun() {
+        return activeRuns.isEmpty() ? null : activeRuns.get(0);
+    }
+
+    public @Nullable ActiveResearchRun activeRun(String stationId) {
+        if (stationId == null || stationId.isBlank()) {
+            return primaryActiveRun();
+        }
+        for (ActiveResearchRun activeRun : activeRuns) {
+            if (stationId.equals(activeRun.stationId())) {
+                return activeRun;
+            }
+        }
+        return primaryActiveRun();
     }
 }

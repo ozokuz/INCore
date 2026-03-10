@@ -97,7 +97,7 @@ public final class ResearchPowerGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 900)
-    public static void linked_stations_share_materials_and_power(GameTestHelper helper) {
+    public static void linked_stations_add_parallel_run_capacity(GameTestHelper helper) {
         BuiltStation stationA = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
         BuiltStation stationB = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get(), 6, 1, 1);
 
@@ -106,16 +106,20 @@ public final class ResearchPowerGameTests {
         ElectricPowerInputBlockEntity inputA = requireBlockEntity(helper, stationA.inputPos(), ElectricPowerInputBlockEntity.class);
         ElectricPowerInputBlockEntity inputB = requireBlockEntity(helper, stationB.inputPos(), ElectricPowerInputBlockEntity.class);
         ResearchDriveBlockEntity driveA = requireBlockEntity(helper, stationA.researchDrivePos(), ResearchDriveBlockEntity.class);
+        ResearchDriveBlockEntity driveB = requireBlockEntity(helper, stationB.researchDrivePos(), ResearchDriveBlockEntity.class);
         LogicHousingBlockEntity logicA = requireBlockEntity(helper, stationA.logicHousingPos(), LogicHousingBlockEntity.class);
+        LogicHousingBlockEntity logicB = requireBlockEntity(helper, stationB.logicHousingPos(), LogicHousingBlockEntity.class);
         MaterialStorageBlockEntity storageA = requireBlockEntity(helper, stationA.materialStoragePos(), MaterialStorageBlockEntity.class);
         MaterialStorageBlockEntity storageB = requireBlockEntity(helper, stationB.materialStoragePos(), MaterialStorageBlockEntity.class);
 
-        chargeElectricInput(inputA, 30_000);
-        chargeElectricInput(inputB, 30_000);
+        chargeElectricInput(inputA, 60_000);
+        chargeElectricInput(inputB, 60_000);
         driveA.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
+        driveB.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
         logicA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get()));
-        storageA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 1));
-        storageB.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 2));
+        logicB.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get()));
+        storageA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 3));
+        storageB.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 3));
 
         BlockPos portA = placeLinkPort(helper, stationA.sparePos());
         BlockPos portB = placeLinkPort(helper, stationB.sparePos());
@@ -134,6 +138,12 @@ public final class ResearchPowerGameTests {
                         + ResearchManager.explainQueueFailure(server, controllerA.teamId(), SIGNAL_CALIBRATION)
         );
 
+        helper.runAfterDelay(10, () -> {
+            TeamResearchState currentState = ResearchManager.ensureTeamState(server, controllerA.teamId());
+            helper.assertFalse(currentState.researchQueue().isEmpty(), "expected queued research to remain present");
+            helper.assertValueEqual(2, currentState.researchQueue().get(0).activeRuns().size(), "expected both linked stations to run in parallel");
+        });
+
         helper.succeedWhen(() -> {
             TeamResearchState currentState = ResearchManager.ensureTeamState(server, controllerA.teamId());
             String queueDetails = currentState.researchQueue().isEmpty()
@@ -149,7 +159,7 @@ public final class ResearchPowerGameTests {
                     + currentState.researchQueue().get(0).requiredRuns();
             helper.assertTrue(
                     ResearchManager.isResearched(server, controllerA.teamId(), SIGNAL_CALIBRATION),
-                    "expected linked stations to finish research using combined power and materials; queue="
+                    "expected linked stations to finish research with parallel local runs; queue="
                             + queueDetails
                             + " availablePower="
                             + ResearchProviderManager.availablePower(server, controllerA.teamId())
@@ -157,6 +167,54 @@ public final class ResearchPowerGameTests {
                             + StationNetworkService.snapshot(server, controllerA.teamId()).stationNetworkCount()
             );
         });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void linked_stations_do_not_share_materials(GameTestHelper helper) {
+        BuiltStation stationA = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get());
+        BuiltStation stationB = buildStation(helper, Registration.RESEARCH_CONTROLLER_T1_BLOCK.get(), Registration.ELECTRIC_POWER_INPUT_BLOCK.get(), 6, 1, 1);
+
+        ResearchControllerBlockEntity controllerA = bindController(helper, stationA.controllerPos(), teamId(helper, "phase8_linked_local_inputs", stationA.controllerPos()));
+        bindController(helper, stationB.controllerPos(), controllerA.teamId());
+        ElectricPowerInputBlockEntity inputA = requireBlockEntity(helper, stationA.inputPos(), ElectricPowerInputBlockEntity.class);
+        ElectricPowerInputBlockEntity inputB = requireBlockEntity(helper, stationB.inputPos(), ElectricPowerInputBlockEntity.class);
+        ResearchDriveBlockEntity driveA = requireBlockEntity(helper, stationA.researchDrivePos(), ResearchDriveBlockEntity.class);
+        ResearchDriveBlockEntity driveB = requireBlockEntity(helper, stationB.researchDrivePos(), ResearchDriveBlockEntity.class);
+        LogicHousingBlockEntity logicA = requireBlockEntity(helper, stationA.logicHousingPos(), LogicHousingBlockEntity.class);
+        LogicHousingBlockEntity logicB = requireBlockEntity(helper, stationB.logicHousingPos(), LogicHousingBlockEntity.class);
+        MaterialStorageBlockEntity storageA = requireBlockEntity(helper, stationA.materialStoragePos(), MaterialStorageBlockEntity.class);
+        MaterialStorageBlockEntity storageB = requireBlockEntity(helper, stationB.materialStoragePos(), MaterialStorageBlockEntity.class);
+
+        chargeElectricInput(inputA, 30_000);
+        chargeElectricInput(inputB, 30_000);
+        driveA.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
+        driveB.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
+        logicA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get()));
+        logicB.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get()));
+        storageA.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 1));
+        storageB.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.STARTER_DATA_ITEM.get(), 2));
+
+        BlockPos portA = placeLinkPort(helper, stationA.sparePos());
+        BlockPos portB = placeLinkPort(helper, stationB.sparePos());
+        connectPorts(helper, portA, portB);
+
+        MinecraftServer server = helper.getLevel().getServer();
+        helper.assertTrue(server != null, "expected game test server");
+        TeamResearchState state = ResearchManager.ensureTeamState(server, controllerA.teamId());
+        state.discoveredNodes().add(SIGNAL_CALIBRATION);
+        ResearchNetworkSavedData.get(server).setDirty();
+        helper.assertTrue(ResearchManager.queueResearch(server, controllerA.teamId(), SIGNAL_CALIBRATION), "expected queue to succeed");
+
+        helper.runAfterDelay(20, () -> {
+            TeamResearchState currentState = ResearchManager.ensureTeamState(server, controllerA.teamId());
+            helper.assertFalse(currentState.researchQueue().isEmpty(), "expected queue to remain present");
+            helper.assertValueEqual(0, currentState.researchQueue().get(0).activeRuns().size(), "expected no station to start without full local materials");
+            helper.assertTrue(
+                    currentState.researchQueue().get(0).status() == ResearchQueueStatus.PAUSED_MISSING_INPUTS,
+                    "expected linked stations to pause because materials are not shared across stations"
+            );
+        });
+        helper.succeed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 240)
