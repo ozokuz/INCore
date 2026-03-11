@@ -84,6 +84,6 @@ public class ResearchSampleFabricatorBlock extends BaseEntityBlock {
 
     @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
-        return createTickerHelper(type, Registration.RESEARCH_SAMPLE_FABRICATOR_BE.get(), (lvl, pos, blockState, be) -> {});
+        return createTickerHelper(type, Registration.RESEARCH_SAMPLE_FABRICATOR_BE.get(), ResearchSampleFabricatorBlockEntity::tick);
     }
 }

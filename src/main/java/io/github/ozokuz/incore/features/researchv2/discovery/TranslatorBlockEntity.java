@@ -6,14 +6,20 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class TranslatorBlockEntity extends BlockEntity {
+public class TranslatorBlockEntity extends BlockEntity implements MenuProvider {
     private static final int PROCESS_TIME = 100;
 
     private final ItemStackHandler items = new ItemStackHandler(2) {
@@ -28,6 +34,28 @@ public class TranslatorBlockEntity extends BlockEntity {
         }
     };
     private int progressTicks;
+    public final ContainerData data = new ContainerData() {
+        @Override
+        public int get(int index) {
+            return switch (index) {
+                case 0 -> output().isEmpty() ? progressTicks : PROCESS_TIME;
+                case 1 -> PROCESS_TIME;
+                default -> 0;
+            };
+        }
+
+        @Override
+        public void set(int index, int value) {
+            if (index == 0) {
+                progressTicks = Math.clamp(value, 0, PROCESS_TIME);
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+    };
 
     public TranslatorBlockEntity(BlockPos pos, BlockState state) {
         super(Registration.TRANSLATOR_BE.get(), pos, state);
@@ -48,6 +76,17 @@ public class TranslatorBlockEntity extends BlockEntity {
         return items.getStackInSlot(1);
     }
 
+    public ItemStackHandler itemHandler() {
+        return items;
+    }
+
+    public boolean canInteractWith(Player player) {
+        if (player == null || level == null || level.getBlockEntity(worldPosition) != this) {
+            return false;
+        }
+        return player.distanceToSqr(worldPosition.getX() + 0.5D, worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D) <= 64.0D;
+    }
+
     public boolean tryInsertInput(ItemStack stack) {
         if (stack.isEmpty() || !output().isEmpty()) {
             return false;
@@ -61,7 +100,11 @@ public class TranslatorBlockEntity extends BlockEntity {
     }
 
     public int progressTicks() {
-        return progressTicks;
+        return output().isEmpty() ? progressTicks : PROCESS_TIME;
+    }
+
+    public int maxProgressTicks() {
+        return PROCESS_TIME;
     }
 
     private void serverTick() {
@@ -124,5 +167,10 @@ public class TranslatorBlockEntity extends BlockEntity {
 
     public @NotNull Component getDisplayName() {
         return Component.translatable("block.incore.translator");
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory, @NotNull Player player) {
+        return new TranslatorMenu(containerId, inventory, this);
     }
 }

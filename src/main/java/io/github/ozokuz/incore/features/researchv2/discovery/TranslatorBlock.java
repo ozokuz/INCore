@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -54,12 +55,9 @@ public class TranslatorBlock extends BaseEntityBlock {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        if (!(level.getBlockEntity(pos) instanceof TranslatorBlockEntity translator)) {
-            return InteractionResult.CONSUME;
-        }
-        ItemStack output = translator.takeOutput();
-        if (!output.isEmpty() && player instanceof ServerPlayer serverPlayer && !serverPlayer.addItem(output)) {
-            serverPlayer.drop(output, false);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(provider, pos);
         }
         return InteractionResult.CONSUME;
     }
@@ -69,17 +67,11 @@ public class TranslatorBlock extends BaseEntityBlock {
         if (level.isClientSide) {
             return ItemInteractionResult.SUCCESS;
         }
-        if (!(level.getBlockEntity(pos) instanceof TranslatorBlockEntity translator)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(provider, pos);
         }
-        if (!stack.is(Registration.CONTINUUM_DATA_REPORT_ITEM.get()) || !translator.output().isEmpty()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
-        if (translator.tryInsertInput(stack)) {
-            stack.shrink(1);
-            return ItemInteractionResult.CONSUME;
-        }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return ItemInteractionResult.CONSUME;
     }
 
     @Override

@@ -10,12 +10,12 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
-public class ResearchSampleFabricatorMenu extends AbstractContainerMenu {
-    private final ResearchSampleFabricatorBlockEntity blockEntity;
+public class DataloggerMenu extends AbstractContainerMenu {
+    private final DataloggerBlockEntity blockEntity;
     private final BlockPos blockPos;
 
-    public ResearchSampleFabricatorMenu(int containerId, Inventory playerInventory, ResearchSampleFabricatorBlockEntity blockEntity) {
-        super(Registration.RESEARCH_SAMPLE_FABRICATOR_MENU.get(), containerId);
+    public DataloggerMenu(int containerId, Inventory playerInventory, DataloggerBlockEntity blockEntity) {
+        super(Registration.DATALOGGER_MENU.get(), containerId);
         this.blockEntity = blockEntity;
         this.blockPos = blockEntity.getBlockPos();
 
@@ -23,22 +23,16 @@ public class ResearchSampleFabricatorMenu extends AbstractContainerMenu {
             addDataSlot(DataSlot.forContainer(blockEntity.data, i));
         }
 
-        addSlot(new InputSlot(blockEntity, 0, 16, 34));
-        addSlot(new OutputSlot(blockEntity, 1, 144, 34));
+        addSlot(new OutputSlot(blockEntity, 0, 80, 34));
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 96 + row * 18));
             }
         }
-
         for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInventory, col, 8 + col * 18, 154));
         }
-    }
-
-    public ResearchSampleFabricatorBlockEntity fabricator() {
-        return blockEntity;
     }
 
     public BlockPos blockPos() {
@@ -51,10 +45,6 @@ public class ResearchSampleFabricatorMenu extends AbstractContainerMenu {
 
     public int maxProgressTicks() {
         return Math.max(1, blockEntity.data.get(1));
-    }
-
-    public boolean isProcessing() {
-        return blockEntity.data.get(2) > 0;
     }
 
     public int progressScaled(int width) {
@@ -72,18 +62,13 @@ public class ResearchSampleFabricatorMenu extends AbstractContainerMenu {
         }
         ItemStack stack = slot.getItem();
         ItemStack copy = stack.copy();
-        if (index < 2) {
-            if (!moveItemStackTo(stack, 2, slots.size(), true)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (stack.is(Registration.BLANK_RESEARCH_SAMPLE_ITEM.get())) {
-            if (!moveItemStackTo(stack, 0, 1, false)) {
+        if (index == 0) {
+            if (!moveItemStackTo(stack, 1, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
         } else {
             return ItemStack.EMPTY;
         }
-
         if (stack.isEmpty()) {
             slot.set(ItemStack.EMPTY);
         } else {
@@ -95,22 +80,11 @@ public class ResearchSampleFabricatorMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return blockEntity != null && blockEntity.canAccess(player);
-    }
-
-    private static final class InputSlot extends SlotItemHandler {
-        private InputSlot(ResearchSampleFabricatorBlockEntity blockEntity, int index, int xPosition, int yPosition) {
-            super(blockEntity.itemHandler(), index, xPosition, yPosition);
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            return stack.is(Registration.BLANK_RESEARCH_SAMPLE_ITEM.get());
-        }
+        return blockEntity != null && blockEntity.canInteractWith(player);
     }
 
     private static final class OutputSlot extends SlotItemHandler {
-        private OutputSlot(ResearchSampleFabricatorBlockEntity blockEntity, int index, int xPosition, int yPosition) {
+        private OutputSlot(DataloggerBlockEntity blockEntity, int index, int xPosition, int yPosition) {
             super(blockEntity.itemHandler(), index, xPosition, yPosition);
         }
 

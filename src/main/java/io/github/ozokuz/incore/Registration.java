@@ -487,6 +487,22 @@ public class Registration {
             "power_input",
             () -> IMenuTypeExtension.create((id, inv, data) -> new PowerInputMenu(id, inv, data.readBlockPos()))
     );
+    public static final Supplier<MenuType<DataloggerMenu>> DATALOGGER_MENU = MENU_TYPES.register(
+            "datalogger",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new DataloggerMenu(
+                    id,
+                    inv,
+                    (DataloggerBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
+    );
+    public static final Supplier<MenuType<TranslatorMenu>> TRANSLATOR_MENU = MENU_TYPES.register(
+            "translator",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new TranslatorMenu(
+                    id,
+                    inv,
+                    (TranslatorBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
+    );
     public static final Supplier<MenuType<ResearchSampleFabricatorMenu>> RESEARCH_SAMPLE_FABRICATOR_MENU = MENU_TYPES.register(
             "research_sample_fabricator",
             () -> IMenuTypeExtension.create((id, inv, data) -> new ResearchSampleFabricatorMenu(
