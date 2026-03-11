@@ -3,15 +3,18 @@ package io.github.ozokuz.incore.features.researchv2.station.network;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchOrchestrationService;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationRuntime;
+import io.github.ozokuz.incore.features.researchv2.station.TeamCableComponent;
+import io.github.ozokuz.incore.features.researchv2.station.TeamResearchOrchestrationSnapshot;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,36 +50,74 @@ public final class StationNetworkService {
         }
 
         Set<String> activeStationIds = new LinkedHashSet<>();
-        Set<String> linkedStationIds = new LinkedHashSet<>();
         Set<String> stationsWithLinkPort = new LinkedHashSet<>();
-        Map<String, String> stationNetworkIds = new LinkedHashMap<>();
+        Set<String> teamStationIds = new LinkedHashSet<>();
 
         for (ResearchControllerBlockEntity controller : controllers) {
             String stationId = controller.stationId();
-            if (stationId == null || stationId.isBlank() || !(controller.getLevel() instanceof ServerLevel level)) {
-                continue;
-            }
-            StationNetworkGraphManager graph = StationNetworkGraphManager.get(level);
-            StationNetworkComponent component = graph.componentForStation(stationId);
-            if (component == null) {
+            if (stationId == null || stationId.isBlank()) {
                 continue;
             }
             activeStationIds.add(stationId);
-            stationNetworkIds.put(stationId, component.id());
-            if (component.linked()) {
-                linkedStationIds.add(stationId);
-            }
-            if (graph.hasLinkPort(stationId)) {
+            teamStationIds.add(stationId);
+            if (controller.getLevel() instanceof ServerLevel level && StationNetworkGraphManager.get(level).hasLinkPort(stationId)) {
                 stationsWithLinkPort.add(stationId);
             }
         }
 
-        Set<String> componentIds = new LinkedHashSet<>(stationNetworkIds.values());
-        boolean valid = componentIds.size() <= 1;
-        Set<String> executableStationIds = valid ? Set.copyOf(activeStationIds) : Set.of();
+        UnionFind unionFind = new UnionFind(activeStationIds);
+        for (ServerLevel level : server.getAllLevels()) {
+            StationNetworkGraphManager graph = StationNetworkGraphManager.get(level);
+            for (StationNetworkComponent component : graph.componentsById().values()) {
+                List<String> members = component.stationIds().stream()
+                        .filter(teamStationIds::contains)
+                        .sorted()
+                        .toList();
+                unionFind.unionAll(members);
+            }
+        }
+
+        TeamResearchOrchestrationSnapshot orchestrationSnapshot = ResearchOrchestrationService.snapshot(server, teamId);
+        if (orchestrationSnapshot.orchestratorValid()) {
+            Set<String> orchestratedStationIds = new LinkedHashSet<>(orchestrationSnapshot.validWirelessStationIds());
+            for (TeamCableComponent component : ResearchOrchestrationService.collectCableComponents(server, teamId)) {
+                if (component.orchestratorIds().contains(orchestrationSnapshot.orchestratorId())) {
+                    orchestratedStationIds.addAll(component.stationIds());
+                }
+            }
+            unionFind.unionAll(orchestratedStationIds);
+        }
+
+        Map<String, Set<String>> groupedStations = new LinkedHashMap<>();
+        for (String stationId : activeStationIds) {
+            groupedStations.computeIfAbsent(unionFind.find(stationId), ignored -> new LinkedHashSet<>()).add(stationId);
+        }
+
+        Map<String, String> stationNetworkIds = new LinkedHashMap<>();
+        Set<String> linkedStationIds = new LinkedHashSet<>();
+        Set<String> componentIds = new LinkedHashSet<>();
+        List<Set<String>> components = new ArrayList<>(groupedStations.values());
+        components.sort(Comparator.comparing(component -> component.stream().sorted().findFirst().orElse("")));
+        for (Set<String> component : components) {
+            List<String> members = component.stream().sorted().toList();
+            String componentId = buildMergedComponentId(members);
+            componentIds.add(componentId);
+            if (members.size() > 1) {
+                linkedStationIds.addAll(members);
+            }
+            for (String stationId : members) {
+                stationNetworkIds.put(stationId, componentId);
+            }
+        }
+
+        boolean orchestrationReady = !orchestrationSnapshot.orchestratorRequired() || orchestrationSnapshot.orchestratorValid();
+        boolean valid = componentIds.size() <= 1 && orchestrationReady;
+        Set<String> executableStationIds = valid && componentIds.size() == 1 ? Set.copyOf(activeStationIds) : Set.of();
         String status;
         if (componentIds.size() > 1) {
             status = "conflict";
+        } else if (!orchestrationReady) {
+            status = orchestrationSnapshot.orchestratorStatus();
         } else if (linkedStationIds.size() > 1) {
             status = "linked";
         } else if (!activeStationIds.isEmpty()) {
@@ -90,7 +131,7 @@ public final class StationNetworkService {
                 componentIds.size(),
                 valid,
                 status,
-                valid ? "" : WARNING_MULTIPLE_NETWORKS,
+                componentIds.size() > 1 ? WARNING_MULTIPLE_NETWORKS : (valid ? "" : orchestrationSnapshot.orchestratorWarning()),
                 activeStationIds.size(),
                 linkedStationIds.size(),
                 Set.copyOf(activeStationIds),
@@ -155,10 +196,10 @@ public final class StationNetworkService {
     }
 
     public static String stationNetworkId(ResearchControllerBlockEntity controller) {
-        if (controller == null || !(controller.getLevel() instanceof ServerLevel level)) {
+        if (controller == null || controller.getLevel() == null || controller.getLevel().getServer() == null) {
             return "";
         }
-        return StationNetworkGraphManager.get(level).stationNetworkId(controller.stationId());
+        return snapshot(controller.getLevel().getServer(), controller.teamId()).stationNetworkIdsByStationId().getOrDefault(controller.stationId(), "");
     }
 
     public static boolean hasLinkPort(ResearchControllerBlockEntity controller) {
@@ -166,5 +207,70 @@ public final class StationNetworkService {
             return false;
         }
         return StationNetworkGraphManager.get(level).hasLinkPort(controller.stationId());
+    }
+
+    private static String buildMergedComponentId(List<String> stationIds) {
+        if (stationIds == null || stationIds.isEmpty()) {
+            return "";
+        }
+        return "merged:" + String.join("|", stationIds);
+    }
+
+    private static final class UnionFind {
+        private final Map<String, String> parent = new LinkedHashMap<>();
+
+        private UnionFind(Set<String> stationIds) {
+            for (String stationId : stationIds) {
+                if (stationId != null && !stationId.isBlank()) {
+                    parent.put(stationId, stationId);
+                }
+            }
+        }
+
+        private String find(String stationId) {
+            String current = parent.get(stationId);
+            if (current == null) {
+                return "";
+            }
+            if (current.equals(stationId)) {
+                return current;
+            }
+            String root = find(current);
+            parent.put(stationId, root);
+            return root;
+        }
+
+        private void union(String left, String right) {
+            if (left == null || left.isBlank() || right == null || right.isBlank()) {
+                return;
+            }
+            String leftRoot = find(left);
+            String rightRoot = find(right);
+            if (leftRoot.isBlank() || rightRoot.isBlank() || leftRoot.equals(rightRoot)) {
+                return;
+            }
+            if (leftRoot.compareTo(rightRoot) <= 0) {
+                parent.put(rightRoot, leftRoot);
+            } else {
+                parent.put(leftRoot, rightRoot);
+            }
+        }
+
+        private void unionAll(Iterable<String> stationIds) {
+            if (stationIds == null) {
+                return;
+            }
+            String anchor = null;
+            for (String stationId : stationIds) {
+                if (stationId == null || stationId.isBlank() || !parent.containsKey(stationId)) {
+                    continue;
+                }
+                if (anchor == null) {
+                    anchor = stationId;
+                } else {
+                    union(anchor, stationId);
+                }
+            }
+        }
     }
 }

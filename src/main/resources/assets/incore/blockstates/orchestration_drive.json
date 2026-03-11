@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": { "model": "incore:block/research_drive", "uvlock": true },
+    "facing=south": { "model": "incore:block/research_drive", "y": 180, "uvlock": true },
+    "facing=west": { "model": "incore:block/research_drive", "y": 270, "uvlock": true },
+    "facing=east": { "model": "incore:block/research_drive", "y": 90, "uvlock": true },
+    "facing=up": { "model": "incore:block/research_drive", "x": 270, "uvlock": true },
+    "facing=down": { "model": "incore:block/research_drive", "x": 90, "uvlock": true }
+  }
+}

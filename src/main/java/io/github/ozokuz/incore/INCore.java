@@ -44,7 +44,9 @@ import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderMana
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
 import io.github.ozokuz.incore.features.researchv2.station.ElectricPowerInputBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.HybridResearchStationResourceProvider;
+import io.github.ozokuz.incore.features.researchv2.station.OrchestrationDriveBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.OutputPortBlockEntity;
+import io.github.ozokuz.incore.features.researchv2.station.WirelessLinkBlockEntity;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
@@ -182,12 +184,22 @@ public class INCore {
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
+                Registration.ORCHESTRATION_DRIVE_BE.get(),
+                (blockEntity, side) -> blockEntity.automationView(side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
                 Registration.MATERIAL_STORAGE_BE.get(),
                 (blockEntity, side) -> blockEntity.automationView(side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 Registration.AUGMENTER_BE.get(),
+                (blockEntity, side) -> blockEntity.automationView(side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.WIRELESS_LINK_BE.get(),
                 (blockEntity, side) -> blockEntity.automationView(side)
         );
         event.registerBlockEntity(

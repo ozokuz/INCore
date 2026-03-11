@@ -16,6 +16,8 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractResearchStationPartBlockEntity extends BlockEntity {
     private BlockPos controllerPos;
+    private LinkOwnerKind ownerKind = LinkOwnerKind.NONE;
+    private String ownerId = "";
     private String stationId = "";
     private String teamId = "";
 
@@ -29,17 +31,37 @@ public abstract class AbstractResearchStationPartBlockEntity extends BlockEntity
             return;
         }
         controllerPos = controller.getBlockPos().immutable();
+        ownerKind = LinkOwnerKind.STATION;
+        ownerId = controller.stationId();
         stationId = controller.stationId();
         teamId = controller.teamId();
+        onBindingChanged();
+        setChanged();
+    }
+
+    public final void bindToOrchestrator(ResearchOrchestratorControllerBlockEntity orchestrator) {
+        if (orchestrator == null || !orchestrator.isFormed()) {
+            clearBinding();
+            return;
+        }
+        controllerPos = orchestrator.getBlockPos().immutable();
+        ownerKind = LinkOwnerKind.ORCHESTRATOR;
+        ownerId = orchestrator.orchestratorId();
+        stationId = "";
+        teamId = orchestrator.teamId();
+        onBindingChanged();
         setChanged();
     }
 
     public final void clearBinding() {
-        boolean changed = controllerPos != null || !stationId.isBlank() || !teamId.isBlank();
+        boolean changed = controllerPos != null || ownerKind != LinkOwnerKind.NONE || !ownerId.isBlank() || !stationId.isBlank() || !teamId.isBlank();
         controllerPos = null;
+        ownerKind = LinkOwnerKind.NONE;
+        ownerId = "";
         stationId = "";
         teamId = "";
         if (changed) {
+            onBindingChanged();
             setChanged();
         }
     }
@@ -52,8 +74,19 @@ public abstract class AbstractResearchStationPartBlockEntity extends BlockEntity
         return stationId;
     }
 
+    public final LinkOwnerKind ownerKind() {
+        return ownerKind;
+    }
+
+    public final String ownerId() {
+        return ownerId;
+    }
+
     public final String teamId() {
         return teamId;
+    }
+
+    protected void onBindingChanged() {
     }
 
     @Override
@@ -83,6 +116,12 @@ public abstract class AbstractResearchStationPartBlockEntity extends BlockEntity
         } else {
             controllerPos = null;
         }
+        try {
+            ownerKind = LinkOwnerKind.valueOf(tag.getString("ownerKind"));
+        } catch (IllegalArgumentException ignored) {
+            ownerKind = LinkOwnerKind.NONE;
+        }
+        ownerId = tag.getString("ownerId");
         stationId = tag.getString("stationId");
         teamId = tag.getString("teamId");
     }
@@ -92,6 +131,10 @@ public abstract class AbstractResearchStationPartBlockEntity extends BlockEntity
         super.saveAdditional(tag, registries);
         if (controllerPos != null) {
             tag.putLong("controllerPos", controllerPos.asLong());
+        }
+        tag.putString("ownerKind", ownerKind.name());
+        if (!ownerId.isBlank()) {
+            tag.putString("ownerId", ownerId);
         }
         if (!stationId.isBlank()) {
             tag.putString("stationId", stationId);

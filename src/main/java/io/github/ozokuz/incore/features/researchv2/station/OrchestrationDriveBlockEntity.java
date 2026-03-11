@@ -7,36 +7,32 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class AugmenterBlockEntity extends AbstractInventoryStationPartBlockEntity {
-    public AugmenterBlockEntity(BlockPos pos, BlockState state) {
-        super(Registration.AUGMENTER_BE.get(), pos, state, 5);
+public class OrchestrationDriveBlockEntity extends AbstractInventoryStationPartBlockEntity {
+    public OrchestrationDriveBlockEntity(BlockPos pos, BlockState state) {
+        super(Registration.ORCHESTRATION_DRIVE_BE.get(), pos, state, 1);
     }
 
     @Override
     public StationPartType stationPartType() {
-        return StationPartType.AUGMENTER;
+        return StationPartType.ORCHESTRATION_DRIVE;
     }
 
     @Override
     public int activeSlotCount() {
-        if (ownerKind() == LinkOwnerKind.ORCHESTRATOR) {
-            return 5;
-        }
-        return switch (Math.max(1, stationTier())) {
-            case 1 -> 1;
-            case 2 -> 2;
-            case 3 -> 3;
-            default -> 4;
-        };
+        return 1;
     }
 
     @Override
     protected boolean mayPlaceItem(int slot, ItemStack stack) {
-        return stack.getItem() instanceof ResearchAugmentItem;
+        return StationInventoryRules.isOrchestrationDisk(stack);
     }
 
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory playerInventory) {
-        return new AugmenterMenu(containerId, playerInventory, this);
+        return new OrchestrationDriveMenu(containerId, playerInventory, this);
+    }
+
+    public ItemStack mountedDisk() {
+        return rawItemHandler().getStackInSlot(0);
     }
 }

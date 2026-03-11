@@ -27,7 +27,8 @@ public final class ResearchStationServices {
         int dungeonStabilizer = 0;
         int matchingSpecializer = 0;
 
-        for (int slot = 0; slot < augmenter.activeSlotCount(); slot++) {
+        int accessibleSlots = accessibleSlots(augmenter);
+        for (int slot = 0; slot < accessibleSlots; slot++) {
             ItemStack stack = augmenter.rawItemHandler().getStackInSlot(slot);
             if (!(stack.getItem() instanceof ResearchAugmentItem augment)) {
                 continue;
@@ -103,7 +104,8 @@ public final class ResearchStationServices {
         int dungeonStabilizer = 0;
         int matchingSpecializer = 0;
 
-        for (int slot = 0; slot < augmenter.activeSlotCount(); slot++) {
+        int accessibleSlots = accessibleSlots(augmenter);
+        for (int slot = 0; slot < accessibleSlots; slot++) {
             ItemStack stack = augmenter.rawItemHandler().getStackInSlot(slot);
             if (!(stack.getItem() instanceof ResearchAugmentItem augment)) {
                 continue;
@@ -152,12 +154,71 @@ public final class ResearchStationServices {
         return new ResearchStationAugmentSummary(speedMultiplier, Math.max(1.0D, powerMultiplier), bonusRunChance, corruptionMultiplier);
     }
 
+    public static OrchestrationAugmentSummary computeOrchestrationSummary(Level level, ResearchOrchestratorControllerBlockEntity orchestrator) {
+        if (level == null || orchestrator == null || orchestrator.augmenterPos() == null) {
+            return OrchestrationAugmentSummary.DEFAULT;
+        }
+        if (!(level.getBlockEntity(orchestrator.augmenterPos()) instanceof AugmenterBlockEntity augmenter)) {
+            return OrchestrationAugmentSummary.DEFAULT;
+        }
+
+        int cableCapacity = 0;
+        int wirelessCapacity = 0;
+        int wirelessRange = 0;
+        boolean infiniteWireless = false;
+        boolean interdimensionalWireless = false;
+        int speed = 0;
+        int productivity = 0;
+        int stabilizer = 0;
+
+        int accessibleSlots = accessibleSlots(augmenter);
+        for (int slot = 0; slot < accessibleSlots; slot++) {
+            ItemStack stack = augmenter.rawItemHandler().getStackInSlot(slot);
+            if (!(stack.getItem() instanceof ResearchAugmentItem augment)) {
+                continue;
+            }
+            int count = Math.max(1, stack.getCount());
+            switch (augment.augmentType()) {
+                case SPEED -> speed += count;
+                case PRODUCTIVITY -> productivity += count;
+                case STABILIZER -> stabilizer += count;
+                case CABLE_CAPACITY -> cableCapacity += 4 * count;
+                case WIRELESS_CAPACITY -> wirelessCapacity += 4 * count;
+                case WIRELESS_RANGE -> wirelessRange += 64 * count;
+                case INFINITE_WIRELESS -> infiniteWireless = true;
+                case INTERDIMENSIONAL_WIRELESS -> interdimensionalWireless = true;
+                case SPECIALIZER -> {
+                }
+            }
+        }
+
+        double speedMultiplier = Math.pow(0.85D, speed);
+        double powerMultiplier = Math.pow(1.35D, speed)
+                * Math.pow(1.30D, productivity)
+                * Math.pow(1.20D, stabilizer);
+        double bonusRunChance = Math.min(0.90D, productivity * 0.10D);
+        double corruptionMultiplier = Math.pow(0.80D, stabilizer);
+
+        return new OrchestrationAugmentSummary(
+                cableCapacity,
+                wirelessCapacity,
+                wirelessRange,
+                infiniteWireless,
+                interdimensionalWireless,
+                Math.max(0.0D, speedMultiplier),
+                Math.max(1.0D, powerMultiplier),
+                Math.max(0.0D, bonusRunChance),
+                Math.max(0.0D, corruptionMultiplier)
+        );
+    }
+
     public static Map<String, Integer> countMaterials(MaterialStorageBlockEntity storage) {
         Map<String, Integer> counts = new HashMap<>();
         if (storage == null) {
             return counts;
         }
-        for (int slot = 0; slot < storage.activeSlotCount(); slot++) {
+        int accessibleSlots = accessibleSlots(storage);
+        for (int slot = 0; slot < accessibleSlots; slot++) {
             ItemStack stack = storage.rawItemHandler().getStackInSlot(slot);
             if (stack.isEmpty()) {
                 continue;
@@ -170,5 +231,12 @@ public final class ResearchStationServices {
             });
         }
         return counts;
+    }
+
+    private static int accessibleSlots(AbstractInventoryStationPartBlockEntity blockEntity) {
+        if (blockEntity == null) {
+            return 0;
+        }
+        return Math.max(0, Math.min(blockEntity.activeSlotCount(), blockEntity.rawItemHandler().getSlots()));
     }
 }

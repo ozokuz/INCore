@@ -15,7 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LinkingPortBlockEntity extends BlockEntity {
-    private String attachedStationId = "";
+    private LinkOwnerKind ownerKind = LinkOwnerKind.NONE;
+    private String ownerId = "";
     private String attachedTeamId = "";
 
     public LinkingPortBlockEntity(BlockPos pos, BlockState state) {
@@ -41,22 +42,36 @@ public class LinkingPortBlockEntity extends BlockEntity {
     }
 
     public String attachedStationId() {
-        return attachedStationId;
+        return ownerKind == LinkOwnerKind.STATION ? ownerId : "";
+    }
+
+    public LinkOwnerKind ownerKind() {
+        return ownerKind;
+    }
+
+    public String ownerId() {
+        return ownerId;
     }
 
     public String attachedTeamId() {
         return attachedTeamId;
     }
 
-    public void setAttachment(@Nullable String stationId, @Nullable String teamId) {
-        String nextStationId = stationId == null ? "" : stationId.strip();
+    public void setAttachment(LinkOwnerKind ownerKind, @Nullable String ownerId, @Nullable String teamId) {
+        LinkOwnerKind nextOwnerKind = ownerKind == null ? LinkOwnerKind.NONE : ownerKind;
+        String nextOwnerId = ownerId == null ? "" : ownerId.strip();
         String nextTeamId = teamId == null ? "" : teamId.strip();
-        if (attachedStationId.equals(nextStationId) && attachedTeamId.equals(nextTeamId)) {
+        if (this.ownerKind == nextOwnerKind && this.ownerId.equals(nextOwnerId) && attachedTeamId.equals(nextTeamId)) {
             return;
         }
-        attachedStationId = nextStationId;
+        this.ownerKind = nextOwnerKind;
+        this.ownerId = nextOwnerId;
         attachedTeamId = nextTeamId;
         setChanged();
+    }
+
+    public void clearAttachment() {
+        setAttachment(LinkOwnerKind.NONE, "", "");
     }
 
     @Override
@@ -81,15 +96,21 @@ public class LinkingPortBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
-        attachedStationId = tag.getString("attachedStationId");
+        try {
+            ownerKind = LinkOwnerKind.valueOf(tag.getString("ownerKind"));
+        } catch (IllegalArgumentException ignored) {
+            ownerKind = LinkOwnerKind.NONE;
+        }
+        ownerId = tag.getString("ownerId");
         attachedTeamId = tag.getString("attachedTeamId");
     }
 
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
-        if (!attachedStationId.isBlank()) {
-            tag.putString("attachedStationId", attachedStationId);
+        tag.putString("ownerKind", ownerKind.name());
+        if (!ownerId.isBlank()) {
+            tag.putString("ownerId", ownerId);
         }
         if (!attachedTeamId.isBlank()) {
             tag.putString("attachedTeamId", attachedTeamId);

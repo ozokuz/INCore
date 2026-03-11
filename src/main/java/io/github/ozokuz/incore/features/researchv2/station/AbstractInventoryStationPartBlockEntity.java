@@ -87,6 +87,7 @@ public abstract class AbstractInventoryStationPartBlockEntity extends AbstractRe
         this.items = new ItemStackHandler(slotCount) {
             @Override
             protected void onContentsChanged(int slot) {
+                onInventoryContentsChanged(slot);
                 setChanged();
             }
 
@@ -130,6 +131,9 @@ public abstract class AbstractInventoryStationPartBlockEntity extends AbstractRe
 
     public boolean isSlotActive(int slot) {
         return slot >= 0 && slot < activeSlotCount();
+    }
+
+    protected void onInventoryContentsChanged(int slot) {
     }
 
     protected Direction frontFace() {

@@ -22,6 +22,9 @@ import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.station.AbstractResearchControllerBlock;
 import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlock;
 import io.github.ozokuz.incore.features.researchv2.station.CrudeResearchStationBlockEntity;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchOrchestrationService;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchOrchestratorControllerBlock;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchOrchestratorControllerBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
 import io.github.ozokuz.incore.features.research.MechanicalLabBlock;
 import io.github.ozokuz.incore.features.research.ModularLabBlock;
@@ -63,6 +66,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
     private static final SurfaceStoneSpotProvider SURFACE_STONE_SPOT_PROVIDER = new SurfaceStoneSpotProvider();
     private static final CrudeResearchStationProvider CRUDE_RESEARCH_STATION_PROVIDER = new CrudeResearchStationProvider();
     private static final ResearchControllerProvider RESEARCH_CONTROLLER_PROVIDER = new ResearchControllerProvider();
+    private static final ResearchOrchestratorProvider RESEARCH_ORCHESTRATOR_PROVIDER = new ResearchOrchestratorProvider();
 
     @Override
     public void register(IWailaCommonRegistration registration) {
@@ -78,6 +82,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(SURFACE_ORE_SPOT_PROVIDER, SurfaceOreSpotBlockEntity.class);
         registration.registerBlockDataProvider(CRUDE_RESEARCH_STATION_PROVIDER, CrudeResearchStationBlockEntity.class);
         registration.registerBlockDataProvider(RESEARCH_CONTROLLER_PROVIDER, ResearchControllerBlockEntity.class);
+        registration.registerBlockDataProvider(RESEARCH_ORCHESTRATOR_PROVIDER, ResearchOrchestratorControllerBlockEntity.class);
     }
 
     @Override
@@ -95,6 +100,7 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(SURFACE_STONE_SPOT_PROVIDER, SurfaceStoneSpotBlock.class);
         registration.registerBlockComponent(CRUDE_RESEARCH_STATION_PROVIDER, CrudeResearchStationBlock.class);
         registration.registerBlockComponent(RESEARCH_CONTROLLER_PROVIDER, AbstractResearchControllerBlock.class);
+        registration.registerBlockComponent(RESEARCH_ORCHESTRATOR_PROVIDER, ResearchOrchestratorControllerBlock.class);
     }
 
     private abstract static class BaseProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
@@ -772,6 +778,100 @@ public class INCoreJadePlugin implements IWailaPlugin {
         }
     }
 
+    private static class ResearchOrchestratorProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "research_orchestrator_controller");
+
+        @Override
+        public ResourceLocation getUid() {
+            return uid;
+        }
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof ResearchOrchestratorControllerBlockEntity orchestrator)) {
+                return;
+            }
+
+            data.putBoolean("team_linked", !orchestrator.teamId().isBlank());
+            data.putBoolean("formed", orchestrator.isFormed());
+            data.putInt("part_count", orchestrator.connectedParts().size());
+            data.putInt("input_count", orchestrator.powerInputPositions().size());
+            data.putInt("linking_port_count", orchestrator.linkingPortPositions().size());
+            data.putBoolean("has_wireless_link", orchestrator.wirelessLinkPos() != null);
+            data.putBoolean("has_drive", orchestrator.orchestrationDrivePos() != null);
+            data.putBoolean("has_augmenter", orchestrator.augmenterPos() != null);
+            data.putString("power_family", orchestrator.powerFamily() == null ? "" : orchestrator.powerFamily().name());
+            data.putInt("power_input_tier", orchestrator.powerInputTier());
+            if (!orchestrator.orchestratorId().isBlank()) {
+                data.putString("orchestrator_id", orchestrator.orchestratorId());
+            }
+
+            if (accessor.getLevel() == null || accessor.getLevel().getServer() == null || orchestrator.teamId().isBlank()) {
+                return;
+            }
+            var orchestrationSnapshot = ResearchOrchestrationService.snapshot(accessor.getLevel().getServer(), orchestrator.teamId());
+            var networkSnapshot = io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService.snapshot(accessor.getLevel().getServer(), orchestrator.teamId());
+            data.putBoolean("orchestrator_required", orchestrationSnapshot.orchestratorRequired());
+            data.putBoolean("orchestrator_present", orchestrationSnapshot.orchestratorPresent());
+            data.putBoolean("orchestrator_valid", orchestrationSnapshot.orchestratorValid());
+            data.putString("orchestrator_status", orchestrationSnapshot.orchestratorStatus());
+            data.putString("orchestrator_warning", orchestrationSnapshot.orchestratorWarning());
+            data.putString("wireless_channel_id", orchestrationSnapshot.wirelessChannelId());
+            data.putInt("cable_capacity", orchestrationSnapshot.cableCapacityPerLink());
+            data.putInt("wireless_capacity", orchestrationSnapshot.wirelessCapacity());
+            data.putInt("wireless_range", orchestrationSnapshot.wirelessRange());
+            data.putBoolean("infinite_wireless", orchestrationSnapshot.infiniteWireless());
+            data.putBoolean("interdimensional_wireless", orchestrationSnapshot.interdimensionalWireless());
+            data.putInt("valid_wireless_members", orchestrationSnapshot.validWirelessStationIds().size());
+            data.putInt("invalid_wireless_members", orchestrationSnapshot.invalidWirelessStationIds().size());
+            data.putInt("team_network_count", networkSnapshot.stationNetworkCount());
+            data.putBoolean("team_network_valid", networkSnapshot.stationNetworkValid());
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (data.isEmpty()) {
+                return;
+            }
+
+            Component linkedText = data.getBoolean("team_linked")
+                    ? Component.translatable("jade.incore.research_orchestrator.team.linked")
+                    : Component.translatable("jade.incore.research_orchestrator.team.unlinked");
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.team", linkedText));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.required", yesNoText(data.getBoolean("orchestrator_required"))));
+
+            if (!data.getBoolean("formed")) {
+                tooltip.add(Component.translatable("jade.incore.research_orchestrator.formed.no"));
+                return;
+            }
+
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.formed.yes"));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.parts", data.getInt("part_count")));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.inputs", data.getInt("input_count")));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.link_ports", data.getInt("linking_port_count")));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.power_family", data.getString("power_family")));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.power_input_tier", data.getInt("power_input_tier")));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.drive", yesNoText(data.getBoolean("has_drive"))));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.wireless_link", yesNoText(data.getBoolean("has_wireless_link"))));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.augmenter", yesNoText(data.getBoolean("has_augmenter"))));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.valid", yesNoText(data.getBoolean("orchestrator_valid"))));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.cable_capacity", data.getInt("cable_capacity")));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.wireless_capacity", data.getInt("wireless_capacity")));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.wireless_members", data.getInt("valid_wireless_members"), data.getInt("invalid_wireless_members")));
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.networks", data.getInt("team_network_count")));
+            if (!data.getString("wireless_channel_id").isBlank()) {
+                String channelId = data.getString("wireless_channel_id");
+                String shortChannel = channelId.length() > 8 ? channelId.substring(0, 8) : channelId;
+                tooltip.add(Component.translatable("jade.incore.research_orchestrator.channel", shortChannel));
+            }
+            tooltip.add(Component.translatable("jade.incore.research_orchestrator.mode", wirelessModeText(data)));
+            if (!data.getString("orchestrator_warning").isBlank()) {
+                tooltip.add(Component.translatable("jade.incore.research_orchestrator.warning", Component.translatable(data.getString("orchestrator_warning"))));
+            }
+        }
+    }
+
     private static Component shipmentStatusText(int status) {
         return switch (status) {
             case ShipmentTerminalBlockEntity.STATUS_DISABLED -> Component.translatable("screen.incore.market.shipment.status.disabled");
@@ -837,6 +937,19 @@ public class INCoreJadePlugin implements IWailaPlugin {
             case PAUSED_NETWORK_CONFLICT -> Component.translatable("screen.incore.research_controller.run_status.network_conflict");
             default -> Component.translatable("screen.incore.crude_research_station.status.queued");
         };
+    }
+    private static Component yesNoText(boolean value) {
+        return Component.translatable(value ? "screen.incore.common.present" : "screen.incore.common.missing");
+    }
+
+    private static Component wirelessModeText(CompoundTag data) {
+        if (data.getBoolean("interdimensional_wireless")) {
+            return Component.translatable("screen.incore.research_orchestrator.mode.interdimensional");
+        }
+        if (data.getBoolean("infinite_wireless")) {
+            return Component.translatable("screen.incore.research_orchestrator.mode.infinite");
+        }
+        return Component.translatable("screen.incore.research_orchestrator.mode.local");
     }
     private static String humanizeName(String serializedName) {
         if (serializedName == null || serializedName.isBlank()) {
