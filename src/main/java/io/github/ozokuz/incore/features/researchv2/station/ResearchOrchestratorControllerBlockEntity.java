@@ -190,18 +190,20 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
                 || powerFamily != nextPowerFamily
                 || powerInputTier != nextPowerTier;
 
-        clearPartBindings();
-        formed = nextFormed;
-        orchestratorId = nextId;
-        connectedParts = nextConnectedParts;
-        powerInputPositions = nextPowerInputs;
-        linkingPortPositions = nextLinkingPorts;
-        wirelessLinkPos = nextWirelessLinkPos;
-        orchestrationDrivePos = nextDrivePos;
-        augmenterPos = nextAugmenterPos;
-        powerFamily = nextPowerFamily;
-        powerInputTier = nextPowerTier;
-        bindPartBindings();
+        if (changed) {
+            clearPartBindings();
+            formed = nextFormed;
+            orchestratorId = nextId;
+            connectedParts = nextConnectedParts;
+            powerInputPositions = nextPowerInputs;
+            linkingPortPositions = nextLinkingPorts;
+            wirelessLinkPos = nextWirelessLinkPos;
+            orchestrationDrivePos = nextDrivePos;
+            augmenterPos = nextAugmenterPos;
+            powerFamily = nextPowerFamily;
+            powerInputTier = nextPowerTier;
+            bindPartBindings();
+        }
 
         if (changed) {
             setChanged();
