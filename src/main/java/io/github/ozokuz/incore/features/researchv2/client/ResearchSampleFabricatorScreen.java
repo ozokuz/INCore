@@ -31,6 +31,9 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
     private static final int SEARCH_Y = 20;
     private static final int SEARCH_W = LIST_W;
     private static final int SEARCH_H = 12;
+    private static final int PROGRESS_X = 34;
+    private static final int PROGRESS_Y = 104;
+    private static final int PROGRESS_W = 128;
 
     private int scroll;
     private @Nullable String selectedNodeId;
@@ -162,6 +165,8 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
         guiGraphics.fill(leftPos + 7, topPos + 36, leftPos + 25, topPos + 37, 0xFFBDA17E);
         guiGraphics.fill(leftPos + 141, topPos + 36, leftPos + 159, topPos + 54, 0xFF2D2621);
         guiGraphics.fill(leftPos + 141, topPos + 36, leftPos + 159, topPos + 37, 0xFFBDA17E);
+        guiGraphics.fill(leftPos + PROGRESS_X, topPos + PROGRESS_Y, leftPos + PROGRESS_X + PROGRESS_W, topPos + PROGRESS_Y + 6, 0xFF243143);
+        guiGraphics.fill(leftPos + PROGRESS_X + 1, topPos + PROGRESS_Y + 1, leftPos + PROGRESS_X + PROGRESS_W - 1, topPos + PROGRESS_Y + 5, 0xFF101722);
 
         List<ResearchV2ClientCache.NodeEntry> nodes = filteredNodes();
         if (nodes.isEmpty()) {
@@ -179,6 +184,11 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
             }
             drawScrollThumb(guiGraphics, nodes.size());
         }
+
+        int fill = menu.progressScaled(PROGRESS_W - 2);
+        if (fill > 0) {
+            guiGraphics.fill(leftPos + PROGRESS_X + 1, topPos + PROGRESS_Y + 1, leftPos + PROGRESS_X + 1 + fill, topPos + PROGRESS_Y + 5, 0xFF55A9E6);
+        }
     }
 
     @Override
@@ -192,10 +202,15 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
 
         List<ResearchV2ClientCache.NodeEntry> nodes = filteredNodes();
         guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.count", nodes.size()), 140, 31, 0xFF9FB5CE, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.progress", menu.progressTicks(), menu.maxProgressTicks()), PROGRESS_X, 94, 0xFFCBDBF0, false);
+        String statusKey = menu.getSlot(1).hasItem()
+                ? "screen.incore.research_sample_fabricator.status.ready"
+                : (menu.isProcessing() ? "screen.incore.research_sample_fabricator.status.processing" : "screen.incore.research_sample_fabricator.status.idle");
+        guiGraphics.drawString(font, Component.translatable(statusKey), PROGRESS_X, 112, 0xFFB7C8D9, false);
         if (selectedNodeId != null) {
             ResearchV2ClientCache.NodeEntry selected = ResearchV2ClientCache.snapshot().nodeById().get(selectedNodeId);
             if (selected != null) {
-                guiGraphics.drawString(font, trim(selected.name(), 26), 34, 106, 0xFFE4ECF5, false);
+                guiGraphics.drawString(font, trim(selected.name(), 18), 140, 94, 0xFFE4ECF5, false);
             }
         }
     }
@@ -234,7 +249,8 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
         if (fabricateButton != null) {
             fabricateButton.active = selectedNodeId != null
                     && menu.getSlot(0).hasItem()
-                    && !menu.getSlot(1).hasItem();
+                    && !menu.getSlot(1).hasItem()
+                    && !menu.isProcessing();
         }
         int maxScroll = Math.max(0, filteredNodes().size() - rowsVisible());
         if (scrollUpButton != null) {
@@ -267,8 +283,11 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
 
             ResearchV2ClientCache.NodeEntry node = nodes.get(index);
             button.visible = true;
-            button.active = true;
+            button.active = !menu.isProcessing();
             button.setMessage(Component.literal((node.id().equals(selectedNodeId) ? "> " : "  ") + trim(node.name(), 13)));
+        }
+        if (searchBox != null) {
+            searchBox.setEditable(!menu.isProcessing());
         }
         updateButtonState();
     }

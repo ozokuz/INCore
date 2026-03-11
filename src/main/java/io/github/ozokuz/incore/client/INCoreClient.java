@@ -23,6 +23,7 @@ import io.github.ozokuz.incore.client.features.market.MarketTerminalCardScreen;
 import io.github.ozokuz.incore.client.features.market.MarketTerminalMeCardScreen;
 import io.github.ozokuz.incore.client.features.market.ShipmentTerminalScreen;
 import io.github.ozokuz.incore.features.researchv2.client.CrudeResearchStationScreen;
+import io.github.ozokuz.incore.features.researchv2.client.DataloggerScreen;
 import io.github.ozokuz.incore.features.researchv2.client.PowerInputScreen;
 import io.github.ozokuz.incore.features.researchv2.client.AugmenterScreen;
 import io.github.ozokuz.incore.features.researchv2.client.LogicHousingScreen;
@@ -38,6 +39,7 @@ import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworkin
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.researchv2.client.ResearchV2TreeScreen;
+import io.github.ozokuz.incore.features.researchv2.client.TranslatorScreen;
 import io.github.ozokuz.incore.features.researchv2.client.WirelessLinkScreen;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
@@ -104,6 +106,8 @@ public class INCoreClient {
         event.register(Registration.RESEARCH_CONTROLLER_MENU.get(), ResearchControllerScreen::new);
         event.register(Registration.RESEARCH_ORCHESTRATOR_CONTROLLER_MENU.get(), ResearchOrchestratorControllerScreen::new);
         event.register(Registration.POWER_INPUT_MENU.get(), PowerInputScreen::new);
+        event.register(Registration.DATALOGGER_MENU.get(), DataloggerScreen::new);
+        event.register(Registration.TRANSLATOR_MENU.get(), TranslatorScreen::new);
         event.register(Registration.RESEARCH_SAMPLE_FABRICATOR_MENU.get(), ResearchSampleFabricatorScreen::new);
     }
 

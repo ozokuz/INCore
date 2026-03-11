@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -53,19 +54,23 @@ public class DataloggerBlock extends BaseEntityBlock {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        if (!(level.getBlockEntity(pos) instanceof DataloggerBlockEntity datalogger) || !datalogger.hasBufferedReport()) {
-            return InteractionResult.CONSUME;
-        }
-        ItemStack stack = datalogger.takeBufferedReport();
-        if (player instanceof ServerPlayer serverPlayer && !serverPlayer.addItem(stack)) {
-            serverPlayer.drop(stack, false);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(provider, pos);
         }
         return InteractionResult.CONSUME;
     }
 
     @Override
     protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull net.minecraft.world.InteractionHand hand, @NotNull BlockHitResult hitResult) {
-        return level.isClientSide ? ItemInteractionResult.SUCCESS : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (level.isClientSide) {
+            return ItemInteractionResult.SUCCESS;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(provider, pos);
+        }
+        return ItemInteractionResult.CONSUME;
     }
 
     @Override

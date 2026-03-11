@@ -15,6 +15,12 @@ import io.github.ozokuz.incore.features.research.BurnerLabBlock;
 import io.github.ozokuz.incore.features.research.LabBlockEntity;
 import io.github.ozokuz.incore.features.research.LabTier;
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.discovery.DataloggerBlock;
+import io.github.ozokuz.incore.features.researchv2.discovery.DataloggerBlockEntity;
+import io.github.ozokuz.incore.features.researchv2.discovery.ResearchSampleFabricatorBlock;
+import io.github.ozokuz.incore.features.researchv2.discovery.ResearchSampleFabricatorBlockEntity;
+import io.github.ozokuz.incore.features.researchv2.discovery.TranslatorBlock;
+import io.github.ozokuz.incore.features.researchv2.discovery.TranslatorBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.model.ResearchNodeDefinition;
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
 import io.github.ozokuz.incore.features.researchv2.state.ActiveResearchRun;
@@ -67,6 +73,9 @@ public class INCoreJadePlugin implements IWailaPlugin {
     private static final CrudeResearchStationProvider CRUDE_RESEARCH_STATION_PROVIDER = new CrudeResearchStationProvider();
     private static final ResearchControllerProvider RESEARCH_CONTROLLER_PROVIDER = new ResearchControllerProvider();
     private static final ResearchOrchestratorProvider RESEARCH_ORCHESTRATOR_PROVIDER = new ResearchOrchestratorProvider();
+    private static final DataloggerProvider DATALOGGER_PROVIDER = new DataloggerProvider();
+    private static final TranslatorProvider TRANSLATOR_PROVIDER = new TranslatorProvider();
+    private static final ResearchSampleFabricatorProvider RESEARCH_SAMPLE_FABRICATOR_PROVIDER = new ResearchSampleFabricatorProvider();
 
     @Override
     public void register(IWailaCommonRegistration registration) {
@@ -83,6 +92,9 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(CRUDE_RESEARCH_STATION_PROVIDER, CrudeResearchStationBlockEntity.class);
         registration.registerBlockDataProvider(RESEARCH_CONTROLLER_PROVIDER, ResearchControllerBlockEntity.class);
         registration.registerBlockDataProvider(RESEARCH_ORCHESTRATOR_PROVIDER, ResearchOrchestratorControllerBlockEntity.class);
+        registration.registerBlockDataProvider(DATALOGGER_PROVIDER, DataloggerBlockEntity.class);
+        registration.registerBlockDataProvider(TRANSLATOR_PROVIDER, TranslatorBlockEntity.class);
+        registration.registerBlockDataProvider(RESEARCH_SAMPLE_FABRICATOR_PROVIDER, ResearchSampleFabricatorBlockEntity.class);
     }
 
     @Override
@@ -101,6 +113,9 @@ public class INCoreJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(CRUDE_RESEARCH_STATION_PROVIDER, CrudeResearchStationBlock.class);
         registration.registerBlockComponent(RESEARCH_CONTROLLER_PROVIDER, AbstractResearchControllerBlock.class);
         registration.registerBlockComponent(RESEARCH_ORCHESTRATOR_PROVIDER, ResearchOrchestratorControllerBlock.class);
+        registration.registerBlockComponent(DATALOGGER_PROVIDER, DataloggerBlock.class);
+        registration.registerBlockComponent(TRANSLATOR_PROVIDER, TranslatorBlock.class);
+        registration.registerBlockComponent(RESEARCH_SAMPLE_FABRICATOR_PROVIDER, ResearchSampleFabricatorBlock.class);
     }
 
     private abstract static class BaseProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
@@ -869,6 +884,142 @@ public class INCoreJadePlugin implements IWailaPlugin {
             if (!data.getString("orchestrator_warning").isBlank()) {
                 tooltip.add(Component.translatable("jade.incore.research_orchestrator.warning", Component.translatable(data.getString("orchestrator_warning"))));
             }
+        }
+    }
+
+    private static class DataloggerProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "datalogger");
+
+        @Override
+        public ResourceLocation getUid() {
+            return uid;
+        }
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof DataloggerBlockEntity datalogger)) {
+                return;
+            }
+            data.putInt("progress", datalogger.progressTicks());
+            data.putInt("max_progress", datalogger.maxProgressTicks());
+            data.putBoolean("ready", datalogger.hasBufferedReport());
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (data.isEmpty()) {
+                return;
+            }
+            tooltip.add(Component.translatable(
+                    "jade.incore.datalogger.progress",
+                    data.getInt("progress"),
+                    data.getInt("max_progress")
+            ));
+            float progress = Math.max(0.0F, Math.min(1.0F, data.getInt("progress") / (float) Math.max(1, data.getInt("max_progress"))));
+            IElementHelper elements = IElementHelper.get();
+            tooltip.add(elements.progress(
+                    progress,
+                    Component.empty(),
+                    elements.progressStyle().color(0xFFBE8A45).textColor(0xFFFFFFFF),
+                    BoxStyle.getNestedBox(),
+                    false
+            ));
+            tooltip.add(Component.translatable(data.getBoolean("ready")
+                    ? "jade.incore.datalogger.status.ready"
+                    : "jade.incore.datalogger.status.scanning"));
+        }
+    }
+
+    private static class TranslatorProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "translator");
+
+        @Override
+        public ResourceLocation getUid() {
+            return uid;
+        }
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof TranslatorBlockEntity translator)) {
+                return;
+            }
+            data.putInt("progress", translator.progressTicks());
+            data.putInt("max_progress", translator.maxProgressTicks());
+            data.putBoolean("has_input", !translator.input().isEmpty());
+            data.putBoolean("ready", !translator.output().isEmpty());
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (data.isEmpty()) {
+                return;
+            }
+            tooltip.add(Component.translatable(
+                    "jade.incore.translator.progress",
+                    data.getInt("progress"),
+                    data.getInt("max_progress")
+            ));
+            float progress = Math.max(0.0F, Math.min(1.0F, data.getInt("progress") / (float) Math.max(1, data.getInt("max_progress"))));
+            IElementHelper elements = IElementHelper.get();
+            tooltip.add(elements.progress(
+                    progress,
+                    Component.empty(),
+                    elements.progressStyle().color(0xFF55A9E6).textColor(0xFFFFFFFF),
+                    BoxStyle.getNestedBox(),
+                    false
+            ));
+            String statusKey = data.getBoolean("ready")
+                    ? "jade.incore.translator.status.ready"
+                    : (data.getBoolean("has_input") ? "jade.incore.translator.status.decoding" : "jade.incore.translator.status.idle");
+            tooltip.add(Component.translatable(statusKey));
+        }
+    }
+
+    private static class ResearchSampleFabricatorProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        private final ResourceLocation uid = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "research_sample_fabricator");
+
+        @Override
+        public ResourceLocation getUid() {
+            return uid;
+        }
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof ResearchSampleFabricatorBlockEntity fabricator)) {
+                return;
+            }
+            data.putInt("progress", fabricator.progressTicks());
+            data.putInt("max_progress", fabricator.maxProgressTicks());
+            data.putBoolean("processing", fabricator.isProcessing());
+            data.putBoolean("ready", !fabricator.itemHandler().getStackInSlot(1).isEmpty());
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (data.isEmpty()) {
+                return;
+            }
+            tooltip.add(Component.translatable(
+                    "jade.incore.research_sample_fabricator.progress",
+                    data.getInt("progress"),
+                    data.getInt("max_progress")
+            ));
+            float progress = Math.max(0.0F, Math.min(1.0F, data.getInt("progress") / (float) Math.max(1, data.getInt("max_progress"))));
+            IElementHelper elements = IElementHelper.get();
+            tooltip.add(elements.progress(
+                    progress,
+                    Component.empty(),
+                    elements.progressStyle().color(0xFF55A9E6).textColor(0xFFFFFFFF),
+                    BoxStyle.getNestedBox(),
+                    false
+            ));
+            String statusKey = data.getBoolean("ready")
+                    ? "jade.incore.research_sample_fabricator.status.ready"
+                    : (data.getBoolean("processing") ? "jade.incore.research_sample_fabricator.status.processing" : "jade.incore.research_sample_fabricator.status.idle");
+            tooltip.add(Component.translatable(statusKey));
         }
     }
 

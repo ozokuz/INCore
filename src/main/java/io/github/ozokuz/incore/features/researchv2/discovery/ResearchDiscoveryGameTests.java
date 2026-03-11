@@ -76,7 +76,7 @@ public final class ResearchDiscoveryGameTests {
         });
     }
 
-    @GameTest(template = "empty", timeoutTicks = 40)
+    @GameTest(template = "empty", timeoutTicks = 160)
     public static void research_samples_transfer_discovery_between_teams(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, Registration.RESEARCH_SAMPLE_FABRICATOR_BLOCK.get());
@@ -93,14 +93,16 @@ public final class ResearchDiscoveryGameTests {
         sourceState.completedNodes().add(SIGNAL_CALIBRATION);
         ResearchNetworkSavedData.get(server).setDirty();
 
-        helper.assertTrue(fabricator.fabricate(sourceTeam, SIGNAL_CALIBRATION), "expected fabricator to create a research sample");
-        ItemStack sample = fabricator.itemHandler().getStackInSlot(1);
-        helper.assertTrue(sample.is(Registration.RESEARCH_SAMPLE_ITEM.get()), "expected fabricated output to be a research sample");
+        helper.assertTrue(fabricator.fabricate(sourceTeam, SIGNAL_CALIBRATION), "expected fabricator to start creating a research sample");
+        helper.runAfterDelay(110, () -> {
+            ItemStack sample = fabricator.itemHandler().getStackInSlot(1);
+            helper.assertTrue(sample.is(Registration.RESEARCH_SAMPLE_ITEM.get()), "expected fabricated output to be a research sample");
 
-        DiscoveryPayload payload = DiscoveryPayloadData.read(sample);
-        helper.assertTrue(DiscoveryGrantService.grantFromPayload(server, targetTeam, payload), "expected sample to grant discovery to another team");
-        helper.assertTrue(ResearchManager.isDiscovered(server, targetTeam, SIGNAL_CALIBRATION), "expected target team to discover the node");
-        helper.succeed();
+            DiscoveryPayload payload = DiscoveryPayloadData.read(sample);
+            helper.assertTrue(DiscoveryGrantService.grantFromPayload(server, targetTeam, payload), "expected sample to grant discovery to another team");
+            helper.assertTrue(ResearchManager.isDiscovered(server, targetTeam, SIGNAL_CALIBRATION), "expected target team to discover the node");
+            helper.succeed();
+        });
     }
 
     private static <T> T requireBlockEntity(GameTestHelper helper, BlockPos pos, Class<T> type) {
