@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CBC",
+    "PSP",
+    "CRC"
+  ],
+  "key": {
+    "C": {
+      "item": "incore:research_station_casing"
+    },
+    "B": {
+      "item": "incore:blank_research_sample"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "S": {
+      "item": "incore:starter_data"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "incore:research_sample_fabricator",
+    "count": 1
+  }
+}

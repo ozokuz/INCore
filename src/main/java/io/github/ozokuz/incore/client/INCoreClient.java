@@ -32,6 +32,7 @@ import io.github.ozokuz.incore.features.researchv2.client.OutputPortScreen;
 import io.github.ozokuz.incore.features.researchv2.client.ResearchControllerScreen;
 import io.github.ozokuz.incore.features.researchv2.client.ResearchDriveScreen;
 import io.github.ozokuz.incore.features.researchv2.client.ResearchOrchestratorControllerScreen;
+import io.github.ozokuz.incore.features.researchv2.client.ResearchSampleFabricatorScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
@@ -103,6 +104,7 @@ public class INCoreClient {
         event.register(Registration.RESEARCH_CONTROLLER_MENU.get(), ResearchControllerScreen::new);
         event.register(Registration.RESEARCH_ORCHESTRATOR_CONTROLLER_MENU.get(), ResearchOrchestratorControllerScreen::new);
         event.register(Registration.POWER_INPUT_MENU.get(), PowerInputScreen::new);
+        event.register(Registration.RESEARCH_SAMPLE_FABRICATOR_MENU.get(), ResearchSampleFabricatorScreen::new);
     }
 
     private void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {

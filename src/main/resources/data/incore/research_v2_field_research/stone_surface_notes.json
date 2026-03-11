@@ -1,0 +1,7 @@
+{
+  "block": "incore:stone_surface_stone_spot",
+  "node_ids": [
+    "incore:terrain_scanning"
+  ],
+  "note_name": "Stone Survey Note"
+}

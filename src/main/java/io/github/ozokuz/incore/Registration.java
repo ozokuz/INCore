@@ -18,6 +18,7 @@ import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockEntity;
 import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
 import io.github.ozokuz.incore.features.research.BurnerLabBlock;
+import io.github.ozokuz.incore.features.researchv2.discovery.*;
 import io.github.ozokuz.incore.features.researchv2.station.*;
 import io.github.ozokuz.incore.features.cards.CardBoosterBoxItem;
 import io.github.ozokuz.incore.features.cards.CardBoosterItem;
@@ -337,6 +338,9 @@ public class Registration {
     public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_T2_BLOCK = BLOCKS.register("electric_power_input_t2", () -> new ElectricPowerInputTier2Block());
     public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_T3_BLOCK = BLOCKS.register("electric_power_input_t3", () -> new ElectricPowerInputTier3Block());
     public static final DeferredBlock<Block> ELECTRIC_POWER_INPUT_T4_BLOCK = BLOCKS.register("electric_power_input_t4", () -> new ElectricPowerInputTier4Block());
+    public static final DeferredBlock<Block> DATALOGGER_BLOCK = BLOCKS.register("datalogger", () -> new DataloggerBlock());
+    public static final DeferredBlock<Block> TRANSLATOR_BLOCK = BLOCKS.register("translator", () -> new TranslatorBlock());
+    public static final DeferredBlock<Block> RESEARCH_SAMPLE_FABRICATOR_BLOCK = BLOCKS.register("research_sample_fabricator", () -> new ResearchSampleFabricatorBlock());
     public static final Supplier<BlockEntityType<LabBlockEntity>> LAB_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
             "burner_lab",
             () -> BlockEntityType.Builder.of(
@@ -423,6 +427,18 @@ public class Registration {
                     ELECTRIC_POWER_INPUT_T4_BLOCK.get()
             ).build(null)
     );
+    public static final Supplier<BlockEntityType<DataloggerBlockEntity>> DATALOGGER_BE = BLOCK_ENTITY_TYPES.register(
+            "datalogger",
+            () -> BlockEntityType.Builder.of(DataloggerBlockEntity::new, DATALOGGER_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<TranslatorBlockEntity>> TRANSLATOR_BE = BLOCK_ENTITY_TYPES.register(
+            "translator",
+            () -> BlockEntityType.Builder.of(TranslatorBlockEntity::new, TRANSLATOR_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<ResearchSampleFabricatorBlockEntity>> RESEARCH_SAMPLE_FABRICATOR_BE = BLOCK_ENTITY_TYPES.register(
+            "research_sample_fabricator",
+            () -> BlockEntityType.Builder.of(ResearchSampleFabricatorBlockEntity::new, RESEARCH_SAMPLE_FABRICATOR_BLOCK.get()).build(null)
+    );
     public static final Supplier<MenuType<CrudeResearchStationMenu>> CRUDE_RESEARCH_STATION_MENU = MENU_TYPES.register(
             "crude_research_station",
             () -> IMenuTypeExtension.create((id, inv, data) -> new CrudeResearchStationMenu(
@@ -471,6 +487,14 @@ public class Registration {
             "power_input",
             () -> IMenuTypeExtension.create((id, inv, data) -> new PowerInputMenu(id, inv, data.readBlockPos()))
     );
+    public static final Supplier<MenuType<ResearchSampleFabricatorMenu>> RESEARCH_SAMPLE_FABRICATOR_MENU = MENU_TYPES.register(
+            "research_sample_fabricator",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new ResearchSampleFabricatorMenu(
+                    id,
+                    inv,
+                    (ResearchSampleFabricatorBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
+            ))
+    );
     public static final DeferredItem<BlockItem> BURNER_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_lab", BURNER_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
@@ -501,6 +525,9 @@ public class Registration {
     public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input_t2", ELECTRIC_POWER_INPUT_T2_BLOCK);
     public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input_t3", ELECTRIC_POWER_INPUT_T3_BLOCK);
     public static final DeferredItem<BlockItem> ELECTRIC_POWER_INPUT_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("electric_power_input_t4", ELECTRIC_POWER_INPUT_T4_BLOCK);
+    public static final DeferredItem<BlockItem> DATALOGGER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("datalogger", DATALOGGER_BLOCK);
+    public static final DeferredItem<BlockItem> TRANSLATOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("translator", TRANSLATOR_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_SAMPLE_FABRICATOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_sample_fabricator", RESEARCH_SAMPLE_FABRICATOR_BLOCK);
 
     public static final DeferredBlock<Block> DUNGEON_ALTAR_BLOCK = BLOCKS.register("dungeon_altar", DungeonAltarBlock::new);
     public static final Supplier<BlockEntityType<DungeonAltarBlockEntity>> DUNGEON_ALTAR_BE = BLOCK_ENTITY_TYPES.register("dungeon_altar", () -> BlockEntityType.Builder.of(DungeonAltarBlockEntity::new, DUNGEON_ALTAR_BLOCK.get()).build(null));
@@ -614,6 +641,13 @@ public class Registration {
     public static final DeferredItem<Item> USED_LOGIC_MODULE_T3_ITEM = ITEMS.registerItem("used_logic_module_t3", properties -> new LogicModuleItem(properties, LogicModuleTier.T3, false, "used"));
     public static final DeferredItem<Item> USED_LOGIC_MODULE_T4_ITEM = ITEMS.registerItem("used_logic_module_t4", properties -> new LogicModuleItem(properties, LogicModuleTier.T4, false, "used"));
     public static final DeferredItem<Item> STARTER_DATA_ITEM = ITEMS.registerSimpleItem("starter_data");
+    public static final DeferredItem<Item> FIELD_PEN_ITEM = ITEMS.registerItem("field_pen", FieldPenItem::new);
+    public static final DeferredItem<Item> FIELD_RESEARCH_NOTE_ITEM = ITEMS.registerItem("field_research_note", AbstractDiscoveryGrantItem::new);
+    public static final DeferredItem<Item> RESEARCH_DATA_REPORT_ITEM = ITEMS.registerItem("research_data_report", AbstractDiscoveryGrantItem::new);
+    public static final DeferredItem<Item> CONTINUUM_DATA_REPORT_ITEM = ITEMS.registerItem("continuum_data_report", ContinuumDataReportItem::new);
+    public static final DeferredItem<Item> DECODED_CONTINUUM_REPORT_ITEM = ITEMS.registerItem("decoded_continuum_report", AbstractDiscoveryGrantItem::new);
+    public static final DeferredItem<Item> BLANK_RESEARCH_SAMPLE_ITEM = ITEMS.registerSimpleItem("blank_research_sample");
+    public static final DeferredItem<Item> RESEARCH_SAMPLE_ITEM = ITEMS.registerItem("research_sample", AbstractDiscoveryGrantItem::new);
     public static final DeferredItem<Item> RESEARCH_DISK_T1_ITEM = ITEMS.registerItem("research_disk_t1", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T1));
     public static final DeferredItem<Item> RESEARCH_DISK_T2_ITEM = ITEMS.registerItem("research_disk_t2", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T2));
     public static final DeferredItem<Item> RESEARCH_DISK_T3_ITEM = ITEMS.registerItem("research_disk_t3", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T3));
@@ -760,6 +794,9 @@ public class Registration {
                 output.accept(ELECTRIC_POWER_INPUT_T2_BLOCK_ITEM.get());
                 output.accept(ELECTRIC_POWER_INPUT_T3_BLOCK_ITEM.get());
                 output.accept(ELECTRIC_POWER_INPUT_T4_BLOCK_ITEM.get());
+                output.accept(DATALOGGER_BLOCK_ITEM.get());
+                output.accept(TRANSLATOR_BLOCK_ITEM.get());
+                output.accept(RESEARCH_SAMPLE_FABRICATOR_BLOCK_ITEM.get());
                 output.accept(BASIC_LOGIC_MODULE_ITEM.get());
                 output.accept(LOGIC_MODULE_T2_ITEM.get());
                 output.accept(LOGIC_MODULE_T3_ITEM.get());
@@ -769,6 +806,13 @@ public class Registration {
                 output.accept(USED_LOGIC_MODULE_T3_ITEM.get());
                 output.accept(USED_LOGIC_MODULE_T4_ITEM.get());
                 output.accept(STARTER_DATA_ITEM.get());
+                output.accept(FIELD_PEN_ITEM.get());
+                output.accept(FIELD_RESEARCH_NOTE_ITEM.get());
+                output.accept(RESEARCH_DATA_REPORT_ITEM.get());
+                output.accept(CONTINUUM_DATA_REPORT_ITEM.get());
+                output.accept(DECODED_CONTINUUM_REPORT_ITEM.get());
+                output.accept(BLANK_RESEARCH_SAMPLE_ITEM.get());
+                output.accept(RESEARCH_SAMPLE_ITEM.get());
                 output.accept(RESEARCH_DISK_T1_ITEM.get());
                 output.accept(RESEARCH_DISK_T2_ITEM.get());
                 output.accept(RESEARCH_DISK_T3_ITEM.get());

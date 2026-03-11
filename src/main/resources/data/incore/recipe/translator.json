@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CSC",
+    "DBD",
+    "CRC"
+  ],
+  "key": {
+    "C": {
+      "item": "incore:research_station_casing"
+    },
+    "S": {
+      "item": "incore:starter_data"
+    },
+    "D": {
+      "item": "minecraft:writable_book"
+    },
+    "B": {
+      "item": "incore:basic_logic_module"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "incore:translator",
+    "count": 1
+  }
+}

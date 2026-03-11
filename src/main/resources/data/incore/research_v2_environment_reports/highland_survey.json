@@ -1,0 +1,13 @@
+{
+  "id": "incore:overworld_highlands",
+  "display_name": "Highland Survey Report",
+  "dimension": "minecraft:overworld",
+  "biomes": [
+    "minecraft:windswept_hills"
+  ],
+  "min_y": 96,
+  "max_y": 320,
+  "node_ids": [
+    "incore:terrain_scanning"
+  ]
+}

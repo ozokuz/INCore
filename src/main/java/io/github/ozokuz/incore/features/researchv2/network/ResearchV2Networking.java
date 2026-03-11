@@ -1,7 +1,9 @@
 package io.github.ozokuz.incore.features.researchv2.network;
 
 import io.github.ozokuz.incore.features.researchv2.ResearchManager;
+import io.github.ozokuz.incore.features.researchv2.discovery.network.ResearchSampleFabricatorCraftPayload;
 import io.github.ozokuz.incore.features.researchv2.team.ResearchTeamResolver;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,6 +22,7 @@ public final class ResearchV2Networking {
         registrar.playToServer(ResearchV2QueueResearchPayload.TYPE, ResearchV2QueueResearchPayload.STREAM_CODEC, ResearchV2QueueResearchPayload::handle);
         registrar.playToServer(ResearchV2CancelQueueItemPayload.TYPE, ResearchV2CancelQueueItemPayload.STREAM_CODEC, ResearchV2CancelQueueItemPayload::handle);
         registrar.playToServer(ResearchV2RepairDiskSegmentPayload.TYPE, ResearchV2RepairDiskSegmentPayload.STREAM_CODEC, ResearchV2RepairDiskSegmentPayload::handle);
+        registrar.playToServer(ResearchSampleFabricatorCraftPayload.TYPE, ResearchSampleFabricatorCraftPayload.STREAM_CODEC, ResearchSampleFabricatorCraftPayload::handle);
     }
 
     public static void requestSnapshot() {
@@ -36,6 +39,10 @@ public final class ResearchV2Networking {
 
     public static void repairDiskSegment(net.minecraft.core.BlockPos pos, ResourceLocation nodeId, int segmentIndex) {
         PacketDistributor.sendToServer(new ResearchV2RepairDiskSegmentPayload(pos.asLong(), nodeId.toString(), segmentIndex));
+    }
+
+    public static void fabricateResearchSample(BlockPos pos, ResourceLocation nodeId) {
+        PacketDistributor.sendToServer(new ResearchSampleFabricatorCraftPayload(pos.asLong(), nodeId.toString()));
     }
 
     public static void syncToPlayer(ServerPlayer player) {

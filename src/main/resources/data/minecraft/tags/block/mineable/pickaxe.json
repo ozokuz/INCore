@@ -42,6 +42,9 @@
     "incore:electric_power_input",
     "incore:electric_power_input_t2",
     "incore:electric_power_input_t3",
-    "incore:electric_power_input_t4"
+    "incore:electric_power_input_t4",
+    "incore:datalogger",
+    "incore:translator",
+    "incore:research_sample_fabricator"
   ]
 }
