@@ -1,15 +1,13 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
-import io.github.ozokuz.incore.Registration;
-import io.github.ozokuz.incore.features.researchv2.station.network.LinkingPortRegistry;
+import io.github.ozokuz.incore.features.researchv2.station.network.CableTopologyComponent;
+import io.github.ozokuz.incore.features.researchv2.station.network.CableTopologyScanner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -30,7 +28,7 @@ public final class ResearchOrchestrationService {
         }
 
         List<ResearchControllerBlockEntity> stations = ResearchMultiblockStationRegistry.controllersForTeam(server, teamId);
-        List<TeamCableComponent> cableComponents = collectCableComponents(server, teamId);
+        List<CableTopologyComponent> cableComponents = collectCableComponents(server, teamId);
         Map<String, Set<String>> stationsByOrchestratorId = stationsByOrchestratorId(cableComponents);
         boolean anyWirelessInstalled = false;
         for (ResearchControllerBlockEntity station : stations) {
@@ -119,7 +117,7 @@ public final class ResearchOrchestrationService {
             String teamId,
             boolean requiresOrchestrator,
             List<ResearchControllerBlockEntity> stations,
-            List<TeamCableComponent> cableComponents,
+            List<CableTopologyComponent> cableComponents,
             Map<String, Set<String>> stationsByOrchestratorId,
             boolean anyWirelessInstalled,
             ResearchOrchestratorControllerBlockEntity orchestrator
@@ -139,7 +137,7 @@ public final class ResearchOrchestrationService {
             warning = "screen.incore.research_v2.orchestrator_no_power";
         }
         Set<String> cableManagedStationIds = new LinkedHashSet<>();
-        for (TeamCableComponent component : cableComponents) {
+        for (CableTopologyComponent component : cableComponents) {
             if (!component.orchestratorIds().contains(orchestrator.orchestratorId())) {
                 continue;
             }
@@ -198,7 +196,7 @@ public final class ResearchOrchestrationService {
         }
 
         Set<String> requiredManagedStationIds = new LinkedHashSet<>();
-        for (TeamCableComponent component : cableComponents) {
+        for (CableTopologyComponent component : cableComponents) {
             if (component.stationIds().size() > 4) {
                 requiredManagedStationIds.addAll(component.stationIds());
             }
@@ -244,9 +242,9 @@ public final class ResearchOrchestrationService {
         );
     }
 
-    private static Map<String, Set<String>> stationsByOrchestratorId(List<TeamCableComponent> cableComponents) {
+    private static Map<String, Set<String>> stationsByOrchestratorId(List<CableTopologyComponent> cableComponents) {
         Map<String, Set<String>> result = new LinkedHashMap<>();
-        for (TeamCableComponent component : cableComponents) {
+        for (CableTopologyComponent component : cableComponents) {
             for (String orchestratorId : component.orchestratorIds()) {
                 if (orchestratorId == null || orchestratorId.isBlank()) {
                     continue;
@@ -257,63 +255,17 @@ public final class ResearchOrchestrationService {
         return result;
     }
 
-    public static List<TeamCableComponent> collectCableComponents(MinecraftServer server, String teamId) {
+    public static List<CableTopologyComponent> collectCableComponents(MinecraftServer server, String teamId) {
         if (server == null || teamId == null || teamId.isBlank()) {
             return List.of();
         }
-        List<TeamCableComponent> components = new ArrayList<>();
+        List<CableTopologyComponent> components = new ArrayList<>();
         for (ServerLevel level : server.getAllLevels()) {
-            Map<BlockPos, LinkingPortBlockEntity> teamPorts = new LinkedHashMap<>();
-            for (LinkingPortBlockEntity port : LinkingPortRegistry.portsForLevel(level)) {
-                if (teamId.equals(port.attachedTeamId())) {
-                    teamPorts.put(port.getBlockPos().immutable(), port);
-                }
-            }
-
-            Set<BlockPos> visited = new LinkedHashSet<>();
-            List<BlockPos> seeds = teamPorts.keySet().stream().sorted(Comparator.comparingLong(BlockPos::asLong)).toList();
-            for (BlockPos seed : seeds) {
-                if (!visited.add(seed)) {
-                    continue;
-                }
-                Deque<BlockPos> queue = new ArrayDeque<>();
-                queue.add(seed);
-                Set<String> stationIds = new LinkedHashSet<>();
-                Set<String> orchestratorIds = new LinkedHashSet<>();
-                Set<BlockPos> componentPorts = new LinkedHashSet<>();
-
-                while (!queue.isEmpty()) {
-                    BlockPos current = queue.removeFirst();
-                    LinkingPortBlockEntity port = teamPorts.get(current);
-                    if (port != null) {
-                        componentPorts.add(current.immutable());
-                        if (port.ownerKind() == LinkOwnerKind.STATION && !port.ownerId().isBlank()) {
-                            stationIds.add(port.ownerId());
-                        } else if (port.ownerKind() == LinkOwnerKind.ORCHESTRATOR && !port.ownerId().isBlank()) {
-                            orchestratorIds.add(port.ownerId());
-                        }
-                    }
-
-                    for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
-                        BlockPos neighbor = current.relative(direction);
-                        if (level.getBlockState(neighbor).is(Registration.RESEARCH_LINK_CABLE_BLOCK.get())) {
-                            if (visited.add(neighbor)) {
-                                queue.addLast(neighbor);
-                            }
-                            continue;
-                        }
-                        if (teamPorts.containsKey(neighbor) && visited.add(neighbor)) {
-                            queue.addLast(neighbor);
-                        }
-                    }
-                }
-
-                if (!stationIds.isEmpty() || !orchestratorIds.isEmpty()) {
-                    List<BlockPos> ports = componentPorts.stream().sorted(Comparator.comparingLong(BlockPos::asLong)).toList();
-                    components.add(new TeamCableComponent(level.dimension().location().toString(), stationIds, orchestratorIds, ports));
-                }
-            }
+            components.addAll(CableTopologyScanner.scanTeam(level, teamId));
         }
+        components.sort(Comparator
+                .comparing(CableTopologyComponent::dimensionId)
+                .thenComparing(component -> component.linkingPortPositions().stream().mapToLong(BlockPos::asLong).min().orElse(0L)));
         return List.copyOf(components);
     }
 

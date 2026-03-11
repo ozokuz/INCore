@@ -1,19 +1,12 @@
 package io.github.ozokuz.incore.features.researchv2.station.network;
 
-import io.github.ozokuz.incore.Registration;
-import io.github.ozokuz.incore.features.researchv2.station.LinkOwnerKind;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -78,101 +71,80 @@ public final class StationNetworkGraphManager {
 
         List<ResearchControllerBlockEntity> controllers = ResearchMultiblockStationRegistry.controllersForLevel(level);
         Map<String, ResearchControllerBlockEntity> controllersByStationId = new LinkedHashMap<>();
-        for (ResearchControllerBlockEntity controller : controllers) {
-            if (controller.stationId() != null && !controller.stationId().isBlank()) {
-                controllersByStationId.put(controller.stationId(), controller);
-            }
-        }
-
-        Map<BlockPos, PortAttachment> attachmentsByPos = new LinkedHashMap<>();
-        Map<String, Set<BlockPos>> attachedPortsByStationId = new HashMap<>();
+        Map<String, Set<String>> stationIdsByTeam = new LinkedHashMap<>();
         for (ResearchControllerBlockEntity controller : controllers) {
             if (controller.stationId() == null || controller.stationId().isBlank()) {
                 continue;
             }
-            Set<BlockPos> candidatePorts = new LinkedHashSet<>();
-            for (BlockPos partPos : controller.connectedParts()) {
-                if (isPort(partPos)) {
-                    candidatePorts.add(partPos.immutable());
-                }
-            }
-            for (BlockPos portPos : candidatePorts) {
-                PortAttachment attachment = new PortAttachment(controller.stationId(), controller.teamId());
-                attachmentsByPos.put(portPos.immutable(), attachment);
-                attachedPortsByStationId.computeIfAbsent(controller.stationId(), ignored -> new LinkedHashSet<>())
-                        .add(portPos.immutable());
-                syncPortAttachment(portPos, attachment);
+            controllersByStationId.put(controller.stationId(), controller);
+            if (controller.teamId() != null && !controller.teamId().isBlank()) {
+                stationIdsByTeam.computeIfAbsent(controller.teamId(), ignored -> new LinkedHashSet<>()).add(controller.stationId());
             }
         }
+
+        Map<String, List<CableTopologyComponent>> cableComponentsByTeam = CableTopologyScanner.scanByTeam(level);
+        Map<String, Set<BlockPos>> attachedPortsByStationId = CableTopologyScanner.stationPortPositions(level);
 
         Map<String, StationNetworkComponent> nextComponents = new LinkedHashMap<>();
         Map<String, String> nextStationNetworkIds = new LinkedHashMap<>();
         Set<String> assignedStations = new LinkedHashSet<>();
-        Set<BlockPos> visitedPositions = new HashSet<>();
 
-        List<BlockPos> seedPorts = attachmentsByPos.keySet().stream()
-                .sorted(Comparator.comparingLong(BlockPos::asLong))
-                .toList();
-        for (BlockPos seedPort : seedPorts) {
-            if (!visitedPositions.add(seedPort)) {
-                continue;
+        for (Map.Entry<String, Set<String>> entry : stationIdsByTeam.entrySet()) {
+            String teamId = entry.getKey();
+            Set<String> teamStationIds = entry.getValue();
+            UnionFind unionFind = new UnionFind(teamStationIds);
+            for (CableTopologyComponent component : cableComponentsByTeam.getOrDefault(teamId, List.of())) {
+                unionFind.unionAll(component.stationIds());
             }
 
-            Set<BlockPos> componentPorts = new LinkedHashSet<>();
-            Set<String> componentStationIds = new LinkedHashSet<>();
-            Deque<BlockPos> queue = new ArrayDeque<>();
-            queue.add(seedPort);
-
-            while (!queue.isEmpty()) {
-                BlockPos current = queue.removeFirst();
-                PortAttachment currentAttachment = attachmentsByPos.get(current);
-                if (currentAttachment != null) {
-                    componentPorts.add(current.immutable());
-                    if (!currentAttachment.stationId().isBlank()) {
-                        componentStationIds.add(currentAttachment.stationId());
-                        for (BlockPos siblingPort : attachedPortsByStationId.getOrDefault(currentAttachment.stationId(), Set.of())) {
-                            if (visitedPositions.add(siblingPort)) {
-                                queue.addLast(siblingPort);
-                            }
-                        }
-                    }
+            Map<String, Set<String>> groupedStations = new LinkedHashMap<>();
+            Map<String, Set<BlockPos>> groupedPortPositions = new LinkedHashMap<>();
+            for (String stationId : teamStationIds) {
+                String root = unionFind.find(stationId);
+                if (!root.isBlank()) {
+                    groupedStations.computeIfAbsent(root, ignored -> new LinkedHashSet<>()).add(stationId);
                 }
-
-                for (Direction direction : Direction.values()) {
-                    BlockPos neighbor = current.relative(direction);
-                    if (attachmentsByPos.containsKey(neighbor) || isCable(neighbor)) {
-                        if (visitedPositions.add(neighbor)) {
-                            queue.addLast(neighbor);
-                        }
-                    }
+            }
+            for (CableTopologyComponent component : cableComponentsByTeam.getOrDefault(teamId, List.of())) {
+                String anchor = component.stationIds().stream()
+                        .filter(teamStationIds::contains)
+                        .findFirst()
+                        .orElse("");
+                if (anchor.isBlank()) {
+                    continue;
+                }
+                String root = unionFind.find(anchor);
+                if (!root.isBlank()) {
+                    groupedPortPositions.computeIfAbsent(root, ignored -> new LinkedHashSet<>()).addAll(component.linkingPortPositions());
                 }
             }
 
-            if (componentStationIds.isEmpty()) {
-                continue;
-            }
-
-            List<BlockPos> controllerPositions = componentStationIds.stream()
-                    .map(controllersByStationId::get)
-                    .filter(java.util.Objects::nonNull)
-                    .map(controller -> controller.getBlockPos().immutable())
-                    .sorted(Comparator.comparingLong(BlockPos::asLong))
-                    .toList();
-            List<BlockPos> portPositions = componentPorts.stream()
-                    .sorted(Comparator.comparingLong(BlockPos::asLong))
-                    .toList();
-            String componentId = buildComponentId(controllerPositions, portPositions);
-            StationNetworkComponent component = new StationNetworkComponent(
-                    componentId,
-                    level.dimension().location().toString(),
-                    Set.copyOf(componentStationIds),
-                    controllerPositions,
-                    portPositions
-            );
-            nextComponents.put(componentId, component);
-            for (String stationId : componentStationIds) {
-                nextStationNetworkIds.put(stationId, componentId);
-                assignedStations.add(stationId);
+            List<Set<String>> grouped = new ArrayList<>(groupedStations.values());
+            grouped.sort(Comparator.comparing(component -> component.stream().sorted().findFirst().orElse("")));
+            for (Set<String> componentStationIds : grouped) {
+                List<BlockPos> controllerPositions = componentStationIds.stream()
+                        .map(controllersByStationId::get)
+                        .filter(java.util.Objects::nonNull)
+                        .map(controller -> controller.getBlockPos().immutable())
+                        .sorted(Comparator.comparingLong(BlockPos::asLong))
+                        .toList();
+                String root = componentStationIds.stream().sorted().findFirst().map(unionFind::find).orElse("");
+                List<BlockPos> portPositions = groupedPortPositions.getOrDefault(root, Set.of()).stream()
+                        .sorted(Comparator.comparingLong(BlockPos::asLong))
+                        .toList();
+                String componentId = buildComponentId(controllerPositions, portPositions);
+                StationNetworkComponent component = new StationNetworkComponent(
+                        componentId,
+                        level.dimension().location().toString(),
+                        Set.copyOf(componentStationIds),
+                        controllerPositions,
+                        portPositions
+                );
+                nextComponents.put(componentId, component);
+                for (String stationId : componentStationIds) {
+                    nextStationNetworkIds.put(stationId, componentId);
+                    assignedStations.add(stationId);
+                }
             }
         }
 
@@ -181,7 +153,6 @@ public final class StationNetworkGraphManager {
             if (stationId == null || stationId.isBlank() || assignedStations.contains(stationId)) {
                 continue;
             }
-
             String componentId = buildComponentId(List.of(controller.getBlockPos().immutable()), List.of());
             StationNetworkComponent component = new StationNetworkComponent(
                     componentId,
@@ -206,21 +177,6 @@ public final class StationNetworkGraphManager {
         portPositionsByStationId = Map.copyOf(nextPortsByStation);
     }
 
-    private void syncPortAttachment(BlockPos pos, PortAttachment attachment) {
-        if (!(level.getBlockEntity(pos) instanceof io.github.ozokuz.incore.features.researchv2.station.LinkingPortBlockEntity port)) {
-            return;
-        }
-        port.setAttachment(LinkOwnerKind.STATION, attachment.stationId(), attachment.teamId());
-    }
-
-    private boolean isCable(BlockPos pos) {
-        return level.getBlockState(pos).is(Registration.RESEARCH_LINK_CABLE_BLOCK.get());
-    }
-
-    private boolean isPort(BlockPos pos) {
-        return level.getBlockState(pos).is(Registration.LINKING_PORT_BLOCK.get());
-    }
-
     private String buildComponentId(List<BlockPos> controllerPositions, List<BlockPos> portPositions) {
         long seed = Long.MAX_VALUE;
         for (BlockPos pos : controllerPositions) {
@@ -235,12 +191,61 @@ public final class StationNetworkGraphManager {
         return level.dimension().location() + "#station_network#" + seed;
     }
 
-    private record PortAttachment(String stationId, String teamId) {
-        private static final PortAttachment EMPTY = new PortAttachment("", "");
+    private static final class UnionFind {
+        private final Map<String, String> parent = new LinkedHashMap<>();
 
-        private PortAttachment {
-            stationId = stationId == null ? "" : stationId;
-            teamId = teamId == null ? "" : teamId;
+        private UnionFind(Set<String> stationIds) {
+            for (String stationId : stationIds) {
+                if (stationId != null && !stationId.isBlank()) {
+                    parent.put(stationId, stationId);
+                }
+            }
+        }
+
+        private String find(String stationId) {
+            String current = parent.get(stationId);
+            if (current == null) {
+                return "";
+            }
+            if (current.equals(stationId)) {
+                return current;
+            }
+            String root = find(current);
+            parent.put(stationId, root);
+            return root;
+        }
+
+        private void union(String left, String right) {
+            if (left == null || left.isBlank() || right == null || right.isBlank()) {
+                return;
+            }
+            String leftRoot = find(left);
+            String rightRoot = find(right);
+            if (leftRoot.isBlank() || rightRoot.isBlank() || leftRoot.equals(rightRoot)) {
+                return;
+            }
+            if (leftRoot.compareTo(rightRoot) <= 0) {
+                parent.put(rightRoot, leftRoot);
+            } else {
+                parent.put(leftRoot, rightRoot);
+            }
+        }
+
+        private void unionAll(Iterable<String> stationIds) {
+            if (stationIds == null) {
+                return;
+            }
+            String anchor = null;
+            for (String stationId : stationIds) {
+                if (stationId == null || stationId.isBlank() || !parent.containsKey(stationId)) {
+                    continue;
+                }
+                if (anchor == null) {
+                    anchor = stationId;
+                } else {
+                    union(anchor, stationId);
+                }
+            }
         }
     }
 }
