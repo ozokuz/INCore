@@ -52,7 +52,7 @@ public record ResearchStationDescriptor(
         activeBonusRunChance = Math.max(0.0D, activeBonusRunChance);
         activeCorruptionMultiplier = Math.max(0.0D, activeCorruptionMultiplier);
         outputPortModes = outputPortModes == null ? "NONE" : outputPortModes;
-        endpoints = endpoints == null ? new ResearchStationEndpoints(List.of(), List.of(), null, null, null, List.of(), null) : endpoints;
+        endpoints = endpoints == null ? new ResearchStationEndpoints(List.of(), List.of(), List.of(), List.of(), null, null, null, List.of(), null) : endpoints;
         connectedParts = connectedParts == null ? List.of() : List.copyOf(connectedParts);
         stationNetworkId = stationNetworkId == null ? "" : stationNetworkId;
     }

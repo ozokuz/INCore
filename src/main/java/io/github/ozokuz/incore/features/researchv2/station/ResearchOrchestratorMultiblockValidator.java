@@ -15,33 +15,31 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class ResearchStationMultiblockValidator {
+public final class ResearchOrchestratorMultiblockValidator {
     private static final int MIN_HEIGHT = 2;
     private static final int[][] FOOTPRINTS = {
             {3, 2},
             {2, 3}
     };
 
-    private ResearchStationMultiblockValidator() {
+    private ResearchOrchestratorMultiblockValidator() {
     }
 
-    public static ResearchStationTopology validate(Level level, BlockPos controllerPos) {
+    public static ResearchOrchestratorTopology validate(Level level, BlockPos controllerPos) {
         if (level == null || controllerPos == null) {
-            return ResearchStationTopology.unformed();
+            return ResearchOrchestratorTopology.unformed();
         }
 
         Block casingBlock = Registration.RESEARCH_STATION_CASING_BLOCK.get();
         List<Candidate> candidates = new ArrayList<>();
-
         for (int[] footprint : FOOTPRINTS) {
             int sizeX = footprint[0];
             int sizeZ = footprint[1];
-
             for (int minX = controllerPos.getX() - sizeX + 1; minX <= controllerPos.getX(); minX++) {
                 for (int minY = controllerPos.getY() - MIN_HEIGHT + 1; minY <= controllerPos.getY(); minY++) {
                     for (int minZ = controllerPos.getZ() - sizeZ + 1; minZ <= controllerPos.getZ(); minZ++) {
                         BlockPos minCorner = new BlockPos(minX, minY, minZ);
-                        ResearchStationTopology topology = validateCandidate(level, controllerPos, minCorner, sizeX, MIN_HEIGHT, sizeZ, casingBlock);
+                        ResearchOrchestratorTopology topology = validateCandidate(level, controllerPos, minCorner, sizeX, MIN_HEIGHT, sizeZ, casingBlock);
                         if (topology.formed()) {
                             candidates.add(new Candidate(minCorner, topology));
                         }
@@ -51,18 +49,17 @@ public final class ResearchStationMultiblockValidator {
         }
 
         if (candidates.isEmpty()) {
-            return ResearchStationTopology.unformed();
+            return ResearchOrchestratorTopology.unformed();
         }
 
         candidates.sort(Comparator
-                .comparingInt((Candidate candidate) -> candidate.minCorner().getX())
-                .thenComparingInt(candidate -> candidate.minCorner().getY())
-                .thenComparingInt(candidate -> candidate.minCorner().getZ()));
-
+                .comparingInt((Candidate c) -> c.minCorner().getX())
+                .thenComparingInt(c -> c.minCorner().getY())
+                .thenComparingInt(c -> c.minCorner().getZ()));
         return candidates.get(0).topology();
     }
 
-    private static ResearchStationTopology validateCandidate(
+    private static ResearchOrchestratorTopology validateCandidate(
             Level level,
             BlockPos controllerPos,
             BlockPos minCorner,
@@ -74,15 +71,12 @@ public final class ResearchStationMultiblockValidator {
         List<BlockPos> connected = new ArrayList<>(sizeX * sizeY * sizeZ);
         List<BlockPos> inputs = new ArrayList<>();
         List<BlockPos> linkingPorts = new ArrayList<>();
-        List<BlockPos> wirelessLinks = new ArrayList<>();
         ResearchPowerFamily powerFamily = null;
         int powerInputTier = 0;
-        int controllerCount = 0;
         Block inputBlockType = null;
-        BlockPos logicHousingPos = null;
-        BlockPos researchDrivePos = null;
-        BlockPos materialStoragePos = null;
-        List<BlockPos> outputPortPositions = new ArrayList<>(2);
+        int controllerCount = 0;
+        BlockPos wirelessLinkPos = null;
+        BlockPos orchestrationDrivePos = null;
         BlockPos augmenterPos = null;
 
         for (int dx = 0; dx < sizeX; dx++) {
@@ -92,8 +86,8 @@ public final class ResearchStationMultiblockValidator {
                     BlockState state = level.getBlockState(pos);
 
                     if (pos.equals(controllerPos)) {
-                        if (!(state.getBlock() instanceof AbstractResearchControllerBlock)) {
-                            return ResearchStationTopology.unformed();
+                        if (!state.is(Registration.RESEARCH_ORCHESTRATOR_CONTROLLER_BLOCK.get())) {
+                            return ResearchOrchestratorTopology.unformed();
                         }
                         controllerCount++;
                     } else if (state.getBlock() instanceof ResearchPowerInputBlockProvider inputBlock) {
@@ -105,108 +99,70 @@ public final class ResearchStationMultiblockValidator {
                         } else if (state.getBlock() != inputBlockType
                                 || inputBlock.family() != powerFamily
                                 || inputBlock.powerTier() != powerInputTier) {
-                            return ResearchStationTopology.unformed();
+                            return ResearchOrchestratorTopology.unformed();
                         }
-                    } else if (state.getBlock() instanceof LogicHousingBlock) {
-                        if (logicHousingPos != null) {
-                            return ResearchStationTopology.unformed();
+                    } else if (state.is(Registration.LINKING_PORT_BLOCK.get())) {
+                        linkingPorts.add(pos.immutable());
+                    } else if (state.is(Registration.WIRELESS_LINK_BLOCK.get())) {
+                        if (wirelessLinkPos != null) {
+                            return ResearchOrchestratorTopology.unformed();
                         }
-                        logicHousingPos = pos.immutable();
-                    } else if (state.getBlock() instanceof ResearchDriveBlock) {
-                        if (researchDrivePos != null) {
-                            return ResearchStationTopology.unformed();
+                        wirelessLinkPos = pos.immutable();
+                    } else if (state.is(Registration.ORCHESTRATION_DRIVE_BLOCK.get())) {
+                        if (orchestrationDrivePos != null) {
+                            return ResearchOrchestratorTopology.unformed();
                         }
-                        researchDrivePos = pos.immutable();
-                    } else if (state.getBlock() instanceof MaterialStorageBlock) {
-                        if (materialStoragePos != null) {
-                            return ResearchStationTopology.unformed();
-                        }
-                        materialStoragePos = pos.immutable();
-                    } else if (state.getBlock() instanceof OutputPortBlock) {
-                        if (outputPortPositions.size() >= 2) {
-                            return ResearchStationTopology.unformed();
-                        }
-                        outputPortPositions.add(pos.immutable());
-                    } else if (state.getBlock() instanceof WirelessLinkBlock) {
-                        if (wirelessLinks.size() >= 1) {
-                            return ResearchStationTopology.unformed();
-                        }
-                        wirelessLinks.add(pos.immutable());
-                    } else if (state.getBlock() instanceof AugmenterBlock) {
+                        orchestrationDrivePos = pos.immutable();
+                    } else if (state.is(Registration.AUGMENTER_BLOCK.get())) {
                         if (augmenterPos != null) {
-                            return ResearchStationTopology.unformed();
+                            return ResearchOrchestratorTopology.unformed();
                         }
                         augmenterPos = pos.immutable();
-                    } else if (state.getBlock() instanceof LinkingPortBlock) {
-                        linkingPorts.add(pos.immutable());
                     } else if (state.getBlock() != casingBlock) {
-                        return ResearchStationTopology.unformed();
+                        return ResearchOrchestratorTopology.unformed();
                     }
-
                     connected.add(pos.immutable());
                 }
             }
         }
 
-        if (controllerCount != 1
-                || inputs.isEmpty()
-                || logicHousingPos == null
-                || researchDrivePos == null
-                || materialStoragePos == null) {
-            return ResearchStationTopology.unformed();
+        if (controllerCount != 1 || inputs.isEmpty() || orchestrationDrivePos == null || (linkingPorts.isEmpty() && wirelessLinkPos == null)) {
+            return ResearchOrchestratorTopology.unformed();
         }
-
         if (!isValidControllerPlacement(level.getBlockState(controllerPos), controllerPos, minCorner, sizeX, sizeY, sizeZ)) {
-            return ResearchStationTopology.unformed();
+            return ResearchOrchestratorTopology.unformed();
         }
-
-        if (sharesPartsWithAnotherStation(level, controllerPos, connected)) {
-            return ResearchStationTopology.unformed();
-        }
-
-        for (BlockPos inputPos : inputs) {
-            BlockState inputState = level.getBlockState(inputPos);
-            if (!(inputState.getBlock() instanceof ResearchPowerInputBlockProvider inputBlock)
-                    || inputState.getBlock() != inputBlockType
-                    || inputBlock.family() != powerFamily
-                    || inputBlock.powerTier() != powerInputTier) {
-                return ResearchStationTopology.unformed();
-            }
+        if (sharesPartsWithOtherMultiblocks(level, controllerPos, connected)) {
+            return ResearchOrchestratorTopology.unformed();
         }
 
         connected.sort(Comparator.comparingLong(BlockPos::asLong));
         inputs.sort(Comparator.comparingLong(BlockPos::asLong));
         linkingPorts.sort(Comparator.comparingLong(BlockPos::asLong));
-        wirelessLinks.sort(Comparator.comparingLong(BlockPos::asLong));
-        outputPortPositions.sort(Comparator.comparingLong(BlockPos::asLong));
-        return new ResearchStationTopology(
-                true,
-                connected,
-                inputs,
-                linkingPorts,
-                wirelessLinks,
-                logicHousingPos,
-                researchDrivePos,
-                materialStoragePos,
-                outputPortPositions,
-                augmenterPos,
-                powerFamily,
-                powerInputTier
-        );
+        return new ResearchOrchestratorTopology(true, connected, inputs, linkingPorts, wirelessLinkPos, orchestrationDrivePos, augmenterPos, powerFamily, powerInputTier);
     }
 
-    private static boolean sharesPartsWithAnotherStation(Level level, BlockPos controllerPos, List<BlockPos> connectedParts) {
+    private static boolean sharesPartsWithOtherMultiblocks(Level level, BlockPos controllerPos, List<BlockPos> connectedParts) {
         if (!(level instanceof ServerLevel serverLevel) || connectedParts.isEmpty()) {
             return false;
         }
-
-        Set<BlockPos> claimedParts = new HashSet<>(connectedParts);
-        for (ResearchControllerBlockEntity otherController : ResearchMultiblockStationRegistry.controllersForLevel(serverLevel)) {
-            if (otherController == null || otherController.getBlockPos().equals(controllerPos)) {
+        Set<BlockPos> claimed = new HashSet<>(connectedParts);
+        for (ResearchControllerBlockEntity station : ResearchMultiblockStationRegistry.controllersForLevel(serverLevel)) {
+            if (station == null || station.getBlockPos().equals(controllerPos)) {
                 continue;
             }
-            for (BlockPos otherPart : otherController.connectedParts()) {
-                if (claimedParts.contains(otherPart)) {
+            for (BlockPos pos : station.connectedParts()) {
+                if (claimed.contains(pos)) {
+                    return true;
+                }
+            }
+        }
+        for (ResearchOrchestratorControllerBlockEntity orchestrator : ResearchOrchestratorRegistry.orchestratorsForLevel(serverLevel)) {
+            if (orchestrator == null || orchestrator.getBlockPos().equals(controllerPos)) {
+                continue;
+            }
+            for (BlockPos pos : orchestrator.connectedParts()) {
+                if (claimed.contains(pos)) {
                     return true;
                 }
             }
@@ -214,19 +170,10 @@ public final class ResearchStationMultiblockValidator {
         return false;
     }
 
-    private static boolean isValidControllerPlacement(
-            BlockState controllerState,
-            BlockPos controllerPos,
-            BlockPos minCorner,
-            int sizeX,
-            int sizeY,
-            int sizeZ
-    ) {
-        if (!(controllerState.getBlock() instanceof AbstractResearchControllerBlock)
-                || !controllerState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+    private static boolean isValidControllerPlacement(BlockState controllerState, BlockPos controllerPos, BlockPos minCorner, int sizeX, int sizeY, int sizeZ) {
+        if (!controllerState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
             return false;
         }
-
         Direction facing = controllerState.getValue(BlockStateProperties.HORIZONTAL_FACING);
         int minX = minCorner.getX();
         int maxX = minX + sizeX - 1;
@@ -234,11 +181,9 @@ public final class ResearchStationMultiblockValidator {
         int maxY = minY + sizeY - 1;
         int minZ = minCorner.getZ();
         int maxZ = minZ + sizeZ - 1;
-
         if (controllerPos.getY() < minY || controllerPos.getY() > maxY) {
             return false;
         }
-
         if (sizeX == 3) {
             int centerX = minX + 1;
             if (controllerPos.getX() != centerX) {
@@ -252,7 +197,6 @@ public final class ResearchStationMultiblockValidator {
             }
             return false;
         }
-
         if (sizeZ == 3) {
             int centerZ = minZ + 1;
             if (controllerPos.getZ() != centerZ) {
@@ -266,10 +210,9 @@ public final class ResearchStationMultiblockValidator {
             }
             return false;
         }
-
         return false;
     }
 
-    private record Candidate(BlockPos minCorner, ResearchStationTopology topology) {
+    private record Candidate(BlockPos minCorner, ResearchOrchestratorTopology topology) {
     }
 }

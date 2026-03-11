@@ -15,12 +15,14 @@ import io.github.ozokuz.incore.features.researchv2.state.ResearchNetworkSavedDat
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueEntry;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.researchv2.state.TeamResearchState;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchOrchestrationService;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationDescriptor;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationRuntime;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationAugmentSummary;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationServices;
+import io.github.ozokuz.incore.features.researchv2.station.TeamResearchOrchestrationSnapshot;
 import io.github.ozokuz.incore.features.researchv2.station.network.StationNetworkService;
 import io.github.ozokuz.incore.features.researchv2.station.network.TeamStationNetworkSnapshot;
 import net.minecraft.core.BlockPos;
@@ -398,6 +400,7 @@ public final class ResearchManager {
     public static String snapshotJson(MinecraftServer server, String teamId) {
         TeamResearchState state = ensureTeamState(server, teamId);
         TeamStationNetworkSnapshot stationNetworkSnapshot = StationNetworkService.snapshot(server, teamId);
+        TeamResearchOrchestrationSnapshot orchestrationSnapshot = ResearchOrchestrationService.snapshot(server, teamId);
         int effectiveControllerTier = effectiveControllerTier(server, teamId, state);
         List<ResearchStationDescriptor> stations = ResearchMultiblockStationRegistry.stationsForTeam(server, teamId).stream()
                 .map(station -> {
@@ -416,6 +419,18 @@ public final class ResearchManager {
         root.addProperty("stationNetworkValid", stationNetworkSnapshot.stationNetworkValid());
         root.addProperty("stationNetworkStatus", stationNetworkSnapshot.stationNetworkStatus());
         root.addProperty("stationNetworkWarning", stationNetworkSnapshot.stationNetworkWarning());
+        root.addProperty("orchestratorRequired", orchestrationSnapshot.orchestratorRequired());
+        root.addProperty("orchestratorPresent", orchestrationSnapshot.orchestratorPresent());
+        root.addProperty("orchestratorValid", orchestrationSnapshot.orchestratorValid());
+        root.addProperty("orchestratorStatus", orchestrationSnapshot.orchestratorStatus());
+        root.addProperty("orchestratorWarning", orchestrationSnapshot.orchestratorWarning());
+        root.addProperty("orchestratorId", orchestrationSnapshot.orchestratorId());
+        root.addProperty("wirelessChannelId", orchestrationSnapshot.wirelessChannelId());
+        root.addProperty("orchestratorCableCapacityPerLink", orchestrationSnapshot.cableCapacityPerLink());
+        root.addProperty("orchestratorWirelessCapacity", orchestrationSnapshot.wirelessCapacity());
+        root.addProperty("orchestratorWirelessRange", orchestrationSnapshot.wirelessRange());
+        root.addProperty("orchestratorInfiniteWireless", orchestrationSnapshot.infiniteWireless());
+        root.addProperty("orchestratorInterdimensionalWireless", orchestrationSnapshot.interdimensionalWireless());
         root.addProperty("activeStationCount", stationNetworkSnapshot.activeStationCount());
         root.addProperty("linkedStationCount", stationNetworkSnapshot.linkedStationCount());
         root.addProperty("controllerTier", effectiveControllerTier);
@@ -455,6 +470,14 @@ public final class ResearchManager {
             JsonArray inputRows = new JsonArray();
             station.endpoints().inputs().forEach(pos -> inputRows.add(toJsonPos(pos)));
             endpoints.add("inputs", inputRows);
+
+            JsonArray linkingPortRows = new JsonArray();
+            station.endpoints().linkingPorts().forEach(pos -> linkingPortRows.add(toJsonPos(pos)));
+            endpoints.add("linkingPorts", linkingPortRows);
+
+            JsonArray wirelessLinkRows = new JsonArray();
+            station.endpoints().wirelessLinks().forEach(pos -> wirelessLinkRows.add(toJsonPos(pos)));
+            endpoints.add("wirelessLinks", wirelessLinkRows);
 
             JsonArray inventoryRows = new JsonArray();
             station.endpoints().inventories().forEach(pos -> inventoryRows.add(toJsonPos(pos)));
@@ -642,7 +665,8 @@ public final class ResearchManager {
     }
 
     private static boolean hasStationNetworkConflict(MinecraftServer server, String teamId) {
-        return StationNetworkService.snapshot(server, teamId).stationNetworkCount() > 1;
+        TeamStationNetworkSnapshot snapshot = StationNetworkService.snapshot(server, teamId);
+        return !snapshot.stationNetworkValid() || snapshot.stationNetworkCount() > 1;
     }
 
     private static boolean isBasicCategory(ResourceLocation categoryId) {

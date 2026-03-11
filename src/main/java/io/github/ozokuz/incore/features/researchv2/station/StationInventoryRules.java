@@ -17,6 +17,14 @@ public final class StationInventoryRules {
         return stack.getItem() instanceof ResearchDiskItem;
     }
 
+    public static boolean isOrchestrationDisk(ItemStack stack) {
+        return stack.getItem() instanceof OrchestrationDiskItem;
+    }
+
+    public static boolean isSignalTransmitter(ItemStack stack) {
+        return stack.getItem() instanceof SignalTransmitterItem;
+    }
+
     public static boolean isResearchMaterial(ItemStack stack) {
         if (stack.isEmpty()) {
             return false;

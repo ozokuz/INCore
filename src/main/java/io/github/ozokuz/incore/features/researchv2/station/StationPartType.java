@@ -3,7 +3,9 @@ package io.github.ozokuz.incore.features.researchv2.station;
 public enum StationPartType {
     LOGIC_HOUSING,
     RESEARCH_DRIVE,
+    ORCHESTRATION_DRIVE,
     MATERIAL_STORAGE,
     OUTPUT_PORT,
-    AUGMENTER
+    AUGMENTER,
+    WIRELESS_LINK
 }

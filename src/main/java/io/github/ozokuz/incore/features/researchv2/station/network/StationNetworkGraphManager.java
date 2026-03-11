@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.researchv2.station.network;
 
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.researchv2.station.LinkOwnerKind;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
 import net.minecraft.core.BlockPos;
@@ -209,7 +210,7 @@ public final class StationNetworkGraphManager {
         if (!(level.getBlockEntity(pos) instanceof io.github.ozokuz.incore.features.researchv2.station.LinkingPortBlockEntity port)) {
             return;
         }
-        port.setAttachment(attachment.stationId(), attachment.teamId());
+        port.setAttachment(LinkOwnerKind.STATION, attachment.stationId(), attachment.teamId());
     }
 
     private boolean isCable(BlockPos pos) {

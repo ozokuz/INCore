@@ -317,6 +317,7 @@ public class Registration {
     public static final DeferredBlock<Block> LOGIC_HOUSING_T3_BLOCK = BLOCKS.register("logic_housing_t3", () -> new LogicHousingBlock(3, BlockBehaviour.Properties.of()));
     public static final DeferredBlock<Block> LOGIC_HOUSING_T4_BLOCK = BLOCKS.register("logic_housing_t4", () -> new LogicHousingBlock(4, BlockBehaviour.Properties.of()));
     public static final DeferredBlock<Block> RESEARCH_DRIVE_BLOCK = BLOCKS.register("research_drive", () -> new ResearchDriveBlock());
+    public static final DeferredBlock<Block> ORCHESTRATION_DRIVE_BLOCK = BLOCKS.register("orchestration_drive", () -> new OrchestrationDriveBlock());
     public static final DeferredBlock<Block> MATERIAL_STORAGE_BLOCK = BLOCKS.register("material_storage", () -> new MaterialStorageBlock());
     public static final DeferredBlock<Block> MATERIAL_STORAGE_T2_BLOCK = BLOCKS.register("material_storage_t2", () -> new MaterialStorageBlock(2, BlockBehaviour.Properties.of()));
     public static final DeferredBlock<Block> MATERIAL_STORAGE_T3_BLOCK = BLOCKS.register("material_storage_t3", () -> new MaterialStorageBlock(3, BlockBehaviour.Properties.of()));
@@ -324,7 +325,9 @@ public class Registration {
     public static final DeferredBlock<Block> OUTPUT_PORT_BLOCK = BLOCKS.register("output_port", () -> new OutputPortBlock());
     public static final DeferredBlock<Block> AUGMENTER_BLOCK = BLOCKS.register("augmenter", () -> new AugmenterBlock());
     public static final DeferredBlock<Block> LINKING_PORT_BLOCK = BLOCKS.register("linking_port", () -> new LinkingPortBlock());
+    public static final DeferredBlock<Block> WIRELESS_LINK_BLOCK = BLOCKS.register("wireless_link", () -> new WirelessLinkBlock());
     public static final DeferredBlock<Block> RESEARCH_LINK_CABLE_BLOCK = BLOCKS.register("research_link_cable", () -> new ResearchLinkCableBlock());
+    public static final DeferredBlock<Block> RESEARCH_ORCHESTRATOR_CONTROLLER_BLOCK = BLOCKS.register("research_orchestrator_controller", () -> new ResearchOrchestratorControllerBlock());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T1_BLOCK = BLOCKS.register("research_controller_t1", () -> new ResearchControllerTier1Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T2_BLOCK = BLOCKS.register("research_controller_t2", () -> new ResearchControllerTier2Block());
     public static final DeferredBlock<Block> RESEARCH_CONTROLLER_T3_BLOCK = BLOCKS.register("research_controller_t3", () -> new ResearchControllerTier3Block());
@@ -372,6 +375,10 @@ public class Registration {
             "research_drive",
             () -> BlockEntityType.Builder.of(ResearchDriveBlockEntity::new, RESEARCH_DRIVE_BLOCK.get()).build(null)
     );
+    public static final Supplier<BlockEntityType<OrchestrationDriveBlockEntity>> ORCHESTRATION_DRIVE_BE = BLOCK_ENTITY_TYPES.register(
+            "orchestration_drive",
+            () -> BlockEntityType.Builder.of(OrchestrationDriveBlockEntity::new, ORCHESTRATION_DRIVE_BLOCK.get()).build(null)
+    );
     public static final Supplier<BlockEntityType<MaterialStorageBlockEntity>> MATERIAL_STORAGE_BE = BLOCK_ENTITY_TYPES.register(
             "material_storage",
             () -> BlockEntityType.Builder.of(
@@ -393,6 +400,14 @@ public class Registration {
     public static final Supplier<BlockEntityType<LinkingPortBlockEntity>> LINKING_PORT_BE = BLOCK_ENTITY_TYPES.register(
             "linking_port",
             () -> BlockEntityType.Builder.of(LinkingPortBlockEntity::new, LINKING_PORT_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<WirelessLinkBlockEntity>> WIRELESS_LINK_BE = BLOCK_ENTITY_TYPES.register(
+            "wireless_link",
+            () -> BlockEntityType.Builder.of(WirelessLinkBlockEntity::new, WIRELESS_LINK_BLOCK.get()).build(null)
+    );
+    public static final Supplier<BlockEntityType<ResearchOrchestratorControllerBlockEntity>> RESEARCH_ORCHESTRATOR_CONTROLLER_BE = BLOCK_ENTITY_TYPES.register(
+            "research_orchestrator_controller",
+            () -> BlockEntityType.Builder.of(ResearchOrchestratorControllerBlockEntity::new, RESEARCH_ORCHESTRATOR_CONTROLLER_BLOCK.get()).build(null)
     );
     public static final Supplier<BlockEntityType<MechanicalPowerInputBlockEntity>> MECHANICAL_POWER_INPUT_BE = BLOCK_ENTITY_TYPES.register(
             "mechanical_power_input",
@@ -424,6 +439,10 @@ public class Registration {
             "research_drive",
             () -> IMenuTypeExtension.create((id, inv, data) -> new ResearchDriveMenu(id, inv, (ResearchDriveBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
     );
+    public static final Supplier<MenuType<OrchestrationDriveMenu>> ORCHESTRATION_DRIVE_MENU = MENU_TYPES.register(
+            "orchestration_drive",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new OrchestrationDriveMenu(id, inv, (OrchestrationDriveBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
+    );
     public static final Supplier<MenuType<MaterialStorageMenu>> MATERIAL_STORAGE_MENU = MENU_TYPES.register(
             "material_storage",
             () -> IMenuTypeExtension.create((id, inv, data) -> new MaterialStorageMenu(id, inv, (MaterialStorageBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
@@ -436,9 +455,17 @@ public class Registration {
             "augmenter",
             () -> IMenuTypeExtension.create((id, inv, data) -> new AugmenterMenu(id, inv, (AugmenterBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
     );
+    public static final Supplier<MenuType<WirelessLinkMenu>> WIRELESS_LINK_MENU = MENU_TYPES.register(
+            "wireless_link",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new WirelessLinkMenu(id, inv, (WirelessLinkBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())))
+    );
     public static final Supplier<MenuType<ResearchControllerMenu>> RESEARCH_CONTROLLER_MENU = MENU_TYPES.register(
             "research_controller",
             () -> IMenuTypeExtension.create((id, inv, data) -> new ResearchControllerMenu(id, inv, data.readBlockPos()))
+    );
+    public static final Supplier<MenuType<ResearchOrchestratorControllerMenu>> RESEARCH_ORCHESTRATOR_CONTROLLER_MENU = MENU_TYPES.register(
+            "research_orchestrator_controller",
+            () -> IMenuTypeExtension.create((id, inv, data) -> new ResearchOrchestratorControllerMenu(id, inv, data.readBlockPos()))
     );
     public static final Supplier<MenuType<PowerInputMenu>> POWER_INPUT_MENU = MENU_TYPES.register(
             "power_input",
@@ -454,6 +481,7 @@ public class Registration {
     public static final DeferredItem<BlockItem> LOGIC_HOUSING_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("logic_housing_t3", LOGIC_HOUSING_T3_BLOCK);
     public static final DeferredItem<BlockItem> LOGIC_HOUSING_T4_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("logic_housing_t4", LOGIC_HOUSING_T4_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_DRIVE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_drive", RESEARCH_DRIVE_BLOCK);
+    public static final DeferredItem<BlockItem> ORCHESTRATION_DRIVE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("orchestration_drive", ORCHESTRATION_DRIVE_BLOCK);
     public static final DeferredItem<BlockItem> MATERIAL_STORAGE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("material_storage", MATERIAL_STORAGE_BLOCK);
     public static final DeferredItem<BlockItem> MATERIAL_STORAGE_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("material_storage_t2", MATERIAL_STORAGE_T2_BLOCK);
     public static final DeferredItem<BlockItem> MATERIAL_STORAGE_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("material_storage_t3", MATERIAL_STORAGE_T3_BLOCK);
@@ -461,7 +489,9 @@ public class Registration {
     public static final DeferredItem<BlockItem> OUTPUT_PORT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("output_port", OUTPUT_PORT_BLOCK);
     public static final DeferredItem<BlockItem> AUGMENTER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("augmenter", AUGMENTER_BLOCK);
     public static final DeferredItem<BlockItem> LINKING_PORT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("linking_port", LINKING_PORT_BLOCK);
+    public static final DeferredItem<BlockItem> WIRELESS_LINK_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("wireless_link", WIRELESS_LINK_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_LINK_CABLE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_link_cable", RESEARCH_LINK_CABLE_BLOCK);
+    public static final DeferredItem<BlockItem> RESEARCH_ORCHESTRATOR_CONTROLLER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_orchestrator_controller", RESEARCH_ORCHESTRATOR_CONTROLLER_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T1_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t1", RESEARCH_CONTROLLER_T1_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t2", RESEARCH_CONTROLLER_T2_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_CONTROLLER_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_controller_t3", RESEARCH_CONTROLLER_T3_BLOCK);
@@ -588,9 +618,16 @@ public class Registration {
     public static final DeferredItem<Item> RESEARCH_DISK_T2_ITEM = ITEMS.registerItem("research_disk_t2", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T2));
     public static final DeferredItem<Item> RESEARCH_DISK_T3_ITEM = ITEMS.registerItem("research_disk_t3", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T3));
     public static final DeferredItem<Item> RESEARCH_DISK_T4_ITEM = ITEMS.registerItem("research_disk_t4", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T4));
+    public static final DeferredItem<Item> ORCHESTRATION_DISK_ITEM = ITEMS.registerItem("orchestration_disk", OrchestrationDiskItem::new);
+    public static final DeferredItem<Item> SIGNAL_TRANSMITTER_ITEM = ITEMS.registerItem("signal_transmitter", SignalTransmitterItem::new);
     public static final DeferredItem<Item> SPEED_AUGMENT_ITEM = ITEMS.registerItem("speed_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPEED, false, null));
     public static final DeferredItem<Item> PRODUCTIVITY_AUGMENT_ITEM = ITEMS.registerItem("productivity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.PRODUCTIVITY, false, null));
     public static final DeferredItem<Item> STABILIZER_AUGMENT_ITEM = ITEMS.registerItem("stabilizer_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.STABILIZER, false, null));
+    public static final DeferredItem<Item> CABLE_CAPACITY_AUGMENT_ITEM = ITEMS.registerItem("cable_capacity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.CABLE_CAPACITY, false, null));
+    public static final DeferredItem<Item> WIRELESS_CAPACITY_AUGMENT_ITEM = ITEMS.registerItem("wireless_capacity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.WIRELESS_CAPACITY, false, null));
+    public static final DeferredItem<Item> WIRELESS_RANGE_AUGMENT_ITEM = ITEMS.registerItem("wireless_range_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.WIRELESS_RANGE, false, null));
+    public static final DeferredItem<Item> INFINITE_WIRELESS_AUGMENT_ITEM = ITEMS.registerItem("infinite_wireless_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.INFINITE_WIRELESS, false, null));
+    public static final DeferredItem<Item> INTERDIMENSIONAL_WIRELESS_AUGMENT_ITEM = ITEMS.registerItem("interdimensional_wireless_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.INTERDIMENSIONAL_WIRELESS, false, null));
     public static final DeferredItem<Item> DUNGEON_SPEED_AUGMENT_ITEM = ITEMS.registerItem("dungeon_speed_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPEED, true, null));
     public static final DeferredItem<Item> DUNGEON_PRODUCTIVITY_AUGMENT_ITEM = ITEMS.registerItem("dungeon_productivity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.PRODUCTIVITY, true, null));
     public static final DeferredItem<Item> DUNGEON_STABILIZER_AUGMENT_ITEM = ITEMS.registerItem("dungeon_stabilizer_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.STABILIZER, true, null));
@@ -703,6 +740,7 @@ public class Registration {
                 output.accept(LOGIC_HOUSING_T3_BLOCK_ITEM.get());
                 output.accept(LOGIC_HOUSING_T4_BLOCK_ITEM.get());
                 output.accept(RESEARCH_DRIVE_BLOCK_ITEM.get());
+                output.accept(ORCHESTRATION_DRIVE_BLOCK_ITEM.get());
                 output.accept(MATERIAL_STORAGE_BLOCK_ITEM.get());
                 output.accept(MATERIAL_STORAGE_T2_BLOCK_ITEM.get());
                 output.accept(MATERIAL_STORAGE_T3_BLOCK_ITEM.get());
@@ -710,7 +748,9 @@ public class Registration {
                 output.accept(OUTPUT_PORT_BLOCK_ITEM.get());
                 output.accept(AUGMENTER_BLOCK_ITEM.get());
                 output.accept(LINKING_PORT_BLOCK_ITEM.get());
+                output.accept(WIRELESS_LINK_BLOCK_ITEM.get());
                 output.accept(RESEARCH_LINK_CABLE_BLOCK_ITEM.get());
+                output.accept(RESEARCH_ORCHESTRATOR_CONTROLLER_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T1_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T2_BLOCK_ITEM.get());
                 output.accept(RESEARCH_CONTROLLER_T3_BLOCK_ITEM.get());
@@ -733,9 +773,16 @@ public class Registration {
                 output.accept(RESEARCH_DISK_T2_ITEM.get());
                 output.accept(RESEARCH_DISK_T3_ITEM.get());
                 output.accept(RESEARCH_DISK_T4_ITEM.get());
+                output.accept(ORCHESTRATION_DISK_ITEM.get());
+                output.accept(SIGNAL_TRANSMITTER_ITEM.get());
                 output.accept(SPEED_AUGMENT_ITEM.get());
                 output.accept(PRODUCTIVITY_AUGMENT_ITEM.get());
                 output.accept(STABILIZER_AUGMENT_ITEM.get());
+                output.accept(CABLE_CAPACITY_AUGMENT_ITEM.get());
+                output.accept(WIRELESS_CAPACITY_AUGMENT_ITEM.get());
+                output.accept(WIRELESS_RANGE_AUGMENT_ITEM.get());
+                output.accept(INFINITE_WIRELESS_AUGMENT_ITEM.get());
+                output.accept(INTERDIMENSIONAL_WIRELESS_AUGMENT_ITEM.get());
                 output.accept(DUNGEON_SPEED_AUGMENT_ITEM.get());
                 output.accept(DUNGEON_PRODUCTIVITY_AUGMENT_ITEM.get());
                 output.accept(DUNGEON_STABILIZER_AUGMENT_ITEM.get());

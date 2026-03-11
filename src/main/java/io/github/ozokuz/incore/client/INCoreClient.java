@@ -27,14 +27,17 @@ import io.github.ozokuz.incore.features.researchv2.client.PowerInputScreen;
 import io.github.ozokuz.incore.features.researchv2.client.AugmenterScreen;
 import io.github.ozokuz.incore.features.researchv2.client.LogicHousingScreen;
 import io.github.ozokuz.incore.features.researchv2.client.MaterialStorageScreen;
+import io.github.ozokuz.incore.features.researchv2.client.OrchestrationDriveScreen;
 import io.github.ozokuz.incore.features.researchv2.client.OutputPortScreen;
 import io.github.ozokuz.incore.features.researchv2.client.ResearchControllerScreen;
 import io.github.ozokuz.incore.features.researchv2.client.ResearchDriveScreen;
+import io.github.ozokuz.incore.features.researchv2.client.ResearchOrchestratorControllerScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.researchv2.client.ResearchV2TreeScreen;
+import io.github.ozokuz.incore.features.researchv2.client.WirelessLinkScreen;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import net.minecraft.client.Minecraft;
@@ -92,10 +95,13 @@ public class INCoreClient {
         event.register(Registration.CRUDE_RESEARCH_STATION_MENU.get(), CrudeResearchStationScreen::new);
         event.register(Registration.LOGIC_HOUSING_MENU.get(), LogicHousingScreen::new);
         event.register(Registration.RESEARCH_DRIVE_MENU.get(), ResearchDriveScreen::new);
+        event.register(Registration.ORCHESTRATION_DRIVE_MENU.get(), OrchestrationDriveScreen::new);
         event.register(Registration.MATERIAL_STORAGE_MENU.get(), MaterialStorageScreen::new);
         event.register(Registration.OUTPUT_PORT_MENU.get(), OutputPortScreen::new);
         event.register(Registration.AUGMENTER_MENU.get(), AugmenterScreen::new);
+        event.register(Registration.WIRELESS_LINK_MENU.get(), WirelessLinkScreen::new);
         event.register(Registration.RESEARCH_CONTROLLER_MENU.get(), ResearchControllerScreen::new);
+        event.register(Registration.RESEARCH_ORCHESTRATOR_CONTROLLER_MENU.get(), ResearchOrchestratorControllerScreen::new);
         event.register(Registration.POWER_INPUT_MENU.get(), PowerInputScreen::new);
     }
 

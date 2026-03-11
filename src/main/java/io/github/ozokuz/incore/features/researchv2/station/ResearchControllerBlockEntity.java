@@ -31,6 +31,8 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
     private String stationId = "";
     private List<BlockPos> connectedParts = List.of();
     private List<BlockPos> powerInputPositions = List.of();
+    private List<BlockPos> linkingPortPositions = List.of();
+    private List<BlockPos> wirelessLinkPositions = List.of();
     private BlockPos logicHousingPos;
     private BlockPos researchDrivePos;
     private BlockPos materialStoragePos;
@@ -192,6 +194,14 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         return powerInputPositions;
     }
 
+    public List<BlockPos> linkingPortPositions() {
+        return linkingPortPositions;
+    }
+
+    public List<BlockPos> wirelessLinkPositions() {
+        return wirelessLinkPositions;
+    }
+
     public ResearchPowerFamily powerFamily() {
         return powerFamily;
     }
@@ -244,6 +254,8 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         String nextStationId = nextFormed ? buildStationId(level.dimension().location(), worldPosition) : "";
         List<BlockPos> nextConnectedParts = nextFormed ? normalizeConnectedParts(result.connectedParts()) : List.of();
         List<BlockPos> nextPowerInputPositions = nextFormed ? normalizeConnectedParts(result.inputPositions()) : List.of();
+        List<BlockPos> nextLinkingPortPositions = nextFormed ? normalizeConnectedParts(result.linkingPortPositions()) : List.of();
+        List<BlockPos> nextWirelessLinkPositions = nextFormed ? normalizeConnectedParts(result.wirelessLinkPositions()) : List.of();
         BlockPos nextLogicHousingPos = nextFormed ? immutablePos(result.logicHousingPos()) : null;
         BlockPos nextResearchDrivePos = nextFormed ? immutablePos(result.researchDrivePos()) : null;
         BlockPos nextMaterialStoragePos = nextFormed ? immutablePos(result.materialStoragePos()) : null;
@@ -256,6 +268,8 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 || !stationId.equals(nextStationId)
                 || !connectedParts.equals(nextConnectedParts)
                 || !powerInputPositions.equals(nextPowerInputPositions)
+                || !linkingPortPositions.equals(nextLinkingPortPositions)
+                || !wirelessLinkPositions.equals(nextWirelessLinkPositions)
                 || !java.util.Objects.equals(logicHousingPos, nextLogicHousingPos)
                 || !java.util.Objects.equals(researchDrivePos, nextResearchDrivePos)
                 || !java.util.Objects.equals(materialStoragePos, nextMaterialStoragePos)
@@ -269,6 +283,8 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         stationId = nextStationId;
         connectedParts = nextConnectedParts;
         powerInputPositions = nextPowerInputPositions;
+        linkingPortPositions = nextLinkingPortPositions;
+        wirelessLinkPositions = nextWirelessLinkPositions;
         logicHousingPos = nextLogicHousingPos;
         researchDrivePos = nextResearchDrivePos;
         materialStoragePos = nextMaterialStoragePos;
@@ -311,6 +327,8 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 .toList();
         ResearchStationEndpoints endpoints = new ResearchStationEndpoints(
                 powerInputPositions,
+                linkingPortPositions,
+                wirelessLinkPositions,
                 inventories,
                 logicHousingPos,
                 researchDrivePos,
@@ -416,6 +434,8 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
             loadedInputs.add(BlockPos.of(packed));
         }
         powerInputPositions = normalizeConnectedParts(loadedInputs);
+        linkingPortPositions = readPositions(tag, "linkingPortPositions");
+        wirelessLinkPositions = readPositions(tag, "wirelessLinkPositions");
         logicHousingPos = readPos(tag, "logicHousingPos");
         researchDrivePos = readPos(tag, "researchDrivePos");
         materialStoragePos = readPos(tag, "materialStoragePos");
@@ -451,6 +471,8 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         if (packedInputs.length > 0) {
             tag.putLongArray("powerInputs", packedInputs);
         }
+        writePositions(tag, "linkingPortPositions", linkingPortPositions);
+        writePositions(tag, "wirelessLinkPositions", wirelessLinkPositions);
         writePos(tag, "logicHousingPos", logicHousingPos);
         writePos(tag, "researchDrivePos", researchDrivePos);
         writePos(tag, "materialStoragePos", materialStoragePos);
@@ -485,10 +507,16 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         partPositions.add(researchDrivePos);
         partPositions.add(materialStoragePos);
         partPositions.addAll(outputPortPositions);
+        partPositions.addAll(wirelessLinkPositions);
         partPositions.add(augmenterPos);
         for (BlockPos pos : partPositions.stream().filter(java.util.Objects::nonNull).toList()) {
             if (pos != null && level.getBlockEntity(pos) instanceof AbstractResearchStationPartBlockEntity part) {
                 part.clearBinding();
+            }
+        }
+        for (BlockPos pos : linkingPortPositions) {
+            if (level.getBlockEntity(pos) instanceof LinkingPortBlockEntity port) {
+                port.clearAttachment();
             }
         }
     }
@@ -502,10 +530,16 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         partPositions.add(researchDrivePos);
         partPositions.add(materialStoragePos);
         partPositions.addAll(outputPortPositions);
+        partPositions.addAll(wirelessLinkPositions);
         partPositions.add(augmenterPos);
         for (BlockPos pos : partPositions.stream().filter(java.util.Objects::nonNull).toList()) {
             if (pos != null && level.getBlockEntity(pos) instanceof AbstractResearchStationPartBlockEntity part) {
                 part.bindToController(this);
+            }
+        }
+        for (BlockPos pos : linkingPortPositions) {
+            if (level.getBlockEntity(pos) instanceof LinkingPortBlockEntity port) {
+                port.setAttachment(LinkOwnerKind.STATION, stationId, teamId);
             }
         }
     }
