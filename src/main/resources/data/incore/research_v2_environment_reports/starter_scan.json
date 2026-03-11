@@ -1,0 +1,10 @@
+{
+  "id": "incore:starter_scan",
+  "display_name": "Starter Scan Report",
+  "dimension": "minecraft:overworld",
+  "min_y": -64,
+  "max_y": 320,
+  "node_ids": [
+    "incore:signal_calibration"
+  ]
+}

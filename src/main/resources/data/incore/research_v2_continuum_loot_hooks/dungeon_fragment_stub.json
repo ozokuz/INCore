@@ -1,0 +1,12 @@
+{
+  "id": "incore:dungeon_fragment_stub",
+  "loot_tables": [
+    "incore:gameplay/dungeon_completion_crate"
+  ],
+  "reports": [
+    {
+      "report_id": "incore:ancient_signal_fragment",
+      "weight": 1
+    }
+  ]
+}

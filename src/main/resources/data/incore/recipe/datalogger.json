@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CRC",
+    "RPR",
+    "CRC"
+  ],
+  "key": {
+    "C": {
+      "item": "incore:research_station_casing"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "id": "incore:datalogger",
+    "count": 1
+  }
+}

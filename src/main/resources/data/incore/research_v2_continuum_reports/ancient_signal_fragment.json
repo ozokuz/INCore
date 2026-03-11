@@ -1,0 +1,7 @@
+{
+  "id": "incore:ancient_signal_fragment",
+  "display_name": "Ancient Signal Fragment",
+  "node_ids": [
+    "incore:continuum_signal_theory"
+  ]
+}

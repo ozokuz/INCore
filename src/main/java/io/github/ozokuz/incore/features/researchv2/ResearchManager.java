@@ -625,6 +625,13 @@ public final class ResearchManager {
             return state;
         }
 
+        ResourceLocation defaultNetwork = ResourceLocation.fromNamespaceAndPath("incore", "default_network");
+        if (ResearchRegistry.networks().containsKey(defaultNetwork)) {
+            state.setActiveNetworkId(defaultNetwork);
+            data.setDirty();
+            return state;
+        }
+
         if (ResearchRegistry.networks().size() == 1) {
             ResourceLocation single = ResearchRegistry.networks().keySet().iterator().next();
             if (!Objects.equals(single, current)) {
