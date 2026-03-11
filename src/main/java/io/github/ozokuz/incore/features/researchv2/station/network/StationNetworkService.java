@@ -5,7 +5,6 @@ import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlo
 import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchOrchestrationService;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchStationRuntime;
-import io.github.ozokuz.incore.features.researchv2.station.TeamCableComponent;
 import io.github.ozokuz.incore.features.researchv2.station.TeamResearchOrchestrationSnapshot;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -80,7 +79,7 @@ public final class StationNetworkService {
         TeamResearchOrchestrationSnapshot orchestrationSnapshot = ResearchOrchestrationService.snapshot(server, teamId);
         if (orchestrationSnapshot.orchestratorValid()) {
             Set<String> orchestratedStationIds = new LinkedHashSet<>(orchestrationSnapshot.validWirelessStationIds());
-            for (TeamCableComponent component : ResearchOrchestrationService.collectCableComponents(server, teamId)) {
+            for (CableTopologyComponent component : ResearchOrchestrationService.collectCableComponents(server, teamId)) {
                 if (component.orchestratorIds().contains(orchestrationSnapshot.orchestratorId())) {
                     orchestratedStationIds.addAll(component.stationIds());
                 }
