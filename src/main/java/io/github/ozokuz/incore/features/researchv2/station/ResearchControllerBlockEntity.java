@@ -278,21 +278,23 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 || powerFamily != nextPowerFamily
                 || powerInputTier != nextPowerInputTier;
 
-        clearPartBindings();
-        formed = nextFormed;
-        stationId = nextStationId;
-        connectedParts = nextConnectedParts;
-        powerInputPositions = nextPowerInputPositions;
-        linkingPortPositions = nextLinkingPortPositions;
-        wirelessLinkPositions = nextWirelessLinkPositions;
-        logicHousingPos = nextLogicHousingPos;
-        researchDrivePos = nextResearchDrivePos;
-        materialStoragePos = nextMaterialStoragePos;
-        outputPortPositions = nextOutputPortPositions;
-        augmenterPos = nextAugmenterPos;
-        powerFamily = nextPowerFamily;
-        powerInputTier = nextPowerInputTier;
-        bindPartBindings();
+        if (changed) {
+            clearPartBindings();
+            formed = nextFormed;
+            stationId = nextStationId;
+            connectedParts = nextConnectedParts;
+            powerInputPositions = nextPowerInputPositions;
+            linkingPortPositions = nextLinkingPortPositions;
+            wirelessLinkPositions = nextWirelessLinkPositions;
+            logicHousingPos = nextLogicHousingPos;
+            researchDrivePos = nextResearchDrivePos;
+            materialStoragePos = nextMaterialStoragePos;
+            outputPortPositions = nextOutputPortPositions;
+            augmenterPos = nextAugmenterPos;
+            powerFamily = nextPowerFamily;
+            powerInputTier = nextPowerInputTier;
+            bindPartBindings();
+        }
 
         if (changed) {
             setChanged();
