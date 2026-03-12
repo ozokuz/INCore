@@ -4,6 +4,8 @@ import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.researchv2.station.LinkOwnerKind;
 import io.github.ozokuz.incore.features.researchv2.station.LinkingPortBlockEntity;
 import io.github.ozokuz.incore.features.researchv2.station.ResearchLinkCableBlock;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchControllerBlockEntity;
+import io.github.ozokuz.incore.features.researchv2.station.ResearchMultiblockStationRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -24,15 +26,7 @@ public final class CableTopologyScanner {
     }
 
     public static Map<String, List<CableTopologyComponent>> scanByTeam(ServerLevel level) {
-        Map<String, Map<BlockPos, LinkingPortBlockEntity>> portsByTeam = new LinkedHashMap<>();
-        for (LinkingPortBlockEntity port : LinkingPortRegistry.portsForLevel(level)) {
-            String teamId = port.attachedTeamId();
-            if (teamId == null || teamId.isBlank()) {
-                continue;
-            }
-            portsByTeam.computeIfAbsent(teamId, ignored -> new LinkedHashMap<>())
-                    .put(port.getBlockPos().immutable(), port);
-        }
+        Map<String, Map<BlockPos, LinkingPortBlockEntity>> portsByTeam = collectPortsByTeam(level);
 
         Map<String, List<CableTopologyComponent>> result = new LinkedHashMap<>();
         portsByTeam.forEach((teamId, teamPorts) -> result.put(teamId, scanTeam(level, teamId, teamPorts)));
@@ -43,12 +37,7 @@ public final class CableTopologyScanner {
         if (level == null || teamId == null || teamId.isBlank()) {
             return List.of();
         }
-        Map<BlockPos, LinkingPortBlockEntity> teamPorts = new LinkedHashMap<>();
-        for (LinkingPortBlockEntity port : LinkingPortRegistry.portsForLevel(level)) {
-            if (teamId.equals(port.attachedTeamId())) {
-                teamPorts.put(port.getBlockPos().immutable(), port);
-            }
-        }
+        Map<BlockPos, LinkingPortBlockEntity> teamPorts = collectPortsByTeam(level).getOrDefault(teamId, Map.of());
         return scanTeam(level, teamId, teamPorts);
     }
 
@@ -110,7 +99,41 @@ public final class CableTopologyScanner {
             }
             portsByStationId.computeIfAbsent(port.ownerId(), ignored -> new LinkedHashSet<>()).add(port.getBlockPos().immutable());
         }
+        for (ResearchControllerBlockEntity controller : ResearchMultiblockStationRegistry.controllersForLevel(level)) {
+            if (!controller.isFormed() || controller.stationId().isBlank()) {
+                continue;
+            }
+            for (BlockPos portPos : controller.linkingPortPositions()) {
+                if (level.getBlockEntity(portPos) instanceof LinkingPortBlockEntity) {
+                    portsByStationId.computeIfAbsent(controller.stationId(), ignored -> new LinkedHashSet<>()).add(portPos.immutable());
+                }
+            }
+        }
         return Map.copyOf(portsByStationId);
+    }
+
+    private static Map<String, Map<BlockPos, LinkingPortBlockEntity>> collectPortsByTeam(ServerLevel level) {
+        Map<String, Map<BlockPos, LinkingPortBlockEntity>> portsByTeam = new LinkedHashMap<>();
+        for (LinkingPortBlockEntity port : LinkingPortRegistry.portsForLevel(level)) {
+            String teamId = port.attachedTeamId();
+            if (teamId == null || teamId.isBlank()) {
+                continue;
+            }
+            portsByTeam.computeIfAbsent(teamId, ignored -> new LinkedHashMap<>())
+                    .put(port.getBlockPos().immutable(), port);
+        }
+        for (ResearchControllerBlockEntity controller : ResearchMultiblockStationRegistry.controllersForLevel(level)) {
+            if (!controller.isFormed() || controller.teamId().isBlank()) {
+                continue;
+            }
+            Map<BlockPos, LinkingPortBlockEntity> teamPorts = portsByTeam.computeIfAbsent(controller.teamId(), ignored -> new LinkedHashMap<>());
+            for (BlockPos portPos : controller.linkingPortPositions()) {
+                if (level.getBlockEntity(portPos) instanceof LinkingPortBlockEntity port) {
+                    teamPorts.putIfAbsent(portPos.immutable(), port);
+                }
+            }
+        }
+        return Map.copyOf(portsByTeam);
     }
 
     private static boolean canTraverse(ServerLevel level, BlockPos current, BlockPos neighbor, Direction direction, Map<BlockPos, LinkingPortBlockEntity> teamPorts) {

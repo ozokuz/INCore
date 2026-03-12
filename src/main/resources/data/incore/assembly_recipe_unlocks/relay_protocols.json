@@ -1,0 +1,6 @@
+{
+  "requiredResearchNodeId": "incore:relay_protocols",
+  "recipes": [
+    "incore:assembly_signal_router"
+  ]
+}

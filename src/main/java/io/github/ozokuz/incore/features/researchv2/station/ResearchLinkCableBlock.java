@@ -155,6 +155,10 @@ public class ResearchLinkCableBlock extends Block {
     protected void onPlace(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (!level.isClientSide && !state.is(oldState.getBlock())) {
+            BlockState updatedState = updateConnections(state, level, pos);
+            if (!updatedState.equals(state)) {
+                level.setBlock(pos, updatedState, Block.UPDATE_ALL);
+            }
             StationNetworkService.onTopologyChanged(level);
         }
     }

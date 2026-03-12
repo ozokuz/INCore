@@ -293,5 +293,49 @@ public class Config {
             .comment("Market autotrader purchase interval in ticks.")
             .defineInRange("marketAutotraderIntervalTicks", 40, 1, Integer.MAX_VALUE);
 
+    static {
+        BUILDER.push("assembly");
+    }
+
+    public static final ModConfigSpec.BooleanValue ASSEMBLY_DEBUG_LOGGING = BUILDER
+            .comment("Whether auto assemblers periodically log observed failure and leftover rates.")
+            .define("assemblyDebugLogging", false);
+
+    public static final ModConfigSpec.IntValue AUTO_ASSEMBLER_T1_MIN_RPM = BUILDER
+            .comment("Minimum RPM required for the T1 auto assembler.")
+            .defineInRange("autoAssemblerT1MinRpm", 64, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue AUTO_ASSEMBLER_T1_STRESS_IMPACT = BUILDER
+            .comment("Stress impact for the T1 auto assembler.")
+            .defineInRange("autoAssemblerT1StressImpact", 1024, 0, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue AUTO_ASSEMBLER_T2_ENERGY_CAPACITY = BUILDER
+            .comment("Internal FE buffer for the T2 auto assembler.")
+            .defineInRange("autoAssemblerT2EnergyCapacity", 65536, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue AUTO_ASSEMBLER_T2_MAX_RECEIVE = BUILDER
+            .comment("Maximum FE input rate for the T2 auto assembler.")
+            .defineInRange("autoAssemblerT2MaxReceive", 1024, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue AUTO_ASSEMBLER_T2_FE_PER_TICK = BUILDER
+            .comment("FE consumed per tick by the T2 auto assembler while crafting.")
+            .defineInRange("autoAssemblerT2FePerTick", 80, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue AUTO_ASSEMBLER_T3_ENERGY_CAPACITY = BUILDER
+            .comment("Internal FE buffer for the T3 auto assembler.")
+            .defineInRange("autoAssemblerT3EnergyCapacity", 131072, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue AUTO_ASSEMBLER_T3_MAX_RECEIVE = BUILDER
+            .comment("Maximum FE input rate for the T3 auto assembler.")
+            .defineInRange("autoAssemblerT3MaxReceive", 2048, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue AUTO_ASSEMBLER_T3_FE_PER_TICK = BUILDER
+            .comment("FE consumed per tick by the T3 auto assembler while crafting.")
+            .defineInRange("autoAssemblerT3FePerTick", 120, 1, Integer.MAX_VALUE);
+
+    static {
+        BUILDER.pop();
+    }
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }

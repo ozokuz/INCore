@@ -3,6 +3,10 @@ package io.github.ozokuz.incore;
 import appeng.api.AECapabilities;
 import io.github.ozokuz.incore.data.ICBlockStateProvider;
 import io.github.ozokuz.incore.data.ICItemModelProvider;
+import io.github.ozokuz.incore.features.assembly.content.AutoAssemblerT2BlockEntity;
+import io.github.ozokuz.incore.features.assembly.content.AutoAssemblerT3BlockEntity;
+import io.github.ozokuz.incore.features.assembly.network.AssemblyNetworking;
+import io.github.ozokuz.incore.features.assembly.unlock.AssemblyRecipeUnlockManager;
 import io.github.ozokuz.incore.features.arena.data.ArenaCatalogManager;
 import io.github.ozokuz.incore.features.arena.network.ArenaNetworking;
 import io.github.ozokuz.incore.features.encounter_spawner.EncounterManager;
@@ -109,6 +113,7 @@ public class INCore {
         modEventBus.addListener(TaskNetworking::registerPayloads);
         modEventBus.addListener(BattlePassNetworking::registerPayloads);
         modEventBus.addListener(ResearchV2Networking::registerPayloads);
+        modEventBus.addListener(AssemblyNetworking::registerPayloads);
         modEventBus.addListener(ArenaNetworking::registerPayloads);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(CardNetworking::registerPayloads);
@@ -156,6 +161,7 @@ public class INCore {
             BlockStressValues.IMPACTS.register(Registration.SHIPMENT_TERMINAL_BLOCK.get(), () -> 1024.0D);
             BlockStressValues.IMPACTS.register(Registration.MARKET_AUTOTRADER_BLOCK.get(), () -> 1024.0D);
             BlockStressValues.IMPACTS.register(Registration.MECHANICAL_POWER_INPUT_BLOCK.get(), () -> Config.MECHANICAL_INPUT_STRESS_IMPACT.get().doubleValue());
+            BlockStressValues.IMPACTS.register(Registration.AUTO_ASSEMBLER_T1_BLOCK.get(), () -> Config.AUTO_ASSEMBLER_T1_STRESS_IMPACT.get().doubleValue());
         });
     }
 
@@ -213,6 +219,36 @@ public class INCore {
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
+                Registration.ASSEMBLY_STATION_BE.get(),
+                (blockEntity, side) -> blockEntity.itemHandler()
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.AUTO_ASSEMBLER_T1_BE.get(),
+                (blockEntity, side) -> blockEntity.automationView(side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.AUTO_ASSEMBLER_T2_BE.get(),
+                (blockEntity, side) -> blockEntity.automationView(side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                Registration.AUTO_ASSEMBLER_T3_BE.get(),
+                (blockEntity, side) -> blockEntity.automationView(side)
+        );
+        event.registerBlockEntity(
+                Capabilities.EnergyStorage.BLOCK,
+                Registration.AUTO_ASSEMBLER_T2_BE.get(),
+                AutoAssemblerT2BlockEntity::energyStorage
+        );
+        event.registerBlockEntity(
+                Capabilities.EnergyStorage.BLOCK,
+                Registration.AUTO_ASSEMBLER_T3_BE.get(),
+                AutoAssemblerT3BlockEntity::energyStorage
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
                 Registration.DUNGEON_ALTAR_AUTOMATOR_BE.get(),
                 (be, side) -> be.itemHandler()
         );
@@ -249,6 +285,7 @@ public class INCore {
         event.addListener(new BattlePassManager());
         event.addListener(new ResearchRegistry());
         event.addListener(new ResearchMaterialManager());
+        event.addListener(new AssemblyRecipeUnlockManager());
         event.addListener(new FieldResearchRegistry());
         event.addListener(new EnvironmentReportRegistry());
         event.addListener(new ContinuumReportRegistry());
