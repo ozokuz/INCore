@@ -99,6 +99,9 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         this.teamId = normalized;
         if (level != null && !level.isClientSide) {
             ResearchMultiblockStationRegistry.register(this);
+            if (formed) {
+                bindPartBindings();
+            }
             StationNetworkService.onTopologyChanged(level);
         }
         setChanged();

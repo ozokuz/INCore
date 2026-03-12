@@ -1,6 +1,7 @@
 package io.github.ozokuz.incore.features.researchv2;
 
 import io.github.ozokuz.incore.INCore;
+import io.github.ozokuz.incore.features.assembly.network.AssemblyNetworking;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.researchv2.state.ResearchNetworkSavedData;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,6 +18,7 @@ public class ResearchV2Events {
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             ResearchV2Networking.syncToPlayer(player);
+            AssemblyNetworking.syncToPlayer(player);
         }
     }
 
@@ -27,6 +29,7 @@ public class ResearchV2Events {
         for (String teamId : teamIds) {
             if (ResearchManager.tickResearch(event.getServer(), teamId)) {
                 ResearchV2Networking.syncTeam(event.getServer(), teamId);
+                AssemblyNetworking.syncTeam(event.getServer(), teamId);
             }
         }
     }

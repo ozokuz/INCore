@@ -1,0 +1,6 @@
+{
+  "requiredResearchNodeId": "incore:signal_calibration",
+  "recipes": [
+    "incore:assembly_field_sensor"
+  ]
+}
