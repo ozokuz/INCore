@@ -3,17 +3,15 @@ package io.github.ozokuz.incore.client.features.research;
 import io.github.ozokuz.incore.features.research.discovery.ResearchSampleFabricatorMenu;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -34,14 +32,23 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
     private static final int PROGRESS_X = 34;
     private static final int PROGRESS_Y = 104;
     private static final int PROGRESS_W = 128;
+    private static final int ACCENT_COLOR = 0xFF7A9FD8;
+    private static final int SLOT_OUTER = 0xFF2D2621;
+    private static final int SLOT_INNER = 0xFF1F1915;
+    private static final int SLOT_HIGHLIGHT = 0xFFBDA17E;
+    private static final int ROW_FILL = 0x18212B38;
+    private static final int ROW_FILL_HOVER = 0x22314255;
+    private static final int ROW_FILL_SELECTED = 0x44314962;
+    private static final int ROW_BORDER = 0x55324153;
+    private static final int ROW_BORDER_HOVER = 0x66648DB6;
+    private static final int ROW_BORDER_SELECTED = 0xAA7A9FD8;
 
     private int scroll;
     private @Nullable String selectedNodeId;
     private @Nullable EditBox searchBox;
-    private Button fabricateButton;
-    private Button scrollUpButton;
-    private Button scrollDownButton;
-    private final List<Button> rowButtons = new ArrayList<>();
+    private ResearchActionButton fabricateButton;
+    private ResearchActionButton scrollUpButton;
+    private ResearchActionButton scrollDownButton;
 
     public ResearchSampleFabricatorScreen(ResearchSampleFabricatorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -53,19 +60,24 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
     @Override
     protected void init() {
         super.init();
-        rowButtons.clear();
         ResearchNetworking.requestSnapshot();
 
-        searchBox = addRenderableWidget(new EditBox(font, leftPos + SEARCH_X, topPos + SEARCH_Y, SEARCH_W, SEARCH_H, Component.translatable("screen.incore.research_sample_fabricator.search")));
+        searchBox = addRenderableWidget(new EditBox(font, leftPos + SEARCH_X + 3, topPos + SEARCH_Y + 2, SEARCH_W - 6, SEARCH_H - 4, Component.translatable("screen.incore.research_sample_fabricator.search")));
         searchBox.setBordered(false);
         searchBox.setMaxLength(64);
+        searchBox.setTextColor(ResearchScreenRenderer.primaryText());
         searchBox.setResponder(value -> {
             scroll = 0;
             refreshVisibleRows();
         });
 
-        fabricateButton = addRenderableWidget(Button.builder(
+        fabricateButton = addRenderableWidget(new ResearchActionButton(
+                leftPos + 140,
+                topPos + 66,
+                50,
+                20,
                 Component.translatable("screen.incore.research_sample_fabricator.fabricate"),
+                ACCENT_COLOR,
                 button -> {
                     if (selectedNodeId == null) {
                         return;
@@ -75,25 +87,26 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
                         ResearchNetworking.fabricateResearchSample(menu.blockPos(), nodeId);
                     }
                 }
-        ).bounds(leftPos + 140, topPos + 66, 50, 20).build());
+        ));
 
-        scrollUpButton = addRenderableWidget(Button.builder(
+        scrollUpButton = addRenderableWidget(new ResearchActionButton(
+                leftPos + SCROLL_X,
+                topPos + LIST_Y,
+                10,
+                10,
                 Component.literal("^"),
+                ACCENT_COLOR,
                 button -> scrollBy(-1)
-        ).bounds(leftPos + SCROLL_X, topPos + LIST_Y, 10, 10).build());
-        scrollDownButton = addRenderableWidget(Button.builder(
+        ));
+        scrollDownButton = addRenderableWidget(new ResearchActionButton(
+                leftPos + SCROLL_X,
+                topPos + LIST_Y + LIST_H - 10,
+                10,
+                10,
                 Component.literal("v"),
+                ACCENT_COLOR,
                 button -> scrollBy(1)
-        ).bounds(leftPos + SCROLL_X, topPos + LIST_Y + LIST_H - 10, 10, 10).build());
-
-        int rowsVisible = rowsVisible();
-        for (int row = 0; row < rowsVisible; row++) {
-            final int rowIndex = row;
-            rowButtons.add(addRenderableWidget(Button.builder(
-                    CommonComponents.EMPTY,
-                    button -> selectRow(rowIndex)
-            ).bounds(leftPos + LIST_X + 2, topPos + LIST_Y + (row * ROW_H) + 1, LIST_W - 4, ROW_H - 2).build()));
-        }
+        ));
 
         refreshVisibleRows();
     }
@@ -114,6 +127,15 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
             setFocused(searchBox);
             return true;
         }
+
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !menu.isProcessing()) {
+            int row = rowAt(mouseX, mouseY);
+            if (row >= 0) {
+                selectRow(row);
+                return true;
+            }
+        }
+
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -152,72 +174,77 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF141110);
-        guiGraphics.fill(leftPos + 1, topPos + 1, leftPos + imageWidth - 1, topPos + imageHeight - 1, 0xFF1D1816);
-        guiGraphics.fill(leftPos + 1, topPos + 1, leftPos + imageWidth - 1, topPos + 3, 0xFF7A9FD8);
+        int x = leftPos;
+        int y = topPos;
 
-        guiGraphics.fill(leftPos + SEARCH_X, topPos + SEARCH_Y, leftPos + SEARCH_X + SEARCH_W, topPos + SEARCH_Y + SEARCH_H, 0xFF10151B);
-        guiGraphics.fill(leftPos + SEARCH_X, topPos + SEARCH_Y, leftPos + SEARCH_X + SEARCH_W, topPos + SEARCH_Y + 1, 0xFF7A9FD8);
-        guiGraphics.fill(leftPos + LIST_X, topPos + LIST_Y, leftPos + LIST_X + LIST_W, topPos + LIST_Y + LIST_H, 0xFF151A21);
-        guiGraphics.fill(leftPos + LIST_X, topPos + LIST_Y, leftPos + LIST_X + LIST_W, topPos + LIST_Y + 1, 0xFF7A9FD8);
-        guiGraphics.fill(leftPos + SCROLL_X, topPos + LIST_Y + 12, leftPos + SCROLL_X + 10, topPos + LIST_Y + LIST_H - 12, 0xFF202833);
-        guiGraphics.fill(leftPos + 7, topPos + 36, leftPos + 25, topPos + 54, 0xFF2D2621);
-        guiGraphics.fill(leftPos + 7, topPos + 36, leftPos + 25, topPos + 37, 0xFFBDA17E);
-        guiGraphics.fill(leftPos + 141, topPos + 36, leftPos + 159, topPos + 54, 0xFF2D2621);
-        guiGraphics.fill(leftPos + 141, topPos + 36, leftPos + 159, topPos + 37, 0xFFBDA17E);
-        guiGraphics.fill(leftPos + PROGRESS_X, topPos + PROGRESS_Y, leftPos + PROGRESS_X + PROGRESS_W, topPos + PROGRESS_Y + 6, 0xFF243143);
-        guiGraphics.fill(leftPos + PROGRESS_X + 1, topPos + PROGRESS_Y + 1, leftPos + PROGRESS_X + PROGRESS_W - 1, topPos + PROGRESS_Y + 5, 0xFF101722);
+        ResearchScreenRenderer.drawAccentedWindow(guiGraphics, x, y, imageWidth, imageHeight, ACCENT_COLOR);
+        ResearchScreenRenderer.drawAccentedPanel(guiGraphics, x + SEARCH_X, y + SEARCH_Y, SEARCH_W, SEARCH_H, ACCENT_COLOR);
+        ResearchScreenRenderer.drawAccentedPanel(guiGraphics, x + LIST_X, y + LIST_Y, LIST_W, LIST_H, ACCENT_COLOR);
+        ResearchScreenRenderer.drawSlotFrame(guiGraphics, x + inputSlot().x, y + inputSlot().y, SLOT_OUTER, SLOT_INNER, SLOT_HIGHLIGHT);
+        ResearchScreenRenderer.drawSlotFrame(guiGraphics, x + outputSlot().x, y + outputSlot().y, SLOT_OUTER, SLOT_INNER, SLOT_HIGHLIGHT);
+        ResearchScreenRenderer.drawProgressBar(guiGraphics, x + PROGRESS_X, y + PROGRESS_Y, PROGRESS_W, 6, progressRatio(), ResearchScreenRenderer.theme().progress().fill());
 
         List<ResearchClientCache.NodeEntry> nodes = filteredNodes();
         if (nodes.isEmpty()) {
-            guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.empty"), leftPos + LIST_X + 6, topPos + LIST_Y + 24, 0xFF8D98A7, false);
+            guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.empty"), x + LIST_X + 6, y + LIST_Y + 24, ResearchScreenRenderer.mutedText(), false);
         } else {
             for (int row = 0; row < rowsVisible(); row++) {
                 int index = scroll + row;
                 if (index >= nodes.size()) {
                     break;
                 }
-                ResearchClientCache.NodeEntry node = nodes.get(index);
-                int y = topPos + LIST_Y + (row * ROW_H);
-                boolean selected = node.id().equals(selectedNodeId);
-                guiGraphics.fill(leftPos + LIST_X + 2, y + 1, leftPos + LIST_X + LIST_W - 2, y + ROW_H - 1, selected ? 0x44314962 : 0x182F4255);
-            }
-            drawScrollThumb(guiGraphics, nodes.size());
-        }
 
-        int fill = menu.progressScaled(PROGRESS_W - 2);
-        if (fill > 0) {
-            guiGraphics.fill(leftPos + PROGRESS_X + 1, topPos + PROGRESS_Y + 1, leftPos + PROGRESS_X + 1 + fill, topPos + PROGRESS_Y + 5, 0xFF55A9E6);
+                ResearchClientCache.NodeEntry node = nodes.get(index);
+                int rowX = x + LIST_X + 2;
+                int rowY = y + LIST_Y + (row * ROW_H) + 1;
+                int rowWidth = LIST_W - 4;
+                int rowHeight = ROW_H - 2;
+                boolean selected = node.id().equals(selectedNodeId);
+                boolean hovered = rowAt(mouseX, mouseY) == row && !menu.isProcessing();
+                int fill = selected ? ROW_FILL_SELECTED : (hovered ? ROW_FILL_HOVER : ROW_FILL);
+                int border = selected ? ROW_BORDER_SELECTED : (hovered ? ROW_BORDER_HOVER : ROW_BORDER);
+
+                ResearchScreenRenderer.drawRowFrame(guiGraphics, rowX, rowY, rowWidth, rowHeight, fill, border);
+                guiGraphics.drawString(
+                        font,
+                        Component.literal(trim(node.name(), 13)),
+                        rowX + 4,
+                        rowY + 2,
+                        selected ? ResearchScreenRenderer.primaryText() : ResearchScreenRenderer.secondaryText(),
+                        false
+                );
+            }
+            drawScrollbar(guiGraphics, nodes.size());
         }
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(font, title, 8, 8, 0xFFF3E6D3, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.search"), SEARCH_X, 11, 0xFFD2BDA2, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.list"), LIST_X, 31, 0xFFD2BDA2, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.input"), 7, 25, 0xFFD2BDA2, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.output"), 135, 25, 0xFFD2BDA2, false);
-        guiGraphics.drawString(font, playerInventoryTitle, 8, inventoryLabelY, 0xFFD2BDA2, false);
+        guiGraphics.drawString(font, title, 8, 8, ResearchScreenRenderer.titleText(), false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.search"), SEARCH_X, 11, ResearchScreenRenderer.secondaryText(), false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.list"), LIST_X, 31, ResearchScreenRenderer.secondaryText(), false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.input"), 7, 25, ResearchScreenRenderer.secondaryText(), false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.output"), 135, 25, ResearchScreenRenderer.secondaryText(), false);
+        guiGraphics.drawString(font, playerInventoryTitle, 8, inventoryLabelY, ResearchScreenRenderer.secondaryText(), false);
 
         List<ResearchClientCache.NodeEntry> nodes = filteredNodes();
-        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.count", nodes.size()), 140, 31, 0xFF9FB5CE, false);
-        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.progress", menu.progressTicks(), menu.maxProgressTicks()), PROGRESS_X, 94, 0xFFCBDBF0, false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.count", nodes.size()), 140, 31, ResearchScreenRenderer.mutedText(), false);
+        guiGraphics.drawString(font, Component.translatable("screen.incore.research_sample_fabricator.progress", menu.progressTicks(), menu.maxProgressTicks()), PROGRESS_X, 94, ResearchScreenRenderer.accentText(), false);
         String statusKey = menu.getSlot(1).hasItem()
                 ? "screen.incore.research_sample_fabricator.status.ready"
                 : (menu.isProcessing() ? "screen.incore.research_sample_fabricator.status.processing" : "screen.incore.research_sample_fabricator.status.idle");
-        guiGraphics.drawString(font, Component.translatable(statusKey), PROGRESS_X, 112, 0xFFB7C8D9, false);
+        guiGraphics.drawString(font, Component.translatable(statusKey), PROGRESS_X, 112, ResearchScreenRenderer.secondaryText(), false);
         if (selectedNodeId != null) {
             ResearchClientCache.NodeEntry selected = ResearchClientCache.snapshot().nodeById().get(selectedNodeId);
             if (selected != null) {
-                guiGraphics.drawString(font, trim(selected.name(), 18), 140, 94, 0xFFE4ECF5, false);
+                guiGraphics.drawString(font, trim(selected.name(), 18), 140, 94, ResearchScreenRenderer.primaryText(), false);
             }
         }
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        ResearchScreenRenderer.drawBackdrop(guiGraphics, width, height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         if (searchBox != null && searchBox.isHoveredOrFocused() && !searchBox.getValue().isBlank()) {
             guiGraphics.renderTooltip(font, Component.literal(searchBox.getValue()), mouseX, mouseY);
@@ -225,18 +252,18 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
         renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
-    private void drawScrollThumb(GuiGraphics guiGraphics, int totalRows) {
+    private void drawScrollbar(GuiGraphics guiGraphics, int totalRows) {
         int visibleRows = rowsVisible();
         int trackTop = topPos + LIST_Y + 12;
         int trackHeight = LIST_H - 24;
         if (totalRows <= visibleRows || trackHeight <= 0) {
             return;
         }
-        int thumbHeight = Math.max(10, (trackHeight * visibleRows) / totalRows);
+
         int maxScroll = Math.max(1, totalRows - visibleRows);
-        int thumbTravel = Math.max(0, trackHeight - thumbHeight);
-        int thumbOffset = (thumbTravel * scroll) / maxScroll;
-        guiGraphics.fill(leftPos + SCROLL_X + 1, trackTop + thumbOffset, leftPos + SCROLL_X + 9, trackTop + thumbOffset + thumbHeight, 0xFF7A9FD8);
+        float position = scroll / (float) maxScroll;
+        float visibleRatio = visibleRows / (float) totalRows;
+        ResearchScreenRenderer.drawScrollbar(guiGraphics, leftPos + SCROLL_X, trackTop, 10, trackHeight, position, visibleRatio, ACCENT_COLOR, 0xFFB7D6F6);
     }
 
     private void scrollBy(int delta) {
@@ -270,22 +297,6 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
         } else if (selectedNodeId != null && nodes.stream().noneMatch(node -> node.id().equals(selectedNodeId))) {
             selectedNodeId = nodes.isEmpty() ? null : nodes.get(0).id();
         }
-
-        for (int row = 0; row < rowButtons.size(); row++) {
-            Button button = rowButtons.get(row);
-            int index = scroll + row;
-            if (index >= nodes.size()) {
-                button.visible = false;
-                button.active = false;
-                button.setMessage(CommonComponents.EMPTY);
-                continue;
-            }
-
-            ResearchClientCache.NodeEntry node = nodes.get(index);
-            button.visible = true;
-            button.active = !menu.isProcessing();
-            button.setMessage(Component.literal((node.id().equals(selectedNodeId) ? "> " : "  ") + trim(node.name(), 13)));
-        }
         if (searchBox != null) {
             searchBox.setEditable(!menu.isProcessing());
         }
@@ -300,6 +311,39 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
         }
         selectedNodeId = nodes.get(index).id();
         refreshVisibleRows();
+    }
+
+    private int rowAt(double mouseX, double mouseY) {
+        int rowX = leftPos + LIST_X + 2;
+        int rowWidth = LIST_W - 4;
+        if (mouseX < rowX || mouseX >= rowX + rowWidth) {
+            return -1;
+        }
+        for (int row = 0; row < rowsVisible(); row++) {
+            int rowY = topPos + LIST_Y + (row * ROW_H) + 1;
+            int rowHeight = ROW_H - 2;
+            if (mouseY >= rowY && mouseY < rowY + rowHeight) {
+                int index = scroll + row;
+                if (index < filteredNodes().size()) {
+                    return row;
+                }
+                return -1;
+            }
+        }
+        return -1;
+    }
+
+    private float progressRatio() {
+        int innerWidth = Math.max(1, PROGRESS_W - 2);
+        return menu.progressScaled(innerWidth) / (float) innerWidth;
+    }
+
+    private Slot inputSlot() {
+        return menu.getSlot(0);
+    }
+
+    private Slot outputSlot() {
+        return menu.getSlot(1);
     }
 
     private List<ResearchClientCache.NodeEntry> filteredNodes() {

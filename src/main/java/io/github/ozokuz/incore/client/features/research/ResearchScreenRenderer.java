@@ -5,6 +5,7 @@ import io.github.ozokuz.incore.client.ui.UIScreenTheme;
 import io.github.ozokuz.incore.client.ui.render.ThemedUi;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
 final class ResearchScreenRenderer {
@@ -15,6 +16,38 @@ final class ResearchScreenRenderer {
 
     static UITheme theme() {
         return THEME.theme();
+    }
+
+    static int titleText() {
+        return theme().text().primary();
+    }
+
+    static int primaryText() {
+        return theme().text().primary();
+    }
+
+    static int secondaryText() {
+        return theme().text().secondary();
+    }
+
+    static int mutedText() {
+        return theme().text().muted();
+    }
+
+    static int accentText() {
+        return theme().text().accent();
+    }
+
+    static int successText() {
+        return theme().text().success();
+    }
+
+    static int warningText() {
+        return theme().text().warning();
+    }
+
+    static int dangerText() {
+        return theme().text().danger();
     }
 
     static ThemedUi ui(GuiGraphics guiGraphics, Font font) {
@@ -65,6 +98,10 @@ final class ResearchScreenRenderer {
         drawSlotFrame(guiGraphics, x, y, theme().slot().borderTop(), theme().slot().fill(), accentColor);
     }
 
+    static void drawCompactProgressBar(GuiGraphics guiGraphics, int x, int y, int width, float ratio, int fillColor) {
+        drawProgressBar(guiGraphics, x, y, width, 5, ratio, fillColor);
+    }
+
     static void drawProgressBar(GuiGraphics guiGraphics, int x, int y, int width, int height, float ratio) {
         drawProgressBar(guiGraphics, x, y, width, height, ratio, theme().progress().fill());
     }
@@ -88,6 +125,53 @@ final class ResearchScreenRenderer {
         if (filled > 0) {
             themedUi.drawRect(x + 1, y + 1, x + 1 + Math.min(innerWidth, filled), innerBottom, fillColor);
         }
+    }
+
+    static void drawRowFrame(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor) {
+        ThemedUi themedUi = ui(guiGraphics);
+        themedUi.drawRect(x, y, x + width, y + height, fillColor);
+        themedUi.drawBorder(x, y, x + width, y + height, borderColor);
+    }
+
+    static void drawScrollbar(
+            GuiGraphics guiGraphics,
+            int x,
+            int y,
+            int width,
+            int height,
+            float position01,
+            float visibleRatio,
+            int thumbFill,
+            int thumbBorder
+    ) {
+        ui(guiGraphics).drawScrollbar(
+                x,
+                y,
+                width,
+                height,
+                position01,
+                visibleRatio,
+                theme().progress().trackFill(),
+                theme().progress().trackBorder(),
+                thumbFill,
+                thumbBorder
+        );
+    }
+
+    static void drawButtonFrame(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor, int accentColor) {
+        drawAccentedFrame(
+                guiGraphics,
+                new UITheme.Frame(fillColor, borderColor, borderColor, borderColor, borderColor),
+                x,
+                y,
+                width,
+                height,
+                accentColor
+        );
+    }
+
+    static void drawCenteredText(GuiGraphics guiGraphics, Font font, Component text, int centerX, int y, int color) {
+        ui(guiGraphics, font).drawCenteredText(text, centerX, y, color);
     }
 
     private static void drawAccentStripe(ThemedUi ui, int x, int y, int width, int accentColor) {
