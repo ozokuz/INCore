@@ -5,9 +5,13 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 public class TranslatorScreen extends AbstractContainerScreen<TranslatorMenu> {
     private static final int ACCENT_COLOR = 0xFF7CB9FF;
+    private static final int PLAYER_SLOT_OUTER = 0xFF3A312B;
+    private static final int PLAYER_SLOT_INNER = 0xFF1B1714;
+    private static final int PLAYER_SLOT_HIGHLIGHT = 0xFF7F6A5C;
 
     public TranslatorScreen(TranslatorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -26,6 +30,7 @@ public class TranslatorScreen extends AbstractContainerScreen<TranslatorMenu> {
 
         ResearchScreenRenderer.drawMachineSlotFrame(guiGraphics, x + 44, y + 34, ACCENT_COLOR);
         ResearchScreenRenderer.drawMachineSlotFrame(guiGraphics, x + 116, y + 34, ACCENT_COLOR);
+        drawPlayerInventorySlots(guiGraphics, x, y);
 
         int barX = x + 10;
         int barY = y + 72;
@@ -52,5 +57,22 @@ public class TranslatorScreen extends AbstractContainerScreen<TranslatorMenu> {
         ResearchScreenRenderer.drawBackdrop(guiGraphics, width, height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    private void drawPlayerInventorySlots(GuiGraphics guiGraphics, int left, int top) {
+        for (int slotIndex = 2; slotIndex < menu.slots.size(); slotIndex++) {
+            Slot slot = menu.slots.get(slotIndex);
+            if (!slot.isActive()) {
+                continue;
+            }
+            ResearchScreenRenderer.drawSlotFrame(
+                    guiGraphics,
+                    left + slot.x,
+                    top + slot.y,
+                    PLAYER_SLOT_OUTER,
+                    PLAYER_SLOT_INNER,
+                    PLAYER_SLOT_HIGHLIGHT
+            );
+        }
     }
 }

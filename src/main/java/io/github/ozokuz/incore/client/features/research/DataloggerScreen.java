@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 public class DataloggerScreen extends AbstractContainerScreen<DataloggerMenu> {
     private static final int ACCENT_COLOR = 0xFFB07C42;
@@ -15,6 +16,9 @@ public class DataloggerScreen extends AbstractContainerScreen<DataloggerMenu> {
     private static final int SLOT_OUTER = 0xFF2E241C;
     private static final int SLOT_INNER = 0xFF211914;
     private static final int BAR_FILL = 0xFFBE8A45;
+    private static final int PLAYER_SLOT_OUTER = 0xFF3A312B;
+    private static final int PLAYER_SLOT_INNER = 0xFF1B1714;
+    private static final int PLAYER_SLOT_HIGHLIGHT = 0xFF7F6A5C;
 
     public DataloggerScreen(DataloggerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -32,6 +36,7 @@ public class DataloggerScreen extends AbstractContainerScreen<DataloggerMenu> {
         ResearchScreenRenderer.drawAccentedFrame(guiGraphics, LOWER_PANEL_FRAME, x + 8, y + 80, imageWidth - 16, 78, ACCENT_COLOR);
 
         ResearchScreenRenderer.drawSlotFrame(guiGraphics, x + 80, y + 34, SLOT_OUTER, SLOT_INNER, ACCENT_COLOR);
+        drawPlayerInventorySlots(guiGraphics, x, y);
 
         int barX = x + 10;
         int barY = y + 72;
@@ -57,5 +62,22 @@ public class DataloggerScreen extends AbstractContainerScreen<DataloggerMenu> {
         ResearchScreenRenderer.drawBackdrop(guiGraphics, width, height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    private void drawPlayerInventorySlots(GuiGraphics guiGraphics, int left, int top) {
+        for (int slotIndex = 1; slotIndex < menu.slots.size(); slotIndex++) {
+            Slot slot = menu.slots.get(slotIndex);
+            if (!slot.isActive()) {
+                continue;
+            }
+            ResearchScreenRenderer.drawSlotFrame(
+                    guiGraphics,
+                    left + slot.x,
+                    top + slot.y,
+                    PLAYER_SLOT_OUTER,
+                    PLAYER_SLOT_INNER,
+                    PLAYER_SLOT_HIGHLIGHT
+            );
+        }
     }
 }
