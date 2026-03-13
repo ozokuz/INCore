@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.research.client;
+package io.github.ozokuz.incore.client.features.research;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

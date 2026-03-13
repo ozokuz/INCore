@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.research.client;
+package io.github.ozokuz.incore.client.features.research;
 
 import io.github.ozokuz.incore.features.research.discovery.ResearchSampleFabricatorMenu;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;

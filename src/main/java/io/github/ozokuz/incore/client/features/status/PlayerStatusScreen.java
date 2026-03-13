@@ -14,7 +14,7 @@ import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworkin
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import io.github.ozokuz.incore.features.entropy.EntropyClientCache;
-import io.github.ozokuz.incore.features.research.client.ResearchTreeScreen;
+import io.github.ozokuz.incore.client.features.research.ResearchTreeScreen;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import io.github.ozokuz.incore.features.status.network.PlayerStatusCurrencyClientCache;

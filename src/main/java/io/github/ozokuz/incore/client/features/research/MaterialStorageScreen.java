@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.research.client;
+package io.github.ozokuz.incore.client.features.research;
 
 import io.github.ozokuz.incore.features.research.station.MaterialStorageMenu;
 import net.minecraft.network.chat.Component;

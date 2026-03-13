@@ -1,9 +1,9 @@
 package io.github.ozokuz.incore.features.research.network;
 
 import io.github.ozokuz.incore.INCore;
-import io.github.ozokuz.incore.features.research.client.ResearchSampleFabricatorScreen;
-import io.github.ozokuz.incore.features.research.client.ResearchClientCache;
-import io.github.ozokuz.incore.features.research.client.ResearchTreeScreen;
+import io.github.ozokuz.incore.client.features.research.ResearchSampleFabricatorScreen;
+import io.github.ozokuz.incore.client.features.research.ResearchClientCache;
+import io.github.ozokuz.incore.client.features.research.ResearchTreeScreen;
 import net.minecraft.client.Minecraft;
 
 public final class ResearchClientPayloadHandlers {
