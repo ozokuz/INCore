@@ -61,6 +61,16 @@ public enum UIScreenTheme {
             new UITheme.Text(0xFFE6EBF4, 0xCDD3DE, 0xFFAAAAAA, 0xFF71C2FF, 0xFF7DD6A7, 0xFFE2C777, 0xFFD17C7C),
             new UITheme.Chip(0xAA141414, 0xBDE8BD)
     )),
+    RESEARCH(new UITheme(
+            new UITheme.Backdrop(0xD5090B10, 0xE0010206, true),
+            new UITheme.Frame(0xE011161D, 0xFF44546B, 0xFF1B2330, 0xFF364455, 0xFF1B2330),
+            new UITheme.Frame(0xCC171E28, 0xFF38485E, 0xFF121922, 0xFF2F3F52, 0xFF121922),
+            new UITheme.Frame(0xCC171E28, 0xFF38485E, 0xFF121922, 0xFF2F3F52, 0xFF121922),
+            new UITheme.Frame(0xFF141A23, 0xFF44556D, 0xFF44556D, 0xFF44556D, 0xFF44556D),
+            new UITheme.Progress(0xFF101722, 0xFF243143, 0xFF67B5F5, 0xFF58C98A),
+            new UITheme.Text(0xFFF2F6FA, 0xFFD4DEE9, 0xFF9DB0C3, 0xFF7CB9FF, 0xFF8FDF8A, 0xFFE4B36B, 0xFFD98C8C),
+            new UITheme.Chip(0xAA223042, 0xFFEAF6FF)
+    )),
     BATTLEPASS_TASKS(new UITheme(
             new UITheme.Backdrop(0xD5090B10, 0xE0010206, true),
             new UITheme.Frame(0xD114161A, 0xFF474B52, 0xFF000000, 0xFF474B52, 0xFF000000),
@@ -294,6 +304,33 @@ public enum UIScreenTheme {
         public static final int STATUS_DISABLED_TEXT = 0xFFAAAAAA;
         public static final int STATUS_ERROR_TEXT = 0xFFD17C7C;
         public static final int STATUS_WARNING_TEXT = 0xFFE2C777;
+    }
+
+    public static final class Research {
+        private Research() {
+        }
+
+        public static final int TITLE_TEXT = 0xFFF2F6FA;
+        public static final int TEXT_PRIMARY = 0xFFD4DEE9;
+        public static final int TEXT_MUTED = 0xFF9DB0C3;
+        public static final int TEXT_ACCENT = 0xFF7CB9FF;
+        public static final int TEXT_SUCCESS = 0xFF8FDF8A;
+        public static final int TEXT_WARNING = 0xFFE4B36B;
+        public static final int TEXT_DANGER = 0xFFD98C8C;
+        public static final int WINDOW_FILL = 0xE011161D;
+        public static final int WINDOW_BORDER_TOP = 0xFF44546B;
+        public static final int WINDOW_BORDER_SIDE = 0xFF364455;
+        public static final int WINDOW_BORDER_BOTTOM = 0xFF1B2330;
+        public static final int PANEL_FILL = 0xCC171E28;
+        public static final int PANEL_BORDER_TOP = 0xFF38485E;
+        public static final int PANEL_BORDER_SIDE = 0xFF2F3F52;
+        public static final int PANEL_BORDER_BOTTOM = 0xFF121922;
+        public static final int SLOT_FILL = 0xFF141A23;
+        public static final int SLOT_BORDER = 0xFF44556D;
+        public static final int PROGRESS_TRACK_FILL = 0xFF101722;
+        public static final int PROGRESS_TRACK_BORDER = 0xFF243143;
+        public static final int PROGRESS_FILL_PRIMARY = 0xFF67B5F5;
+        public static final int PROGRESS_FILL_ALT = 0xFF58C98A;
     }
 
     public static final class BattlepassTasks {
