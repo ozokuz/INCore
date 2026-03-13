@@ -1,11 +1,13 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.DataSlot;
 
-public class WirelessLinkMenu extends AbstractStationInventoryMenu {
+public class WirelessLinkMenu extends AbstractMachineInventoryMenu {
     private final WirelessLinkBlockEntity wirelessLink;
     private int ownerKindOrdinal;
     private int bindingStatus;
@@ -53,10 +55,10 @@ public class WirelessLinkMenu extends AbstractStationInventoryMenu {
         });
     }
 
-    public LinkOwnerKind ownerKind() {
-        return ownerKindOrdinal < 0 || ownerKindOrdinal >= LinkOwnerKind.values().length
-                ? LinkOwnerKind.NONE
-                : LinkOwnerKind.values()[ownerKindOrdinal];
+    public MultiblockOwnerKind ownerKind() {
+        return ownerKindOrdinal < 0 || ownerKindOrdinal >= MultiblockOwnerKind.values().length
+                ? MultiblockOwnerKind.NONE
+                : MultiblockOwnerKind.values()[ownerKindOrdinal];
     }
 
     public int bindingStatus() {
@@ -69,7 +71,7 @@ public class WirelessLinkMenu extends AbstractStationInventoryMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id != 0 || ownerKind() != LinkOwnerKind.ORCHESTRATOR || !stillValid(player)) {
+        if (id != 0 || ownerKind() != MultiblockOwnerKind.ORCHESTRATOR || !stillValid(player)) {
             return false;
         }
         wirelessLink.clearStoredBinding();

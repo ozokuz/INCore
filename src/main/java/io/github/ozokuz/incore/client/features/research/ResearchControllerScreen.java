@@ -1,7 +1,10 @@
 package io.github.ozokuz.incore.client.features.research;
 
+import io.github.ozokuz.incore.client.features.machines.*;
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.features.research.station.ResearchControllerMenu;
-import io.github.ozokuz.incore.features.research.station.ResearchPowerFamily;
+import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
 import io.github.ozokuz.incore.features.research.state.ResearchQueueStatus;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -48,7 +51,7 @@ public class ResearchControllerScreen extends StationStatusScreen<ResearchContro
         drawRunBar(guiGraphics, left + 18, y + 124, imageWidth - 36, menu.runProgressScaled(imageWidth - 36), menu.hasActiveRun());
     }
 
-    private static Component powerFamily(ResearchPowerFamily family) {
+    private static Component powerFamily(MachinePowerFamily family) {
         if (family == null) {
             return Component.translatable("screen.incore.power_input.family.none");
         }

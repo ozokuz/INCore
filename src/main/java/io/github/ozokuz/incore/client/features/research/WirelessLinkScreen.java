@@ -1,13 +1,16 @@
 package io.github.ozokuz.incore.client.features.research;
 
-import io.github.ozokuz.incore.features.research.station.LinkOwnerKind;
+import io.github.ozokuz.incore.client.features.machines.*;
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
+import io.github.ozokuz.incore.features.machines.multiblock.MultiblockOwnerKind;
 import io.github.ozokuz.incore.features.research.station.WirelessLinkMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public class WirelessLinkScreen extends StationInventoryScreen<WirelessLinkMenu> {
+public class WirelessLinkScreen extends MachineInventoryScreen<WirelessLinkMenu> {
     private Button clearButton;
 
     public WirelessLinkScreen(WirelessLinkMenu menu, Inventory playerInventory, Component title) {
@@ -63,7 +66,7 @@ public class WirelessLinkScreen extends StationInventoryScreen<WirelessLinkMenu>
         if (clearButton == null) {
             return;
         }
-        boolean visible = menu.ownerKind() == LinkOwnerKind.ORCHESTRATOR;
+        boolean visible = menu.ownerKind() == MultiblockOwnerKind.ORCHESTRATOR;
         clearButton.visible = visible;
         clearButton.active = visible && menu.hasStoredChannel();
     }

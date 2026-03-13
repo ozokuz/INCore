@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.research.station.network.LinkingPortRegistry;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
@@ -15,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LinkingPortBlockEntity extends BlockEntity {
-    private LinkOwnerKind ownerKind = LinkOwnerKind.NONE;
+    private MultiblockOwnerKind ownerKind = MultiblockOwnerKind.NONE;
     private String ownerId = "";
     private String attachedTeamId = "";
 
@@ -42,10 +44,10 @@ public class LinkingPortBlockEntity extends BlockEntity {
     }
 
     public String attachedStationId() {
-        return ownerKind == LinkOwnerKind.STATION ? ownerId : "";
+        return ownerKind == MultiblockOwnerKind.STATION ? ownerId : "";
     }
 
-    public LinkOwnerKind ownerKind() {
+    public MultiblockOwnerKind ownerKind() {
         return ownerKind;
     }
 
@@ -57,8 +59,8 @@ public class LinkingPortBlockEntity extends BlockEntity {
         return attachedTeamId;
     }
 
-    public void setAttachment(LinkOwnerKind ownerKind, @Nullable String ownerId, @Nullable String teamId) {
-        LinkOwnerKind nextOwnerKind = ownerKind == null ? LinkOwnerKind.NONE : ownerKind;
+    public void setAttachment(MultiblockOwnerKind ownerKind, @Nullable String ownerId, @Nullable String teamId) {
+        MultiblockOwnerKind nextOwnerKind = ownerKind == null ? MultiblockOwnerKind.NONE : ownerKind;
         String nextOwnerId = ownerId == null ? "" : ownerId.strip();
         String nextTeamId = teamId == null ? "" : teamId.strip();
         if (this.ownerKind == nextOwnerKind && this.ownerId.equals(nextOwnerId) && attachedTeamId.equals(nextTeamId)) {
@@ -71,7 +73,7 @@ public class LinkingPortBlockEntity extends BlockEntity {
     }
 
     public void clearAttachment() {
-        setAttachment(LinkOwnerKind.NONE, "", "");
+        setAttachment(MultiblockOwnerKind.NONE, "", "");
     }
 
     @Override
@@ -97,9 +99,9 @@ public class LinkingPortBlockEntity extends BlockEntity {
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
         try {
-            ownerKind = LinkOwnerKind.valueOf(tag.getString("ownerKind"));
+            ownerKind = MultiblockOwnerKind.valueOf(tag.getString("ownerKind"));
         } catch (IllegalArgumentException ignored) {
-            ownerKind = LinkOwnerKind.NONE;
+            ownerKind = MultiblockOwnerKind.NONE;
         }
         ownerId = tag.getString("ownerId");
         attachedTeamId = tag.getString("attachedTeamId");

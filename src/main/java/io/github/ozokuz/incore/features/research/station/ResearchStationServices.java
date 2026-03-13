@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -30,7 +32,7 @@ public final class ResearchStationServices {
         int accessibleSlots = accessibleSlots(augmenter);
         for (int slot = 0; slot < accessibleSlots; slot++) {
             ItemStack stack = augmenter.rawItemHandler().getStackInSlot(slot);
-            if (!(stack.getItem() instanceof ResearchAugmentItem augment)) {
+            if (!(stack.getItem() instanceof MachineAugmentItem augment)) {
                 continue;
             }
             int count = Math.max(1, stack.getCount());
@@ -107,7 +109,7 @@ public final class ResearchStationServices {
         int accessibleSlots = accessibleSlots(augmenter);
         for (int slot = 0; slot < accessibleSlots; slot++) {
             ItemStack stack = augmenter.rawItemHandler().getStackInSlot(slot);
-            if (!(stack.getItem() instanceof ResearchAugmentItem augment)) {
+            if (!(stack.getItem() instanceof MachineAugmentItem augment)) {
                 continue;
             }
             int count = Math.max(1, stack.getCount());
@@ -174,7 +176,7 @@ public final class ResearchStationServices {
         int accessibleSlots = accessibleSlots(augmenter);
         for (int slot = 0; slot < accessibleSlots; slot++) {
             ItemStack stack = augmenter.rawItemHandler().getStackInSlot(slot);
-            if (!(stack.getItem() instanceof ResearchAugmentItem augment)) {
+            if (!(stack.getItem() instanceof MachineAugmentItem augment)) {
                 continue;
             }
             int count = Math.max(1, stack.getCount());
@@ -233,7 +235,7 @@ public final class ResearchStationServices {
         return counts;
     }
 
-    private static int accessibleSlots(AbstractInventoryStationPartBlockEntity blockEntity) {
+    private static int accessibleSlots(AbstractMachineInventoryPartBlockEntity blockEntity) {
         if (blockEntity == null) {
             return 0;
         }

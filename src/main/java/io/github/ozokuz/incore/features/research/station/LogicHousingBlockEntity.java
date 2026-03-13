@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
@@ -7,14 +9,14 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class LogicHousingBlockEntity extends AbstractInventoryStationPartBlockEntity {
+public class LogicHousingBlockEntity extends AbstractMachineInventoryPartBlockEntity {
     public LogicHousingBlockEntity(BlockPos pos, BlockState state) {
         super(Registration.LOGIC_HOUSING_BE.get(), pos, state, 4);
     }
 
     @Override
-    public StationPartType stationPartType() {
-        return StationPartType.LOGIC_HOUSING;
+    protected String displayNameKey() {
+        return "logic_housing";
     }
 
     @Override

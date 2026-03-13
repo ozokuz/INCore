@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import net.minecraft.core.BlockPos;
 
 import java.util.List;
@@ -12,7 +14,7 @@ public record ResearchOrchestratorTopology(
         BlockPos wirelessLinkPos,
         BlockPos orchestrationDrivePos,
         BlockPos augmenterPos,
-        ResearchPowerFamily powerFamily,
+        MachinePowerFamily powerFamily,
         int powerInputTier
 ) {
     public ResearchOrchestratorTopology {

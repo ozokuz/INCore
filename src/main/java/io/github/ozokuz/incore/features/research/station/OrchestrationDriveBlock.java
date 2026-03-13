@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import com.mojang.serialization.MapCodec;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
@@ -19,7 +21,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OrchestrationDriveBlock extends AbstractResearchStationPartBlock {
+public class OrchestrationDriveBlock extends AbstractMachinePartBlock {
     public static final MapCodec<OrchestrationDriveBlock> CODEC = simpleCodec(OrchestrationDriveBlock::new);
 
     public OrchestrationDriveBlock() {
@@ -31,7 +33,7 @@ public class OrchestrationDriveBlock extends AbstractResearchStationPartBlock {
     }
 
     @Override
-    protected @NotNull MapCodec<? extends AbstractResearchStationPartBlock> codec() {
+    protected @NotNull MapCodec<? extends AbstractMachinePartBlock> codec() {
         return CODEC;
     }
 

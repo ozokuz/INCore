@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.equipment.wrench.WrenchItem;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;

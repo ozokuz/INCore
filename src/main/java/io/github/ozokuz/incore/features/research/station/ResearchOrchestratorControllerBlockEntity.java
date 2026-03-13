@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
 import net.minecraft.core.BlockPos;
@@ -27,7 +29,7 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
     private BlockPos wirelessLinkPos;
     private BlockPos orchestrationDrivePos;
     private BlockPos augmenterPos;
-    private ResearchPowerFamily powerFamily;
+    private MachinePowerFamily powerFamily;
     private int powerInputTier;
     private int tickCounter;
 
@@ -118,7 +120,7 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
         return augmenterPos;
     }
 
-    public ResearchPowerFamily powerFamily() {
+    public MachinePowerFamily powerFamily() {
         return powerFamily;
     }
 
@@ -138,11 +140,11 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
                 break;
             }
             BlockEntity blockEntity = level.getBlockEntity(inputPos);
-            if (!(blockEntity instanceof IResearchPowerInput input)) {
+            if (!(blockEntity instanceof IMachinePowerInput input)) {
                 continue;
             }
 
-            int fromInput = Math.max(0, input.availableResearchPower(null, remaining));
+            int fromInput = Math.max(0, input.availablePower(remaining));
             if (fromInput > 0) {
                 available += fromInput;
                 remaining -= fromInput;
@@ -176,7 +178,7 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
         BlockPos nextWirelessLinkPos = nextFormed ? immutablePos(result.wirelessLinkPos()) : null;
         BlockPos nextDrivePos = nextFormed ? immutablePos(result.orchestrationDrivePos()) : null;
         BlockPos nextAugmenterPos = nextFormed ? immutablePos(result.augmenterPos()) : null;
-        ResearchPowerFamily nextPowerFamily = nextFormed ? result.powerFamily() : null;
+        MachinePowerFamily nextPowerFamily = nextFormed ? result.powerFamily() : null;
         int nextPowerTier = nextFormed ? Math.max(0, result.powerInputTier()) : 0;
 
         boolean changed = formed != nextFormed
@@ -240,7 +242,7 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
         orchestratorId = tag.getString("orchestratorId");
         if (tag.contains("powerFamily")) {
             try {
-                powerFamily = ResearchPowerFamily.valueOf(tag.getString("powerFamily"));
+                powerFamily = MachinePowerFamily.valueOf(tag.getString("powerFamily"));
             } catch (IllegalArgumentException ignored) {
                 powerFamily = null;
             }
@@ -290,10 +292,10 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
         if (wirelessLinkPos != null && level.getBlockEntity(wirelessLinkPos) instanceof WirelessLinkBlockEntity wireless) {
             wireless.clearBinding();
         }
-        if (orchestrationDrivePos != null && level.getBlockEntity(orchestrationDrivePos) instanceof AbstractResearchStationPartBlockEntity part) {
+        if (orchestrationDrivePos != null && level.getBlockEntity(orchestrationDrivePos) instanceof AbstractMultiblockPartBlockEntity part) {
             part.clearBinding();
         }
-        if (augmenterPos != null && level.getBlockEntity(augmenterPos) instanceof AbstractResearchStationPartBlockEntity part) {
+        if (augmenterPos != null && level.getBlockEntity(augmenterPos) instanceof AbstractMultiblockPartBlockEntity part) {
             part.clearBinding();
         }
     }
@@ -304,17 +306,17 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
         }
         for (BlockPos pos : linkingPortPositions) {
             if (level.getBlockEntity(pos) instanceof LinkingPortBlockEntity port) {
-                port.setAttachment(LinkOwnerKind.ORCHESTRATOR, orchestratorId, teamId);
+                port.setAttachment(MultiblockOwnerKind.ORCHESTRATOR, orchestratorId, teamId);
             }
         }
         if (wirelessLinkPos != null && level.getBlockEntity(wirelessLinkPos) instanceof WirelessLinkBlockEntity wireless) {
-            wireless.bindToOrchestrator(this);
+            wireless.bindToOrchestrator(worldPosition, orchestratorId, teamId);
         }
-        if (orchestrationDrivePos != null && level.getBlockEntity(orchestrationDrivePos) instanceof AbstractResearchStationPartBlockEntity part) {
-            part.bindToOrchestrator(this);
+        if (orchestrationDrivePos != null && level.getBlockEntity(orchestrationDrivePos) instanceof AbstractMultiblockPartBlockEntity part) {
+            part.bindToOrchestrator(worldPosition, orchestratorId, teamId);
         }
-        if (augmenterPos != null && level.getBlockEntity(augmenterPos) instanceof AbstractResearchStationPartBlockEntity part) {
-            part.bindToOrchestrator(this);
+        if (augmenterPos != null && level.getBlockEntity(augmenterPos) instanceof AbstractMultiblockPartBlockEntity part) {
+            part.bindToOrchestrator(worldPosition, orchestratorId, teamId);
         }
     }
 

@@ -1,5 +1,8 @@
 package io.github.ozokuz.incore.client.features.research;
 
+import io.github.ozokuz.incore.client.features.machines.*;
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.features.research.discovery.ResearchSampleFabricatorMenu;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import net.minecraft.client.gui.GuiGraphics;

@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 public record OrchestrationAugmentSummary(
         int cableStationBonusPerLink,
         int wirelessStationBonus,

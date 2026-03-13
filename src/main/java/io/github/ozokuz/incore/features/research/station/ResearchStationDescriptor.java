@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import net.minecraft.core.BlockPos;
 
 import java.util.List;
@@ -15,7 +17,7 @@ public record ResearchStationDescriptor(
         int rpCapacity,
         int slotCapacity,
         int availableResearchPower,
-        ResearchPowerFamily powerFamily,
+        MachinePowerFamily powerFamily,
         int powerInputTier,
         String outputPortModes,
         int mountedDiskTier,

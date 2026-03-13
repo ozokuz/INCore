@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
@@ -9,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
-public class ResearchDriveBlockEntity extends AbstractInventoryStationPartBlockEntity {
+public class ResearchDriveBlockEntity extends AbstractMachineInventoryPartBlockEntity {
     private final IItemHandler exposedHandler = new IItemHandler() {
         @Override
         public int getSlots() {
@@ -47,8 +49,8 @@ public class ResearchDriveBlockEntity extends AbstractInventoryStationPartBlockE
     }
 
     @Override
-    public StationPartType stationPartType() {
-        return StationPartType.RESEARCH_DRIVE;
+    protected String displayNameKey() {
+        return "research_drive";
     }
 
     @Override
@@ -69,6 +71,7 @@ public class ResearchDriveBlockEntity extends AbstractInventoryStationPartBlockE
     public ItemStack mountedDisk() {
         return rawItemHandler().getStackInSlot(0);
     }
+
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory playerInventory) {
         return new ResearchDriveMenu(containerId, playerInventory, this);

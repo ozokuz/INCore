@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
@@ -7,14 +9,14 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class MaterialStorageBlockEntity extends AbstractInventoryStationPartBlockEntity {
+public class MaterialStorageBlockEntity extends AbstractMachineInventoryPartBlockEntity {
     public MaterialStorageBlockEntity(BlockPos pos, BlockState state) {
         super(Registration.MATERIAL_STORAGE_BE.get(), pos, state, 36);
     }
 
     @Override
-    public StationPartType stationPartType() {
-        return StationPartType.MATERIAL_STORAGE;
+    protected String displayNameKey() {
+        return "material_storage";
     }
 
     @Override

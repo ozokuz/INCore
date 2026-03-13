@@ -45,11 +45,17 @@ import io.github.ozokuz.incore.features.research.material.ResearchMaterialManage
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.research.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.research.registry.ResearchRegistry;
-import io.github.ozokuz.incore.features.research.station.ElectricPowerInputBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.ElectricPowerInputBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.MultiblockIntegrationHooks;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortMode;
 import io.github.ozokuz.incore.features.research.station.HybridResearchStationResourceProvider;
 import io.github.ozokuz.incore.features.research.station.OrchestrationDriveBlockEntity;
-import io.github.ozokuz.incore.features.research.station.OutputPortBlockEntity;
+import io.github.ozokuz.incore.features.research.station.ResearchControllerBlockEntity;
+import io.github.ozokuz.incore.features.research.station.ResearchStationMultiblockOrchestrator;
+import io.github.ozokuz.incore.features.research.station.ResearchStationRuntime;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortBlockEntity;
 import io.github.ozokuz.incore.features.research.station.WirelessLinkBlockEntity;
+import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
 import io.github.ozokuz.incore.features.roguelike.command.RoguelikeCommands;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.data.AltarOfferingManager;
@@ -146,6 +152,27 @@ public class INCore {
             ResearchProviderManager.setResearchPowerProvider(HYBRID_RESEARCH_PROVIDER);
             ResearchProviderManager.setLogicModuleProvider(HYBRID_RESEARCH_PROVIDER);
             ResearchProviderManager.setResearchMaterialProvider(HYBRID_RESEARCH_PROVIDER);
+            MultiblockIntegrationHooks.setTopologyChangedHook((level, pos) -> {
+                ResearchStationMultiblockOrchestrator.onBlockChanged(level, pos);
+                StationNetworkService.onTopologyChanged(level);
+            });
+            MultiblockIntegrationHooks.setOutputModeChangedHook((port, mode) -> {
+                if (mode != OutputPortMode.DRIVE) {
+                    return;
+                }
+                if (port.controllerPos() == null || port.getLevel() == null) {
+                    return;
+                }
+                if (port.getLevel().getBlockEntity(port.controllerPos()) instanceof ResearchControllerBlockEntity controller) {
+                    ResearchStationRuntime.flushDriveOutput(controller);
+                }
+            });
+            MultiblockIntegrationHooks.setStationTierResolver((level, controllerPos) -> {
+                if (level.getBlockEntity(controllerPos) instanceof ResearchControllerBlockEntity controller) {
+                    return controller.stationTier();
+                }
+                return 1;
+            });
         });
         event.enqueueWork(() -> {
             BlockStressValues.IMPACTS.register(Registration.SHIPMENT_TERMINAL_BLOCK.get(), () -> 1024.0D);

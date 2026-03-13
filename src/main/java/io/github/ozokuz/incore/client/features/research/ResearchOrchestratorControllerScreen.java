@@ -1,7 +1,10 @@
 package io.github.ozokuz.incore.client.features.research;
 
+import io.github.ozokuz.incore.client.features.machines.*;
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.features.research.station.ResearchOrchestratorControllerMenu;
-import io.github.ozokuz.incore.features.research.station.ResearchPowerFamily;
+import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -46,7 +49,7 @@ public class ResearchOrchestratorControllerScreen extends StationStatusScreen<Re
         drawKeyValue(guiGraphics, rightColumn, y + 108, Component.translatable("screen.incore.research_orchestrator.mode"), wirelessModeValue(), valueColor());
     }
 
-    private static Component powerFamily(ResearchPowerFamily family) {
+    private static Component powerFamily(MachinePowerFamily family) {
         if (family == null) {
             return Component.translatable("screen.incore.power_input.family.none");
         }
