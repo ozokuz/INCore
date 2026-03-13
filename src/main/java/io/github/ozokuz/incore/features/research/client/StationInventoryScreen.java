@@ -10,6 +10,14 @@ import net.minecraft.world.inventory.Slot;
 
 public class StationInventoryScreen<T extends AbstractStationInventoryMenu> extends AbstractContainerScreen<T> {
     private static final UITheme THEME = ResearchScreenRenderer.theme();
+    private static final UITheme.Frame WINDOW_FRAME = new UITheme.Frame(0xFF13100F, 0xFF2F2722, 0xFF2F2722, 0xFF2F2722, 0xFF2F2722);
+    private static final UITheme.Frame MACHINE_FRAME = new UITheme.Frame(0xFF1A1614, 0xFF2F2722, 0xFF2F2722, 0xFF2F2722, 0xFF2F2722);
+    private static final UITheme.Frame INVENTORY_FRAME = new UITheme.Frame(0xFF171312, 0xFF2F2722, 0xFF2F2722, 0xFF2F2722, 0xFF2F2722);
+    private static final int MACHINE_SLOT_OUTER = 0xFF4B3322;
+    private static final int MACHINE_SLOT_INNER = 0xFF211914;
+    private static final int PLAYER_SLOT_OUTER = 0xFF3A312B;
+    private static final int PLAYER_SLOT_INNER = 0xFF1B1714;
+    private static final int PLAYER_SLOT_HIGHLIGHT = 0xFF7F6A5C;
     private final int rows;
 
     public StationInventoryScreen(T menu, Inventory playerInventory, Component title) {
@@ -37,9 +45,9 @@ public class StationInventoryScreen<T extends AbstractStationInventoryMenu> exte
         int playerTop = top + playerSectionTopOffset();
         int playerHeight = 92;
 
-        ResearchScreenRenderer.drawAccentedWindow(guiGraphics, left, top, imageWidth, imageHeight, accentColor());
-        ResearchScreenRenderer.drawAccentedPanel(guiGraphics, machineLeft, machineTop, machineWidth, machineHeight, accentColor());
-        ResearchScreenRenderer.drawAccentedPanel(guiGraphics, left + 4, playerTop, imageWidth - 8, playerHeight, accentColor());
+        ResearchScreenRenderer.drawAccentedFrame(guiGraphics, WINDOW_FRAME, left, top, imageWidth, imageHeight, accentColor());
+        ResearchScreenRenderer.drawAccentedFrame(guiGraphics, MACHINE_FRAME, machineLeft, machineTop, machineWidth, machineHeight, accentColor());
+        ResearchScreenRenderer.drawAccentedFrame(guiGraphics, INVENTORY_FRAME, left + 4, playerTop, imageWidth - 8, playerHeight, accentColor());
 
         for (int slotIndex = 0; slotIndex < menu.slots.size(); slotIndex++) {
             Slot slot = menu.slots.get(slotIndex);
@@ -47,10 +55,24 @@ public class StationInventoryScreen<T extends AbstractStationInventoryMenu> exte
                 continue;
             }
             if (slotIndex < menu.machineSlotCount()) {
-                ResearchScreenRenderer.drawMachineSlotFrame(guiGraphics, left + slot.x, top + slot.y, accentColor());
+                ResearchScreenRenderer.drawSlotFrame(
+                        guiGraphics,
+                        left + slot.x,
+                        top + slot.y,
+                        MACHINE_SLOT_OUTER,
+                        MACHINE_SLOT_INNER,
+                        accentColor()
+                );
                 continue;
             }
-            ResearchScreenRenderer.drawSlotFrame(guiGraphics, left + slot.x, top + slot.y);
+            ResearchScreenRenderer.drawSlotFrame(
+                    guiGraphics,
+                    left + slot.x,
+                    top + slot.y,
+                    PLAYER_SLOT_OUTER,
+                    PLAYER_SLOT_INNER,
+                    PLAYER_SLOT_HIGHLIGHT
+            );
         }
     }
 
@@ -73,27 +95,27 @@ public class StationInventoryScreen<T extends AbstractStationInventoryMenu> exte
     }
 
     protected int panelFillColor() {
-        return THEME.window().fill();
+        return WINDOW_FRAME.fill();
     }
 
     protected int machineFillColor() {
-        return THEME.panel().fill();
+        return MACHINE_FRAME.fill();
     }
 
     protected int inventoryFillColor() {
-        return THEME.panel().fill();
+        return INVENTORY_FRAME.fill();
     }
 
     protected int borderColor() {
-        return THEME.window().borderTop();
+        return WINDOW_FRAME.borderTop();
     }
 
     protected int titleColor() {
-        return THEME.text().primary();
+        return 0xFFF3E6D3;
     }
 
     protected int subtitleColor() {
-        return THEME.text().secondary();
+        return 0xFFD2BDA2;
     }
 
     protected int titleLabelY() {
