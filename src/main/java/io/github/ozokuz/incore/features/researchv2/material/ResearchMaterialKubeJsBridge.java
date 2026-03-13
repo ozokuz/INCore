@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.research;
+package io.github.ozokuz.incore.features.researchv2.material;
 
 import dev.latvian.mods.kubejs.script.ScriptType;
 import io.github.ozokuz.incore.INCore;
@@ -24,4 +24,3 @@ public final class ResearchMaterialKubeJsBridge {
         return cache;
     }
 }
-

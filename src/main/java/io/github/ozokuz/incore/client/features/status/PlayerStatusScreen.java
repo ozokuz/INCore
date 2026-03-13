@@ -332,7 +332,7 @@ public class PlayerStatusScreen extends Screen {
                 new QuickNavTarget(
                         Component.translatable("screen.incore.player_status.nav.research"),
                         INCoreKeyMappings.OPEN_RESEARCH_TREE,
-                        Registration.MODULAR_LAB_BLOCK_ITEM.get().getDefaultInstance(),
+                        Registration.RESEARCH_CONTROLLER_T1_BLOCK_ITEM.get().getDefaultInstance(),
                         null,
                         () -> {
                             StatusScreenReturnTracker.prepare(this);

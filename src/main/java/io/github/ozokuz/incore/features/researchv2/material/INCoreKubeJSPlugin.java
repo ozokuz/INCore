@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.research;
+package io.github.ozokuz.incore.features.researchv2.material;
 
 import dev.latvian.mods.kubejs.event.EventGroupRegistry;
 import dev.latvian.mods.kubejs.plugin.KubeJSPlugin;
@@ -9,4 +9,3 @@ public class INCoreKubeJSPlugin implements KubeJSPlugin {
         registry.register(ResearchKubeJsEvents.GROUP);
     }
 }
-

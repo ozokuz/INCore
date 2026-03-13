@@ -17,7 +17,6 @@ import io.github.ozokuz.incore.features.gacha.GachaCrateBlock;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockItem;
 import io.github.ozokuz.incore.features.gacha.GachaCrateBlockEntity;
 import io.github.ozokuz.incore.features.gacha.GachaPermitItem;
-import io.github.ozokuz.incore.features.research.BurnerLabBlock;
 import io.github.ozokuz.incore.features.researchv2.discovery.*;
 import io.github.ozokuz.incore.features.researchv2.station.*;
 import io.github.ozokuz.incore.features.cards.CardBoosterBoxItem;
@@ -51,8 +50,6 @@ import io.github.ozokuz.incore.features.market.content.ShipmentTerminalBlockEnti
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMk2Block;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMk2BlockEntity;
 import io.github.ozokuz.incore.features.market.content.ShipmentTerminalMenu;
-import io.github.ozokuz.incore.features.research.LabBlockEntity;
-import io.github.ozokuz.incore.features.research.LabMenu;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOrePatchFeature;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreDebugCompassItem;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceOreLocatorItem;
@@ -66,10 +63,6 @@ import io.github.ozokuz.incore.features.surfaceore.SurfaceStonePatchFeature;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneSpotBlock;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneType;
 import io.github.ozokuz.incore.features.surfaceore.SurfaceStoneTypeLocatorItem;
-import io.github.ozokuz.incore.features.research.MechanicalLabBlock;
-import io.github.ozokuz.incore.features.research.ModularLabBlock;
-import io.github.ozokuz.incore.features.research.ProductivityModuleCardItem;
-import io.github.ozokuz.incore.features.research.SpeedModuleCardItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCompletionCrateItem;
 import io.github.ozokuz.incore.features.roguelike.content.DungeonCrystalItem;
 import io.github.ozokuz.incore.features.roguelike.content.MeCrystalAutomationTerminalMenu;
@@ -172,7 +165,6 @@ public class Registration {
     public static final DeferredBlock<Block> VENDING_MACHINE_BLOCK = BLOCKS.register("vending_machine", () -> new VendingMachineBlock());
     public static final Supplier<BlockEntityType<VendingMachineBlockEntity>> VENDING_MACHINE_BE = BLOCK_ENTITY_TYPES.register("vending_machine", () -> BlockEntityType.Builder.of(VendingMachineBlockEntity::new, VENDING_MACHINE_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> VENDING_MACHINE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("vending_machine", VENDING_MACHINE_BLOCK);
-    public static final Supplier<MenuType<LabMenu>> RESEARCH_LAB_MENU = MENU_TYPES.register("research_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
     public static final DeferredBlock<Block> MARKET_TERMINAL_BLOCK = BLOCKS.register("market_terminal", () -> new MarketTerminalBlock());
     public static final Supplier<BlockEntityType<MarketTerminalBlockEntity>> MARKET_TERMINAL_BE = BLOCK_ENTITY_TYPES.register(
             "market_terminal",
@@ -241,7 +233,6 @@ public class Registration {
             () -> BlockEntityType.Builder.of(MarketAutoTraderMk2BlockEntity::new, MARKET_AUTOTRADER_MK2_BLOCK.get()).build(null)
     );
     public static final DeferredItem<BlockItem> MARKET_AUTOTRADER_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autotrader_mk2", MARKET_AUTOTRADER_MK2_BLOCK);
-    public static final DeferredItem<BlockItem> MARKET_AUTOTRADER_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autotrader_mk2", MARKET_AUTOTRADER_MK2_BLOCK);
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_BLOCK = BLOCKS.register("cinnabar_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
@@ -309,9 +300,6 @@ public class Registration {
     public static final DeferredItem<BlockItem> SCORIA_SURFACE_STONE_SPOT_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("scoria_surface_stone_spot", SCORIA_SURFACE_STONE_SPOT_BLOCK);
     public static final DeferredHolder<Feature<?>, SurfaceOrePatchFeature> SURFACE_ORE_PATCH_FEATURE = FEATURES.register("surface_ore_patch", SurfaceOrePatchFeature::new);
     public static final DeferredHolder<Feature<?>, SurfaceStonePatchFeature> SURFACE_STONE_PATCH_FEATURE = FEATURES.register("surface_stone_patch", SurfaceStonePatchFeature::new);
-    public static final DeferredBlock<Block> BURNER_LAB_BLOCK = BLOCKS.register("burner_lab", () -> new BurnerLabBlock());
-    public static final DeferredBlock<Block> MECHANICAL_LAB_BLOCK = BLOCKS.register("mechanical_lab", MechanicalLabBlock::new);
-    public static final DeferredBlock<Block> MODULAR_LAB_BLOCK = BLOCKS.register("modular_lab", ModularLabBlock::new);
     public static final DeferredBlock<Block> CRUDE_RESEARCH_STATION_BLOCK = BLOCKS.register("crude_research_station", () -> new CrudeResearchStationBlock());
     public static final DeferredBlock<Block> RESEARCH_STATION_CASING_BLOCK = BLOCKS.register("research_station_casing", () -> new ResearchStationCasingBlock());
     public static final DeferredBlock<Block> LOGIC_HOUSING_BLOCK = BLOCKS.register("logic_housing", () -> new LogicHousingBlock());
@@ -342,16 +330,6 @@ public class Registration {
     public static final DeferredBlock<Block> DATALOGGER_BLOCK = BLOCKS.register("datalogger", () -> new DataloggerBlock());
     public static final DeferredBlock<Block> TRANSLATOR_BLOCK = BLOCKS.register("translator", () -> new TranslatorBlock());
     public static final DeferredBlock<Block> RESEARCH_SAMPLE_FABRICATOR_BLOCK = BLOCKS.register("research_sample_fabricator", () -> new ResearchSampleFabricatorBlock());
-    public static final Supplier<BlockEntityType<LabBlockEntity>> LAB_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
-            "burner_lab",
-            () -> BlockEntityType.Builder.of(
-                    LabBlockEntity::new,
-                    BURNER_LAB_BLOCK.get(),
-                    MECHANICAL_LAB_BLOCK.get(),
-                    MODULAR_LAB_BLOCK.get()
-            ).build(null)
-    );
-    public static final Supplier<MenuType<LabMenu>> BURNER_LAB_MENU = MENU_TYPES.register("burner_lab", () -> IMenuTypeExtension.create((id, inv, data) -> new LabMenu(id, inv, (LabBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
     public static final Supplier<BlockEntityType<CrudeResearchStationBlockEntity>> CRUDE_RESEARCH_STATION_BE = BLOCK_ENTITY_TYPES.register(
             "crude_research_station",
             () -> BlockEntityType.Builder.of(CrudeResearchStationBlockEntity::new, CRUDE_RESEARCH_STATION_BLOCK.get()).build(null)
@@ -512,9 +490,6 @@ public class Registration {
                     (ResearchSampleFabricatorBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
             ))
     );
-    public static final DeferredItem<BlockItem> BURNER_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_lab", BURNER_LAB_BLOCK);
-    public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
-    public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
     public static final DeferredItem<BlockItem> CRUDE_RESEARCH_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("crude_research_station", CRUDE_RESEARCH_STATION_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_STATION_CASING_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_station_casing", RESEARCH_STATION_CASING_BLOCK);
     public static final DeferredItem<BlockItem> LOGIC_HOUSING_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("logic_housing", LOGIC_HOUSING_BLOCK);
@@ -643,8 +618,6 @@ public class Registration {
     public static final DeferredItem<Item> BASIC_TIME_PIECE_ITEM = ITEMS.registerItem("basic_time_piece", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.BASIC));
     public static final DeferredItem<Item> CHARTERED_TIME_PIECE_ITEM = ITEMS.registerItem("chartered_time_piece", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.CHARTERED));
     public static final DeferredItem<Item> TIME_PIECE_ITEM = ITEMS.registerItem("time_piece", properties -> new GachaPermitItem(properties, GachaPermitItem.PermitMode.SPECIFIC));
-    public static final DeferredItem<Item> SPEED_MODULE_CARD_ITEM = ITEMS.registerItem("speed_module_card", properties -> new SpeedModuleCardItem(properties.stacksTo(16)));
-    public static final DeferredItem<Item> PRODUCTIVITY_MODULE_CARD_ITEM = ITEMS.registerItem("productivity_module_card", properties -> new ProductivityModuleCardItem(properties.stacksTo(16)));
     public static final DeferredItem<Item> BASIC_LOGIC_MODULE_ITEM = ITEMS.registerItem(
             "basic_logic_module",
             properties -> new LogicModuleItem(properties, LogicModuleTier.T1, true, "fresh")
@@ -780,9 +753,6 @@ public class Registration {
                 output.accept(CHARTERED_TIME_PIECE_ITEM.get());
 
                 // Research
-                output.accept(BURNER_LAB_BLOCK_ITEM.get());
-                output.accept(MECHANICAL_LAB_BLOCK_ITEM.get());
-                output.accept(MODULAR_LAB_BLOCK_ITEM.get());
                 output.accept(CRUDE_RESEARCH_STATION_BLOCK_ITEM.get());
                 output.accept(RESEARCH_STATION_CASING_BLOCK_ITEM.get());
                 output.accept(LOGIC_HOUSING_BLOCK_ITEM.get());
@@ -848,9 +818,6 @@ public class Registration {
                 output.accept(DUNGEON_STABILIZER_AUGMENT_ITEM.get());
                 output.accept(DUNGEON_SPECIALIZER_FOUNDATIONS_ITEM.get());
                 output.accept(DUNGEON_SPECIALIZER_EXPEDITION_ITEM.get());
-                output.accept(SPEED_MODULE_CARD_ITEM.get());
-                output.accept(PRODUCTIVITY_MODULE_CARD_ITEM.get());
-
                 // Card Deck
                 output.accept(DECK_STATION_BLOCK_ITEM.get());
                 output.accept(CARD_DECRYPTOR_BLOCK_ITEM.get());

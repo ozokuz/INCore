@@ -224,7 +224,7 @@ public final class ResearchStationServices {
                 continue;
             }
             ResourceLocation itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
-            io.github.ozokuz.incore.features.research.ResearchMaterialManager.all().forEach((materialId, definition) -> {
+            io.github.ozokuz.incore.features.researchv2.material.ResearchMaterialManager.all().forEach((materialId, definition) -> {
                 if (definition.itemId().equals(itemId)) {
                     counts.merge(materialId.toString(), stack.getCount(), Integer::sum);
                 }
