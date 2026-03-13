@@ -1,1 +1,1 @@
-io.github.ozokuz.incore.features.researchv2.material.INCoreKubeJSPlugin
+io.github.ozokuz.incore.features.research.material.INCoreKubeJSPlugin

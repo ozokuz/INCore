@@ -22,26 +22,26 @@ import io.github.ozokuz.incore.client.features.market.MarketAutoTraderScreen;
 import io.github.ozokuz.incore.client.features.market.MarketTerminalCardScreen;
 import io.github.ozokuz.incore.client.features.market.MarketTerminalMeCardScreen;
 import io.github.ozokuz.incore.client.features.market.ShipmentTerminalScreen;
-import io.github.ozokuz.incore.features.researchv2.client.CrudeResearchStationScreen;
-import io.github.ozokuz.incore.features.researchv2.client.DataloggerScreen;
-import io.github.ozokuz.incore.features.researchv2.client.PowerInputScreen;
-import io.github.ozokuz.incore.features.researchv2.client.AugmenterScreen;
-import io.github.ozokuz.incore.features.researchv2.client.LogicHousingScreen;
-import io.github.ozokuz.incore.features.researchv2.client.MaterialStorageScreen;
-import io.github.ozokuz.incore.features.researchv2.client.OrchestrationDriveScreen;
-import io.github.ozokuz.incore.features.researchv2.client.OutputPortScreen;
-import io.github.ozokuz.incore.features.researchv2.client.ResearchControllerScreen;
-import io.github.ozokuz.incore.features.researchv2.client.ResearchDriveScreen;
-import io.github.ozokuz.incore.features.researchv2.client.ResearchOrchestratorControllerScreen;
-import io.github.ozokuz.incore.features.researchv2.client.ResearchSampleFabricatorScreen;
+import io.github.ozokuz.incore.features.research.client.CrudeResearchStationScreen;
+import io.github.ozokuz.incore.features.research.client.DataloggerScreen;
+import io.github.ozokuz.incore.features.research.client.PowerInputScreen;
+import io.github.ozokuz.incore.features.research.client.AugmenterScreen;
+import io.github.ozokuz.incore.features.research.client.LogicHousingScreen;
+import io.github.ozokuz.incore.features.research.client.MaterialStorageScreen;
+import io.github.ozokuz.incore.features.research.client.OrchestrationDriveScreen;
+import io.github.ozokuz.incore.features.research.client.OutputPortScreen;
+import io.github.ozokuz.incore.features.research.client.ResearchControllerScreen;
+import io.github.ozokuz.incore.features.research.client.ResearchDriveScreen;
+import io.github.ozokuz.incore.features.research.client.ResearchOrchestratorControllerScreen;
+import io.github.ozokuz.incore.features.research.client.ResearchSampleFabricatorScreen;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
-import io.github.ozokuz.incore.features.researchv2.client.ResearchV2TreeScreen;
-import io.github.ozokuz.incore.features.researchv2.client.TranslatorScreen;
-import io.github.ozokuz.incore.features.researchv2.client.WirelessLinkScreen;
-import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
+import io.github.ozokuz.incore.features.research.client.ResearchTreeScreen;
+import io.github.ozokuz.incore.features.research.client.TranslatorScreen;
+import io.github.ozokuz.incore.features.research.client.WirelessLinkScreen;
+import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
 import io.github.ozokuz.incore.features.shop.network.ShopNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -150,8 +150,8 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_RESEARCH_TREE.consumeClick()) {
-            minecraft.setScreen(new ResearchV2TreeScreen());
-            ResearchV2Networking.requestSnapshot();
+            minecraft.setScreen(new ResearchTreeScreen());
+            ResearchNetworking.requestSnapshot();
         }
 
         while (INCoreKeyMappings.OPEN_COMBAT_CATALOG.consumeClick()) {
