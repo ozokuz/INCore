@@ -1,7 +1,7 @@
 package io.github.ozokuz.incore.features.researchv2.station;
 
-import io.github.ozokuz.incore.features.research.ResearchMaterialDefinition;
-import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
+import io.github.ozokuz.incore.features.researchv2.material.ResearchMaterialDefinition;
+import io.github.ozokuz.incore.features.researchv2.material.ResearchMaterialManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 

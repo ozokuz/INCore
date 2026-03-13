@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.research;
+package io.github.ozokuz.incore.features.researchv2.material;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;

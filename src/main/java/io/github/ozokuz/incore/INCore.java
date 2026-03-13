@@ -36,13 +36,12 @@ import io.github.ozokuz.incore.features.playerlevel.network.PlayerLevelNetworkin
 import io.github.ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import io.github.ozokuz.incore.features.party.command.PartyCommands;
 import io.github.ozokuz.incore.features.party.network.PartyNetworking;
-import io.github.ozokuz.incore.features.research.LabTier;
-import io.github.ozokuz.incore.features.research.ResearchMaterialManager;
 import io.github.ozokuz.incore.features.researchv2.discovery.ContinuumLootHookRegistry;
 import io.github.ozokuz.incore.features.researchv2.discovery.ContinuumReportRegistry;
 import io.github.ozokuz.incore.features.researchv2.discovery.EnvironmentReportRegistry;
 import io.github.ozokuz.incore.features.researchv2.discovery.FieldResearchRegistry;
 import io.github.ozokuz.incore.features.researchv2.command.ResearchV2Commands;
+import io.github.ozokuz.incore.features.researchv2.material.ResearchMaterialManager;
 import io.github.ozokuz.incore.features.researchv2.network.ResearchV2Networking;
 import io.github.ozokuz.incore.features.researchv2.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.researchv2.registry.ResearchRegistry;
@@ -143,10 +142,6 @@ public class INCore {
 
     @SubscribeEvent
     private void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> BlockStressValues.IMPACTS.register(
-                Registration.MECHANICAL_LAB_BLOCK.get(),
-                () -> Config.MECHANICAL_LAB_STRESS_PER_RPM.get().doubleValue()
-        ));
         event.enqueueWork(() -> {
             ResearchProviderManager.setResearchPowerProvider(HYBRID_RESEARCH_PROVIDER);
             ResearchProviderManager.setLogicModuleProvider(HYBRID_RESEARCH_PROVIDER);
@@ -161,16 +156,6 @@ public class INCore {
 
     @SubscribeEvent
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                Capabilities.EnergyStorage.BLOCK,
-                Registration.LAB_BLOCK_ENTITY.get(),
-                (be, side) -> {
-                    if (!(be instanceof io.github.ozokuz.incore.features.research.LabBlockEntity lab)) {
-                        return null;
-                    }
-                    return lab.labTier() == LabTier.MODULAR ? lab.energyStorage() : null;
-                }
-        );
         event.registerBlockEntity(
                 Capabilities.EnergyStorage.BLOCK,
                 Registration.ELECTRIC_POWER_INPUT_BE.get(),

@@ -1,7 +1,0 @@
-{
-  "title": "Specimen Delivery",
-  "description": "Submit slime samples for tissue study.",
-  "item": "minecraft:slime_ball",
-  "count": 16,
-  "repeatable": true
-}

@@ -1,4 +1,4 @@
-package io.github.ozokuz.incore.features.research;
+package io.github.ozokuz.incore.features.researchv2.material;
 
 import dev.latvian.mods.kubejs.event.KubeStartupEvent;
 import net.minecraft.resources.ResourceLocation;
@@ -52,4 +52,3 @@ public class ResearchMaterialKubeEvent implements KubeStartupEvent {
         }
     }
 }
-
