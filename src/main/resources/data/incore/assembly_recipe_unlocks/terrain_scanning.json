@@ -1,6 +1,0 @@
-{
-  "requiredResearchNodeId": "incore:terrain_scanning",
-  "recipes": [
-    "incore:assembly_precision_latch"
-  ]
-}
