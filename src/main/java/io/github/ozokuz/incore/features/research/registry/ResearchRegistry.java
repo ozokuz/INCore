@@ -1,93 +1,106 @@
 package io.github.ozokuz.incore.features.research.registry;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.features.research.model.ResearchCategoryDefinition;
 import io.github.ozokuz.incore.features.research.model.ResearchCostDefinition;
-import io.github.ozokuz.incore.features.research.model.ResearchNetworkDefinition;
 import io.github.ozokuz.incore.features.research.model.ResearchNodeDefinition;
 import io.github.ozokuz.incore.features.research.model.ResearchPowerDefinition;
 import io.github.ozokuz.incore.features.research.model.ResearchTreeDefinition;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.Reader;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
 
-public class ResearchRegistry extends SimpleJsonResourceReloadListener {
+public class ResearchRegistry extends SimplePreparableReloadListener<ResearchRegistry.LoadedResearchData> {
+    private static final String LEGACY_ROOT = "research";
+    private static final String CATEGORY_ROOT = "research_categories";
+    private static final String TREE_ROOT = "research_trees";
+    private static final String NODE_ROOT = "research_nodes";
+
     private static volatile Map<ResourceLocation, ResearchTreeDefinition> trees = Map.of();
     private static volatile Map<ResourceLocation, ResearchCategoryDefinition> categories = Map.of();
     private static volatile Map<ResourceLocation, ResearchNodeDefinition> nodes = Map.of();
-    private static volatile Map<ResourceLocation, ResearchNetworkDefinition> networks = Map.of();
 
-    public ResearchRegistry() {
-        super(new Gson(), "research");
+    @Override
+    protected @NotNull LoadedResearchData prepare(@NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
+        warnLegacyResources(resourceManager);
+        Map<ResourceLocation, ResearchCategoryDefinition> parsedCategories = loadDefinitions(
+                resourceManager,
+                CATEGORY_ROOT,
+                ResearchRegistry::parseCategoryFile
+        );
+        Map<ResourceLocation, ResearchTreeDefinition> parsedTrees = loadDefinitions(
+                resourceManager,
+                TREE_ROOT,
+                ResearchRegistry::parseTreeFile
+        );
+        Map<ResourceLocation, ResearchNodeDefinition> parsedNodes = loadDefinitions(
+                resourceManager,
+                NODE_ROOT,
+                ResearchRegistry::parseNodeFile
+        );
+        return new LoadedResearchData(parsedCategories, parsedTrees, parsedNodes);
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> jsons, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
-        Map<ResourceLocation, ResearchTreeDefinition> nextTrees = new LinkedHashMap<>();
-        Map<ResourceLocation, ResearchCategoryDefinition> nextCategories = new LinkedHashMap<>();
+    protected void apply(@NotNull LoadedResearchData prepared, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
+        Map<ResourceLocation, ResearchCategoryDefinition> nextCategories = new LinkedHashMap<>(prepared.categories());
+        Map<ResourceLocation, ResearchTreeDefinition> nextTrees = new LinkedHashMap<>(prepared.trees());
         Map<ResourceLocation, ResearchNodeDefinition> nextNodes = new LinkedHashMap<>();
-        Map<ResourceLocation, ResearchNetworkDefinition> nextNetworks = new LinkedHashMap<>();
 
-        jsons.forEach((id, jsonElement) -> {
-            if (!jsonElement.isJsonObject()) {
+        prepared.nodes().forEach((id, node) -> {
+            if (!nextTrees.containsKey(node.treeId())) {
+                INCore.LOGGER.warn("Skipping research node '{}' because tree '{}' does not exist.", id, node.treeId());
+                return;
+            }
+            if (!nextCategories.containsKey(node.categoryId())) {
+                INCore.LOGGER.warn("Skipping research node '{}' because category '{}' does not exist.", id, node.categoryId());
                 return;
             }
 
-            JsonObject root = jsonElement.getAsJsonObject();
-            readTrees(root.getAsJsonArray("trees"), nextTrees);
-            readCategories(root.getAsJsonArray("categories"), nextCategories);
-            readNodes(root.getAsJsonArray("nodes"), nextNodes);
-            readNetworks(root.getAsJsonArray("networks"), nextNetworks);
-        });
+            List<ResourceLocation> filteredPrerequisites = new ArrayList<>();
+            for (ResourceLocation prerequisite : node.prerequisites()) {
+                if (prepared.nodes().containsKey(prerequisite)) {
+                    filteredPrerequisites.add(prerequisite);
+                } else {
+                    INCore.LOGGER.warn("Dropping unknown prerequisite '{}' from research node '{}'.", prerequisite, id);
+                }
+            }
 
-        nextNodes.entrySet().removeIf(entry -> {
-            ResearchNodeDefinition node = entry.getValue();
-            return !nextTrees.containsKey(node.treeId()) || !nextCategories.containsKey(node.categoryId());
-        });
-
-        nextNodes.replaceAll((id, node) -> {
-            List<ResourceLocation> prereqs = node.prerequisites().stream()
-                    .filter(nextNodes::containsKey)
-                    .toList();
-            return new ResearchNodeDefinition(
+            nextNodes.put(id, new ResearchNodeDefinition(
                     node.id(),
                     node.name(),
                     node.treeId(),
                     node.categoryId(),
-                    prereqs,
+                    List.copyOf(filteredPrerequisites),
                     node.discoveryRules(),
                     node.researchCost(),
                     node.researchPower(),
                     node.researchTime(),
                     node.requiredRuns(),
                     node.outputs()
-            );
+            ));
         });
 
-        nextNetworks.replaceAll((id, network) -> {
-            Set<ResourceLocation> filtered = network.nodeIds().stream().filter(nextNodes::containsKey).collect(HashSet::new, Set::add, Set::addAll);
-            return new ResearchNetworkDefinition(network.id(), network.name(), Set.copyOf(filtered));
-        });
-
-        trees = Map.copyOf(nextTrees);
         categories = Map.copyOf(nextCategories);
+        trees = Map.copyOf(nextTrees);
         nodes = Map.copyOf(nextNodes);
-        networks = Map.copyOf(nextNetworks);
 
-        INCore.LOGGER.info("Loaded research v2 registry: {} trees, {} categories, {} nodes, {} networks.", trees.size(), categories.size(), nodes.size(), networks.size());
+        INCore.LOGGER.info("Loaded research registry: {} categories, {} trees, {} nodes.", categories.size(), trees.size(), nodes.size());
     }
 
     public static Map<ResourceLocation, ResearchTreeDefinition> trees() {
@@ -102,111 +115,120 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
         return nodes;
     }
 
-    public static Map<ResourceLocation, ResearchNetworkDefinition> networks() {
-        return networks;
+    private static <T> Map<ResourceLocation, T> loadDefinitions(
+            ResourceManager resourceManager,
+            String root,
+            Function<ParsedFile, @Nullable T> parser
+    ) {
+        Map<ResourceLocation, T> output = new LinkedHashMap<>();
+        resourceManager.listResources(root, location -> location.getPath().endsWith(".json")).entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(ResourceLocation::toString)))
+                .forEach(entry -> {
+                    ResourceLocation resourcePath = entry.getKey();
+                    ResourceLocation logicalId = toLogicalId(root, resourcePath);
+                    if (logicalId == null) {
+                        INCore.LOGGER.warn("Skipping research file '{}' because it does not map cleanly under '{}'.", resourcePath, root);
+                        return;
+                    }
+
+                    JsonObject json = readJsonObject(resourcePath, entry.getValue());
+                    if (json == null) {
+                        return;
+                    }
+
+                    T parsed = parser.apply(new ParsedFile(resourcePath, logicalId, json));
+                    if (parsed != null) {
+                        output.put(logicalId, parsed);
+                    }
+                });
+        return output;
     }
 
-    private static void readTrees(JsonArray treesArray, Map<ResourceLocation, ResearchTreeDefinition> output) {
-        if (treesArray == null) {
-            return;
+    private static @Nullable ResearchCategoryDefinition parseCategoryFile(ParsedFile file) {
+        ResourceLocation icon = null;
+        if (file.json().has("icon")) {
+            icon = ResourceLocation.tryParse(file.json().get("icon").getAsString());
+            if (icon == null) {
+                INCore.LOGGER.warn("Skipping research category '{}' because icon '{}' is invalid.", file.resourcePath(), file.json().get("icon"));
+                return null;
+            }
         }
 
-        for (JsonElement element : treesArray) {
+        return new ResearchCategoryDefinition(
+                file.logicalId(),
+                stringOr(file.json(), "name", humanizePath(file.logicalId().getPath())),
+                icon
+        );
+    }
+
+    private static @Nullable ResearchTreeDefinition parseTreeFile(ParsedFile file) {
+        return new ResearchTreeDefinition(
+                file.logicalId(),
+                stringOr(file.json(), "name", humanizePath(file.logicalId().getPath())),
+                stringOr(file.json(), "planet_theme", "")
+        );
+    }
+
+    private static @Nullable ResearchNodeDefinition parseNodeFile(ParsedFile file) {
+        ResourceLocation treeId = parseId(file.json(), "tree_id");
+        ResourceLocation categoryId = parseId(file.json(), "category_id");
+        if (treeId == null || categoryId == null) {
+            INCore.LOGGER.warn("Skipping research node '{}' because tree_id or category_id is missing/invalid.", file.resourcePath());
+            return null;
+        }
+
+        return new ResearchNodeDefinition(
+                file.logicalId(),
+                stringOr(file.json(), "name", humanizePath(file.logicalId().getPath())),
+                treeId,
+                categoryId,
+                List.copyOf(parseIdList(file.json().getAsJsonArray("prerequisites"))),
+                nullableString(file.json(), "discovery_rules"),
+                parseCost(file.json().getAsJsonObject("research_cost")),
+                parsePower(file.json().getAsJsonObject("research_power")),
+                intOr(file.json(), "research_time", 200, 1),
+                intOr(file.json(), "required_runs", 3, 1),
+                List.copyOf(parseStringList(file.json().getAsJsonArray("outputs")))
+        );
+    }
+
+    private static void warnLegacyResources(ResourceManager resourceManager) {
+        resourceManager.listResources(LEGACY_ROOT, location -> location.getPath().endsWith(".json")).keySet().stream()
+                .sorted(Comparator.comparing(ResourceLocation::toString))
+                .forEach(location -> INCore.LOGGER.warn(
+                        "Ignoring legacy research datapack '{}' . Migrate content into '{}', '{}', and '{}'.",
+                        location,
+                        CATEGORY_ROOT,
+                        TREE_ROOT,
+                        NODE_ROOT
+                ));
+    }
+
+    private static @Nullable JsonObject readJsonObject(ResourceLocation resourcePath, net.minecraft.server.packs.resources.Resource resource) {
+        try (Reader reader = resource.openAsReader()) {
+            JsonElement element = GsonHelper.parse(reader);
             if (!element.isJsonObject()) {
-                continue;
+                INCore.LOGGER.warn("Skipping research file '{}' because the root JSON is not an object.", resourcePath);
+                return null;
             }
-            JsonObject row = element.getAsJsonObject();
-            ResourceLocation id = parseId(row, "id");
-            if (id == null) {
-                continue;
-            }
-            String name = stringOr(row, "name", id.toString());
-            String planetTheme = stringOr(row, "planet_theme", "");
-            output.put(id, new ResearchTreeDefinition(id, name, planetTheme));
+            return element.getAsJsonObject();
+        } catch (Exception e) {
+            INCore.LOGGER.error("Failed to parse research file '{}'.", resourcePath, e);
+            return null;
         }
     }
 
-    private static void readCategories(JsonArray categoriesArray, Map<ResourceLocation, ResearchCategoryDefinition> output) {
-        if (categoriesArray == null) {
-            return;
+    private static @Nullable ResourceLocation toLogicalId(String root, ResourceLocation resourcePath) {
+        String path = resourcePath.getPath();
+        String prefix = root + "/";
+        if (!path.startsWith(prefix) || !path.endsWith(".json")) {
+            return null;
         }
-
-        for (JsonElement element : categoriesArray) {
-            if (!element.isJsonObject()) {
-                continue;
-            }
-            JsonObject row = element.getAsJsonObject();
-            ResourceLocation id = parseId(row, "id");
-            if (id == null) {
-                continue;
-            }
-            String name = stringOr(row, "name", id.toString());
-            ResourceLocation icon = parseId(row, "icon");
-            output.put(id, new ResearchCategoryDefinition(id, name, icon));
+        String trimmed = path.substring(prefix.length(), path.length() - ".json".length());
+        if (trimmed.isBlank()) {
+            return null;
         }
-    }
-
-    private static void readNodes(JsonArray nodesArray, Map<ResourceLocation, ResearchNodeDefinition> output) {
-        if (nodesArray == null) {
-            return;
-        }
-
-        for (JsonElement element : nodesArray) {
-            if (!element.isJsonObject()) {
-                continue;
-            }
-            JsonObject row = element.getAsJsonObject();
-            ResourceLocation id = parseId(row, "id");
-            ResourceLocation treeId = parseId(row, "tree_id");
-            ResourceLocation categoryId = parseId(row, "category_id");
-            if (id == null || treeId == null || categoryId == null) {
-                continue;
-            }
-
-            String name = stringOr(row, "name", humanizePath(id.getPath()));
-            List<ResourceLocation> prerequisites = parseIdList(row.getAsJsonArray("prerequisites"));
-            String discoveryRules = row.has("discovery_rules") ? row.get("discovery_rules").getAsString() : null;
-            int researchTime = row.has("research_time") ? Math.max(1, row.get("research_time").getAsInt()) : 200;
-            int requiredRuns = row.has("required_runs") ? Math.max(1, row.get("required_runs").getAsInt()) : 3;
-            ResearchCostDefinition cost = parseCost(row.getAsJsonObject("research_cost"));
-            ResearchPowerDefinition power = parsePower(row.getAsJsonObject("research_power"));
-            List<String> outputs = parseStringList(row.getAsJsonArray("outputs"));
-
-            output.put(id, new ResearchNodeDefinition(
-                    id,
-                    name,
-                    treeId,
-                    categoryId,
-                    List.copyOf(prerequisites),
-                    discoveryRules,
-                    cost,
-                    power,
-                    researchTime,
-                    requiredRuns,
-                    List.copyOf(outputs)
-            ));
-        }
-    }
-
-    private static void readNetworks(JsonArray networksArray, Map<ResourceLocation, ResearchNetworkDefinition> output) {
-        if (networksArray == null) {
-            return;
-        }
-
-        for (JsonElement element : networksArray) {
-            if (!element.isJsonObject()) {
-                continue;
-            }
-            JsonObject row = element.getAsJsonObject();
-            ResourceLocation id = parseId(row, "id");
-            if (id == null) {
-                continue;
-            }
-
-            String name = stringOr(row, "name", id.toString());
-            Set<ResourceLocation> nodeIds = Set.copyOf(parseIdList(row.getAsJsonArray("node_ids")));
-            output.put(id, new ResearchNetworkDefinition(id, name, nodeIds));
-        }
+        return ResourceLocation.fromNamespaceAndPath(resourcePath.getNamespace(), trimmed);
     }
 
     private static ResearchCostDefinition parseCost(JsonObject costObject) {
@@ -303,7 +325,7 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
         return values;
     }
 
-    private static ResourceLocation parseId(JsonObject object, String key) {
+    private static @Nullable ResourceLocation parseId(JsonObject object, String key) {
         if (object == null || !object.has(key)) {
             return null;
         }
@@ -317,12 +339,27 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
         return object.get(key).getAsString();
     }
 
+    private static @Nullable String nullableString(JsonObject object, String key) {
+        if (object == null || !object.has(key)) {
+            return null;
+        }
+        String value = object.get(key).getAsString();
+        return value.isBlank() ? null : value;
+    }
+
+    private static int intOr(JsonObject object, String key, int fallback, int minimum) {
+        if (object == null || !object.has(key)) {
+            return fallback;
+        }
+        return Math.max(minimum, object.get(key).getAsInt());
+    }
+
     private static String humanizePath(String path) {
         if (path == null || path.isBlank()) {
             return "Unknown";
         }
 
-        String[] parts = path.split("_");
+        String[] parts = path.split("[/_-]");
         StringBuilder builder = new StringBuilder(path.length() + 8);
         for (String part : parts) {
             if (part == null || part.isBlank()) {
@@ -338,9 +375,16 @@ public class ResearchRegistry extends SimpleJsonResourceReloadListener {
             }
         }
 
-        if (builder.length() == 0) {
-            return "Unknown";
-        }
-        return builder.toString();
+        return builder.length() == 0 ? "Unknown" : builder.toString();
+    }
+
+    private record ParsedFile(ResourceLocation resourcePath, ResourceLocation logicalId, JsonObject json) {
+    }
+
+    protected record LoadedResearchData(
+            Map<ResourceLocation, ResearchCategoryDefinition> categories,
+            Map<ResourceLocation, ResearchTreeDefinition> trees,
+            Map<ResourceLocation, ResearchNodeDefinition> nodes
+    ) {
     }
 }

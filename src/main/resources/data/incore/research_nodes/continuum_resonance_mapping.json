@@ -1,0 +1,34 @@
+{
+  "name": "Continuum Resonance Mapping",
+  "tree_id": "incore:continuum_tree",
+  "category_id": "incore:continuum",
+  "prerequisites": [
+    "incore:continuum_signal_theory"
+  ],
+  "discovery_rules": "none",
+  "research_cost": {
+    "required_logic_modules": [
+      {
+        "module_tier": "basic",
+        "durability_cost": 2
+      }
+    ],
+    "required_research_materials": [
+      {
+        "material_id": "incore:starter_data",
+        "count": 2
+      }
+    ],
+    "modifiers": []
+  },
+  "research_power": {
+    "base_rp_per_tick": 2.0,
+    "curve_scale_rp_per_tick": 0.8,
+    "curve_exponent": 1.1
+  },
+  "research_time": 420,
+  "required_runs": 3,
+  "outputs": [
+    "incore:unlock_continuum_mapping"
+  ]
+}
