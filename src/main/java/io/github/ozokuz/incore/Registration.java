@@ -5,8 +5,6 @@ import appeng.api.parts.IPartItem;
 import appeng.api.parts.PartModels;
 import appeng.items.parts.PartItem;
 import appeng.items.parts.PartModelsHelper;
-import io.github.ozokuz.incore.features.assembly.content.*;
-import io.github.ozokuz.incore.features.assembly.recipe.AssemblyRecipeTypes;
 import io.github.ozokuz.incore.features.arena.content.ArenaOrbBlock;
 import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateBlock;
 import io.github.ozokuz.incore.features.arena.content.ArenaRewardCrateBlockEntity;
@@ -148,8 +146,6 @@ public class Registration {
         MENU_TYPES.register(bus);
         FEATURES.register(bus);
         CHUNK_GENERATORS.register(bus);
-        AssemblyRecipeTypes.RECIPE_SERIALIZERS.register(bus);
-        AssemblyRecipeTypes.RECIPE_TYPES.register(bus);
     }
 
     public static final Supplier<MapCodec<DungeonChunkGenerator>> DUNGEON_CHUNK_GENERATOR = CHUNK_GENERATORS.register("dungeon", () -> DungeonChunkGenerator.CODEC);
@@ -245,10 +241,7 @@ public class Registration {
             () -> BlockEntityType.Builder.of(MarketAutoTraderMk2BlockEntity::new, MARKET_AUTOTRADER_MK2_BLOCK.get()).build(null)
     );
     public static final DeferredItem<BlockItem> MARKET_AUTOTRADER_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autotrader_mk2", MARKET_AUTOTRADER_MK2_BLOCK);
-    public static final DeferredBlock<Block> ASSEMBLY_STATION_BLOCK = BLOCKS.register("assembly_station", () -> new AssemblyStationBlock());
-    public static final DeferredBlock<Block> AUTO_ASSEMBLER_T1_BLOCK = BLOCKS.register("auto_assembler_t1", () -> new AutoAssemblerT1Block());
-    public static final DeferredBlock<Block> AUTO_ASSEMBLER_T2_BLOCK = BLOCKS.register("auto_assembler_t2", () -> new AutoAssemblerT2Block());
-    public static final DeferredBlock<Block> AUTO_ASSEMBLER_T3_BLOCK = BLOCKS.register("auto_assembler_t3", () -> new AutoAssemblerT3Block());
+    public static final DeferredItem<BlockItem> MARKET_AUTOTRADER_MK2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("market_autotrader_mk2", MARKET_AUTOTRADER_MK2_BLOCK);
     public static final DeferredBlock<Block> CINNABAR_ORE_STONE_BLOCK = BLOCKS.register("cinnabar_ore_stone", () -> new Block(BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
@@ -447,22 +440,6 @@ public class Registration {
             "research_sample_fabricator",
             () -> BlockEntityType.Builder.of(ResearchSampleFabricatorBlockEntity::new, RESEARCH_SAMPLE_FABRICATOR_BLOCK.get()).build(null)
     );
-    public static final Supplier<BlockEntityType<AssemblyStationBlockEntity>> ASSEMBLY_STATION_BE = BLOCK_ENTITY_TYPES.register(
-            "assembly_station",
-            () -> BlockEntityType.Builder.of(AssemblyStationBlockEntity::new, ASSEMBLY_STATION_BLOCK.get()).build(null)
-    );
-    public static final Supplier<BlockEntityType<AutoAssemblerT1BlockEntity>> AUTO_ASSEMBLER_T1_BE = BLOCK_ENTITY_TYPES.register(
-            "auto_assembler_t1",
-            () -> BlockEntityType.Builder.of(AutoAssemblerT1BlockEntity::new, AUTO_ASSEMBLER_T1_BLOCK.get()).build(null)
-    );
-    public static final Supplier<BlockEntityType<AutoAssemblerT2BlockEntity>> AUTO_ASSEMBLER_T2_BE = BLOCK_ENTITY_TYPES.register(
-            "auto_assembler_t2",
-            () -> BlockEntityType.Builder.of(AutoAssemblerT2BlockEntity::new, AUTO_ASSEMBLER_T2_BLOCK.get()).build(null)
-    );
-    public static final Supplier<BlockEntityType<AutoAssemblerT3BlockEntity>> AUTO_ASSEMBLER_T3_BE = BLOCK_ENTITY_TYPES.register(
-            "auto_assembler_t3",
-            () -> BlockEntityType.Builder.of(AutoAssemblerT3BlockEntity::new, AUTO_ASSEMBLER_T3_BLOCK.get()).build(null)
-    );
     public static final Supplier<MenuType<CrudeResearchStationMenu>> CRUDE_RESEARCH_STATION_MENU = MENU_TYPES.register(
             "crude_research_station",
             () -> IMenuTypeExtension.create((id, inv, data) -> new CrudeResearchStationMenu(
@@ -535,22 +512,6 @@ public class Registration {
                     (ResearchSampleFabricatorBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
             ))
     );
-    public static final Supplier<MenuType<AssemblyStationMenu>> ASSEMBLY_STATION_MENU = MENU_TYPES.register(
-            "assembly_station",
-            () -> IMenuTypeExtension.create((id, inv, data) -> new AssemblyStationMenu(
-                    id,
-                    inv,
-                    (AssemblyStationBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
-            ))
-    );
-    public static final Supplier<MenuType<AutoAssemblerMenu>> AUTO_ASSEMBLER_MENU = MENU_TYPES.register(
-            "auto_assembler",
-            () -> IMenuTypeExtension.create((id, inv, data) -> new AutoAssemblerMenu(
-                    id,
-                    inv,
-                    (AutoAssemblerBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos())
-            ))
-    );
     public static final DeferredItem<BlockItem> BURNER_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("burner_lab", BURNER_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MECHANICAL_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("mechanical_lab", MECHANICAL_LAB_BLOCK);
     public static final DeferredItem<BlockItem> MODULAR_LAB_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("modular_lab", MODULAR_LAB_BLOCK);
@@ -584,11 +545,6 @@ public class Registration {
     public static final DeferredItem<BlockItem> DATALOGGER_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("datalogger", DATALOGGER_BLOCK);
     public static final DeferredItem<BlockItem> TRANSLATOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("translator", TRANSLATOR_BLOCK);
     public static final DeferredItem<BlockItem> RESEARCH_SAMPLE_FABRICATOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("research_sample_fabricator", RESEARCH_SAMPLE_FABRICATOR_BLOCK);
-    public static final DeferredItem<BlockItem> ASSEMBLY_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("assembly_station", ASSEMBLY_STATION_BLOCK);
-    public static final DeferredItem<BlockItem> AUTO_ASSEMBLER_T1_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("auto_assembler_t1", AUTO_ASSEMBLER_T1_BLOCK);
-    public static final DeferredItem<BlockItem> AUTO_ASSEMBLER_T2_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("auto_assembler_t2", AUTO_ASSEMBLER_T2_BLOCK);
-    public static final DeferredItem<BlockItem> AUTO_ASSEMBLER_T3_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("auto_assembler_t3", AUTO_ASSEMBLER_T3_BLOCK);
-
     public static final DeferredBlock<Block> DUNGEON_ALTAR_BLOCK = BLOCKS.register("dungeon_altar", DungeonAltarBlock::new);
     public static final Supplier<BlockEntityType<DungeonAltarBlockEntity>> DUNGEON_ALTAR_BE = BLOCK_ENTITY_TYPES.register("dungeon_altar", () -> BlockEntityType.Builder.of(DungeonAltarBlockEntity::new, DUNGEON_ALTAR_BLOCK.get()).build(null));
     public static final DeferredItem<BlockItem> DUNGEON_ALTAR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("dungeon_altar", DUNGEON_ALTAR_BLOCK);
