@@ -1,0 +1,34 @@
+{
+  "name": "Relay Protocols",
+  "tree_id": "incore:core_tree",
+  "category_id": "incore:foundations",
+  "prerequisites": [
+    "incore:signal_calibration"
+  ],
+  "discovery_rules": "none",
+  "research_cost": {
+    "required_logic_modules": [
+      {
+        "module_tier": "basic",
+        "durability_cost": 2
+      }
+    ],
+    "required_research_materials": [
+      {
+        "material_id": "incore:starter_data",
+        "count": 2
+      }
+    ],
+    "modifiers": []
+  },
+  "research_power": {
+    "base_rp_per_tick": 2.0,
+    "curve_scale_rp_per_tick": 1.0,
+    "curve_exponent": 1.1
+  },
+  "research_time": 400,
+  "required_runs": 3,
+  "outputs": [
+    "incore:unlock_relay_tools"
+  ]
+}

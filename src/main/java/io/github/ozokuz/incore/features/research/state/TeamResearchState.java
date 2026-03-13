@@ -5,7 +5,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +15,6 @@ import java.util.Set;
 
 public final class TeamResearchState {
     private final String teamId;
-    private @Nullable ResourceLocation activeNetworkId;
     private final Set<ResourceLocation> discoveredNodes = new HashSet<>();
     private final Set<ResourceLocation> completedNodes = new HashSet<>();
     private final List<ResearchQueueEntry> researchQueue = new ArrayList<>();
@@ -31,14 +29,6 @@ public final class TeamResearchState {
 
     public String teamId() {
         return teamId;
-    }
-
-    public @Nullable ResourceLocation activeNetworkId() {
-        return activeNetworkId;
-    }
-
-    public void setActiveNetworkId(@Nullable ResourceLocation activeNetworkId) {
-        this.activeNetworkId = activeNetworkId;
     }
 
     public Set<ResourceLocation> discoveredNodes() {
@@ -80,9 +70,6 @@ public final class TeamResearchState {
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.putString("teamId", teamId);
-        if (activeNetworkId != null) {
-            tag.putString("activeNetworkId", activeNetworkId.toString());
-        }
 
         tag.put("discoveredNodes", toIdList(discoveredNodes));
         tag.put("completedNodes", toIdList(completedNodes));
@@ -102,9 +89,6 @@ public final class TeamResearchState {
     public static TeamResearchState fromTag(CompoundTag tag) {
         String teamId = tag.getString("teamId");
         TeamResearchState state = new TeamResearchState(teamId);
-
-        ResourceLocation activeNetwork = ResourceLocation.tryParse(tag.getString("activeNetworkId"));
-        state.setActiveNetworkId(activeNetwork);
 
         readIdList(tag.getList("discoveredNodes", Tag.TAG_STRING), state.discoveredNodes);
         readIdList(tag.getList("completedNodes", Tag.TAG_STRING), state.completedNodes);

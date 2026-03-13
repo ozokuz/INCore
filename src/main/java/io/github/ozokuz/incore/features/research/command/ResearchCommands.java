@@ -103,12 +103,10 @@ public final class ResearchCommands {
         String teamId = ResearchTeamResolver.resolveTeamId(target);
         MinecraftServer server = context.getSource().getServer();
         var state = ResearchManager.ensureTeamState(server, teamId);
-        String networkId = state.activeNetworkId() == null ? "none" : state.activeNetworkId().toString();
         int effectiveTier = ResearchManager.effectiveControllerTier(server, teamId);
 
         context.getSource().sendSuccess(() -> Component.literal(
                 "Research team=" + teamId
-                        + ", network=" + networkId
                         + ", controllerTier=" + effectiveTier
                         + ", discovered=" + state.discoveredNodes().size()
                         + ", completed=" + state.completedNodes().size()

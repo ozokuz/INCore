@@ -31,7 +31,6 @@ public final class ResearchClientCache {
         }
 
         String teamId = stringOr(root, "teamId", "");
-        String activeNetworkId = stringOr(root, "activeNetworkId", "");
         boolean researchEnabled = boolOr(root, "researchEnabled", false);
         int stationNetworkCount = intOr(root, "stationNetworkCount", 0);
         boolean stationNetworkValid = boolOr(root, "stationNetworkValid", true);
@@ -67,7 +66,6 @@ public final class ResearchClientCache {
         snapshot = new Snapshot(
                 true,
                 teamId,
-                activeNetworkId,
                 researchEnabled,
                 Math.max(0, stationNetworkCount),
                 stationNetworkValid,
@@ -462,7 +460,6 @@ public final class ResearchClientCache {
     public record Snapshot(
             boolean loaded,
             String teamId,
-            String activeNetworkId,
             boolean researchEnabled,
             int stationNetworkCount,
             boolean stationNetworkValid,
@@ -488,9 +485,8 @@ public final class ResearchClientCache {
             Map<String, NodeEntry> nodeById
     ) {
         public static Snapshot empty() {
-            return new Snapshot(
+                return new Snapshot(
                     false,
-                    "",
                     "",
                     false,
                     0,

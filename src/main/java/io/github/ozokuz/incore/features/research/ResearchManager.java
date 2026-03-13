@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.ozokuz.incore.features.research.event.ResearchLifecycleCallbacks;
 import io.github.ozokuz.incore.features.research.model.ResearchCostDefinition;
-import io.github.ozokuz.incore.features.research.model.ResearchNetworkDefinition;
 import io.github.ozokuz.incore.features.research.model.ResearchNodeDefinition;
 import io.github.ozokuz.incore.features.research.model.ResearchPowerDefinition;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
@@ -38,7 +37,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 public final class ResearchManager {
@@ -59,12 +57,8 @@ public final class ResearchManager {
 
     public static boolean canDiscover(MinecraftServer server, String teamId, ResourceLocation nodeId) {
         TeamResearchState state = ensureTeamState(server, teamId);
-        if (!hasValidNetwork(state)) {
-            return false;
-        }
-
         ResearchNodeDefinition node = ResearchRegistry.nodes().get(nodeId);
-        if (node == null || !isNodeInActiveNetwork(state, nodeId)) {
+        if (node == null) {
             return false;
         }
         if (state.discoveredNodes().contains(nodeId) || state.completedNodes().contains(nodeId)) {
@@ -75,9 +69,6 @@ public final class ResearchManager {
 
     public static boolean canQueue(MinecraftServer server, String teamId, ResourceLocation nodeId) {
         TeamResearchState state = ensureTeamState(server, teamId);
-        if (!hasValidNetwork(state) || !isNodeInActiveNetwork(state, nodeId)) {
-            return false;
-        }
         if (hasStationNetworkConflict(server, teamId)) {
             return false;
         }
@@ -108,14 +99,8 @@ public final class ResearchManager {
         if (state == null) {
             return "missing team state";
         }
-        if (!hasValidNetwork(state)) {
-            return "team has no active research network";
-        }
         if (hasStationNetworkConflict(server, teamId)) {
             return "team has multiple unlinked research station networks";
-        }
-        if (!isNodeInActiveNetwork(state, nodeId)) {
-            return "node is not in the team's active network";
         }
 
         ResearchNodeDefinition node = ResearchRegistry.nodes().get(nodeId);
@@ -184,7 +169,7 @@ public final class ResearchManager {
 
     public static boolean tickResearch(MinecraftServer server, String teamId) {
         TeamResearchState state = getTeamState(server, teamId);
-        if (state == null || !hasValidNetwork(state) || state.researchQueue().isEmpty()) {
+        if (state == null || state.researchQueue().isEmpty()) {
             return false;
         }
 
@@ -193,7 +178,7 @@ public final class ResearchManager {
         ResourceLocation nodeId = head.nodeId();
         ResearchNodeDefinition node = ResearchRegistry.nodes().get(nodeId);
 
-        if (node == null || !isNodeInActiveNetwork(state, nodeId)) {
+        if (node == null) {
             unlockEntry(server, teamId, head);
             state.researchQueue().remove(0);
             data.setDirty();
@@ -284,9 +269,6 @@ public final class ResearchManager {
 
     public static boolean grantCompletion(MinecraftServer server, String teamId, ResourceLocation nodeId) {
         TeamResearchState state = ensureTeamState(server, teamId);
-        if (!hasValidNetwork(state) || !isNodeInActiveNetwork(state, nodeId)) {
-            return false;
-        }
         if (!ResearchRegistry.nodes().containsKey(nodeId)) {
             return false;
         }
@@ -413,8 +395,7 @@ public final class ResearchManager {
 
         JsonObject root = new JsonObject();
         root.addProperty("teamId", teamId);
-        root.addProperty("activeNetworkId", state.activeNetworkId() == null ? "" : state.activeNetworkId().toString());
-        root.addProperty("researchEnabled", hasValidNetwork(state) && stationNetworkSnapshot.stationNetworkValid());
+        root.addProperty("researchEnabled", stationNetworkSnapshot.stationNetworkValid() && !ResearchRegistry.nodes().isEmpty());
         root.addProperty("stationNetworkCount", stationNetworkSnapshot.stationNetworkCount());
         root.addProperty("stationNetworkValid", stationNetworkSnapshot.stationNetworkValid());
         root.addProperty("stationNetworkStatus", stationNetworkSnapshot.stationNetworkStatus());
@@ -617,29 +598,7 @@ public final class ResearchManager {
     }
 
     public static TeamResearchState ensureTeamState(MinecraftServer server, String teamId) {
-        ResearchNetworkSavedData data = ResearchNetworkSavedData.get(server);
-        TeamResearchState state = data.getOrCreateTeamState(teamId);
-
-        ResourceLocation current = state.activeNetworkId();
-        if (current != null && ResearchRegistry.networks().containsKey(current)) {
-            return state;
-        }
-
-        ResourceLocation defaultNetwork = ResourceLocation.fromNamespaceAndPath("incore", "default_network");
-        if (ResearchRegistry.networks().containsKey(defaultNetwork)) {
-            state.setActiveNetworkId(defaultNetwork);
-            data.setDirty();
-            return state;
-        }
-
-        if (ResearchRegistry.networks().size() == 1) {
-            ResourceLocation single = ResearchRegistry.networks().keySet().iterator().next();
-            if (!Objects.equals(single, current)) {
-                state.setActiveNetworkId(single);
-                data.setDirty();
-            }
-        }
-        return state;
+        return ResearchNetworkSavedData.get(server).getOrCreateTeamState(teamId);
     }
 
     private static TeamResearchState getTeamState(MinecraftServer server, String teamId) {
@@ -647,28 +606,6 @@ public final class ResearchManager {
             return null;
         }
         return ResearchNetworkSavedData.get(server).getTeamState(teamId);
-    }
-
-    private static boolean hasValidNetwork(TeamResearchState state) {
-        ResourceLocation activeNetworkId = state.activeNetworkId();
-        if (activeNetworkId == null) {
-            return false;
-        }
-        return ResearchRegistry.networks().containsKey(activeNetworkId);
-    }
-
-    private static boolean isNodeInActiveNetwork(TeamResearchState state, ResourceLocation nodeId) {
-        ResourceLocation activeNetworkId = state.activeNetworkId();
-        if (activeNetworkId == null) {
-            return false;
-        }
-
-        ResearchNetworkDefinition network = ResearchRegistry.networks().get(activeNetworkId);
-        if (network == null) {
-            return false;
-        }
-        Set<ResourceLocation> nodes = network.nodeIds();
-        return nodes.contains(nodeId);
     }
 
     private static boolean hasStationNetworkConflict(MinecraftServer server, String teamId) {

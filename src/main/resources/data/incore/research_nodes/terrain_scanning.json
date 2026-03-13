@@ -1,0 +1,32 @@
+{
+  "name": "Terrain Scanning",
+  "tree_id": "incore:expedition_tree",
+  "category_id": "incore:expedition",
+  "prerequisites": [],
+  "discovery_rules": "none",
+  "research_cost": {
+    "required_logic_modules": [
+      {
+        "module_tier": "basic",
+        "durability_cost": 1
+      }
+    ],
+    "required_research_materials": [
+      {
+        "material_id": "incore:starter_data",
+        "count": 1
+      }
+    ],
+    "modifiers": []
+  },
+  "research_power": {
+    "base_rp_per_tick": 1.0,
+    "curve_scale_rp_per_tick": 0.4,
+    "curve_exponent": 1.0
+  },
+  "research_time": 220,
+  "required_runs": 3,
+  "outputs": [
+    "incore:unlock_terrain_tools"
+  ]
+}
