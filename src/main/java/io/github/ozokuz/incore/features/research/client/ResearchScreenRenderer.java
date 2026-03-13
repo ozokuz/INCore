@@ -30,14 +30,22 @@ final class ResearchScreenRenderer {
     }
 
     static void drawAccentedWindow(GuiGraphics guiGraphics, int x, int y, int width, int height, int accentColor) {
-        ThemedUi themedUi = ui(guiGraphics);
-        themedUi.drawWindow(x, y, width, height);
-        drawAccentStripe(themedUi, x, y, width, accentColor);
+        drawAccentedFrame(guiGraphics, theme().window(), x, y, width, height, accentColor);
     }
 
     static void drawAccentedPanel(GuiGraphics guiGraphics, int x, int y, int width, int height, int accentColor) {
+        drawAccentedFrame(guiGraphics, theme().panel(), x, y, width, height, accentColor);
+    }
+
+    static void drawAccentedFrame(GuiGraphics guiGraphics, UITheme.Frame frame, int x, int y, int width, int height, int accentColor) {
         ThemedUi themedUi = ui(guiGraphics);
-        themedUi.drawPanel(x, y, width, height);
+        int right = x + Math.max(0, width);
+        int bottom = y + Math.max(0, height);
+        themedUi.drawRect(x, y, right, bottom, frame.fill());
+        themedUi.drawRect(x, y, right, y + 1, frame.borderTop());
+        themedUi.drawRect(x, bottom - 1, right, bottom, frame.borderBottom());
+        themedUi.drawRect(x, y, x + 1, bottom, frame.borderLeft());
+        themedUi.drawRect(right - 1, y, right, bottom, frame.borderRight());
         drawAccentStripe(themedUi, x, y, width, accentColor);
     }
 
@@ -45,11 +53,16 @@ final class ResearchScreenRenderer {
         ui(guiGraphics).drawSlotFrame(x, y);
     }
 
-    static void drawMachineSlotFrame(GuiGraphics guiGraphics, int x, int y, int accentColor) {
+    static void drawSlotFrame(GuiGraphics guiGraphics, int x, int y, int outerColor, int innerColor, int highlightColor) {
         ThemedUi themedUi = ui(guiGraphics);
-        themedUi.drawSlotFrame(x, y);
-        themedUi.drawRect(x, y, x + 16, y + 1, accentColor);
-        themedUi.drawRect(x, y, x + 1, y + 16, accentColor);
+        themedUi.drawRect(x - 1, y - 1, x + 17, y + 17, outerColor);
+        themedUi.drawRect(x, y, x + 16, y + 16, innerColor);
+        themedUi.drawRect(x, y, x + 16, y + 1, highlightColor);
+        themedUi.drawRect(x, y, x + 1, y + 16, highlightColor);
+    }
+
+    static void drawMachineSlotFrame(GuiGraphics guiGraphics, int x, int y, int accentColor) {
+        drawSlotFrame(guiGraphics, x, y, theme().slot().borderTop(), theme().slot().fill(), accentColor);
     }
 
     static void drawProgressBar(GuiGraphics guiGraphics, int x, int y, int width, int height, float ratio) {
