@@ -1,15 +1,20 @@
 package io.github.ozokuz.incore.client.features.research;
 
 import io.github.ozokuz.incore.features.research.station.CrudeResearchStationMenu;
+import io.github.ozokuz.incore.features.research.station.CrudeResearchStationBlockEntity;
 import io.github.ozokuz.incore.features.research.state.ResearchQueueStatus;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 public class CrudeResearchStationScreen extends AbstractContainerScreen<CrudeResearchStationMenu> {
     private static final int ACCENT_COLOR = 0xFF7CB9FF;
     private static final int BURN_FILL = 0xFFEE9B34;
+    private static final int PLAYER_SLOT_OUTER = 0xFF3A312B;
+    private static final int PLAYER_SLOT_INNER = 0xFF1B1714;
+    private static final int PLAYER_SLOT_HIGHLIGHT = 0xFF7F6A5C;
 
     public CrudeResearchStationScreen(CrudeResearchStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -29,6 +34,7 @@ public class CrudeResearchStationScreen extends AbstractContainerScreen<CrudeRes
         ResearchScreenRenderer.drawMachineSlotFrame(guiGraphics, x + CrudeResearchStationMenu.FUEL_X, y + CrudeResearchStationMenu.FUEL_Y, ACCENT_COLOR);
         ResearchScreenRenderer.drawMachineSlotFrame(guiGraphics, x + CrudeResearchStationMenu.LOGIC_X, y + CrudeResearchStationMenu.LOGIC_Y, ACCENT_COLOR);
         ResearchScreenRenderer.drawMachineSlotFrame(guiGraphics, x + CrudeResearchStationMenu.DRIVE_X, y + CrudeResearchStationMenu.DRIVE_Y, ACCENT_COLOR);
+        drawPlayerInventorySlots(guiGraphics, x, y);
 
         int burnProgress = menu.burnProgressScaled(18);
         int burnX = x + CrudeResearchStationMenu.FUEL_X;
@@ -104,5 +110,22 @@ public class CrudeResearchStationScreen extends AbstractContainerScreen<CrudeRes
             case PAUSED_NO_POWER -> Component.translatable("screen.incore.crude_research_station.status.no_power");
             default -> Component.translatable("screen.incore.crude_research_station.status.queued");
         };
+    }
+
+    private void drawPlayerInventorySlots(GuiGraphics guiGraphics, int left, int top) {
+        for (int slotIndex = CrudeResearchStationBlockEntity.SLOT_COUNT; slotIndex < menu.slots.size(); slotIndex++) {
+            Slot slot = menu.slots.get(slotIndex);
+            if (!slot.isActive()) {
+                continue;
+            }
+            ResearchScreenRenderer.drawSlotFrame(
+                    guiGraphics,
+                    left + slot.x,
+                    top + slot.y,
+                    PLAYER_SLOT_OUTER,
+                    PLAYER_SLOT_INNER,
+                    PLAYER_SLOT_HIGHLIGHT
+            );
+        }
     }
 }

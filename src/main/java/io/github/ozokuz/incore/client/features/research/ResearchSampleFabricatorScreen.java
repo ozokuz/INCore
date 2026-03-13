@@ -36,6 +36,9 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
     private static final int SLOT_OUTER = 0xFF2D2621;
     private static final int SLOT_INNER = 0xFF1F1915;
     private static final int SLOT_HIGHLIGHT = 0xFFBDA17E;
+    private static final int PLAYER_SLOT_OUTER = 0xFF3A312B;
+    private static final int PLAYER_SLOT_INNER = 0xFF1B1714;
+    private static final int PLAYER_SLOT_HIGHLIGHT = 0xFF7F6A5C;
     private static final int ROW_FILL = 0x18212B38;
     private static final int ROW_FILL_HOVER = 0x22314255;
     private static final int ROW_FILL_SELECTED = 0x44314962;
@@ -182,6 +185,7 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
         ResearchScreenRenderer.drawAccentedPanel(guiGraphics, x + LIST_X, y + LIST_Y, LIST_W, LIST_H, ACCENT_COLOR);
         ResearchScreenRenderer.drawSlotFrame(guiGraphics, x + inputSlot().x, y + inputSlot().y, SLOT_OUTER, SLOT_INNER, SLOT_HIGHLIGHT);
         ResearchScreenRenderer.drawSlotFrame(guiGraphics, x + outputSlot().x, y + outputSlot().y, SLOT_OUTER, SLOT_INNER, SLOT_HIGHLIGHT);
+        drawPlayerInventorySlots(guiGraphics, x, y);
         ResearchScreenRenderer.drawProgressBar(guiGraphics, x + PROGRESS_X, y + PROGRESS_Y, PROGRESS_W, 6, progressRatio(), ResearchScreenRenderer.theme().progress().fill());
 
         List<ResearchClientCache.NodeEntry> nodes = filteredNodes();
@@ -344,6 +348,23 @@ public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<Rese
 
     private Slot outputSlot() {
         return menu.getSlot(1);
+    }
+
+    private void drawPlayerInventorySlots(GuiGraphics guiGraphics, int left, int top) {
+        for (int slotIndex = 2; slotIndex < menu.slots.size(); slotIndex++) {
+            Slot slot = menu.slots.get(slotIndex);
+            if (!slot.isActive()) {
+                continue;
+            }
+            ResearchScreenRenderer.drawSlotFrame(
+                    guiGraphics,
+                    left + slot.x,
+                    top + slot.y,
+                    PLAYER_SLOT_OUTER,
+                    PLAYER_SLOT_INNER,
+                    PLAYER_SLOT_HIGHLIGHT
+            );
+        }
     }
 
     private List<ResearchClientCache.NodeEntry> filteredNodes() {
