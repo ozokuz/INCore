@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.research.ResearchDeterministicRng;
@@ -120,6 +122,7 @@ public final class ResearchFunctionalBlocksGameTests {
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_logic", station.controllerPos()));
         LogicHousingBlockEntity logicHousing = requireBlockEntity(helper, station.logicHousingPos(), LogicHousingBlockEntity.class);
         OutputPortBlockEntity outputPort = requireBlockEntity(helper, station.outputPortPos(), OutputPortBlockEntity.class);
+        outputPort.setMode(OutputPortMode.LOGIC);
 
         ItemStack t1 = new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get());
         t1.setDamageValue(t1.getMaxDamage() - 1);
@@ -172,6 +175,7 @@ public final class ResearchFunctionalBlocksGameTests {
         ResearchControllerBlockEntity controller = bindController(helper, station.controllerPos(), teamId(helper, "phase7_output", station.controllerPos()));
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
         OutputPortBlockEntity outputPort = requireBlockEntity(helper, station.outputPortPos(), OutputPortBlockEntity.class);
+        outputPort.setMode(OutputPortMode.LOGIC);
 
         outputPort.insertOutput(new ItemStack(Registration.USED_LOGIC_MODULE_T4_ITEM.get(), 1));
         drive.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
@@ -199,6 +203,7 @@ public final class ResearchFunctionalBlocksGameTests {
         ResearchDriveBlockEntity drive = requireBlockEntity(helper, station.researchDrivePos(), ResearchDriveBlockEntity.class);
         OutputPortBlockEntity logicPort = requireBlockEntity(helper, station.outputPortPos(), OutputPortBlockEntity.class);
         OutputPortBlockEntity drivePort = requireBlockEntity(helper, station.secondOutputPortPos(), OutputPortBlockEntity.class);
+        logicPort.setMode(OutputPortMode.LOGIC);
 
         logicPort.insertOutput(new ItemStack(Registration.USED_LOGIC_MODULE_T4_ITEM.get()));
         drive.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
@@ -254,6 +259,7 @@ public final class ResearchFunctionalBlocksGameTests {
         OutputPortBlockEntity outputPort = requireBlockEntity(helper, station.outputPortPos(), OutputPortBlockEntity.class);
         ElectricPowerInputBlockEntity input = requireBlockEntity(helper, station.inputPos(), ElectricPowerInputBlockEntity.class);
         chargeElectricInput(input, 60_000);
+        outputPort.setMode(OutputPortMode.LOGIC);
 
         drive.rawItemHandler().setStackInSlot(0, Registration.RESEARCH_DISK_T1_ITEM.get().getDefaultInstance());
         logicHousing.rawItemHandler().setStackInSlot(0, new ItemStack(Registration.BASIC_LOGIC_MODULE_ITEM.get()));

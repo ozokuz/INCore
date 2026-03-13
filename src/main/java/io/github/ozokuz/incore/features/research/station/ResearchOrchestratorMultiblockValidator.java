@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -71,7 +73,7 @@ public final class ResearchOrchestratorMultiblockValidator {
         List<BlockPos> connected = new ArrayList<>(sizeX * sizeY * sizeZ);
         List<BlockPos> inputs = new ArrayList<>();
         List<BlockPos> linkingPorts = new ArrayList<>();
-        ResearchPowerFamily powerFamily = null;
+        MachinePowerFamily powerFamily = null;
         int powerInputTier = 0;
         Block inputBlockType = null;
         int controllerCount = 0;
@@ -90,7 +92,7 @@ public final class ResearchOrchestratorMultiblockValidator {
                             return ResearchOrchestratorTopology.unformed();
                         }
                         controllerCount++;
-                    } else if (state.getBlock() instanceof ResearchPowerInputBlockProvider inputBlock) {
+                    } else if (state.getBlock() instanceof MachinePowerInputBlockProvider inputBlock) {
                         inputs.add(pos.immutable());
                         if (inputBlockType == null) {
                             inputBlockType = state.getBlock();

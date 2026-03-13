@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import com.mojang.serialization.MapCodec;
 import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
@@ -19,7 +21,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MaterialStorageBlock extends AbstractResearchStationPartBlock {
+public class MaterialStorageBlock extends AbstractMachinePartBlock {
     private final int tier;
     private final MapCodec<MaterialStorageBlock> codec;
 
@@ -42,7 +44,7 @@ public class MaterialStorageBlock extends AbstractResearchStationPartBlock {
     }
 
     @Override
-    protected @NotNull MapCodec<? extends AbstractResearchStationPartBlock> codec() {
+    protected @NotNull MapCodec<? extends AbstractMachinePartBlock> codec() {
         return codec;
     }
 

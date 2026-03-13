@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import com.mojang.serialization.MapCodec;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
 import net.minecraft.core.BlockPos;
@@ -50,17 +52,17 @@ public class LinkingPortBlock extends BaseEntityBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return ResearchStationFacing.stateForPlacement(defaultBlockState(), context);
+        return MultiblockFacing.stateForPlacement(defaultBlockState(), context);
     }
 
     @Override
     protected @NotNull BlockState rotate(@NotNull BlockState state, Rotation rotation) {
-        return ResearchStationFacing.rotate(state, rotation);
+        return MultiblockFacing.rotate(state, rotation);
     }
 
     @Override
     protected @NotNull BlockState mirror(@NotNull BlockState state, Mirror mirror) {
-        return ResearchStationFacing.mirror(state, mirror);
+        return MultiblockFacing.mirror(state, mirror);
     }
 
     @Override

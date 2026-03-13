@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
 import io.github.ozokuz.incore.features.research.station.network.TeamStationNetworkSnapshot;
@@ -176,10 +178,10 @@ public class ResearchOrchestratorControllerMenu extends AbstractContainerMenu {
         return hasAugmenter;
     }
 
-    public ResearchPowerFamily powerFamily() {
-        return powerFamilyOrdinal < 0 || powerFamilyOrdinal >= ResearchPowerFamily.values().length
+    public MachinePowerFamily powerFamily() {
+        return powerFamilyOrdinal < 0 || powerFamilyOrdinal >= MachinePowerFamily.values().length
                 ? null
-                : ResearchPowerFamily.values()[powerFamilyOrdinal];
+                : MachinePowerFamily.values()[powerFamilyOrdinal];
     }
 
     public int powerInputTier() {

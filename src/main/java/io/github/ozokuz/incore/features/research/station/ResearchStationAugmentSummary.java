@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 public record ResearchStationAugmentSummary(
         double speedMultiplier,
         double powerMultiplier,

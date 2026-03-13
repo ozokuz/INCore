@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.features.research.ResearchManager;
 import io.github.ozokuz.incore.features.research.model.ResearchCostDefinition;
 import io.github.ozokuz.incore.features.research.provider.ILogicModuleProvider;

@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
 import net.minecraft.core.BlockPos;
@@ -11,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
-public class WirelessLinkBlockEntity extends AbstractInventoryStationPartBlockEntity {
+public class WirelessLinkBlockEntity extends AbstractMachineInventoryPartBlockEntity {
     private String channelId = "";
     private String ownerTeamId = "";
     private int bindingStatus = 0;
@@ -21,8 +23,8 @@ public class WirelessLinkBlockEntity extends AbstractInventoryStationPartBlockEn
     }
 
     @Override
-    public StationPartType stationPartType() {
-        return StationPartType.WIRELESS_LINK;
+    protected String displayNameKey() {
+        return "wireless_link";
     }
 
     @Override
@@ -95,7 +97,7 @@ public class WirelessLinkBlockEntity extends AbstractInventoryStationPartBlockEn
         }
 
         ItemStack stack = transmitter();
-        if (ownerKind() == LinkOwnerKind.ORCHESTRATOR) {
+        if (ownerKind() == MultiblockOwnerKind.ORCHESTRATOR) {
             if (!stack.isEmpty()) {
                 if (!SignalTransmitterData.hasBinding(stack)) {
                     if (channelId.isBlank() || ownerTeamId.isBlank()) {
@@ -122,7 +124,7 @@ public class WirelessLinkBlockEntity extends AbstractInventoryStationPartBlockEn
             } else {
                 bindingStatus = hasStoredChannel() ? 3 : 0;
             }
-        } else if (ownerKind() == LinkOwnerKind.STATION) {
+        } else if (ownerKind() == MultiblockOwnerKind.STATION) {
             bindingStatus = stack.isEmpty() ? 0 : (SignalTransmitterData.hasBinding(stack) ? 1 : 2);
         } else {
             bindingStatus = stack.isEmpty() ? 0 : 2;

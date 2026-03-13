@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import appeng.api.parts.IPart;
 import appeng.api.parts.IPartItem;
 import appeng.api.parts.PartModels;
@@ -301,7 +303,7 @@ public class Registration {
     public static final DeferredHolder<Feature<?>, SurfaceOrePatchFeature> SURFACE_ORE_PATCH_FEATURE = FEATURES.register("surface_ore_patch", SurfaceOrePatchFeature::new);
     public static final DeferredHolder<Feature<?>, SurfaceStonePatchFeature> SURFACE_STONE_PATCH_FEATURE = FEATURES.register("surface_stone_patch", SurfaceStonePatchFeature::new);
     public static final DeferredBlock<Block> CRUDE_RESEARCH_STATION_BLOCK = BLOCKS.register("crude_research_station", () -> new CrudeResearchStationBlock());
-    public static final DeferredBlock<Block> RESEARCH_STATION_CASING_BLOCK = BLOCKS.register("research_station_casing", () -> new ResearchStationCasingBlock());
+    public static final DeferredBlock<Block> RESEARCH_STATION_CASING_BLOCK = BLOCKS.register("research_station_casing", () -> new MultiblockCasingBlock());
     public static final DeferredBlock<Block> LOGIC_HOUSING_BLOCK = BLOCKS.register("logic_housing", () -> new LogicHousingBlock());
     public static final DeferredBlock<Block> LOGIC_HOUSING_T2_BLOCK = BLOCKS.register("logic_housing_t2", () -> new LogicHousingBlock(2, BlockBehaviour.Properties.of()));
     public static final DeferredBlock<Block> LOGIC_HOUSING_T3_BLOCK = BLOCKS.register("logic_housing_t3", () -> new LogicHousingBlock(3, BlockBehaviour.Properties.of()));
@@ -643,24 +645,24 @@ public class Registration {
     public static final DeferredItem<Item> RESEARCH_DISK_T4_ITEM = ITEMS.registerItem("research_disk_t4", properties -> new ResearchDiskItem(properties, ResearchDiskTier.T4));
     public static final DeferredItem<Item> ORCHESTRATION_DISK_ITEM = ITEMS.registerItem("orchestration_disk", OrchestrationDiskItem::new);
     public static final DeferredItem<Item> SIGNAL_TRANSMITTER_ITEM = ITEMS.registerItem("signal_transmitter", SignalTransmitterItem::new);
-    public static final DeferredItem<Item> SPEED_AUGMENT_ITEM = ITEMS.registerItem("speed_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPEED, false, null));
-    public static final DeferredItem<Item> PRODUCTIVITY_AUGMENT_ITEM = ITEMS.registerItem("productivity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.PRODUCTIVITY, false, null));
-    public static final DeferredItem<Item> STABILIZER_AUGMENT_ITEM = ITEMS.registerItem("stabilizer_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.STABILIZER, false, null));
-    public static final DeferredItem<Item> CABLE_CAPACITY_AUGMENT_ITEM = ITEMS.registerItem("cable_capacity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.CABLE_CAPACITY, false, null));
-    public static final DeferredItem<Item> WIRELESS_CAPACITY_AUGMENT_ITEM = ITEMS.registerItem("wireless_capacity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.WIRELESS_CAPACITY, false, null));
-    public static final DeferredItem<Item> WIRELESS_RANGE_AUGMENT_ITEM = ITEMS.registerItem("wireless_range_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.WIRELESS_RANGE, false, null));
-    public static final DeferredItem<Item> INFINITE_WIRELESS_AUGMENT_ITEM = ITEMS.registerItem("infinite_wireless_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.INFINITE_WIRELESS, false, null));
-    public static final DeferredItem<Item> INTERDIMENSIONAL_WIRELESS_AUGMENT_ITEM = ITEMS.registerItem("interdimensional_wireless_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.INTERDIMENSIONAL_WIRELESS, false, null));
-    public static final DeferredItem<Item> DUNGEON_SPEED_AUGMENT_ITEM = ITEMS.registerItem("dungeon_speed_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPEED, true, null));
-    public static final DeferredItem<Item> DUNGEON_PRODUCTIVITY_AUGMENT_ITEM = ITEMS.registerItem("dungeon_productivity_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.PRODUCTIVITY, true, null));
-    public static final DeferredItem<Item> DUNGEON_STABILIZER_AUGMENT_ITEM = ITEMS.registerItem("dungeon_stabilizer_augment", properties -> new ResearchAugmentItem(properties, ResearchAugmentType.STABILIZER, true, null));
+    public static final DeferredItem<Item> SPEED_AUGMENT_ITEM = ITEMS.registerItem("speed_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.SPEED, false, null));
+    public static final DeferredItem<Item> PRODUCTIVITY_AUGMENT_ITEM = ITEMS.registerItem("productivity_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.PRODUCTIVITY, false, null));
+    public static final DeferredItem<Item> STABILIZER_AUGMENT_ITEM = ITEMS.registerItem("stabilizer_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.STABILIZER, false, null));
+    public static final DeferredItem<Item> CABLE_CAPACITY_AUGMENT_ITEM = ITEMS.registerItem("cable_capacity_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.CABLE_CAPACITY, false, null));
+    public static final DeferredItem<Item> WIRELESS_CAPACITY_AUGMENT_ITEM = ITEMS.registerItem("wireless_capacity_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.WIRELESS_CAPACITY, false, null));
+    public static final DeferredItem<Item> WIRELESS_RANGE_AUGMENT_ITEM = ITEMS.registerItem("wireless_range_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.WIRELESS_RANGE, false, null));
+    public static final DeferredItem<Item> INFINITE_WIRELESS_AUGMENT_ITEM = ITEMS.registerItem("infinite_wireless_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.INFINITE_WIRELESS, false, null));
+    public static final DeferredItem<Item> INTERDIMENSIONAL_WIRELESS_AUGMENT_ITEM = ITEMS.registerItem("interdimensional_wireless_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.INTERDIMENSIONAL_WIRELESS, false, null));
+    public static final DeferredItem<Item> DUNGEON_SPEED_AUGMENT_ITEM = ITEMS.registerItem("dungeon_speed_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.SPEED, true, null));
+    public static final DeferredItem<Item> DUNGEON_PRODUCTIVITY_AUGMENT_ITEM = ITEMS.registerItem("dungeon_productivity_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.PRODUCTIVITY, true, null));
+    public static final DeferredItem<Item> DUNGEON_STABILIZER_AUGMENT_ITEM = ITEMS.registerItem("dungeon_stabilizer_augment", properties -> new MachineAugmentItem(properties, MachineAugmentType.STABILIZER, true, null));
     public static final DeferredItem<Item> DUNGEON_SPECIALIZER_FOUNDATIONS_ITEM = ITEMS.registerItem(
             "dungeon_specializer_foundations",
-            properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPECIALIZER, true, ResourceLocation.fromNamespaceAndPath(INCore.MODID, "foundations"))
+            properties -> new MachineAugmentItem(properties, MachineAugmentType.SPECIALIZER, true, ResourceLocation.fromNamespaceAndPath(INCore.MODID, "foundations"))
     );
     public static final DeferredItem<Item> DUNGEON_SPECIALIZER_EXPEDITION_ITEM = ITEMS.registerItem(
             "dungeon_specializer_expedition",
-            properties -> new ResearchAugmentItem(properties, ResearchAugmentType.SPECIALIZER, true, ResourceLocation.fromNamespaceAndPath(INCore.MODID, "expedition"))
+            properties -> new MachineAugmentItem(properties, MachineAugmentType.SPECIALIZER, true, ResourceLocation.fromNamespaceAndPath(INCore.MODID, "expedition"))
     );
     public static final DeferredItem<Item> CARD_MODULE_ITEM = ITEMS.registerItem("card_module", CardModuleItem::new);
     public static final DeferredItem<Item> CARD_BOOSTER_ITEM = ITEMS.registerItem("card_booster", CardBoosterItem::new);

@@ -1,5 +1,8 @@
 package io.github.ozokuz.incore.client.features.research;
 
+import io.github.ozokuz.incore.client.features.machines.*;
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

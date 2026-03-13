@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
@@ -38,7 +40,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
     private BlockPos materialStoragePos;
     private List<BlockPos> outputPortPositions = List.of();
     private BlockPos augmenterPos;
-    private ResearchPowerFamily powerFamily;
+    private MachinePowerFamily powerFamily;
     private int powerInputTier;
     private int tickCounter;
 
@@ -147,11 +149,11 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 break;
             }
             BlockEntity blockEntity = level.getBlockEntity(inputPos);
-            if (!(blockEntity instanceof IResearchPowerInput input)) {
+            if (!(blockEntity instanceof IMachinePowerInput input)) {
                 continue;
             }
 
-            int fromInput = Math.max(0, input.availableResearchPower(this, remaining));
+            int fromInput = Math.max(0, input.availablePower(remaining));
             if (fromInput > 0) {
                 available += fromInput;
                 remaining -= fromInput;
@@ -172,11 +174,11 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 break;
             }
             BlockEntity blockEntity = level.getBlockEntity(inputPos);
-            if (!(blockEntity instanceof IResearchPowerInput input)) {
+            if (!(blockEntity instanceof IMachinePowerInput input)) {
                 continue;
             }
 
-            int fromInput = Math.max(0, input.pullResearchPower(this, remaining));
+            int fromInput = Math.max(0, input.pullPower(remaining));
             if (fromInput > 0) {
                 consumed += fromInput;
                 remaining -= fromInput;
@@ -205,7 +207,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         return wirelessLinkPositions;
     }
 
-    public ResearchPowerFamily powerFamily() {
+    public MachinePowerFamily powerFamily() {
         return powerFamily;
     }
 
@@ -264,7 +266,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         BlockPos nextMaterialStoragePos = nextFormed ? immutablePos(result.materialStoragePos()) : null;
         List<BlockPos> nextOutputPortPositions = nextFormed ? normalizeConnectedParts(result.outputPortPositions()) : List.of();
         BlockPos nextAugmenterPos = nextFormed ? immutablePos(result.augmenterPos()) : null;
-        ResearchPowerFamily nextPowerFamily = nextFormed ? result.powerFamily() : null;
+        MachinePowerFamily nextPowerFamily = nextFormed ? result.powerFamily() : null;
         int nextPowerInputTier = nextFormed ? Math.max(0, result.powerInputTier()) : 0;
 
         boolean changed = formed != nextFormed
@@ -344,7 +346,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         String outputModes = outputPortPositions.isEmpty()
                 ? "NONE"
                 : outputPortPositions.stream()
-                .map(pos -> level.getBlockEntity(pos) instanceof OutputPortBlockEntity outputPort ? outputPort.mode().name() : OutputPortMode.LOGIC.name())
+                .map(pos -> level.getBlockEntity(pos) instanceof OutputPortBlockEntity outputPort ? outputPort.mode().name() : OutputPortMode.UNBOUND.name())
                 .collect(java.util.stream.Collectors.joining("+"));
 
         int mountedDiskTier = 0;
@@ -418,7 +420,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         powerInputTier = Math.max(0, tag.getInt("powerInputTier"));
         if (tag.contains("powerFamily")) {
             try {
-                powerFamily = ResearchPowerFamily.valueOf(tag.getString("powerFamily"));
+                powerFamily = MachinePowerFamily.valueOf(tag.getString("powerFamily"));
             } catch (IllegalArgumentException ignored) {
                 powerFamily = null;
             }
@@ -515,7 +517,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         partPositions.addAll(wirelessLinkPositions);
         partPositions.add(augmenterPos);
         for (BlockPos pos : partPositions.stream().filter(java.util.Objects::nonNull).toList()) {
-            if (pos != null && level.getBlockEntity(pos) instanceof AbstractResearchStationPartBlockEntity part) {
+            if (pos != null && level.getBlockEntity(pos) instanceof AbstractMultiblockPartBlockEntity part) {
                 part.clearBinding();
             }
         }
@@ -538,13 +540,13 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
         partPositions.addAll(wirelessLinkPositions);
         partPositions.add(augmenterPos);
         for (BlockPos pos : partPositions.stream().filter(java.util.Objects::nonNull).toList()) {
-            if (pos != null && level.getBlockEntity(pos) instanceof AbstractResearchStationPartBlockEntity part) {
-                part.bindToController(this);
+            if (pos != null && level.getBlockEntity(pos) instanceof AbstractMultiblockPartBlockEntity part) {
+                part.bindToController(worldPosition, stationId, teamId);
             }
         }
         for (BlockPos pos : linkingPortPositions) {
             if (level.getBlockEntity(pos) instanceof LinkingPortBlockEntity port) {
-                port.setAttachment(LinkOwnerKind.STATION, stationId, teamId);
+                port.setAttachment(MultiblockOwnerKind.STATION, stationId, teamId);
             }
         }
     }

@@ -1,5 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.features.machines.multiblock.*;
+
 public enum LogicModuleTier {
     T1("basic", 64),
     T2("t2", 96),

@@ -24,12 +24,12 @@ import io.github.ozokuz.incore.client.features.market.MarketTerminalMeCardScreen
 import io.github.ozokuz.incore.client.features.market.ShipmentTerminalScreen;
 import io.github.ozokuz.incore.client.features.research.CrudeResearchStationScreen;
 import io.github.ozokuz.incore.client.features.research.DataloggerScreen;
-import io.github.ozokuz.incore.client.features.research.PowerInputScreen;
-import io.github.ozokuz.incore.client.features.research.AugmenterScreen;
+import io.github.ozokuz.incore.client.features.machines.PowerInputScreen;
+import io.github.ozokuz.incore.client.features.machines.AugmenterScreen;
 import io.github.ozokuz.incore.client.features.research.LogicHousingScreen;
 import io.github.ozokuz.incore.client.features.research.MaterialStorageScreen;
 import io.github.ozokuz.incore.client.features.research.OrchestrationDriveScreen;
-import io.github.ozokuz.incore.client.features.research.OutputPortScreen;
+import io.github.ozokuz.incore.client.features.machines.OutputPortScreen;
 import io.github.ozokuz.incore.client.features.research.ResearchControllerScreen;
 import io.github.ozokuz.incore.client.features.research.ResearchDriveScreen;
 import io.github.ozokuz.incore.client.features.research.ResearchOrchestratorControllerScreen;

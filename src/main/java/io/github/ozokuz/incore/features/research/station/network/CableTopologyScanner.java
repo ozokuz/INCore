@@ -1,7 +1,7 @@
 package io.github.ozokuz.incore.features.research.station.network;
 
 import io.github.ozokuz.incore.Registration;
-import io.github.ozokuz.incore.features.research.station.LinkOwnerKind;
+import io.github.ozokuz.incore.features.machines.multiblock.MultiblockOwnerKind;
 import io.github.ozokuz.incore.features.research.station.LinkingPortBlockEntity;
 import io.github.ozokuz.incore.features.research.station.ResearchLinkCableBlock;
 import io.github.ozokuz.incore.features.research.station.ResearchControllerBlockEntity;
@@ -65,9 +65,9 @@ public final class CableTopologyScanner {
                 LinkingPortBlockEntity port = teamPorts.get(current);
                 if (port != null) {
                     componentPorts.add(current.immutable());
-                    if (port.ownerKind() == LinkOwnerKind.STATION && !port.ownerId().isBlank()) {
+                    if (port.ownerKind() == MultiblockOwnerKind.STATION && !port.ownerId().isBlank()) {
                         stationIds.add(port.ownerId());
-                    } else if (port.ownerKind() == LinkOwnerKind.ORCHESTRATOR && !port.ownerId().isBlank()) {
+                    } else if (port.ownerKind() == MultiblockOwnerKind.ORCHESTRATOR && !port.ownerId().isBlank()) {
                         orchestratorIds.add(port.ownerId());
                     }
                 }
@@ -94,7 +94,7 @@ public final class CableTopologyScanner {
     public static Map<String, Set<BlockPos>> stationPortPositions(ServerLevel level) {
         Map<String, Set<BlockPos>> portsByStationId = new LinkedHashMap<>();
         for (LinkingPortBlockEntity port : LinkingPortRegistry.portsForLevel(level)) {
-            if (port.ownerKind() != LinkOwnerKind.STATION || port.ownerId().isBlank()) {
+            if (port.ownerKind() != MultiblockOwnerKind.STATION || port.ownerId().isBlank()) {
                 continue;
             }
             portsByStationId.computeIfAbsent(port.ownerId(), ignored -> new LinkedHashSet<>()).add(port.getBlockPos().immutable());
