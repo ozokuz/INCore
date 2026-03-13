@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.research.client;
 
+import io.github.ozokuz.incore.client.ui.UITheme;
 import io.github.ozokuz.incore.features.research.station.AbstractStationInventoryMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -8,6 +9,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
 public class StationInventoryScreen<T extends AbstractStationInventoryMenu> extends AbstractContainerScreen<T> {
+    private static final UITheme THEME = ResearchScreenRenderer.theme();
     private final int rows;
 
     public StationInventoryScreen(T menu, Inventory playerInventory, Component title) {
@@ -35,16 +37,20 @@ public class StationInventoryScreen<T extends AbstractStationInventoryMenu> exte
         int playerTop = top + playerSectionTopOffset();
         int playerHeight = 92;
 
-        drawPanel(guiGraphics, left, top, imageWidth, imageHeight, panelFillColor(), borderColor(), accentColor());
-        drawPanel(guiGraphics, machineLeft, machineTop, machineWidth, machineHeight, machineFillColor(), borderColor(), accentColor());
-        drawPanel(guiGraphics, left + 4, playerTop, imageWidth - 8, playerHeight, inventoryFillColor(), borderColor(), accentColor());
+        ResearchScreenRenderer.drawAccentedWindow(guiGraphics, left, top, imageWidth, imageHeight, accentColor());
+        ResearchScreenRenderer.drawAccentedPanel(guiGraphics, machineLeft, machineTop, machineWidth, machineHeight, accentColor());
+        ResearchScreenRenderer.drawAccentedPanel(guiGraphics, left + 4, playerTop, imageWidth - 8, playerHeight, accentColor());
 
         for (int slotIndex = 0; slotIndex < menu.slots.size(); slotIndex++) {
             Slot slot = menu.slots.get(slotIndex);
             if (!slot.isActive()) {
                 continue;
             }
-            drawSlotWell(guiGraphics, left + slot.x, top + slot.y, slotIndex < menu.machineSlotCount());
+            if (slotIndex < menu.machineSlotCount()) {
+                ResearchScreenRenderer.drawMachineSlotFrame(guiGraphics, left + slot.x, top + slot.y, accentColor());
+                continue;
+            }
+            ResearchScreenRenderer.drawSlotFrame(guiGraphics, left + slot.x, top + slot.y);
         }
     }
 
@@ -57,7 +63,7 @@ public class StationInventoryScreen<T extends AbstractStationInventoryMenu> exte
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        ResearchScreenRenderer.drawBackdrop(guiGraphics, width, height);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
     }
@@ -67,27 +73,27 @@ public class StationInventoryScreen<T extends AbstractStationInventoryMenu> exte
     }
 
     protected int panelFillColor() {
-        return 0xFF13100F;
+        return THEME.window().fill();
     }
 
     protected int machineFillColor() {
-        return 0xFF1A1614;
+        return THEME.panel().fill();
     }
 
     protected int inventoryFillColor() {
-        return 0xFF171312;
+        return THEME.panel().fill();
     }
 
     protected int borderColor() {
-        return 0xFF2F2722;
+        return THEME.window().borderTop();
     }
 
     protected int titleColor() {
-        return 0xFFF3E6D3;
+        return THEME.text().primary();
     }
 
     protected int subtitleColor() {
-        return 0xFFD2BDA2;
+        return THEME.text().secondary();
     }
 
     protected int titleLabelY() {
@@ -103,22 +109,5 @@ public class StationInventoryScreen<T extends AbstractStationInventoryMenu> exte
     }
 
     protected void renderSubtitle(GuiGraphics guiGraphics) {
-    }
-
-    private void drawPanel(GuiGraphics guiGraphics, int x, int y, int width, int height, int fillColor, int borderColor, int accentColor) {
-        guiGraphics.fill(x, y, x + width, y + height, borderColor);
-        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, fillColor);
-        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + 3, accentColor);
-        guiGraphics.fill(x + 2, y + height - 2, x + width - 2, y + height - 1, 0x66000000);
-    }
-
-    private void drawSlotWell(GuiGraphics guiGraphics, int x, int y, boolean machineSlot) {
-        int outer = machineSlot ? 0xFF4B3322 : 0xFF3A312B;
-        int inner = machineSlot ? 0xFF211914 : 0xFF1B1714;
-        int highlight = machineSlot ? accentColor() : 0xFF7F6A5C;
-        guiGraphics.fill(x - 1, y - 1, x + 17, y + 17, outer);
-        guiGraphics.fill(x, y, x + 16, y + 16, inner);
-        guiGraphics.fill(x, y, x + 16, y + 1, highlight);
-        guiGraphics.fill(x, y, x + 1, y + 16, highlight);
     }
 }

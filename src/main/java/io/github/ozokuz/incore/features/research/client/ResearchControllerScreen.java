@@ -95,10 +95,7 @@ public class ResearchControllerScreen extends StationStatusScreen<ResearchContro
     }
 
     private void drawRunBar(GuiGraphics guiGraphics, int x, int y, int width, int fill, boolean active) {
-        guiGraphics.fill(x, y, x + width, y + 6, 0xFF243143);
-        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + 5, 0xFF101722);
-        if (active && fill > 0) {
-            guiGraphics.fill(x + 1, y + 1, x + Math.min(width - 1, fill), y + 5, 0xFF55A9E6);
-        }
+        float ratio = active && width > 0 ? fill / (float) width : 0.0F;
+        ResearchScreenRenderer.drawProgressBar(guiGraphics, x, y, width, 6, ratio);
     }
 }
