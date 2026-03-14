@@ -21,8 +21,10 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class ResearchRegistry extends SimplePreparableReloadListener<ResearchRegistry.LoadedResearchData> {
@@ -61,6 +63,7 @@ public class ResearchRegistry extends SimplePreparableReloadListener<ResearchReg
         Map<ResourceLocation, ResearchCategoryDefinition> nextCategories = new LinkedHashMap<>(prepared.categories());
         Map<ResourceLocation, ResearchTreeDefinition> nextTrees = new LinkedHashMap<>(prepared.trees());
         Map<ResourceLocation, ResearchNodeDefinition> nextNodes = new LinkedHashMap<>();
+        Set<ResourceLocation> validNodeIds = new LinkedHashSet<>();
 
         prepared.nodes().forEach((id, node) -> {
             if (!nextTrees.containsKey(node.treeId())) {
@@ -71,10 +74,16 @@ public class ResearchRegistry extends SimplePreparableReloadListener<ResearchReg
                 INCore.LOGGER.warn("Skipping research node '{}' because category '{}' does not exist.", id, node.categoryId());
                 return;
             }
+            validNodeIds.add(id);
+        });
 
+        prepared.nodes().forEach((id, node) -> {
+            if (!validNodeIds.contains(id)) {
+                return;
+            }
             List<ResourceLocation> filteredPrerequisites = new ArrayList<>();
             for (ResourceLocation prerequisite : node.prerequisites()) {
-                if (prepared.nodes().containsKey(prerequisite)) {
+                if (validNodeIds.contains(prerequisite)) {
                     filteredPrerequisites.add(prerequisite);
                 } else {
                     INCore.LOGGER.warn("Dropping unknown prerequisite '{}' from research node '{}'.", prerequisite, id);
@@ -136,7 +145,19 @@ public class ResearchRegistry extends SimplePreparableReloadListener<ResearchReg
                         return;
                     }
 
-                    T parsed = parser.apply(new ParsedFile(resourcePath, logicalId, json));
+                    ParsedFile parsedFile = new ParsedFile(resourcePath, logicalId, json);
+                    T parsed;
+                    try {
+                        parsed = parser.apply(parsedFile);
+                    } catch (RuntimeException e) {
+                        INCore.LOGGER.error(
+                                "Failed to parse research definition from ParsedFile(resourcePath='{}', logicalId='{}') after readJsonObject succeeded.",
+                                resourcePath,
+                                logicalId,
+                                e
+                        );
+                        return;
+                    }
                     if (parsed != null) {
                         output.put(logicalId, parsed);
                     }
