@@ -2,7 +2,6 @@ package io.github.ozokuz.incore.client.features.research;
 
 import io.github.ozokuz.incore.client.features.machines.ResearchScreenRenderer;
 import io.github.ozokuz.incore.client.features.machines.StationStatusScreen;
-import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
 import io.github.ozokuz.incore.features.research.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.research.station.ResearchControllerMenu;
 import net.minecraft.client.gui.GuiGraphics;
@@ -29,7 +28,7 @@ public class ResearchControllerScreen extends StationStatusScreen<ResearchContro
         drawKeyValue(guiGraphics, leftColumn, y, Component.translatable("screen.incore.research_controller.structure"), Component.translatable(menu.formed() ? "screen.incore.research_controller.structure.formed" : "screen.incore.research_controller.structure.incomplete"), menu.formed() ? okColor() : warnColor());
         drawKeyValue(guiGraphics, leftColumn, y + 12, Component.translatable("screen.incore.research_controller.team"), Component.translatable(menu.teamLinked() ? "screen.incore.common.linked" : "screen.incore.common.missing"), menu.teamLinked() ? okColor() : warnColor());
         drawKeyValue(guiGraphics, leftColumn, y + 24, Component.translatable("screen.incore.research_controller.tier"), Component.literal(Integer.toString(menu.stationTier())), valueColor());
-        drawKeyValue(guiGraphics, leftColumn, y + 36, Component.translatable("screen.incore.research_controller.power_family"), powerFamily(menu.powerFamily()), valueColor());
+        drawKeyValue(guiGraphics, leftColumn, y + 36, Component.translatable("screen.incore.research_controller.power_family"), powerFamilyLabel(menu.powerFamily()), valueColor());
         drawKeyValue(guiGraphics, leftColumn, y + 48, Component.translatable("screen.incore.research_controller.input_tier"), Component.literal(Integer.toString(menu.powerInputTier())), valueColor());
         drawKeyValue(guiGraphics, leftColumn, y + 60, Component.translatable("screen.incore.research_controller.inputs"), Component.literal(Integer.toString(menu.inputCount())), valueColor());
         drawKeyValue(guiGraphics, leftColumn, y + 72, Component.translatable("screen.incore.research_controller.parts"), Component.literal(Integer.toString(menu.connectedPartCount())), valueColor());
@@ -48,17 +47,6 @@ public class ResearchControllerScreen extends StationStatusScreen<ResearchContro
         drawKeyValue(guiGraphics, leftColumn, y + 108, Component.translatable("screen.incore.research_controller.run_progress"), progressValue(), menu.hasActiveRun() ? valueColor() : warnColor());
         drawKeyValue(guiGraphics, rightColumn, y + 108, Component.translatable("screen.incore.research_controller.run_status"), runStatus(menu.queueStatus()), runStatusColor(menu.queueStatus()));
         drawRunBar(guiGraphics, left + 18, y + 124, imageWidth - 36, menu.runProgressScaled(imageWidth - 36), menu.hasActiveRun());
-    }
-
-    private static Component powerFamily(MachinePowerFamily family) {
-        if (family == null) {
-            return Component.translatable("screen.incore.power_input.family.none");
-        }
-        return switch (family) {
-            case ELECTRIC -> Component.translatable("screen.incore.power_input.family.electric");
-            case MECHANICAL -> Component.translatable("screen.incore.power_input.family.mechanical");
-            case BURNER -> Component.translatable("screen.incore.power_input.family.none");
-        };
     }
 
     private static Component presence(boolean present) {
