@@ -42,7 +42,7 @@ public final class BattlePassNetworking {
                 .toList();
 
         List<BattlePassSyncPayload.RewardLevelEntry> rewardLevels = List.of();
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isPresent()) {
             BattlePassDefinition active = activeOptional.get();
             rewardLevels = active.allConfiguredRewardLevels().stream()

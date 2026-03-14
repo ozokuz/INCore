@@ -17,9 +17,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -44,7 +41,6 @@ public class BattlePassScreen extends Screen {
     private static final int XP_BAR_CAP_WIDTH = 2;
     private static final ResourceLocation XP_BAR_BACKGROUND = ResourceLocation.parse("incore:hud/experience_bar_background_white");
     private static final ResourceLocation XP_BAR_PROGRESS = ResourceLocation.parse("incore:hud/experience_bar_progress_white");
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC);
 
     private final Screen parent;
     private Integer previousMenuBlur;
@@ -178,10 +174,13 @@ public class BattlePassScreen extends Screen {
         int progressX = headerX + 164;
         int progressWidth = headerWidth - 174;
         Component levelTitle = Component.literal(level + " " + Component.translatable("screen.incore.battle_pass.level_short").getString());
+        long now = System.currentTimeMillis();
+        long startsAtMillis = BattlePassClientCache.getStartsAtMillis();
+        long endsAtMillis = BattlePassClientCache.getEndsAtMillis();
         Component seasonWindow = Component.translatable(
                 "screen.incore.battle_pass.window",
-                formatDate(BattlePassClientCache.getStartsAtMillis()),
-                formatDate(BattlePassClientCache.getEndsAtMillis())
+                formatDuration(Math.max(0L, now - startsAtMillis), false),
+                formatDuration(Math.max(0L, endsAtMillis - startsAtMillis), false)
         );
         guiGraphics.drawString(this.font, levelTitle, progressX, headerY + 12, UIScreenTheme.BattlepassTasks.TEXT_WHITE);
         int seasonWindowX = progressX + Math.max(96, progressWidth - this.font.width(seasonWindow));
@@ -942,23 +941,44 @@ public class BattlePassScreen extends Screen {
         return Component.literal(simplifySetId(setId));
     }
 
-    private static String formatDate(long epochMillis) {
-        return DATE_FORMATTER.format(Instant.ofEpochMilli(epochMillis));
-    }
-
     private static String formatTimeLeft(long endsAtMillis) {
         long remainingMillis = endsAtMillis - System.currentTimeMillis();
         if (remainingMillis <= 0L) {
             return Component.translatable("screen.incore.battle_pass.ended").getString();
         }
 
-        long totalSeconds = (remainingMillis + 999L) / 1000L;
-        long days = totalSeconds / 86400L;
+        return formatDuration(remainingMillis, true);
+    }
+
+    private static String formatDuration(long millis, boolean roundUp) {
+        long totalSeconds = roundUp
+                ? Math.max(0L, (millis + 999L) / 1000L)
+                : Math.max(0L, millis / 1000L);
+        long weeks = totalSeconds / 604800L;
+        long days = (totalSeconds % 604800L) / 86400L;
         long hours = (totalSeconds % 86400L) / 3600L;
         long minutes = (totalSeconds % 3600L) / 60L;
-        return days > 0L
-                ? String.format(Locale.ROOT, "%dd %02dh %02dm", days, hours, minutes)
-                : String.format(Locale.ROOT, "%02dh %02dm", hours, minutes);
+
+        if (weeks > 0L) {
+            return days > 0L
+                    ? String.format(Locale.ROOT, "%dw %dd", weeks, days)
+                    : String.format(Locale.ROOT, "%dw", weeks);
+        }
+        if (days > 0L) {
+            return hours > 0L
+                    ? String.format(Locale.ROOT, "%dd %02dh", days, hours)
+                    : String.format(Locale.ROOT, "%dd", days);
+        }
+        if (hours > 0L) {
+            return minutes > 0L
+                    ? String.format(Locale.ROOT, "%02dh %02dm", hours, minutes)
+                    : String.format(Locale.ROOT, "%02dh", hours);
+        }
+
+        long displayMinutes = roundUp
+                ? Math.max(1L, (millis + 59999L) / 60000L)
+                : millis / 60000L;
+        return displayMinutes + "m";
     }
 
     private static ItemStack iconForReward(BattlePassClientCache.RewardEntry reward) {

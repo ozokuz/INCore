@@ -1,12 +1,11 @@
 {
-  "starts_at": "2026-02-15T00:00:00Z",
+  "order": 1,
   "length_weeks": 2,
   "lanes": [
     "basic",
     "northium",
     "integrated"
   ],
-  "ends_at": "2026-03-01T00:00:00Z",
   "xp_per_level": 700,
   "tier_xp": {
     "bronze": 120,

@@ -43,8 +43,8 @@ public final class CardPackService {
         }
 
         CardSetData set = CardSetManager.get(booster.setId());
-        if (set == null || !CardSetManager.isSetActive(booster.setId())) {
-            player.sendSystemMessage(Component.translatable("incore.cards.set.inactive", booster.setId().toString()));
+        if (set == null) {
+            player.sendSystemMessage(Component.translatable("incore.cards.booster.invalid", booster.setId().toString()));
             return false;
         }
 

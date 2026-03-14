@@ -125,7 +125,7 @@ public final class BattlePassCommands {
     }
 
     private static CompletableFuture<Suggestions> suggestActiveTaskIds(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
-        return BattlePassManager.getActiveSet(now(context.getSource()))
+        return BattlePassManager.getActiveSet(context.getSource().getServer(), now(context.getSource()))
                 .map(BattlePassDefinition::tasks)
                 .map(tasks -> tasks.stream().map(BattlePassDefinition.BattlePassTask::id).distinct())
                 .map(taskIds -> SharedSuggestionProvider.suggest(taskIds, builder))
@@ -369,11 +369,11 @@ public final class BattlePassCommands {
     private static int setBattlePass(CommandContext<CommandSourceStack> context) {
         ResourceLocation setId = ResourceLocationArgument.getId(context, "set_id");
 
-        return BattlePassManager.setForcedSet(setId, now(context.getSource()))
+        return BattlePassManager.setForcedSet(context.getSource().getServer(), setId, now(context.getSource()))
                 .map(definition -> {
                     syncAllPlayers(context.getSource());
                     context.getSource().sendSuccess(
-                            () -> Component.literal("Forced active battle pass set to " + definition.id() + " starting at current week start."),
+                            () -> Component.literal("Set active battle pass to " + definition.id() + " starting at current week start."),
                             true
                     );
                     return Command.SINGLE_SUCCESS;
@@ -385,7 +385,7 @@ public final class BattlePassCommands {
     }
 
     private static int rotateBattlePass(CommandSourceStack source, int direction) {
-        return BattlePassManager.rotateForcedSet(direction, now(source))
+        return BattlePassManager.rotateForcedSet(source.getServer(), direction, now(source))
                 .map(definition -> {
                     syncAllPlayers(source);
                     String action = direction >= 0 ? "next" : "previous";
@@ -403,7 +403,7 @@ public final class BattlePassCommands {
 
     private static int setWeek(CommandSourceStack source, int week) {
         Instant now = now(source);
-        return BattlePassManager.getActiveSet(now)
+        return BattlePassManager.getActiveSet(source.getServer(), now)
                 .map(definition -> {
                     int totalWeeks = Math.max(1, (int) definition.durationWeeks());
                     if (week < 1 || week > totalWeeks) {
@@ -427,7 +427,7 @@ public final class BattlePassCommands {
 
     private static int rotateWeek(CommandSourceStack source, int direction) {
         Instant now = now(source);
-        return BattlePassManager.getActiveSet(now)
+        return BattlePassManager.getActiveSet(source.getServer(), now)
                 .map(definition -> {
                     int totalWeeks = Math.max(1, (int) definition.durationWeeks());
                     int currentWeek = BattlePassManager.resolveCurrentWeek(definition, now);

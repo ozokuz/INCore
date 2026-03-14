@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.ozokuz.incore.INCore;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -25,9 +26,7 @@ import java.util.Optional;
 public class BattlePassManager extends SimpleJsonResourceReloadListener {
     private static volatile Map<ResourceLocation, BattlePassDefinition> setsById = Map.of();
     private static volatile List<BattlePassDefinition> orderedSets = List.of();
-    private static volatile ResourceLocation forcedSetId;
     private static volatile Integer forcedWeek;
-    private static volatile Instant forcedSetStart;
 
     public BattlePassManager() {
         super(new Gson(), "battlepasses");
@@ -48,42 +47,35 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
         });
 
         setsById = Map.copyOf(parsed);
-        orderedSets = parsed.values().stream().sorted(Comparator.comparing(BattlePassDefinition::startsAt)).toList();
-
-        ResourceLocation forced = forcedSetId;
-        if (forced != null && !setsById.containsKey(forced)) {
-            INCore.LOGGER.warn("Clearing forced battle pass set {} because it no longer exists after reload.", forced);
-            forcedSetId = null;
-            forcedSetStart = null;
-            forcedWeek = null;
-        }
+        orderedSets = parsed.values().stream()
+                .sorted(Comparator.comparingInt(BattlePassDefinition::order).thenComparing(set -> set.id().toString()))
+                .toList();
 
         INCore.LOGGER.info("Loaded {} battle pass set(s).", setsById.size());
     }
 
-    public static Optional<BattlePassDefinition> getActiveSet(Instant now) {
-        ResourceLocation forced = forcedSetId;
-        if (forced != null) {
-            BattlePassDefinition forcedDefinition = setsById.get(forced);
-            if (forcedDefinition != null) {
-                Instant start = forcedSetStart != null ? forcedSetStart : weekAlignedStart(now);
-                return Optional.of(forcedDefinition.withStart(start));
-            }
+    public static Optional<BattlePassDefinition> getActiveSet(MinecraftServer server, Instant now) {
+        if (server == null || orderedSets.isEmpty()) {
+            return Optional.empty();
         }
 
-        return orderedSets.stream().filter(definition -> definition.isActive(now)).findFirst();
+        return Optional.of(resolveScheduledSet(server, now).definition());
     }
 
-    public static Optional<BattlePassDefinition> setForcedSet(ResourceLocation setId, Instant now) {
+    public static Optional<BattlePassDefinition> setForcedSet(MinecraftServer server, ResourceLocation setId, Instant now) {
+        if (server == null) {
+            return Optional.empty();
+        }
+
         BattlePassDefinition definition = setsById.get(setId);
         if (definition == null) {
             return Optional.empty();
         }
 
-        forcedSetId = setId;
-        forcedSetStart = weekAlignedStart(now);
+        Instant start = weekAlignedStart(now);
+        BattlePassScheduleSavedData.get(server).setActiveSet(definition.id().toString(), start.toEpochMilli());
         forcedWeek = null;
-        return Optional.of(definition.withStart(forcedSetStart));
+        return Optional.of(definition.withStart(start));
     }
 
     public static void setForcedWeek(Integer week) {
@@ -109,56 +101,102 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
         return (int) Math.max(1L, Math.min(totalWeeks, week));
     }
 
-    public static Optional<BattlePassDefinition> rotateForcedSet(int direction, Instant now) {
-        if (orderedSets.isEmpty()) {
+    public static Optional<BattlePassDefinition> rotateForcedSet(MinecraftServer server, int direction, Instant now) {
+        if (server == null || orderedSets.isEmpty()) {
             return Optional.empty();
         }
 
         int normalizedDirection = direction >= 0 ? 1 : -1;
-        int size = orderedSets.size();
-        int currentIndex = currentSetIndex(now);
-        int nextIndex;
-        if (currentIndex < 0) {
-            nextIndex = normalizedDirection > 0 ? 0 : size - 1;
-        } else {
-            nextIndex = Math.floorMod(currentIndex + normalizedDirection, size);
-        }
+        ResolvedSchedule current = resolveScheduledSet(server, now);
+        int nextIndex = Math.floorMod(current.index() + normalizedDirection, orderedSets.size());
 
         BattlePassDefinition next = orderedSets.get(nextIndex);
-        forcedSetId = next.id();
-        forcedSetStart = weekAlignedStart(now);
+        Instant start = weekAlignedStart(now);
+        BattlePassScheduleSavedData.get(server).setActiveSet(next.id().toString(), start.toEpochMilli());
         forcedWeek = null;
-        return Optional.of(next.withStart(forcedSetStart));
+        return Optional.of(next.withStart(start));
     }
 
     public static List<String> getKnownSetIds() {
         return orderedSets.stream().map(set -> set.id().toString()).toList();
     }
 
-    private static int currentSetIndex(Instant now) {
-        ResourceLocation forced = forcedSetId;
-        if (forced != null) {
-            for (int i = 0; i < orderedSets.size(); i++) {
-                if (orderedSets.get(i).id().equals(forced)) {
-                    return i;
-                }
-            }
+    static ResolvedSchedule resolveScheduledSet(MinecraftServer server, Instant now) {
+        BattlePassScheduleSavedData data = BattlePassScheduleSavedData.get(server);
+        ScheduleCursor cursor = ensureInitialSchedule(data, now);
+        if (cursor == null) {
+            throw new IllegalStateException("Cannot resolve battle pass schedule without loaded definitions.");
         }
 
+        boolean advanced = false;
+        while (!now.isBefore(cursor.definition().endsAt())) {
+            int previousIndex = cursor.index();
+            BattlePassDefinition previous = cursor.definition();
+            int nextIndex = Math.floorMod(previousIndex + 1, orderedSets.size());
+            BattlePassDefinition nextTemplate = orderedSets.get(nextIndex);
+            Instant nextStart = previous.endsAt();
+            if (nextIndex == 0) {
+                INCore.LOGGER.info("Battle pass schedule wrapped from {} to {} at {}.", previous.id(), nextTemplate.id(), nextStart);
+            } else {
+                INCore.LOGGER.info("Battle pass schedule advanced from {} to {} at {}.", previous.id(), nextTemplate.id(), nextStart);
+            }
+            cursor = new ScheduleCursor(nextIndex, nextTemplate.withStart(nextStart));
+            advanced = true;
+        }
+
+        if (advanced || !data.activeSetId().equals(cursor.definition().id().toString())
+                || data.activeStartEpochMillis() != cursor.definition().startsAt().toEpochMilli()) {
+            data.setActiveSet(cursor.definition().id().toString(), cursor.definition().startsAt().toEpochMilli());
+        }
+        return new ResolvedSchedule(cursor.index(), cursor.definition());
+    }
+
+    private static ScheduleCursor ensureInitialSchedule(BattlePassScheduleSavedData data, Instant now) {
+        if (orderedSets.isEmpty()) {
+            return null;
+        }
+
+        if (!data.hasActiveSet()) {
+            BattlePassDefinition first = orderedSets.getFirst();
+            Instant start = weekAlignedStart(now);
+            data.setActiveSet(first.id().toString(), start.toEpochMilli());
+            INCore.LOGGER.info("Initialized battle pass schedule with {} starting at {}.", first.id(), start);
+            return new ScheduleCursor(0, first.withStart(start));
+        }
+
+        ResourceLocation savedId = ResourceLocation.tryParse(data.activeSetId());
+        if (savedId == null) {
+            BattlePassDefinition first = orderedSets.getFirst();
+            Instant start = weekAlignedStart(now);
+            data.setActiveSet(first.id().toString(), start.toEpochMilli());
+            INCore.LOGGER.warn("Battle pass schedule contained invalid set id '{}'; reset to {}.", data.activeSetId(), first.id());
+            return new ScheduleCursor(0, first.withStart(start));
+        }
+
+        int index = indexOfSet(savedId);
+        if (index < 0) {
+            BattlePassDefinition first = orderedSets.getFirst();
+            Instant start = weekAlignedStart(now);
+            data.setActiveSet(first.id().toString(), start.toEpochMilli());
+            INCore.LOGGER.warn("Battle pass schedule referenced missing set {}; reset to {}.", savedId, first.id());
+            return new ScheduleCursor(0, first.withStart(start));
+        }
+
+        return new ScheduleCursor(index, orderedSets.get(index).withStart(Instant.ofEpochMilli(data.activeStartEpochMillis())));
+    }
+
+    private static int indexOfSet(ResourceLocation setId) {
         for (int i = 0; i < orderedSets.size(); i++) {
-            if (orderedSets.get(i).isActive(now)) {
+            if (orderedSets.get(i).id().equals(setId)) {
                 return i;
             }
         }
-
         return -1;
     }
 
     private static BattlePassDefinition parseDefinition(ResourceLocation id, JsonObject object) {
-        Instant configuredStart = Instant.parse(GsonHelper.getAsString(object, "starts_at"));
-        Instant normalizedStart = normalizeToWeekStart(configuredStart);
-
-        int lengthWeeks = parseLengthWeeks(object, configuredStart);
+        int order = Math.max(0, GsonHelper.getAsInt(object, "order"));
+        int lengthWeeks = GsonHelper.getAsInt(object, "length_weeks");
         if (lengthWeeks <= 0) {
             throw new IllegalArgumentException("length_weeks must be greater than zero");
         }
@@ -192,30 +230,7 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
         List<String> lanes = parseLanes(object);
         Map<String, Map<Integer, List<BattlePassReward>>> rewardsByLane = parseRewardsByLane(object, lanes);
 
-        return new BattlePassDefinition(id, normalizedStart, lengthWeeks, xpPerLevel, tierXp, tasks, lanes, rewardsByLane);
-    }
-
-    private static int parseLengthWeeks(JsonObject object, Instant startsAt) {
-        if (object.has("length_weeks")) {
-            return GsonHelper.getAsInt(object, "length_weeks");
-        }
-
-        if (object.has("ends_at")) {
-            Instant endsAt = Instant.parse(GsonHelper.getAsString(object, "ends_at"));
-            if (!endsAt.isAfter(startsAt)) {
-                throw new IllegalArgumentException("ends_at must be later than starts_at");
-            }
-            long seconds = Math.max(0L, endsAt.getEpochSecond() - startsAt.getEpochSecond());
-            return Math.max(1, (int) Math.ceil(seconds / (7d * 24d * 60d * 60d)));
-        }
-
-        return 1;
-    }
-
-    private static Instant normalizeToWeekStart(Instant configuredStart) {
-        ZoneId zone = ZoneId.systemDefault();
-        ZonedDateTime start = ZonedDateTime.ofInstant(configuredStart, zone);
-        return BattlePassWeekTime.weekStart(start).toInstant();
+        return new BattlePassDefinition(id, order, Instant.EPOCH, lengthWeeks, xpPerLevel, tierXp, tasks, lanes, rewardsByLane);
     }
 
     private static List<String> parseLanes(JsonObject object) {
@@ -343,5 +358,11 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
             );
             default -> throw new IllegalArgumentException("Unknown reward type: " + type);
         };
+    }
+
+    record ResolvedSchedule(int index, BattlePassDefinition definition) {
+    }
+
+    private record ScheduleCursor(int index, BattlePassDefinition definition) {
     }
 }

@@ -12,6 +12,7 @@ import java.util.TreeSet;
 
 public record BattlePassDefinition(
         ResourceLocation id,
+        int order,
         Instant startsAt,
         int lengthWeeks,
         int xpPerLevel,
@@ -21,6 +22,7 @@ public record BattlePassDefinition(
         Map<String, Map<Integer, List<BattlePassReward>>> rewardsByLane
 ) {
     public BattlePassDefinition {
+        order = Math.max(0, order);
         lengthWeeks = Math.max(1, lengthWeeks);
         xpPerLevel = Math.max(1, xpPerLevel);
 
@@ -75,7 +77,7 @@ public record BattlePassDefinition(
     }
 
     public BattlePassDefinition withStart(Instant newStart) {
-        return new BattlePassDefinition(id, newStart, lengthWeeks, xpPerLevel, tierXp, tasks, lanes, rewardsByLane);
+        return new BattlePassDefinition(id, order, newStart, lengthWeeks, xpPerLevel, tierXp, tasks, lanes, rewardsByLane);
     }
 
     public List<BattlePassReward> rewardsForLevel(String laneId, int level) {

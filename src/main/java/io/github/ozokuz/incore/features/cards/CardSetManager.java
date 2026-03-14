@@ -9,7 +9,6 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,13 +48,5 @@ public class CardSetManager extends SimpleJsonResourceReloadListener {
 
     public static List<CardSetData> all() {
         return sets.values().stream().toList();
-    }
-
-    public static boolean isSetActive(ResourceLocation id) {
-        CardSetData set = sets.get(id);
-        if (set == null) {
-            return false;
-        }
-        return set.isActiveAt(Instant.now());
     }
 }
