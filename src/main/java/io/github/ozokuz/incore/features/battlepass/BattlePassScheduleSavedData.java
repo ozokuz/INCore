@@ -29,6 +29,10 @@ public final class BattlePassScheduleSavedData extends SavedData {
         data.activeStartEpochMillis = tag.contains("activeStartEpochMillis", Tag.TAG_LONG)
                 ? tag.getLong("activeStartEpochMillis")
                 : UNSET_START;
+        if (data.activeSetId.isBlank() || data.activeStartEpochMillis == UNSET_START) {
+            data.activeSetId = "";
+            data.activeStartEpochMillis = UNSET_START;
+        }
         return data;
     }
 
@@ -56,13 +60,17 @@ public final class BattlePassScheduleSavedData extends SavedData {
     }
 
     public void setActiveSet(String nextActiveSetId, long nextActiveStartEpochMillis) {
-        String normalizedId = nextActiveSetId == null ? "" : nextActiveSetId;
-        if (activeSetId.equals(normalizedId) && activeStartEpochMillis == nextActiveStartEpochMillis) {
+        String normalizedId = nextActiveSetId == null ? "" : nextActiveSetId.trim();
+        boolean validPair = !normalizedId.isBlank() && nextActiveStartEpochMillis != UNSET_START;
+        String effectiveId = validPair ? normalizedId : "";
+        long effectiveStart = validPair ? nextActiveStartEpochMillis : UNSET_START;
+
+        if (activeSetId.equals(effectiveId) && activeStartEpochMillis == effectiveStart) {
             return;
         }
 
-        activeSetId = normalizedId;
-        activeStartEpochMillis = nextActiveStartEpochMillis;
+        activeSetId = effectiveId;
+        activeStartEpochMillis = effectiveStart;
         setDirty();
     }
 }
