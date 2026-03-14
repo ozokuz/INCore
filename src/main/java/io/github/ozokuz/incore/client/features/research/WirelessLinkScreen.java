@@ -13,6 +13,8 @@ public class WirelessLinkScreen extends MachineInventoryScreen<WirelessLinkMenu>
 
     public WirelessLinkScreen(WirelessLinkMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+        this.imageHeight = 190;
+        this.inventoryLabelY = 96;
     }
 
     @Override
@@ -47,12 +49,12 @@ public class WirelessLinkScreen extends MachineInventoryScreen<WirelessLinkMenu>
 
     @Override
     protected int machineSectionTopOffset() {
-        return 24;
+        return 58;
     }
 
     @Override
     protected int playerSectionTopOffset() {
-        return 62;
+        return 94;
     }
 
     @Override

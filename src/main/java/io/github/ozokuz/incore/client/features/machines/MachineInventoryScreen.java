@@ -18,13 +18,15 @@ public class MachineInventoryScreen<T extends AbstractMachineInventoryMenu> exte
     private static final int PLAYER_SLOT_OUTER = 0xFF3A312B;
     private static final int PLAYER_SLOT_INNER = 0xFF1B1714;
     private static final int PLAYER_SLOT_HIGHLIGHT = 0xFF7F6A5C;
-    private final int rows;
+    protected final int rows;
+    protected final int slotStartY;
 
     public MachineInventoryScreen(T menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.rows = Math.max(1, menu.machineRows());
-        this.imageHeight = 114 + (rows * 18);
-        this.inventoryLabelY = this.imageHeight - 94;
+        this.slotStartY = menu.machineSlotStartY();
+        this.imageHeight = slotStartY + rows * 18 + 100;
+        this.inventoryLabelY = slotStartY + rows * 18 + 6;
     }
 
     @Override
@@ -41,7 +43,7 @@ public class MachineInventoryScreen<T extends AbstractMachineInventoryMenu> exte
         int machineLeft = left + menu.machineSectionLeft() - 4;
         int machineTop = top + machineSectionTopOffset();
         int machineWidth = menu.machineSectionWidth() + 8;
-        int machineHeight = (rows * 18) + 26;
+        int machineHeight = (rows * 18) + 16;
         int playerTop = top + playerSectionTopOffset();
         int playerHeight = 92;
 
@@ -123,11 +125,11 @@ public class MachineInventoryScreen<T extends AbstractMachineInventoryMenu> exte
     }
 
     protected int machineSectionTopOffset() {
-        return 4;
+        return slotStartY - 14;
     }
 
     protected int playerSectionTopOffset() {
-        return 18 + rows * 18;
+        return slotStartY + 4 + rows * 18;
     }
 
     protected void renderSubtitle(GuiGraphics guiGraphics) {

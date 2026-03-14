@@ -78,8 +78,12 @@ public abstract class StationStatusScreen<T extends AbstractContainerMenu> exten
     protected abstract void renderStatusBody(GuiGraphics guiGraphics, int left, int top, int mouseX, int mouseY);
 
     protected void drawKeyValue(GuiGraphics guiGraphics, int x, int y, Component label, Component value, int color) {
+        drawKeyValue(guiGraphics, x, y, label, value, color, 78);
+    }
+
+    protected void drawKeyValue(GuiGraphics guiGraphics, int x, int y, Component label, Component value, int color, int valueOffset) {
         guiGraphics.drawString(font, label, x, y, labelColor(), false);
-        guiGraphics.drawString(font, value, x + 78, y, color, false);
+        guiGraphics.drawString(font, value, x + valueOffset, y, color, false);
     }
 
     protected static Component powerFamilyLabel(@Nullable MachinePowerFamily family) {

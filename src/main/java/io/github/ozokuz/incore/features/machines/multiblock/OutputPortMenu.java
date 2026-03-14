@@ -10,7 +10,7 @@ public class OutputPortMenu extends AbstractMachineInventoryMenu {
     private OutputPortMode mode;
 
     public OutputPortMenu(int containerId, Inventory playerInventory, OutputPortBlockEntity blockEntity) {
-        super(Registration.OUTPUT_PORT_MENU.get(), containerId, playerInventory, blockEntity, 9);
+        super(Registration.OUTPUT_PORT_MENU.get(), containerId, playerInventory, blockEntity, 9, 76);
         this.blockEntity = blockEntity;
         this.mode = blockEntity.mode();
 

@@ -15,7 +15,7 @@ public class WirelessLinkMenu extends AbstractMachineInventoryMenu {
     private int hasStoredChannel;
 
     public WirelessLinkMenu(int containerId, Inventory playerInventory, WirelessLinkBlockEntity wirelessLink) {
-        super(Registration.WIRELESS_LINK_MENU.get(), containerId, playerInventory, wirelessLink, 1);
+        super(Registration.WIRELESS_LINK_MENU.get(), containerId, playerInventory, wirelessLink, 1, 66);
         this.wirelessLink = wirelessLink;
         ownerKindOrdinal = wirelessLink.ownerKind().ordinal();
         bindingStatus = wirelessLink.bindingStatus();
