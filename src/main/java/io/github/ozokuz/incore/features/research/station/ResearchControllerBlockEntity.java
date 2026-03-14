@@ -156,7 +156,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 continue;
             }
 
-            int fromInput = Math.max(0, input.availablePower(remaining));
+            int fromInput = Math.min(Math.max(0, input.availablePower(remaining)), remaining);
             if (fromInput > 0) {
                 available += fromInput;
                 remaining -= fromInput;
@@ -181,7 +181,7 @@ public class ResearchControllerBlockEntity extends BlockEntity implements MenuPr
                 continue;
             }
 
-            int fromInput = Math.max(0, input.pullPower(remaining));
+            int fromInput = Math.min(Math.max(0, input.pullPower(remaining)), remaining);
             if (fromInput > 0) {
                 consumed += fromInput;
                 remaining -= fromInput;
