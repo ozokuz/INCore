@@ -16,9 +16,6 @@ public final class BattlePassScheduleGameTests {
     private static final ResourceLocation SEASON_ALPHA = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "season_alpha");
     private static final ResourceLocation SEASON_BRAVO = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "season_bravo");
 
-    private BattlePassScheduleGameTests() {
-    }
-
     @GameTest(template = "empty", timeoutTicks = 20)
     public static void schedule_bootstraps_first_ordered_set(GameTestHelper helper) {
         MinecraftServer server = requireServer(helper);
@@ -40,15 +37,17 @@ public final class BattlePassScheduleGameTests {
         MinecraftServer server = requireServer(helper);
         BattlePassScheduleSavedData data = BattlePassScheduleSavedData.get(server);
         Instant weekStart = BattlePassWeekTime.weekStart(BattlePassWeekTime.now(server)).toInstant();
+        // season_alpha and season_bravo are both configured as two-week battle passes in test data.
+        long seasonDurationSeconds = 14L * 24L * 60L * 60L;
         data.setActiveSet(SEASON_ALPHA.toString(), weekStart.toEpochMilli());
 
-        BattlePassDefinition advanced = BattlePassManager.getActiveSet(server, weekStart.plusSeconds((14L * 24L * 60L * 60L) + 3600L)).orElseThrow();
+        BattlePassDefinition advanced = BattlePassManager.getActiveSet(server, weekStart.plusSeconds(seasonDurationSeconds + 3600L)).orElseThrow();
         helper.assertValueEqual(SEASON_BRAVO.toString(), advanced.id().toString(), "expected schedule to advance to the next ordered set after the first duration elapses");
-        helper.assertValueEqual(weekStart.plusSeconds(14L * 24L * 60L * 60L).toEpochMilli(), advanced.startsAt().toEpochMilli(), "expected next set to start exactly when the prior set ends");
+        helper.assertValueEqual(weekStart.plusSeconds(seasonDurationSeconds).toEpochMilli(), advanced.startsAt().toEpochMilli(), "expected next set to start exactly when the prior set ends");
 
-        BattlePassDefinition wrapped = BattlePassManager.getActiveSet(server, weekStart.plusSeconds((28L * 24L * 60L * 60L) + 3600L)).orElseThrow();
+        BattlePassDefinition wrapped = BattlePassManager.getActiveSet(server, weekStart.plusSeconds((seasonDurationSeconds * 2L) + 3600L)).orElseThrow();
         helper.assertValueEqual(SEASON_ALPHA.toString(), wrapped.id().toString(), "expected schedule to wrap back to the first ordered set");
-        helper.assertValueEqual(weekStart.plusSeconds(28L * 24L * 60L * 60L).toEpochMilli(), wrapped.startsAt().toEpochMilli(), "expected wrapped schedule to continue from the previous end time");
+        helper.assertValueEqual(weekStart.plusSeconds(seasonDurationSeconds * 2L).toEpochMilli(), wrapped.startsAt().toEpochMilli(), "expected wrapped schedule to continue from the previous end time");
         helper.succeed();
     }
 

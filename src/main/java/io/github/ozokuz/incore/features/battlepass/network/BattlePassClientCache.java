@@ -6,6 +6,7 @@ import java.util.List;
 public final class BattlePassClientCache {
     private static boolean hasActiveSet;
     private static String setId = "none";
+    private static long serverTimeOffsetMillis;
     private static long startsAtMillis;
     private static long endsAtMillis;
     private static int currentWeek;
@@ -28,6 +29,7 @@ public final class BattlePassClientCache {
     public static synchronized void update(
             boolean nextHasActiveSet,
             String nextSetId,
+            long nextServerNowMillis,
             long nextStartsAtMillis,
             long nextEndsAtMillis,
             int nextCurrentWeek,
@@ -46,6 +48,7 @@ public final class BattlePassClientCache {
     ) {
         hasActiveSet = nextHasActiveSet;
         setId = nextSetId;
+        serverTimeOffsetMillis = nextServerNowMillis - System.currentTimeMillis();
         startsAtMillis = nextStartsAtMillis;
         endsAtMillis = nextEndsAtMillis;
         currentWeek = Math.max(0, nextCurrentWeek);
@@ -111,6 +114,10 @@ public final class BattlePassClientCache {
 
     public static synchronized long getStartsAtMillis() {
         return startsAtMillis;
+    }
+
+    public static synchronized long getServerNowMillis() {
+        return System.currentTimeMillis() + serverTimeOffsetMillis;
     }
 
     public static synchronized long getEndsAtMillis() {

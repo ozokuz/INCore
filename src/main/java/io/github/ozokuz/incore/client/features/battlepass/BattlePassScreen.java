@@ -174,7 +174,7 @@ public class BattlePassScreen extends Screen {
         int progressX = headerX + 164;
         int progressWidth = headerWidth - 174;
         Component levelTitle = Component.literal(level + " " + Component.translatable("screen.incore.battle_pass.level_short").getString());
-        long now = System.currentTimeMillis();
+        long now = BattlePassClientCache.getServerNowMillis();
         long startsAtMillis = BattlePassClientCache.getStartsAtMillis();
         long endsAtMillis = BattlePassClientCache.getEndsAtMillis();
         Component seasonWindow = Component.translatable(
@@ -942,7 +942,7 @@ public class BattlePassScreen extends Screen {
     }
 
     private static String formatTimeLeft(long endsAtMillis) {
-        long remainingMillis = endsAtMillis - System.currentTimeMillis();
+        long remainingMillis = endsAtMillis - BattlePassClientCache.getServerNowMillis();
         if (remainingMillis <= 0L) {
             return Component.translatable("screen.incore.battle_pass.ended").getString();
         }

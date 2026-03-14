@@ -13,6 +13,7 @@ import java.util.List;
 public record BattlePassSyncPayload(
         boolean hasActiveSet,
         String setId,
+        long serverNowMillis,
         long startsAtMillis,
         long endsAtMillis,
         int currentWeek,
@@ -41,6 +42,7 @@ public record BattlePassSyncPayload(
             FriendlyByteBuf buf = new FriendlyByteBuf(buffer);
             boolean hasActiveSet = buf.readBoolean();
             String setId = buf.readUtf(256);
+            long serverNowMillis = buf.readVarLong();
             long startsAtMillis = buf.readVarLong();
             long endsAtMillis = buf.readVarLong();
             int currentWeek = buf.readVarInt();
@@ -105,6 +107,7 @@ public record BattlePassSyncPayload(
             return new BattlePassSyncPayload(
                     hasActiveSet,
                     setId,
+                    serverNowMillis,
                     startsAtMillis,
                     endsAtMillis,
                     currentWeek,
@@ -128,6 +131,7 @@ public record BattlePassSyncPayload(
             FriendlyByteBuf buf = new FriendlyByteBuf(buffer);
             buf.writeBoolean(payload.hasActiveSet());
             buf.writeUtf(payload.setId(), 256);
+            buf.writeVarLong(payload.serverNowMillis());
             buf.writeVarLong(payload.startsAtMillis());
             buf.writeVarLong(payload.endsAtMillis());
             buf.writeVarInt(payload.currentWeek());
@@ -189,6 +193,7 @@ public record BattlePassSyncPayload(
         context.enqueueWork(() -> BattlePassClientCache.update(
                 payload.hasActiveSet(),
                 payload.setId(),
+                payload.serverNowMillis(),
                 payload.startsAtMillis(),
                 payload.endsAtMillis(),
                 payload.currentWeek(),

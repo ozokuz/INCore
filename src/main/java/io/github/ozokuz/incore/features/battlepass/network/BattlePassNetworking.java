@@ -80,6 +80,7 @@ public final class BattlePassNetworking {
         PacketDistributor.sendToPlayer(player, new BattlePassSyncPayload(
                 snapshot.hasActiveSet(),
                 snapshot.setId(),
+                now.toEpochMilli(),
                 snapshot.startsAtMillis(),
                 snapshot.endsAtMillis(),
                 snapshot.currentWeek(),

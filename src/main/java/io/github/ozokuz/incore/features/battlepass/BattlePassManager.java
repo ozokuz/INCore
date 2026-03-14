@@ -129,19 +129,38 @@ public class BattlePassManager extends SimpleJsonResourceReloadListener {
         }
 
         boolean advanced = false;
+        int advancedSteps = 0;
+        BattlePassDefinition initialDefinition = cursor.definition();
+        Instant lastTransitionAt = cursor.definition().startsAt();
+        boolean wrapped = false;
         while (!now.isBefore(cursor.definition().endsAt())) {
             int previousIndex = cursor.index();
             BattlePassDefinition previous = cursor.definition();
             int nextIndex = Math.floorMod(previousIndex + 1, orderedSets.size());
             BattlePassDefinition nextTemplate = orderedSets.get(nextIndex);
             Instant nextStart = previous.endsAt();
-            if (nextIndex == 0) {
-                INCore.LOGGER.info("Battle pass schedule wrapped from {} to {} at {}.", previous.id(), nextTemplate.id(), nextStart);
-            } else {
-                INCore.LOGGER.info("Battle pass schedule advanced from {} to {} at {}.", previous.id(), nextTemplate.id(), nextStart);
-            }
             cursor = new ScheduleCursor(nextIndex, nextTemplate.withStart(nextStart));
             advanced = true;
+            advancedSteps++;
+            lastTransitionAt = nextStart;
+            wrapped |= nextIndex == 0;
+        }
+
+        if (advancedSteps == 1) {
+            if (wrapped) {
+                INCore.LOGGER.info("Battle pass schedule wrapped from {} to {} at {}.", initialDefinition.id(), cursor.definition().id(), lastTransitionAt);
+            } else {
+                INCore.LOGGER.info("Battle pass schedule advanced from {} to {} at {}.", initialDefinition.id(), cursor.definition().id(), lastTransitionAt);
+            }
+        } else if (advancedSteps > 1) {
+            INCore.LOGGER.info(
+                    "Battle pass schedule advanced {} steps from {} to {} at {}{}.",
+                    advancedSteps,
+                    initialDefinition.id(),
+                    cursor.definition().id(),
+                    lastTransitionAt,
+                    wrapped ? " (wrapped)" : ""
+            );
         }
 
         if (advanced || !data.activeSetId().equals(cursor.definition().id().toString())
