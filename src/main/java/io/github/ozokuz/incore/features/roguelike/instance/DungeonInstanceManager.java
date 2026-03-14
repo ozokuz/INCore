@@ -425,10 +425,12 @@ public final class DungeonInstanceManager {
             }
             default -> {
                 INCore.LOGGER.warn(
-                        "Unhandled cleanup stage {} for dungeon instance {}",
+                        "Unhandled cleanup stage {} for dungeon instance {} while state is CLEANING; advancing to {}",
                         instance.cleanupStage(),
-                        instance.id()
+                        instance.id(),
+                        DungeonInstanceData.CleanupStage.REMOVE_METADATA
                 );
+                data.putInstance(instance.withCleanupStage(DungeonInstanceData.CleanupStage.REMOVE_METADATA));
             }
         }
     }
