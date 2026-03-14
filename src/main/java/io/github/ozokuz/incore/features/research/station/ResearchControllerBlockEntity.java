@@ -12,7 +12,6 @@ import io.github.ozokuz.incore.features.research.station.network.StationNetworkS
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;

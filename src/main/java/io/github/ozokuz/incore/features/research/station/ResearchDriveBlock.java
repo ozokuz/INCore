@@ -1,7 +1,6 @@
 package io.github.ozokuz.incore.features.research.station;
 
 import com.mojang.serialization.MapCodec;
-import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.machines.multiblock.AbstractMachinePartBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;

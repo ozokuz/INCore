@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
 
 public class RoguelikePortalRenderer implements BlockEntityRenderer<RoguelikePortalBlockEntity> {
     private static final ResourceLocation PORTAL_TEXTURE = ResourceLocation.withDefaultNamespace("textures/misc/white.png");

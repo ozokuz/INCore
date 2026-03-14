@@ -11,7 +11,6 @@ import io.github.ozokuz.incore.features.vendingmachine.VendingMachineItemUtil;
 import io.github.ozokuz.incore.features.vendingmachine.VendingMachineProductRegistry;
 import io.github.ozokuz.incore.features.vendingmachine.VendingMachineProductSpec;
 import io.github.ozokuz.incore.features.vendingmachine.VendingMachineProductType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.GsonHelper;

@@ -2,7 +2,6 @@ package io.github.ozokuz.incore.features.surfaceore;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.dimension.DimensionType;
 
 public enum DimensionCategory {

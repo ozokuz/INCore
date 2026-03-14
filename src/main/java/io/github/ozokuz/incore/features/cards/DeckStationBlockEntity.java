@@ -70,12 +70,24 @@ public class DeckStationBlockEntity extends BlockEntity implements MenuProvider,
         @Override
         public void set(int index, int value) {
             switch (index) {
-                case DATA_USED_POINTS -> usedPoints = Math.max(0, value);
-                case DATA_CAPACITY -> capacity = Math.max(0, value);
-                case DATA_MAX_INTEGRITY -> maxIntegrity = Math.max(0, value);
-                case DATA_MODULE_COUNT -> moduleCount = Math.max(0, value);
-                case DATA_VALID -> valid = value > 0;
-                case DATA_FAILURE -> failureCode = Math.clamp(value, FAILURE_NONE, FAILURE_OVER_CAPACITY);
+                case DATA_USED_POINTS -> {
+                    usedPoints = Math.max(0, value);
+                }
+                case DATA_CAPACITY -> {
+                    capacity = Math.max(0, value);
+                }
+                case DATA_MAX_INTEGRITY -> {
+                    maxIntegrity = Math.max(0, value);
+                }
+                case DATA_MODULE_COUNT -> {
+                    moduleCount = Math.max(0, value);
+                }
+                case DATA_VALID -> {
+                    valid = value > 0;
+                }
+                case DATA_FAILURE -> {
+                    failureCode = Math.clamp(value, FAILURE_NONE, FAILURE_OVER_CAPACITY);
+                }
                 default -> {
                 }
             }

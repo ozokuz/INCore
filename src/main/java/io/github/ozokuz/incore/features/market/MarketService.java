@@ -4,7 +4,6 @@ import dev.ithundxr.createnumismatics.content.backend.BankAccount;
 import io.github.ozokuz.incore.Config;
 import io.github.ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import io.github.ozokuz.incore.features.market.content.AbstractMarketTerminalBlockEntity;
-import io.github.ozokuz.incore.features.market.content.MarketTerminalBlockEntity;
 import io.github.ozokuz.incore.features.market.content.MarketTerminalMeBlockEntity;
 import io.github.ozokuz.incore.features.market.network.MarketNetworking;
 import io.github.ozokuz.incore.integration.ae2.Ae2StorageAccess;
