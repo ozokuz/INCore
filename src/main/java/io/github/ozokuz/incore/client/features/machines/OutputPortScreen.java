@@ -10,6 +10,8 @@ public class OutputPortScreen extends MachineInventoryScreen<OutputPortMenu> {
 
     public OutputPortScreen(OutputPortMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+        this.imageHeight = 200;
+        this.inventoryLabelY = 106;
     }
 
     @Override
@@ -42,12 +44,12 @@ public class OutputPortScreen extends MachineInventoryScreen<OutputPortMenu> {
 
     @Override
     protected int machineSectionTopOffset() {
-        return 24;
+        return 68;
     }
 
     @Override
     protected int playerSectionTopOffset() {
-        return 62;
+        return 104;
     }
 
     @Override

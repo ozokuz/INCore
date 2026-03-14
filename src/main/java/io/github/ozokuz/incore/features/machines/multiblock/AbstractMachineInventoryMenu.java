@@ -18,27 +18,32 @@ public abstract class AbstractMachineInventoryMenu extends AbstractContainerMenu
     private final int machineColumns;
     private final int machineSectionLeft;
     private final int machineSectionWidth;
+    private final int machineSlotStartY;
 
     protected AbstractMachineInventoryMenu(net.minecraft.world.inventory.MenuType<?> type, int containerId, Inventory playerInventory, AbstractMachineInventoryPartBlockEntity blockEntity, int columns) {
+        this(type, containerId, playerInventory, blockEntity, columns, 18);
+    }
+
+    protected AbstractMachineInventoryMenu(net.minecraft.world.inventory.MenuType<?> type, int containerId, Inventory playerInventory, AbstractMachineInventoryPartBlockEntity blockEntity, int columns, int machineSlotStartY) {
         super(type, containerId);
         this.blockEntity = blockEntity;
         this.access = ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos());
         this.machineSlotCount = Math.max(1, blockEntity.menuSlotCount());
         this.machineColumns = Math.max(1, Math.min(machineSlotCount, columns));
         this.machineRows = Math.max(1, (int) Math.ceil(machineSlotCount / (double) machineColumns));
+        this.machineSlotStartY = machineSlotStartY;
         int slotGroupWidth = machineColumns * 18;
         this.machineSectionWidth = Math.max(MIN_MACHINE_SECTION_WIDTH, slotGroupWidth + 14);
         this.machineSectionLeft = (SCREEN_WIDTH - machineSectionWidth) / 2;
 
         int startX = machineSectionLeft + ((machineSectionWidth - slotGroupWidth) / 2);
-        int startY = 18;
         for (int slot = 0; slot < machineSlotCount; slot++) {
             int row = slot / machineColumns;
             int col = slot % machineColumns;
-            addSlot(new ActiveStationSlot(blockEntity, slot, startX + col * 18, startY + row * 18));
+            addSlot(new ActiveStationSlot(blockEntity, slot, startX + col * 18, machineSlotStartY + row * 18));
         }
 
-        int playerInvY = 32 + machineRows * 18;
+        int playerInvY = machineSlotStartY + machineRows * 18 + 14;
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, playerInvY + row * 18));
@@ -65,6 +70,10 @@ public abstract class AbstractMachineInventoryMenu extends AbstractContainerMenu
 
     public int machineSectionWidth() {
         return machineSectionWidth;
+    }
+
+    public int machineSlotStartY() {
+        return machineSlotStartY;
     }
 
     @Override

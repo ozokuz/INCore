@@ -3,10 +3,12 @@ package io.github.ozokuz.incore.features.research.station;
 import io.github.ozokuz.incore.Registration;
 import io.github.ozokuz.incore.features.machines.multiblock.AbstractMachineInventoryPartBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
 
 public class LogicHousingBlockEntity extends AbstractMachineInventoryPartBlockEntity {
     public LogicHousingBlockEntity(BlockPos pos, BlockState state) {
@@ -44,5 +46,10 @@ public class LogicHousingBlockEntity extends AbstractMachineInventoryPartBlockEn
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory playerInventory) {
         return new LogicHousingMenu(containerId, playerInventory, this);
+    }
+
+    @Override
+    public @NotNull Component getDisplayName() {
+        return getBlockState().getBlock().getName();
     }
 }
