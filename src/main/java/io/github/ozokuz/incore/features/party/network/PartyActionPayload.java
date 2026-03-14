@@ -81,6 +81,8 @@ public record PartyActionPayload(ActionType actionType, UUID targetPlayerId) imp
                         }
                     }
                 }
+                default -> {
+                }
             }
         });
     }

@@ -144,6 +144,8 @@ public class DungeonChunkGenerator extends FlatLevelSource {
                 case "challenge_altar", "loot_anchor", "ore_anchor", "shop_anchor", "coin_pile_anchor" -> {
                     // Reserved for future dungeon content systems.
                 }
+                default -> {
+                }
             }
         }
     }

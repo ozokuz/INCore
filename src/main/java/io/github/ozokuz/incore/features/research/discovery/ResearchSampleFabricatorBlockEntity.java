@@ -53,7 +53,9 @@ public class ResearchSampleFabricatorBlockEntity extends BlockEntity implements 
         @Override
         public void set(int index, int value) {
             switch (index) {
-                case 0 -> progressTicks = Math.clamp(value, 0, PROCESS_TIME);
+                case 0 -> {
+                    progressTicks = Math.clamp(value, 0, PROCESS_TIME);
+                }
                 case 2 -> {
                     if (value <= 0) {
                         pendingNodeId = null;

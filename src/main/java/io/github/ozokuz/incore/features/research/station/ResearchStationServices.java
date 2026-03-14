@@ -63,6 +63,8 @@ public final class ResearchStationServices {
                         matchingSpecializer += count;
                     }
                 }
+                default -> {
+                }
             }
         }
 
@@ -140,6 +142,8 @@ public final class ResearchStationServices {
                         matchingSpecializer += count;
                     }
                 }
+                default -> {
+                }
             }
         }
 
@@ -181,15 +185,33 @@ public final class ResearchStationServices {
             }
             int count = Math.max(1, stack.getCount());
             switch (augment.augmentType()) {
-                case SPEED -> speed += count;
-                case PRODUCTIVITY -> productivity += count;
-                case STABILIZER -> stabilizer += count;
-                case CABLE_CAPACITY -> cableCapacity += 4 * count;
-                case WIRELESS_CAPACITY -> wirelessCapacity += 4 * count;
-                case WIRELESS_RANGE -> wirelessRange += 64 * count;
-                case INFINITE_WIRELESS -> infiniteWireless = true;
-                case INTERDIMENSIONAL_WIRELESS -> interdimensionalWireless = true;
+                case SPEED -> {
+                    speed += count;
+                }
+                case PRODUCTIVITY -> {
+                    productivity += count;
+                }
+                case STABILIZER -> {
+                    stabilizer += count;
+                }
+                case CABLE_CAPACITY -> {
+                    cableCapacity += 4 * count;
+                }
+                case WIRELESS_CAPACITY -> {
+                    wirelessCapacity += 4 * count;
+                }
+                case WIRELESS_RANGE -> {
+                    wirelessRange += 64 * count;
+                }
+                case INFINITE_WIRELESS -> {
+                    infiniteWireless = true;
+                }
+                case INTERDIMENSIONAL_WIRELESS -> {
+                    interdimensionalWireless = true;
+                }
                 case SPECIALIZER -> {
+                }
+                default -> {
                 }
             }
         }

@@ -69,13 +69,27 @@ public class CrudeResearchStationBlockEntity extends BlockEntity implements Menu
         @Override
         public void set(int index, int value) {
             switch (index) {
-                case DATA_BURN_TIME -> burnTimeRemaining = Math.max(0, value);
-                case DATA_BURN_TOTAL -> burnTimeTotal = Math.max(0, value);
-                case DATA_RUN_TICK_PROGRESS -> runTickProgressDisplay = Math.max(0, value);
-                case DATA_RUN_TICK_REQUIRED -> runTickRequiredDisplay = Math.max(1, value);
-                case DATA_COMPLETED_RUNS -> completedRunsDisplay = Math.max(0, value);
-                case DATA_REQUIRED_RUNS -> requiredRunsDisplay = Math.max(1, value);
-                case DATA_QUEUE_STATUS -> queueStatusDisplay = value;
+                case DATA_BURN_TIME -> {
+                    burnTimeRemaining = Math.max(0, value);
+                }
+                case DATA_BURN_TOTAL -> {
+                    burnTimeTotal = Math.max(0, value);
+                }
+                case DATA_RUN_TICK_PROGRESS -> {
+                    runTickProgressDisplay = Math.max(0, value);
+                }
+                case DATA_RUN_TICK_REQUIRED -> {
+                    runTickRequiredDisplay = Math.max(1, value);
+                }
+                case DATA_COMPLETED_RUNS -> {
+                    completedRunsDisplay = Math.max(0, value);
+                }
+                case DATA_REQUIRED_RUNS -> {
+                    requiredRunsDisplay = Math.max(1, value);
+                }
+                case DATA_QUEUE_STATUS -> {
+                    queueStatusDisplay = value;
+                }
                 default -> {
                 }
             }

@@ -1,7 +1,6 @@
 package io.github.ozokuz.incore.features.research.state;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public record ActiveResearchRun(

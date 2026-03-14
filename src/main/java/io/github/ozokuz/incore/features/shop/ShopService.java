@@ -368,6 +368,7 @@ public final class ShopService {
                 }
                 yield "gacha:" + GachaEventRotation.getRotationTokenForCategory(category.gachaCategoryId());
             }
+            default -> "";
         };
     }
 
@@ -380,6 +381,8 @@ public final class ShopService {
                 for (ShopOfferDefinition offer : ShopOfferManager.byCategory(category.id())) {
                     playerState.itemStocks().put(offer.id(), category.initialStock());
                 }
+            }
+            default -> {
             }
         }
     }
@@ -402,6 +405,7 @@ public final class ShopService {
                 }
                 yield Math.max(0, stock);
             }
+            default -> -1;
         };
     }
 
@@ -436,6 +440,8 @@ public final class ShopService {
             case PER_ITEM -> {
                 int current = stockForOffer(savedData, playerState, category, offer);
                 playerState.itemStocks().put(offer.id(), Math.max(0, current - quantity));
+            }
+            default -> {
             }
         }
     }

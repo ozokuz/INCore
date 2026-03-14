@@ -8,28 +8,23 @@ import io.github.ozokuz.incore.features.roguelike.RoguelikeConstants;
 import io.github.ozokuz.incore.features.roguelike.RoguelikePortalShape;
 import io.github.ozokuz.incore.features.roguelike.RoguelikeService;
 import io.github.ozokuz.incore.features.roguelike.content.RoguelikePortalBlockEntity;
-import io.github.ozokuz.incore.features.roguelike.data.DungeonSocketData;
-import io.github.ozokuz.incore.features.roguelike.data.DungeonSocketManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveData;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonObjectiveManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierData;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonModifierManager;
 import io.github.ozokuz.incore.features.roguelike.data.DungeonThemeData;
 import io.github.ozokuz.incore.features.roguelike.layout.DungeonLayoutGenerator;
-import io.github.ozokuz.incore.features.roguelike.layout.DungeonLayoutPlan;
 import io.github.ozokuz.incore.features.roguelike.network.RoguelikeMinimapPartyPayload;
 import io.github.ozokuz.incore.features.roguelike.network.RoguelikeNetworking;
 import io.github.ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
 import io.github.ozokuz.incore.features.roguelike.worldgen.DungeonWorldPlan;
 import io.github.ozokuz.incore.features.roguelike.worldgen.DungeonWorldPlanner;
 import io.github.ozokuz.incore.features.party.PartyService;
-import io.github.ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import io.github.ozokuz.incore.features.tasks.DailyTaskEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -47,7 +42,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -428,6 +422,8 @@ public final class DungeonInstanceManager {
                 REVEALED_ROOMS.remove(instance.id().value());
                 data.removeObjectiveState(instance.id());
                 LAST_GRAPH_SYNC_INSTANCE.entrySet().removeIf(entry -> entry.getValue().equals(instance.id().value()));
+            }
+            default -> {
             }
         }
     }
@@ -1233,6 +1229,8 @@ public final class DungeonInstanceManager {
                 ));
                 deductSoftcorePenalty(player);
                 player.sendSystemMessage(Component.translatable("incore.roguelike.death.softcore").withStyle(ChatFormatting.YELLOW));
+            }
+            default -> {
             }
         }
     }

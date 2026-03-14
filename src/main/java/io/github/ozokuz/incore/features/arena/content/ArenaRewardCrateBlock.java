@@ -1,6 +1,5 @@
 package io.github.ozokuz.incore.features.arena.content;
 
-import io.github.ozokuz.incore.Registration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
