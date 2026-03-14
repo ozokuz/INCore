@@ -43,7 +43,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ClaimResult claimAllRewards(ServerPlayer player, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ClaimResult.failed("No active battle pass set.");
         }
@@ -96,7 +96,7 @@ public final class BattlePassProgressManager {
             return ProgressResult.failed("Progress amount must be greater than zero.");
         }
 
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ProgressResult.failed("No active battle pass set.");
         }
@@ -161,7 +161,7 @@ public final class BattlePassProgressManager {
             return;
         }
 
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return;
         }
@@ -182,7 +182,7 @@ public final class BattlePassProgressManager {
     }
 
     public static boolean checkAndProgressLogin(ServerPlayer player, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return false;
         }
@@ -206,7 +206,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ManagementResult setXp(ServerPlayer player, int xp, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ManagementResult.failed("No active battle pass set.");
         }
@@ -222,7 +222,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ManagementResult addXp(ServerPlayer player, int amount, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ManagementResult.failed("No active battle pass set.");
         }
@@ -239,7 +239,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ManagementResult setLevel(ServerPlayer player, int level, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ManagementResult.failed("No active battle pass set.");
         }
@@ -257,7 +257,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ManagementResult addLevel(ServerPlayer player, int amount, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ManagementResult.failed("No active battle pass set.");
         }
@@ -276,7 +276,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ManagementResult resetAllProgress(ServerPlayer player, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ManagementResult.failed("No active battle pass set.");
         }
@@ -293,7 +293,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ManagementResult resetAllTasks(ServerPlayer player, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ManagementResult.failed("No active battle pass set.");
         }
@@ -307,7 +307,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ManagementResult resetTask(ServerPlayer player, String taskId, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ManagementResult.failed("No active battle pass set.");
         }
@@ -330,7 +330,7 @@ public final class BattlePassProgressManager {
     }
 
     public static LaneManagementResult unlockLane(ServerPlayer player, String laneId, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return LaneManagementResult.failed("No active battle pass set.");
         }
@@ -357,7 +357,7 @@ public final class BattlePassProgressManager {
     }
 
     public static LaneManagementResult lockLane(ServerPlayer player, String laneId, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return LaneManagementResult.failed("No active battle pass set.");
         }
@@ -384,7 +384,7 @@ public final class BattlePassProgressManager {
     }
 
     public static LaneStatusResult laneStatus(ServerPlayer player, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return LaneStatusResult.failed("No active battle pass set.");
         }
@@ -403,7 +403,7 @@ public final class BattlePassProgressManager {
     }
 
     public static StatusResult getStatus(ServerPlayer player, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return new StatusResult("none", 0, 0, 0, 0);
         }
@@ -415,7 +415,7 @@ public final class BattlePassProgressManager {
     }
 
     public static ScreenSnapshot getScreenSnapshot(ServerPlayer player, Instant now) {
-        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(now);
+        Optional<BattlePassDefinition> activeOptional = BattlePassManager.getActiveSet(player.getServer(), now);
         if (activeOptional.isEmpty()) {
             return ScreenSnapshot.none();
         }
