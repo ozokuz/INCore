@@ -395,7 +395,12 @@ public final class ResearchManager {
 
         JsonObject root = new JsonObject();
         root.addProperty("teamId", teamId);
-        root.addProperty("researchEnabled", stationNetworkSnapshot.stationNetworkValid() && !ResearchRegistry.nodes().isEmpty());
+        root.addProperty(
+                "researchEnabled",
+                stationNetworkSnapshot.stationNetworkValid()
+                        && stationNetworkSnapshot.stationNetworkCount() <= 1
+                        && !ResearchRegistry.nodes().isEmpty()
+        );
         root.addProperty("stationNetworkCount", stationNetworkSnapshot.stationNetworkCount());
         root.addProperty("stationNetworkValid", stationNetworkSnapshot.stationNetworkValid());
         root.addProperty("stationNetworkStatus", stationNetworkSnapshot.stationNetworkStatus());
