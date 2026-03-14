@@ -1,9 +1,9 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.machines.multiblock.ElectricPowerInputBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.MechanicalPowerInputBlockEntity;
 import io.github.ozokuz.incore.features.research.ResearchManager;
 import io.github.ozokuz.incore.features.research.provider.ResearchProviderManager;
 import io.github.ozokuz.incore.features.research.state.ResearchNetworkSavedData;

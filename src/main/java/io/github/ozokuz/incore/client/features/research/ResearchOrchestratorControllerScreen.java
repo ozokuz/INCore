@@ -1,10 +1,8 @@
 package io.github.ozokuz.incore.client.features.research;
 
-import io.github.ozokuz.incore.client.features.machines.*;
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
-import io.github.ozokuz.incore.features.research.station.ResearchOrchestratorControllerMenu;
+import io.github.ozokuz.incore.client.features.machines.StationStatusScreen;
 import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
+import io.github.ozokuz.incore.features.research.station.ResearchOrchestratorControllerMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;

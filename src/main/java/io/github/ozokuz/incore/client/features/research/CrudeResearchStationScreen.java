@@ -1,11 +1,9 @@
 package io.github.ozokuz.incore.client.features.research;
 
-import io.github.ozokuz.incore.client.features.machines.*;
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
-import io.github.ozokuz.incore.features.research.station.CrudeResearchStationMenu;
-import io.github.ozokuz.incore.features.research.station.CrudeResearchStationBlockEntity;
+import io.github.ozokuz.incore.client.features.machines.ResearchScreenRenderer;
 import io.github.ozokuz.incore.features.research.state.ResearchQueueStatus;
+import io.github.ozokuz.incore.features.research.station.CrudeResearchStationBlockEntity;
+import io.github.ozokuz.incore.features.research.station.CrudeResearchStationMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;

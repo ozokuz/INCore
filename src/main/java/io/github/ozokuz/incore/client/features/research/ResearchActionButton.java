@@ -1,8 +1,6 @@
 package io.github.ozokuz.incore.client.features.research;
 
-import io.github.ozokuz.incore.client.features.machines.*;
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
+import io.github.ozokuz.incore.client.features.machines.ResearchScreenRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

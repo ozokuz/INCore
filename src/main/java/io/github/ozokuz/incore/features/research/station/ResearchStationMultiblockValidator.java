@@ -1,8 +1,15 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.machines.multiblock.AugmenterBlock;
+import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
+import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerInputBlockProvider;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortBlock;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -10,12 +17,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public final class ResearchStationMultiblockValidator {
     private static final int MIN_HEIGHT = 2;

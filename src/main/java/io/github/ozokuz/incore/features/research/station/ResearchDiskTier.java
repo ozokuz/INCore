@@ -1,7 +1,5 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 public enum ResearchDiskTier {
     T1(2, 0.20D),
     T2(4, 0.12D),

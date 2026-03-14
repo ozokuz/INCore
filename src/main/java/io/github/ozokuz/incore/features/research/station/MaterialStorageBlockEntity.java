@@ -1,8 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.machines.multiblock.AbstractMachineInventoryPartBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;

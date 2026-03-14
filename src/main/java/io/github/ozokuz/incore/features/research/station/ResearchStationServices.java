@@ -1,13 +1,13 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
+import io.github.ozokuz.incore.features.machines.multiblock.AbstractMachineInventoryPartBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.AugmenterBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.MachineAugmentItem;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public final class ResearchStationServices {
     private ResearchStationServices() {
