@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.party.network;
 
+import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.features.party.PartyService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
@@ -82,6 +83,12 @@ public record PartyActionPayload(ActionType actionType, UUID targetPlayerId) imp
                     }
                 }
                 default -> {
+                    INCore.LOGGER.warn(
+                            "Unhandled party action {} from player {} targeting {}",
+                            payload.actionType(),
+                            player.getGameProfile().getName(),
+                            payload.targetPlayerId()
+                    );
                 }
             }
         });

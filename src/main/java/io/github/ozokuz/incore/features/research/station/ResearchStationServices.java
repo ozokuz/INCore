@@ -1,5 +1,6 @@
 package io.github.ozokuz.incore.features.research.station;
 
+import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.features.machines.multiblock.AbstractMachineInventoryPartBlockEntity;
 import io.github.ozokuz.incore.features.machines.multiblock.AugmenterBlockEntity;
 import io.github.ozokuz.incore.features.machines.multiblock.MachineAugmentItem;
@@ -64,6 +65,12 @@ public final class ResearchStationServices {
                     }
                 }
                 default -> {
+                    INCore.LOGGER.warn(
+                            "Unexpected research station augment type {} at slot {} for controller {}",
+                            augment.augmentType(),
+                            slot,
+                            controller.getBlockPos()
+                    );
                 }
             }
         }
@@ -143,6 +150,13 @@ public final class ResearchStationServices {
                     }
                 }
                 default -> {
+                    INCore.LOGGER.warn(
+                            "Unexpected research station augment type {} at slot {} for controller {} and category {}",
+                            augment.augmentType(),
+                            slot,
+                            controller.getBlockPos(),
+                            categoryId
+                    );
                 }
             }
         }
@@ -212,6 +226,12 @@ public final class ResearchStationServices {
                 case SPECIALIZER -> {
                 }
                 default -> {
+                    INCore.LOGGER.warn(
+                            "Unexpected orchestration augment type {} at slot {} for orchestrator {}",
+                            augment.augmentType(),
+                            slot,
+                            orchestrator.getBlockPos()
+                    );
                 }
             }
         }
