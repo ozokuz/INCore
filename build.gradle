@@ -112,6 +112,9 @@ repositories {
     maven { url = "https://maven.ithundxr.dev/snapshots" }
     //maven { url 'https://maven.wispforest.io/releases' }
 
+    // LDLib2
+    maven { url = "https://maven.firstdark.dev/snapshots" }
+
     exclusiveContent {
         forRepository {
             maven {
@@ -213,6 +216,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation "net.neoforged:testframework:${neo_version}"
+
+    implementation("com.lowdragmc.ldlib2:ldlib2-neoforge-${minecraft_version}:${ldlib2_version}:all")
 
     api("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
     interfaceInjectionData("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
