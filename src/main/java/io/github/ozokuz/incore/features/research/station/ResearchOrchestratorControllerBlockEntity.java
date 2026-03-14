@@ -171,7 +171,7 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
         ResearchOrchestratorRegistry.register(this);
         boolean previousFormed = formed;
         ResearchOrchestratorTopology result = ResearchOrchestratorMultiblockValidator.validate(level, worldPosition);
-        boolean nextFormed = result.formed();
+        boolean nextFormed = result.formed() && result.powerFamily() != null;
         String nextId = nextFormed ? buildOrchestratorId(level.dimension().location(), worldPosition) : "";
         List<BlockPos> nextConnectedParts = nextFormed ? normalizePositions(result.connectedParts()) : List.of();
         List<BlockPos> nextPowerInputs = nextFormed ? normalizePositions(result.powerInputPositions()) : List.of();
@@ -216,7 +216,7 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
     }
 
     public ResearchOrchestratorDescriptor describeOrchestrator() {
-        if (level == null || !formed || orchestratorId.isBlank()) {
+        if (level == null || !formed || orchestratorId.isBlank() || powerFamily == null) {
             return null;
         }
         return new ResearchOrchestratorDescriptor(
