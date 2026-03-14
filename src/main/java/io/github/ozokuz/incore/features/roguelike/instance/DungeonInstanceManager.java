@@ -1236,10 +1236,9 @@ public final class DungeonInstanceManager {
                 player.sendSystemMessage(Component.translatable("incore.roguelike.death.softcore").withStyle(ChatFormatting.YELLOW));
             }
             default -> {
-                INCore.LOGGER.warn(
-                        "Unhandled dungeon death difficulty {} for player {}",
-                        effectiveDifficulty,
-                        player.getUUID()
+                throw new IllegalArgumentException(
+                        "Unhandled dungeon death difficulty " + effectiveDifficulty
+                                + " for player " + player.getUUID()
                 );
             }
         }
