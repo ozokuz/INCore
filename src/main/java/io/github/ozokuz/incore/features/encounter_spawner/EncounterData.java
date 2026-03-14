@@ -18,8 +18,8 @@ public record EncounterData(List<MobEntry> mobs, String lootTable) {
         );
     }
 
+    @SuppressWarnings("unchecked")
     private static EntityType<? extends Mob> fromString(String id) {
-       // noinspection unchecked
        return (EntityType<? extends Mob>) BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(id));
     }
 
