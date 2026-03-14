@@ -544,6 +544,7 @@
   "screen.incore.power_input.family.none": "Unknown",
   "screen.incore.power_input.family.electric": "Electric",
   "screen.incore.power_input.family.mechanical": "Mechanical",
+  "screen.incore.power_input.family.burner": "Burner",
   "screen.incore.power_input.tier": "Tier",
   "screen.incore.power_input.available_power": "RP/t",
   "screen.incore.power_input.energy": "Stored FE",

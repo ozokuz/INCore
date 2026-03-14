@@ -145,7 +145,7 @@ public class ResearchOrchestratorControllerBlockEntity extends BlockEntity {
                 continue;
             }
 
-            int fromInput = Math.max(0, input.availablePower(remaining));
+            int fromInput = Math.min(Math.max(0, input.availablePower(remaining)), remaining);
             if (fromInput > 0) {
                 available += fromInput;
                 remaining -= fromInput;

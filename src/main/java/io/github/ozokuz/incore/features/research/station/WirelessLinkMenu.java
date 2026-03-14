@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.DataSlot;
 
 public class WirelessLinkMenu extends AbstractMachineInventoryMenu {
+    private static final MultiblockOwnerKind[] OWNER_KINDS = MultiblockOwnerKind.values();
     private final WirelessLinkBlockEntity wirelessLink;
     private int ownerKindOrdinal;
     private int bindingStatus;
@@ -56,9 +57,9 @@ public class WirelessLinkMenu extends AbstractMachineInventoryMenu {
     }
 
     public MultiblockOwnerKind ownerKind() {
-        return ownerKindOrdinal < 0 || ownerKindOrdinal >= MultiblockOwnerKind.values().length
+        return ownerKindOrdinal < 0 || ownerKindOrdinal >= OWNER_KINDS.length
                 ? MultiblockOwnerKind.NONE
-                : MultiblockOwnerKind.values()[ownerKindOrdinal];
+                : OWNER_KINDS[ownerKindOrdinal];
     }
 
     public int bindingStatus() {

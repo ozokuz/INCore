@@ -1,11 +1,13 @@
 package io.github.ozokuz.incore.client.features.machines;
 
 import io.github.ozokuz.incore.client.ui.UITheme;
+import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class StationStatusScreen<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> {
     private static final UITheme THEME = ResearchScreenRenderer.theme();
@@ -78,5 +80,16 @@ public abstract class StationStatusScreen<T extends AbstractContainerMenu> exten
     protected void drawKeyValue(GuiGraphics guiGraphics, int x, int y, Component label, Component value, int color) {
         guiGraphics.drawString(font, label, x, y, labelColor(), false);
         guiGraphics.drawString(font, value, x + 78, y, color, false);
+    }
+
+    protected static Component powerFamilyLabel(@Nullable MachinePowerFamily family) {
+        if (family == null) {
+            return Component.translatable("screen.incore.power_input.family.none");
+        }
+        return switch (family) {
+            case ELECTRIC -> Component.translatable("screen.incore.power_input.family.electric");
+            case MECHANICAL -> Component.translatable("screen.incore.power_input.family.mechanical");
+            case BURNER -> Component.translatable("screen.incore.power_input.family.burner");
+        };
     }
 }

@@ -2,6 +2,7 @@ package io.github.ozokuz.incore.features.research.station;
 
 import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
 import java.util.List;
+import java.util.Objects;
 import net.minecraft.core.BlockPos;
 
 public record ResearchStationDescriptor(
@@ -42,6 +43,7 @@ public record ResearchStationDescriptor(
         rpCapacity = Math.max(0, rpCapacity);
         slotCapacity = Math.max(0, slotCapacity);
         availableResearchPower = Math.max(0, availableResearchPower);
+        powerFamily = Objects.requireNonNull(powerFamily, "powerFamily must not be null");
         powerInputTier = Math.max(0, powerInputTier);
         mountedDiskTier = Math.max(0, mountedDiskTier);
         mountedDiskSnapshotCount = Math.max(0, mountedDiskSnapshotCount);

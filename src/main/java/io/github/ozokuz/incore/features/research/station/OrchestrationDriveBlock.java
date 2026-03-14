@@ -13,8 +13,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +22,7 @@ public class OrchestrationDriveBlock extends AbstractMachinePartBlock {
     public static final MapCodec<OrchestrationDriveBlock> CODEC = simpleCodec(OrchestrationDriveBlock::new);
 
     public OrchestrationDriveBlock() {
-        this(Properties.of());
+        super();
     }
 
     public OrchestrationDriveBlock(Properties properties) {
@@ -73,8 +71,4 @@ public class OrchestrationDriveBlock extends AbstractMachinePartBlock {
         return ItemInteractionResult.CONSUME;
     }
 
-    @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
-        return createTickerHelper(type, Registration.ORCHESTRATION_DRIVE_BE.get(), (lvl, pos, blockState, be) -> {});
-    }
 }
