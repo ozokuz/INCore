@@ -424,6 +424,11 @@ public final class DungeonInstanceManager {
                 LAST_GRAPH_SYNC_INSTANCE.entrySet().removeIf(entry -> entry.getValue().equals(instance.id().value()));
             }
             default -> {
+                INCore.LOGGER.warn(
+                        "Unhandled cleanup stage {} for dungeon instance {}",
+                        instance.cleanupStage(),
+                        instance.id()
+                );
             }
         }
     }
@@ -1231,6 +1236,11 @@ public final class DungeonInstanceManager {
                 player.sendSystemMessage(Component.translatable("incore.roguelike.death.softcore").withStyle(ChatFormatting.YELLOW));
             }
             default -> {
+                INCore.LOGGER.warn(
+                        "Unhandled dungeon death difficulty {} for player {}",
+                        effectiveDifficulty,
+                        player.getUUID()
+                );
             }
         }
     }

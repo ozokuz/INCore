@@ -368,7 +368,9 @@ public final class ShopService {
                 }
                 yield "gacha:" + GachaEventRotation.getRotationTokenForCategory(category.gachaCategoryId());
             }
-            default -> "";
+            default -> throw new IllegalArgumentException(
+                    "Unknown replenish mode " + category.replenishMode() + " for shop category " + category.id()
+            );
         };
     }
 
@@ -382,8 +384,9 @@ public final class ShopService {
                     playerState.itemStocks().put(offer.id(), category.initialStock());
                 }
             }
-            default -> {
-            }
+            default -> throw new IllegalArgumentException(
+                    "Unknown stock mode " + category.stockMode() + " for shop category " + category.id()
+            );
         }
     }
 
@@ -405,7 +408,11 @@ public final class ShopService {
                 }
                 yield Math.max(0, stock);
             }
-            default -> -1;
+            default -> throw new IllegalArgumentException(
+                    "Unknown stock mode " + category.stockMode()
+                            + " for shop category " + category.id()
+                            + " while resolving offer " + offer.id()
+            );
         };
     }
 
@@ -441,8 +448,11 @@ public final class ShopService {
                 int current = stockForOffer(savedData, playerState, category, offer);
                 playerState.itemStocks().put(offer.id(), Math.max(0, current - quantity));
             }
-            default -> {
-            }
+            default -> throw new IllegalArgumentException(
+                    "Unknown stock mode " + category.stockMode()
+                            + " for shop category " + category.id()
+                            + " while consuming offer " + offer.id()
+            );
         }
     }
 
