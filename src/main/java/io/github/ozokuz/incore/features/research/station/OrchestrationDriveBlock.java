@@ -41,13 +41,7 @@ public class OrchestrationDriveBlock extends AbstractMachinePartBlock {
 
     @Override
     protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hitResult) {
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(provider, pos);
-        }
+        openMenuIfServer(level, pos, player);
         return InteractionResult.CONSUME;
     }
 
@@ -61,14 +55,17 @@ public class OrchestrationDriveBlock extends AbstractMachinePartBlock {
             @NotNull InteractionHand hand,
             @NotNull BlockHitResult hitResult
     ) {
+        openMenuIfServer(level, pos, player);
+        return ItemInteractionResult.CONSUME;
+    }
+
+    private static void openMenuIfServer(Level level, BlockPos pos, Player player) {
         if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+            return;
         }
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(provider, pos);
         }
-        return ItemInteractionResult.CONSUME;
     }
-
 }

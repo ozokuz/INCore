@@ -72,7 +72,7 @@ public class WirelessLinkMenu extends AbstractMachineInventoryMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id != 0 || ownerKind() != MultiblockOwnerKind.ORCHESTRATOR || !stillValid(player)) {
+        if (id != 0 || wirelessLink.ownerKind() != MultiblockOwnerKind.ORCHESTRATOR || !stillValid(player)) {
             return false;
         }
         wirelessLink.clearStoredBinding();
