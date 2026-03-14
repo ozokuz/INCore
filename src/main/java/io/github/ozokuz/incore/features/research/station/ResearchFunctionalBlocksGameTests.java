@@ -1,9 +1,11 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.machines.multiblock.AugmenterBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.ElectricPowerInputBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortMode;
 import io.github.ozokuz.incore.features.research.ResearchDeterministicRng;
 import io.github.ozokuz.incore.features.research.ResearchManager;
 import io.github.ozokuz.incore.features.research.model.ResearchCostDefinition;
@@ -11,6 +13,7 @@ import io.github.ozokuz.incore.features.research.state.ResearchNetworkSavedData;
 import io.github.ozokuz.incore.features.research.state.ResearchQueueEntry;
 import io.github.ozokuz.incore.features.research.state.ResearchQueueStatus;
 import io.github.ozokuz.incore.features.research.state.TeamResearchState;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -23,8 +26,6 @@ import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.List;
 
 @GameTestHolder("incore")
 @PrefixGameTestTemplate(false)

@@ -1,19 +1,14 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.machines.multiblock.AugmenterBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortMode;
+import io.github.ozokuz.incore.features.research.ResearchDeterministicRng;
 import io.github.ozokuz.incore.features.research.material.ResearchMaterialDefinition;
 import io.github.ozokuz.incore.features.research.material.ResearchMaterialManager;
-import io.github.ozokuz.incore.features.research.ResearchDeterministicRng;
 import io.github.ozokuz.incore.features.research.model.ResearchCostDefinition;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.Containers;
-import net.minecraft.world.item.ItemStack;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -22,6 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
 
 public final class ResearchStationRuntime {
     private ResearchStationRuntime() {

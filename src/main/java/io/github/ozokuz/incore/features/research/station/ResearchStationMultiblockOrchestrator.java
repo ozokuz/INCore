@@ -1,13 +1,10 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
+import java.util.HashSet;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public final class ResearchStationMultiblockOrchestrator {
     private static final int SEARCH_RADIUS = 2;

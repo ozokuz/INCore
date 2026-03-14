@@ -1,13 +1,10 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
+import java.util.UUID;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
-
-import java.util.UUID;
 
 public final class SignalTransmitterData {
     private static final String KEY_CHANNEL_ID = "incore:signal_channel_id";

@@ -1,17 +1,14 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 
 public final class ResearchMultiblockStationRegistry {
     private static final Set<ResearchControllerBlockEntity> CONTROLLERS = java.util.Collections.newSetFromMap(new WeakHashMap<>());

@@ -1,8 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
 import io.github.ozokuz.incore.features.research.station.network.TeamStationNetworkSnapshot;
 import net.minecraft.core.BlockPos;

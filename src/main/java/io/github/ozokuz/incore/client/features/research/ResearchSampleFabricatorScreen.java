@@ -1,10 +1,11 @@
 package io.github.ozokuz.incore.client.features.research;
 
-import io.github.ozokuz.incore.client.features.machines.*;
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
+import io.github.ozokuz.incore.client.features.machines.ResearchScreenRenderer;
 import io.github.ozokuz.incore.features.research.discovery.ResearchSampleFabricatorMenu;
 import io.github.ozokuz.incore.features.research.network.ResearchNetworking;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -14,10 +15,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
 
 public class ResearchSampleFabricatorScreen extends AbstractContainerScreen<ResearchSampleFabricatorMenu> {
     private static final int WINDOW_WIDTH = 196;

@@ -1,8 +1,7 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.machines.multiblock.AbstractMachineInventoryMenu;
 import net.minecraft.world.entity.player.Inventory;
 
 public class LogicHousingMenu extends AbstractMachineInventoryMenu {

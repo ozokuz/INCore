@@ -1,10 +1,18 @@
 package io.github.ozokuz.incore.features.research.station;
 
-import io.github.ozokuz.incore.features.machines.multiblock.*;
-
 import io.github.ozokuz.incore.INCore;
 import io.github.ozokuz.incore.Registration;
+import io.github.ozokuz.incore.features.machines.multiblock.AbstractMultiblockPartBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.IMachinePowerInput;
+import io.github.ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
+import io.github.ozokuz.incore.features.machines.multiblock.MultiblockOwnerKind;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortBlockEntity;
+import io.github.ozokuz.incore.features.machines.multiblock.OutputPortMode;
 import io.github.ozokuz.incore.features.research.station.network.StationNetworkService;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -19,11 +27,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
 
 public class ResearchControllerBlockEntity extends BlockEntity implements MenuProvider {
     private static final int REVALIDATE_INTERVAL_TICKS = 20;
