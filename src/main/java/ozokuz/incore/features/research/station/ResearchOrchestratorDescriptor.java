@@ -1,0 +1,28 @@
+package ozokuz.incore.features.research.station;
+
+import ozokuz.incore.features.machines.multiblock.MachinePowerFamily;
+import java.util.List;
+import net.minecraft.core.BlockPos;
+
+public record ResearchOrchestratorDescriptor(
+        String orchestratorId,
+        String teamId,
+        String dimensionId,
+        BlockPos controllerPos,
+        boolean formed,
+        MachinePowerFamily powerFamily,
+        int powerInputTier,
+        List<BlockPos> powerInputPositions,
+        List<BlockPos> linkingPortPositions,
+        BlockPos wirelessLinkPos,
+        BlockPos orchestrationDrivePos,
+        BlockPos augmenterPos
+) {
+    public ResearchOrchestratorDescriptor {
+        orchestratorId = orchestratorId == null ? "" : orchestratorId;
+        teamId = teamId == null ? "" : teamId;
+        dimensionId = dimensionId == null ? "" : dimensionId;
+        powerInputPositions = powerInputPositions == null ? List.of() : List.copyOf(powerInputPositions);
+        powerInputTier = Math.max(0, powerInputTier);
+    }
+}

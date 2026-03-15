@@ -1,6 +1,6 @@
 {
   "required": false,
-  "package": "io.github.ozokuz.incore.mixin.numismatics",
+  "package": "ozokuz.incore.mixin.numismatics",
   "compatibilityLevel": "JAVA_21",
   "refmap": "incore.refmap.json",
   "target": "@env(DEFAULT)",
