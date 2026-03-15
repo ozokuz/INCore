@@ -12,7 +12,6 @@ import ozokuz.incore.client.features.entropy.EntropyBarHudFeature;
 import ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import ozokuz.incore.client.features.party.PartyManagementScreen;
 import ozokuz.incore.client.features.battlepass.BattlePassScreen;
-import ozokuz.incore.client.features.status.PlayerStatusScreen;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import ozokuz.incore.client.features.tasks.TaskOverviewScreen;
 import ozokuz.incore.features.arena.network.ArenaNetworking;
@@ -43,6 +42,8 @@ import ozokuz.incore.client.features.research.TranslatorScreen;
 import ozokuz.incore.client.features.research.WirelessLinkScreen;
 import ozokuz.incore.features.research.network.ResearchNetworking;
 import ozokuz.incore.features.shop.network.ShopNetworking;
+import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
+import ozokuz.incore.integration.ldlib.ui.RequestOpenIncoreUiPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -58,6 +59,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 @Mod(value = INCore.MODID, dist = Dist.CLIENT)
 public class INCoreClient {
@@ -128,7 +130,7 @@ public class INCoreClient {
         }
 
         while (INCoreKeyMappings.OPEN_PLAYER_STATUS.consumeClick()) {
-            minecraft.setScreen(new PlayerStatusScreen());
+            PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(INCoreUiIds.PLAYER_STATUS));
         }
 
         while (INCoreKeyMappings.OPEN_GACHA_BANNERS.consumeClick()) {
