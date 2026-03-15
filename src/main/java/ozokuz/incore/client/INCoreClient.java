@@ -53,6 +53,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -60,6 +61,11 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.lwjgl.glfw.GLFW;
+import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerMenu;
+import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerScreen;
+import ozokuz.incore.integration.ldlib.ui.player.PlayerStatusRouteUiHolder;
+import ozokuz.incore.integration.ldlib.ui.RequestBackIncoreUiPayload;
 
 @Mod(value = INCore.MODID, dist = Dist.CLIENT)
 public class INCoreClient {
@@ -70,6 +76,7 @@ public class INCoreClient {
         modEventBus.addListener(this::onRegisterClientReloadListeners);
         modEventBus.addListener(this::onRegisterRenderers);
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
+        NeoForge.EVENT_BUS.addListener(this::onScreenKeyPressed);
         StaminaBarHudFeature.register();
         EntropyBarHudFeature.register();
         PartyHudFeature.register();
@@ -125,12 +132,18 @@ public class INCoreClient {
         Minecraft minecraft = Minecraft.getInstance();
         boolean hasPlayer = minecraft.player != null;
         StatusScreenReturnTracker.onClientTick(minecraft);
-        if (!hasPlayer || minecraft.screen != null) {
+        if (!hasPlayer) {
             return;
         }
 
         while (INCoreKeyMappings.OPEN_PLAYER_STATUS.consumeClick()) {
-            PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(INCoreUiIds.PLAYER_STATUS));
+            if (minecraft.screen == null || isPlayerStatusRouteUiOpen(minecraft)) {
+                PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(INCoreUiIds.PLAYER_STATUS));
+            }
+        }
+
+        if (minecraft.screen != null) {
+            return;
         }
 
         while (INCoreKeyMappings.OPEN_GACHA_BANNERS.consumeClick()) {
@@ -183,6 +196,20 @@ public class INCoreClient {
         }
     }
 
+    private void onScreenKeyPressed(ScreenEvent.KeyPressed.Pre event) {
+        if (event.getKeyCode() != GLFW.GLFW_KEY_ESCAPE) {
+            return;
+        }
+        if (!(event.getScreen() instanceof ModularUIContainerScreen screen)) {
+            return;
+        }
+        if (!(screen.getMenu().uiHolder instanceof PlayerStatusRouteUiHolder routeHolder) || !routeHolder.canGoBackOnEscape()) {
+            return;
+        }
+        event.setCanceled(true);
+        PacketDistributor.sendToServer(RequestBackIncoreUiPayload.INSTANCE);
+    }
+
     private static boolean ensureFeatureUnlocked(Minecraft minecraft, ResourceLocation featureId) {
         String rawId = featureId.toString();
         if (PlayerLevelClientCache.isFeatureUnlocked(rawId)) {
@@ -200,5 +227,11 @@ public class INCoreClient {
             );
         }
         return false;
+    }
+
+    private static boolean isPlayerStatusRouteUiOpen(Minecraft minecraft) {
+        return minecraft.player != null
+                && minecraft.player.containerMenu instanceof ModularUIContainerMenu menu
+                && menu.uiHolder instanceof PlayerStatusRouteUiHolder;
     }
 }

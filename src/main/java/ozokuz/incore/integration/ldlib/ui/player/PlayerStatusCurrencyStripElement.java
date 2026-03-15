@@ -1,11 +1,16 @@
 package ozokuz.incore.integration.ldlib.ui.player;
 
+import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
+import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
+import dev.vfyjxf.taffy.style.AlignContent;
+import dev.vfyjxf.taffy.style.AlignItems;
+import dev.vfyjxf.taffy.style.FlexDirection;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -16,86 +21,147 @@ import ozokuz.incore.client.ui.UIScreenTheme;
 import ozokuz.incore.features.status.network.PlayerStatusCurrencyClientCache;
 
 public final class PlayerStatusCurrencyStripElement extends UIElement {
-    private static final float SCALE = 0.75F;
+    private static final int GAP = 4;
+    private static final int ICON_SIZE = 12;
+    private String lastSignature = "";
+    private int lastWidth = -1;
 
     public PlayerStatusCurrencyStripElement() {
         setAllowHitTest(false);
+        layout(layout -> {
+            layout.widthPercent(100);
+            layout.heightPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.justifyContent(AlignContent.FLEX_END);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(GAP);
+        });
         internalSetup();
     }
 
     @Override
-    public void drawBackgroundAdditional(GUIContext guiContext) {
-        Font font = Minecraft.getInstance().font;
+    public void screenTick() {
+        rebuildIfNeeded();
+        super.screenTick();
+    }
+
+    private void rebuildIfNeeded() {
         PlayerStatusCurrencyClientCache.Snapshot snapshot = PlayerStatusCurrencyClientCache.snapshot();
-        List<CostRenderLine> lines = snapshot.entries().stream()
-                .map(entry -> new CostRenderLine(iconFromId(entry.iconItemId()), "x" + Math.max(0, entry.amount()), UIScreenTheme.Info.STATUS_BALANCE_TEXT))
-                .toList();
+        int width = Math.max(0, Math.round(getSizeWidth()));
+        String signature = snapshot.loaded() + "|" + snapshot.entries() + "|" + width;
+        if (width == lastWidth && signature.equals(lastSignature)) {
+            return;
+        }
+        lastWidth = width;
+        lastSignature = signature;
+        rebuild(snapshot, width);
+    }
 
-        int left = Math.round(getPositionX());
-        int right = left + Math.round(getSizeWidth()) - 2;
-        int minX = left;
-        int y = Math.round(getPositionY()) + 1;
-        GuiGraphics graphics = guiContext.graphics;
+    private void rebuild(PlayerStatusCurrencyClientCache.Snapshot snapshot, int width) {
+        clearAllChildren();
 
-        if (lines.isEmpty()) {
-            Component text = snapshot.loaded()
+        if (snapshot.entries().isEmpty()) {
+            addChild(infoLabel(snapshot.loaded()
                     ? Component.translatable("screen.incore.player_status.currencies_none")
-                    : Component.translatable("screen.incore.player_status.currencies_loading");
-            int textX = Math.max(minX, right - font.width(text));
-            graphics.drawString(font, text, textX, y + 1, UIScreenTheme.Info.STATUS_LINE_TEXT, false);
+                    : Component.translatable("screen.incore.player_status.currencies_loading"), UIScreenTheme.Info.STATUS_LINE_TEXT));
             return;
         }
 
-        int cursorRight = right;
-        int rendered = 0;
-        for (int index = lines.size() - 1; index >= 0; index--) {
-            CostRenderLine line = lines.get(index);
-            int width = scaledCostLineWidth(font, line);
-            int x = cursorRight - width;
-            if (x < minX) {
-                break;
-            }
-            renderCostLine(graphics, font, x, y, line);
-            cursorRight = x - 4;
-            rendered++;
+        List<PlayerStatusCurrencyClientCache.CurrencyEntry> visible = new ArrayList<>(snapshot.entries());
+        int hidden = 0;
+        boolean showLabel = true;
+        int availableWidth = Math.max(0, width - 2);
+
+        while (totalWidth(visible, hidden, true) > availableWidth && !visible.isEmpty()) {
+            visible.remove(0);
+            hidden++;
+        }
+        if (totalWidth(visible, hidden, true) > availableWidth) {
+            showLabel = false;
+        }
+        while (totalWidth(visible, hidden, showLabel) > availableWidth && !visible.isEmpty()) {
+            visible.remove(0);
+            hidden++;
+        }
+        if (totalWidth(visible, hidden, showLabel) > availableWidth) {
+            showLabel = false;
         }
 
-        Component label = Component.translatable("screen.incore.player_status.section_currencies");
-        int labelWidth = font.width(label);
-        if (cursorRight - labelWidth >= minX) {
-            graphics.drawString(font, label, cursorRight - labelWidth, y + 2, UIScreenTheme.Info.PRIMARY_TEXT, false);
-            cursorRight -= labelWidth + 4;
+        if (hidden > 0) {
+            addChild(infoLabel(
+                    Component.translatable("screen.incore.player_status.currencies_overflow", hidden),
+                    UIScreenTheme.Info.STATUS_OVERFLOW_TEXT
+            ));
         }
-
-        if (rendered < lines.size()) {
-            Component overflow = Component.translatable("screen.incore.player_status.currencies_overflow", lines.size() - rendered);
-            int overflowWidth = font.width(overflow);
-            int overflowX = Math.max(minX, cursorRight - overflowWidth);
-            graphics.drawString(font, overflow, overflowX, y + 4, UIScreenTheme.Info.STATUS_OVERFLOW_TEXT, false);
+        if (showLabel) {
+            addChild(infoLabel(
+                    Component.translatable("screen.incore.player_status.section_currencies"),
+                    UIScreenTheme.Info.PRIMARY_TEXT
+            ));
+        }
+        for (PlayerStatusCurrencyClientCache.CurrencyEntry entry : visible) {
+            addChild(currencyEntry(entry));
         }
     }
 
-    private static void renderCostLine(GuiGraphics guiGraphics, Font font, int x, int y, CostRenderLine line) {
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x, y, 0.0F);
-        guiGraphics.pose().scale(SCALE, SCALE, 1.0F);
-
-        int textX = 0;
-        if (!line.stack().isEmpty()) {
-            guiGraphics.renderItem(line.stack(), 0, 0);
-            textX = 20;
+    private static int totalWidth(List<PlayerStatusCurrencyClientCache.CurrencyEntry> visible, int hidden, boolean showLabel) {
+        Font font = Minecraft.getInstance().font;
+        int width = 0;
+        int parts = 0;
+        if (hidden > 0) {
+            width += font.width(Component.translatable("screen.incore.player_status.currencies_overflow", hidden));
+            parts++;
         }
-
-        guiGraphics.drawString(font, Component.literal(line.text()), textX, 4, line.color(), false);
-        guiGraphics.pose().popPose();
+        if (showLabel) {
+            width += font.width(Component.translatable("screen.incore.player_status.section_currencies"));
+            parts++;
+        }
+        for (PlayerStatusCurrencyClientCache.CurrencyEntry entry : visible) {
+            width += entryWidth(font, entry);
+            parts++;
+        }
+        if (parts > 1) {
+            width += GAP * (parts - 1);
+        }
+        return width;
     }
 
-    private static int scaledCostLineWidth(Font font, CostRenderLine line) {
-        int width = font.width(line.text());
-        if (!line.stack().isEmpty()) {
-            width += 20;
+    private static int entryWidth(Font font, PlayerStatusCurrencyClientCache.CurrencyEntry entry) {
+        return ICON_SIZE + 2 + font.width("x" + Math.max(0, entry.amount()));
+    }
+
+    private static UIElement currencyEntry(PlayerStatusCurrencyClientCache.CurrencyEntry entry) {
+        UIElement element = new UIElement().layout(layout -> {
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(2);
+        });
+
+        ItemStack stack = iconFromId(entry.iconItemId());
+        if (!stack.isEmpty()) {
+            element.addChild(new UIElement()
+                    .layout(layout -> {
+                        layout.width(ICON_SIZE);
+                        layout.height(ICON_SIZE);
+                    })
+                    .style(style -> style.backgroundTexture(new ItemStackTexture(stack)))
+                    .setAllowHitTest(false));
         }
-        return (int) Math.ceil(width * SCALE);
+
+        element.addChild(infoLabel(Component.literal("x" + Math.max(0, entry.amount())), UIScreenTheme.Info.STATUS_BALANCE_TEXT));
+        return element;
+    }
+
+    private static Label infoLabel(Component text, int color) {
+        Label label = new Label();
+        label.setText(text);
+        label.setAllowHitTest(false);
+        label.textStyle(style -> style
+                .fontSize(8)
+                .adaptiveWidth(true)
+                .textWrap(TextWrap.HIDE)
+                .textColor(color));
+        return label;
     }
 
     private static ItemStack iconFromId(String itemIdString) {
@@ -110,8 +176,5 @@ public final class PlayerStatusCurrencyStripElement extends UIElement {
 
         Item item = BuiltInRegistries.ITEM.get(itemId);
         return item == Items.AIR ? ItemStack.EMPTY : item.getDefaultInstance();
-    }
-
-    private record CostRenderLine(ItemStack stack, String text, int color) {
     }
 }

@@ -3,9 +3,7 @@ package ozokuz.incore.integration.ldlib.ui;
 import com.lowdragmc.lowdraglib2.gui.factory.PlayerUIMenuType;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import ozokuz.incore.integration.ldlib.ui.player.DungeonDifficultyUiHolder;
-import ozokuz.incore.integration.ldlib.ui.player.PlayerLevelRewardsUiHolder;
-import ozokuz.incore.integration.ldlib.ui.player.PlayerStatusUiHolder;
+import ozokuz.incore.integration.ldlib.ui.player.PlayerStatusRouteUiHolder;
 
 public final class INCorePlayerUiRegistry {
     private static final Set<net.minecraft.resources.ResourceLocation> REGISTERED = ConcurrentHashMap.newKeySet();
@@ -19,9 +17,9 @@ public final class INCorePlayerUiRegistry {
             return;
         }
 
-        register(INCoreUiIds.PLAYER_STATUS, ignored -> new PlayerStatusUiHolder());
-        register(INCoreUiIds.PLAYER_LEVEL_REWARDS, ignored -> new PlayerLevelRewardsUiHolder());
-        register(INCoreUiIds.DUNGEON_DIFFICULTY, ignored -> new DungeonDifficultyUiHolder());
+        register(INCoreUiIds.PLAYER_STATUS, ignored -> new PlayerStatusRouteUiHolder());
+        register(INCoreUiIds.PLAYER_LEVEL_REWARDS, ignored -> new PlayerStatusRouteUiHolder());
+        register(INCoreUiIds.DUNGEON_DIFFICULTY, ignored -> new PlayerStatusRouteUiHolder());
 
         initialized = true;
     }

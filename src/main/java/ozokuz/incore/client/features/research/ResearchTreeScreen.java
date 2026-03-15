@@ -46,6 +46,7 @@ public class ResearchTreeScreen extends Screen {
     private int graphPanY;
     private boolean draggingGraph;
     private Integer previousMenuBlur;
+    private final @Nullable Screen parent;
 
     private @Nullable CycleButton<String> treeSelector;
     private @Nullable EditBox searchBox;
@@ -57,7 +58,12 @@ public class ResearchTreeScreen extends Screen {
     private final Map<String, NodeBounds> listNodeBounds = new LinkedHashMap<>();
 
     public ResearchTreeScreen() {
+        this(null);
+    }
+
+    public ResearchTreeScreen(@Nullable Screen parent) {
         super(Component.translatable("screen.incore.research.title"));
+        this.parent = parent;
     }
 
     @Override
@@ -80,6 +86,15 @@ public class ResearchTreeScreen extends Screen {
         }
         this.previousMenuBlur = null;
         super.removed();
+    }
+
+    @Override
+    public void onClose() {
+        if (this.parent != null && this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+            return;
+        }
+        super.onClose();
     }
 
     public void updateFromCache() {

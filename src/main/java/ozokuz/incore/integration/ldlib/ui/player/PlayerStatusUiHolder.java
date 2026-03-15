@@ -41,46 +41,38 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
     private static final int MIN_WINDOW_WIDTH = 360;
     private static final int MIN_WINDOW_HEIGHT = 260;
     private static final float LEFT_COLUMN_WIDTH_PERCENT = 42.0F;
+    private static final int QUICK_NAV_COLUMN_WIDTH = 132;
+    private static final int QUICK_NAV_BUTTON_GAP = 8;
 
     @Override
     public ModularUI createUI(Player player) {
+        return INCoreLdLibUiScaffold.build(player, createView(player));
+    }
+
+    static UIElement createView(Player player) {
         if (player.level().isClientSide()) {
             PlayerStatusNetworking.requestCurrencySync();
         }
 
         var window = INCoreLdLibUiScaffold.createWindowShell(TARGET_WINDOW_WIDTH, TARGET_WINDOW_HEIGHT);
-        window.window().getLayout().widthPercent(94);
-        window.window().getLayout().heightPercent(94);
-        window.window().getLayout().maxWidth(TARGET_WINDOW_WIDTH);
-        window.window().getLayout().maxHeight(TARGET_WINDOW_HEIGHT);
-        window.window().getLayout().minWidth(MIN_WINDOW_WIDTH);
-        window.window().getLayout().minHeight(MIN_WINDOW_HEIGHT);
+        window.window().layout(layout -> {
+            layout.widthPercent(94);
+            layout.heightPercent(94);
+            layout.maxWidth(TARGET_WINDOW_WIDTH);
+            layout.maxHeight(TARGET_WINDOW_HEIGHT);
+            layout.minWidth(MIN_WINDOW_WIDTH);
+            layout.minHeight(MIN_WINDOW_HEIGHT);
+        });
 
-        Label titleLabel = INCoreLdLibUiScaffold.titleLabel(Component.translatable("screen.incore.player_status.title"));
-        titleLabel.getLayout().flex(1);
-
-        PlayerStatusCurrencyStripElement balances = new PlayerStatusCurrencyStripElement();
-        balances.getLayout().flex(1);
-        balances.getLayout().height(16);
-        balances.getLayout().minWidth(132);
-
-        window.header().addChildren(titleLabel, balances);
-
-        UIElement content = INCoreLdLibUiScaffold.row();
-        content.getLayout().flex(1);
-        content.getLayout().gapAll(8);
-        content.getLayout().alignItems(AlignItems.STRETCH);
-
-        UIElement leftColumn = INCoreLdLibUiScaffold.column();
-        leftColumn.getLayout().flexBasisPercent(LEFT_COLUMN_WIDTH_PERCENT);
-        leftColumn.getLayout().minWidth(170);
-        leftColumn.getLayout().maxWidth(240);
-        leftColumn.getLayout().heightPercent(100);
-        leftColumn.getLayout().gapAll(8);
-
-        UIElement rightColumn = INCoreLdLibUiScaffold.column();
-        rightColumn.getLayout().flex(1);
-        rightColumn.getLayout().heightPercent(100);
+        window.header().addChildren(
+                INCoreLdLibUiScaffold.titleLabel(Component.translatable("screen.incore.player_status.title"))
+                        .layout(layout -> layout.flex(1)),
+                new PlayerStatusCurrencyStripElement().layout(layout -> {
+                    layout.flex(1);
+                    layout.height(16);
+                    layout.minWidth(132);
+                })
+        );
 
         var levelSection = createLevelSection(player);
         levelSection.root().getLayout().minHeight(94);
@@ -91,11 +83,32 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
         var navSection = createQuickNavSection(player);
         navSection.root().getLayout().flex(1);
 
-        leftColumn.addChildren(levelSection.root(), entropySection.root());
-        rightColumn.addChild(navSection.root());
-        content.addChildren(leftColumn, rightColumn);
-        window.body().addChild(content);
-        return INCoreLdLibUiScaffold.build(player, window.root());
+        window.body().addChild(
+                INCoreLdLibUiScaffold.row()
+                        .layout(layout -> {
+                            layout.flex(1);
+                            layout.gapAll(8);
+                            layout.alignItems(AlignItems.STRETCH);
+                        })
+                        .addChildren(
+                                INCoreLdLibUiScaffold.column()
+                                        .layout(layout -> {
+                                            layout.flexBasisPercent(LEFT_COLUMN_WIDTH_PERCENT);
+                                            layout.minWidth(170);
+                                            layout.maxWidth(240);
+                                            layout.heightPercent(100);
+                                            layout.gapAll(8);
+                                        })
+                                        .addChildren(levelSection.root(), entropySection.root()),
+                                INCoreLdLibUiScaffold.column()
+                                        .layout(layout -> {
+                                            layout.flex(1);
+                                            layout.heightPercent(100);
+                                        })
+                                        .addChild(navSection.root())
+                        )
+        );
+        return window.root();
     }
 
     private static INCoreLdLibUiScaffold.SectionScaffold createLevelSection(Player player) {
@@ -174,14 +187,22 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
 
     private static INCoreLdLibUiScaffold.SectionScaffold createQuickNavSection(Player player) {
         var section = INCoreLdLibUiScaffold.createSection(Component.translatable("screen.incore.player_status.section_navigation"));
+        section.body().layout(layout -> {
+            layout.flex(1);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+        });
 
-        UIElement buttonGrid = new UIElement();
-        buttonGrid.getLayout().widthPercent(100);
-        buttonGrid.getLayout().flexDirection(FlexDirection.ROW);
-        buttonGrid.getLayout().flexWrap(FlexWrap.WRAP);
-        buttonGrid.getLayout().gapAll(8);
-        buttonGrid.getLayout().alignItems(AlignItems.STRETCH);
-        buttonGrid.getLayout().alignContent(AlignContent.FLEX_START);
+        UIElement buttonGrid = new UIElement().layout(layout -> {
+            layout.widthAuto();
+            layout.maxWidth((QUICK_NAV_COLUMN_WIDTH * 2) + QUICK_NAV_BUTTON_GAP);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.flexWrap(FlexWrap.WRAP);
+            layout.gapAll(8);
+            layout.justifyContent(AlignContent.FLEX_START);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.alignContent(AlignContent.FLEX_START);
+        });
 
         for (QuickNavTarget target : quickNavTargets()) {
             Button button = quickNavButton(target);
@@ -198,15 +219,16 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
 
     private static Button quickNavButton(QuickNavTarget target) {
         Button button = INCoreLdLibUiScaffold.actionButton(target.label(), 30);
-        button.addClass("incore-quick-nav-button");
-        button.getLayout().widthAuto();
-        button.getLayout().flexGrow(1);
-        button.getLayout().flexBasis(132);
-        button.getLayout().minWidth(122);
-        button.getLayout().justifyContent(AlignContent.FLEX_START);
-        button.getLayout().alignItems(AlignItems.CENTER);
-        button.getLayout().paddingHorizontal(6);
-        button.getLayout().gapAll(4);
+        button.addClass("incore-quick-nav-button").layout(layout -> {
+            layout.widthAuto();
+            layout.flexGrow(0);
+            layout.flexBasis(132);
+            layout.minWidth(122);
+            layout.justifyContent(AlignContent.FLEX_START);
+            layout.alignItems(AlignItems.CENTER);
+            layout.paddingHorizontal(6);
+            layout.gapAll(4);
+        });
         button.text.getLayout().flex(1);
         button.textStyle(style -> {
             style.textWrap(TextWrap.HIDE);
@@ -214,13 +236,17 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
             style.textAlignHorizontal(Horizontal.LEFT);
         });
 
-        UIElement icon = new UIElement();
-        icon.getLayout().width(16);
-        icon.getLayout().height(16);
-        icon.getLayout().marginRight(4);
-        icon.style(style -> style.backgroundTexture(new ItemStackTexture(target.icon())));
-        icon.setAllowHitTest(false);
-        button.addChildAt(icon, 0);
+        button.addChildAt(
+                new UIElement()
+                        .layout(layout -> {
+                            layout.width(16);
+                            layout.height(16);
+                            layout.marginRight(4);
+                        })
+                        .style(style -> style.backgroundTexture(new ItemStackTexture(target.icon())))
+                        .setAllowHitTest(false),
+                0
+        );
         return button;
     }
 

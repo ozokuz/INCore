@@ -1,13 +1,11 @@
 package ozokuz.incore.integration.ldlib.ui.player;
 
 import com.lowdragmc.lowdraglib2.gui.factory.PlayerUIMenuType;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollDisplay;
 import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
@@ -19,137 +17,192 @@ import ozokuz.incore.client.ui.UIScreenTheme;
 import ozokuz.incore.integration.ldlib.ui.INCoreLdLibUiScaffold;
 import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
 import ozokuz.incore.integration.ldlib.ui.elements.INCoreInfoSurfaceElement;
+import ozokuz.incore.integration.ldlib.ui.texture.BeveledRectTexture;
 
 public final class PlayerLevelRewardsUiHolder implements PlayerUIMenuType.PlayerUIHolder {
     private static final float LEFT_COLUMN_WIDTH_PERCENT = 34.0F;
+    private static final IGuiTexture SCROLL_TRACK_TEXTURE = new BeveledRectTexture(
+            UIScreenTheme.Info.PLR_SCROLL_TRACK_FILL,
+            0x99243A4A,
+            UIScreenTheme.Info.PLR_SCROLL_TRACK_TOP,
+            UIScreenTheme.Info.PLR_SCROLL_TRACK_BOTTOM,
+            1,
+            1
+    );
+    private static final IGuiTexture SCROLL_THUMB_IDLE_TEXTURE = new BeveledRectTexture(
+            UIScreenTheme.Info.PLR_SCROLL_THUMB_FILL,
+            0xAA1B394B,
+            UIScreenTheme.Info.PLR_SCROLL_THUMB_TOP,
+            UIScreenTheme.Info.PLR_SCROLL_THUMB_BOTTOM,
+            1,
+            1
+    );
+    private static final IGuiTexture SCROLL_THUMB_HOVER_TEXTURE = new BeveledRectTexture(
+            0xD093EEFF,
+            0xB2234960,
+            0xFFF2FCFF,
+            0xCC2A5D73,
+            1,
+            1
+    );
+    private static final IGuiTexture SCROLL_THUMB_PRESSED_TEXTURE = new BeveledRectTexture(
+            0xC06BC8E4,
+            0xAA17384A,
+            0xAA2A576B,
+            0xFFE0F8FF,
+            1,
+            1
+    );
 
     @Override
     public ModularUI createUI(Player player) {
+        return INCoreLdLibUiScaffold.build(player, createView(player));
+    }
+
+    static UIElement createView(Player player) {
         PlayerLevelRewardsUiState state = new PlayerLevelRewardsUiState();
         var window = INCoreLdLibUiScaffold.createWindowShell(
                 PlayerLevelRewardsUiSupport.TARGET_WINDOW_WIDTH,
                 PlayerLevelRewardsUiSupport.TARGET_WINDOW_HEIGHT
         );
-        window.window().getLayout().widthPercent(96);
-        window.window().getLayout().heightPercent(94);
-        window.window().getLayout().maxWidth(PlayerLevelRewardsUiSupport.TARGET_WINDOW_WIDTH);
-        window.window().getLayout().maxHeight(PlayerLevelRewardsUiSupport.TARGET_WINDOW_HEIGHT);
-        window.window().getLayout().minWidth(PlayerLevelRewardsUiSupport.MIN_WINDOW_WIDTH);
-        window.window().getLayout().minHeight(PlayerLevelRewardsUiSupport.MIN_WINDOW_HEIGHT);
+        window.window().layout(layout -> {
+            layout.widthPercent(96);
+            layout.heightPercent(94);
+            layout.maxWidth(PlayerLevelRewardsUiSupport.TARGET_WINDOW_WIDTH);
+            layout.maxHeight(PlayerLevelRewardsUiSupport.TARGET_WINDOW_HEIGHT);
+            layout.minWidth(PlayerLevelRewardsUiSupport.MIN_WINDOW_WIDTH);
+            layout.minHeight(PlayerLevelRewardsUiSupport.MIN_WINDOW_HEIGHT);
+        });
 
-        var titleLabel = INCoreLdLibUiScaffold.titleLabel(Component.translatable("screen.incore.player_level_rewards.title"));
-        titleLabel.getLayout().flex(1);
-        window.header().addChild(titleLabel);
+        window.header().addChild(
+                INCoreLdLibUiScaffold.titleLabel(Component.translatable("screen.incore.player_level_rewards.title"))
+                        .layout(layout -> layout.flex(1))
+        );
 
-        UIElement content = INCoreLdLibUiScaffold.row();
-        content.getLayout().flex(1);
-        content.getLayout().gapAll(8);
-        content.getLayout().alignItems(AlignItems.STRETCH);
-
-        UIElement leftColumn = INCoreLdLibUiScaffold.column();
-        leftColumn.getLayout().flexBasisPercent(LEFT_COLUMN_WIDTH_PERCENT);
-        leftColumn.getLayout().minWidth(170);
-        leftColumn.getLayout().maxWidth(PlayerLevelRewardsUiSupport.SIDEBAR_TARGET_WIDTH);
-        leftColumn.getLayout().heightPercent(100);
-        leftColumn.getLayout().gapAll(8);
-
-        UIElement rightColumn = INCoreLdLibUiScaffold.column();
-        rightColumn.getLayout().flex(1);
-        rightColumn.getLayout().heightPercent(100);
-        rightColumn.getLayout().gapAll(8);
-
-        leftColumn.addChildren(createRailCard(state), createBackButtonRow(player));
-        rightColumn.addChildren(createHeroCard(state), createDetailsCard(state));
-        content.addChildren(leftColumn, rightColumn);
-        window.body().addChild(content);
-        return INCoreLdLibUiScaffold.build(player, window.root());
+        window.body().addChild(
+                INCoreLdLibUiScaffold.row()
+                        .layout(layout -> {
+                            layout.flex(1);
+                            layout.gapAll(8);
+                            layout.alignItems(AlignItems.STRETCH);
+                        })
+                        .addChildren(
+                                INCoreLdLibUiScaffold.column()
+                                        .layout(layout -> {
+                                            layout.flexBasisPercent(LEFT_COLUMN_WIDTH_PERCENT);
+                                            layout.minWidth(170);
+                                            layout.maxWidth(PlayerLevelRewardsUiSupport.SIDEBAR_TARGET_WIDTH);
+                                            layout.heightPercent(100);
+                                            layout.gapAll(8);
+                                        })
+                                        .addChildren(createRailCard(state), createBackButtonRow(player)),
+                                INCoreLdLibUiScaffold.column()
+                                        .layout(layout -> {
+                                            layout.flex(1);
+                                            layout.heightPercent(100);
+                                            layout.gapAll(8);
+                                        })
+                                        .addChildren(createHeroCard(state), createDetailsCard(state))
+                        )
+        );
+        return window.root();
     }
 
     private static UIElement createRailCard(PlayerLevelRewardsUiState state) {
-        UIElement card = INCoreInfoSurfaceElement.card();
-        card.getLayout().flex(1);
-        card.getLayout().paddingAll(8);
-        card.getLayout().gapAll(6);
-
-        var title = INCoreLdLibUiScaffold.sectionTitle(Component.translatable("screen.incore.player_level_rewards.sidebar_title"));
-        title.getLayout().widthPercent(100);
-
-        ScrollerView scrollerView = new ScrollerView();
-        scrollerView.getLayout().flex(1);
-        scrollerView.getLayout().widthPercent(100);
-        scrollerView.scrollerStyle(style -> style
-                .mode(ScrollerMode.VERTICAL)
-                .horizontalScrollDisplay(ScrollDisplay.NEVER)
-                .verticalScrollDisplay(ScrollDisplay.AUTO)
-                .minScrollPixel(0.0F)
-                .maxScrollPixel(PlayerLevelRewardsUiSupport.LEVEL_CARD_HEIGHT)
-        );
-        scrollerView.viewPort.style(style -> style.backgroundTexture(IGuiTexture.EMPTY));
-        scrollerView.viewPort.layout(layout -> layout.paddingAll(0));
-        scrollerView.verticalContainer.getLayout().gapColumn(PlayerLevelRewardsUiSupport.SCROLLBAR_GAP);
-        scrollerView.verticalScroller.getLayout().width(PlayerLevelRewardsUiSupport.SCROLLBAR_WIDTH);
+        var scrollerView = new ScrollerView()
+                .scrollerStyle(style -> style
+                        .mode(ScrollerMode.VERTICAL)
+                        .horizontalScrollDisplay(ScrollDisplay.NEVER)
+                        .verticalScrollDisplay(ScrollDisplay.AUTO)
+                        .minScrollPixel(0.0F)
+                        .maxScrollPixel(PlayerLevelRewardsUiSupport.LEVEL_CARD_HEIGHT)
+                );
+        scrollerView.layout(layout -> {
+            layout.flex(1);
+            layout.widthPercent(100);
+        });
+        scrollerView.viewPort
+                .style(style -> style.backgroundTexture(IGuiTexture.EMPTY))
+                .layout(layout -> layout.paddingAll(0));
+        scrollerView.verticalContainer.layout(layout -> layout.gapColumn(PlayerLevelRewardsUiSupport.SCROLLBAR_GAP));
+        scrollerView.verticalScroller.layout(layout -> layout.width(PlayerLevelRewardsUiSupport.SCROLLBAR_WIDTH));
         scrollerView.verticalScroller.headButton.setDisplay(false);
         scrollerView.verticalScroller.tailButton.setDisplay(false);
         scrollerView.horizontalScroller.headButton.setDisplay(false);
         scrollerView.horizontalScroller.tailButton.setDisplay(false);
-        scrollerView.verticalScroller.scrollContainer.style(style -> style.backgroundTexture(new ColorRectTexture(UIScreenTheme.Info.PLR_SCROLL_TRACK_FILL)));
+        scrollerView.verticalScroller.scrollContainer.style(style -> style.backgroundTexture(SCROLL_TRACK_TEXTURE));
         scrollerView.verticalScroller.scrollBar.buttonStyle(style -> style
-                .baseTexture(new ColorRectTexture(UIScreenTheme.Info.PLR_SCROLL_THUMB_FILL))
-                .hoverTexture(new ColorRectTexture(UIScreenTheme.Info.PLR_SCROLL_THUMB_TOP))
-                .pressedTexture(new ColorRectTexture(UIScreenTheme.Info.PLR_SCROLL_THUMB_BOTTOM))
+                .baseTexture(SCROLL_THUMB_IDLE_TEXTURE)
+                .hoverTexture(SCROLL_THUMB_HOVER_TEXTURE)
+                .pressedTexture(SCROLL_THUMB_PRESSED_TEXTURE)
         );
         scrollerView.viewContainer.layout(layout -> {
             layout.flexDirection(FlexDirection.COLUMN);
             layout.widthPercent(100);
         });
+        scrollerView.addScrollViewChild(
+                new PlayerLevelRewardsRailElement(state, scrollerView)
+                        .layout(layout -> layout.widthPercent(100))
+        );
 
-        PlayerLevelRewardsRailElement railElement = new PlayerLevelRewardsRailElement(state, scrollerView);
-        railElement.getLayout().widthPercent(100);
-        scrollerView.addScrollViewChild(railElement);
-
-        card.addChildren(title, scrollerView);
-        return card;
+        return INCoreInfoSurfaceElement.card()
+                .layout(layout -> {
+                    layout.flex(1);
+                    layout.paddingAll(8);
+                    layout.gapAll(6);
+                })
+                .addChildren(
+                        INCoreLdLibUiScaffold.sectionTitle(Component.translatable("screen.incore.player_level_rewards.sidebar_title"))
+                                .layout(layout -> layout.widthPercent(100)),
+                        scrollerView
+                );
     }
 
     private static UIElement createHeroCard(PlayerLevelRewardsUiState state) {
-        UIElement card = INCoreInfoSurfaceElement.card();
-        card.getLayout().height(PlayerLevelRewardsUiSupport.HERO_HEIGHT);
-        card.getLayout().paddingAll(0);
-
-        PlayerLevelRewardsHeroElement heroElement = new PlayerLevelRewardsHeroElement(state);
-        heroElement.getLayout().widthPercent(100);
-        heroElement.getLayout().heightPercent(100);
-        card.addChild(heroElement);
-        return card;
+        return INCoreInfoSurfaceElement.card()
+                .layout(layout -> {
+                    layout.height(PlayerLevelRewardsUiSupport.HERO_HEIGHT);
+                    layout.paddingAll(0);
+                })
+                .addChild(
+                        new PlayerLevelRewardsHeroElement(state).layout(layout -> {
+                            layout.widthPercent(100);
+                            layout.heightPercent(100);
+                        })
+                );
     }
 
     private static UIElement createDetailsCard(PlayerLevelRewardsUiState state) {
-        UIElement card = INCoreInfoSurfaceElement.card();
-        card.getLayout().flex(1);
-        card.getLayout().paddingAll(0);
-
-        PlayerLevelRewardsDetailsElement detailsElement = new PlayerLevelRewardsDetailsElement(state);
-        detailsElement.getLayout().widthPercent(100);
-        detailsElement.getLayout().heightPercent(100);
-        card.addChild(detailsElement);
-        return card;
+        return INCoreInfoSurfaceElement.card()
+                .layout(layout -> {
+                    layout.flex(1);
+                    layout.paddingAll(0);
+                })
+                .addChild(
+                        new PlayerLevelRewardsDetailsElement(state).layout(layout -> {
+                            layout.widthPercent(100);
+                            layout.heightPercent(100);
+                        })
+                );
     }
 
     private static UIElement createBackButtonRow(Player player) {
-        UIElement row = INCoreLdLibUiScaffold.row();
-        row.getLayout().widthPercent(100);
-        row.getLayout().justifyContent(AlignContent.FLEX_START);
-
-        Button backButton = INCoreLdLibUiScaffold.actionButton(Component.translatable("gui.back"));
-        backButton.getLayout().width(96);
-        backButton.getLayout().height(20);
-        backButton.setOnServerClick(event -> {
-            if (player instanceof ServerPlayer serverPlayer) {
-                INCorePlayerUiNavigator.goBack(serverPlayer);
-            }
-        });
-
-        row.addChild(backButton);
-        return row;
+        return INCoreLdLibUiScaffold.row()
+                .layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.justifyContent(AlignContent.FLEX_START);
+                })
+                .addChild(
+                        INCoreLdLibUiScaffold.actionButton(Component.translatable("gui.back"))
+                                .setOnServerClick(event -> {
+                                    if (player instanceof ServerPlayer serverPlayer) {
+                                        INCorePlayerUiNavigator.goBack(serverPlayer);
+                                    }
+                                })
+                                .layout(layout -> {
+                                    layout.width(96);
+                                    layout.height(20);
+                                })
+                );
     }
 }
