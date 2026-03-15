@@ -1,0 +1,65 @@
+package ozokuz.incore.features.entropy;
+
+import ozokuz.incore.features.entropy.network.EntropyNetworking;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+
+public class EntropyBoosterItem extends Item {
+    private final int restoreAmount;
+
+    public EntropyBoosterItem(Properties properties, int restoreAmount) {
+        super(properties);
+        this.restoreAmount = Math.max(1, restoreAmount);
+    }
+
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (level.isClientSide) {
+            return InteractionResultHolder.success(stack);
+        }
+
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return InteractionResultHolder.fail(stack);
+        }
+
+        int cap = EntropyManager.getEntropyCap(serverPlayer);
+        int before = EntropyManager.getCurrentEntropy(serverPlayer);
+
+        if (before >= cap) {
+            serverPlayer.sendSystemMessage(Component.translatable("incore.entropy.booster.full", before, cap));
+            return InteractionResultHolder.fail(stack);
+        }
+
+        boolean bulkUse = serverPlayer.isShiftKeyDown();
+        int boostersToConsume = 1;
+        if (bulkUse) {
+            int missing = cap - before;
+            int maxFullBoostersByCap = missing / restoreAmount;
+            boostersToConsume = Math.min(stack.getCount(), maxFullBoostersByCap);
+            if (boostersToConsume <= 0) {
+                serverPlayer.sendSystemMessage(Component.translatable("incore.entropy.booster.bulk.no_full_fit", restoreAmount, before, cap));
+                return InteractionResultHolder.fail(stack);
+            }
+        }
+
+        int requestedRestore = restoreAmount * boostersToConsume;
+        EntropyManager.addEntropy(serverPlayer, requestedRestore);
+        int current = EntropyManager.getCurrentEntropy(serverPlayer);
+        int restored = current - before;
+
+        if (!serverPlayer.isCreative()) {
+            stack.shrink(boostersToConsume);
+        }
+
+        EntropyNetworking.sendBoosterGainAnimation(serverPlayer, before, current, cap, restored);
+        EntropyNetworking.syncToPlayer(serverPlayer);
+        return InteractionResultHolder.consume(stack);
+    }
+}

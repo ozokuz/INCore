@@ -1,0 +1,568 @@
+package ozokuz.incore.features.market.content;
+
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.ithundxr.createnumismatics.content.bank.CardItem;
+import ozokuz.incore.Config;
+import ozokuz.incore.Registration;
+import ozokuz.incore.features.market.MarketBanking;
+import ozokuz.incore.features.market.MarketItemManager;
+import ozokuz.incore.features.market.MarketPricingService;
+import ozokuz.incore.features.market.MarketService;
+import ozokuz.incore.features.market.MarketTeamAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.UUID;
+
+public class MarketAutoTraderBlockEntity extends KineticBlockEntity implements Container, MenuProvider {
+    public static final int CARD_SLOT = 0;
+    public static final int OUTPUT_START = 1;
+    public static final int OUTPUT_COUNT = 27;
+    public static final int SLOT_COUNT = OUTPUT_START + OUTPUT_COUNT;
+
+    public static final int STATUS_READY = 0;
+    public static final int STATUS_DISABLED = 1;
+    public static final int STATUS_NO_CARD = 2;
+    public static final int STATUS_NO_TARGET = 3;
+    public static final int STATUS_PRICE_TOO_HIGH = 4;
+    public static final int STATUS_NO_FUNDS = 5;
+    public static final int STATUS_OUTPUT_FULL = 6;
+    public static final int STATUS_NO_RPM = 7;
+    public static final int STATUS_NO_STRESS = 8;
+    public static final int STATUS_NO_POWER = 9;
+
+    protected static final int MIN_REQUIRED_RPM = 128;
+    protected static final float STATIC_STRESS = 1024.0F;
+
+    private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
+    private @Nullable UUID owner;
+
+    private @Nullable ResourceLocation targetItemId;
+    private int priceCapSpur = 64;
+    private int batchSize = 1;
+    protected int progress;
+    protected int status = STATUS_READY;
+
+    public final ContainerData data = new ContainerData() {
+        @Override
+        public int get(int index) {
+            return switch (index) {
+                case 0 -> progress;
+                case 1 -> Math.max(1, Config.MARKET_AUTOTRADER_INTERVAL_TICKS.get());
+                case 2 -> status;
+                case 3 -> priceCapSpur;
+                case 4 -> batchSize;
+                default -> 0;
+            };
+        }
+
+        @Override
+        public void set(int index, int value) {
+            if (index == 0) {
+                progress = Math.max(0, value);
+            }
+            if (index == 2) {
+                status = value;
+            }
+            if (index == 3) {
+                priceCapSpur = Math.max(1, value);
+            }
+            if (index == 4) {
+                batchSize = Math.clamp(value, 1, 64);
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 5;
+        }
+    };
+
+    public MarketAutoTraderBlockEntity(BlockPos pos, BlockState state) {
+        this(Registration.MARKET_AUTOTRADER_BE.get(), pos, state);
+    }
+
+    protected MarketAutoTraderBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
+        super(blockEntityType, pos, state);
+    }
+
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    }
+
+    public static void tick(Level level, BlockPos pos, BlockState state, MarketAutoTraderBlockEntity be) {
+        be.tick();
+        if (level.isClientSide) {
+            return;
+        }
+        be.serverTick(level);
+    }
+
+    protected void serverTick(Level level) {
+        refreshStressInNetwork();
+        if (isRedstoneDisabled(level)) {
+            progress = 0;
+            status = STATUS_DISABLED;
+            setChanged();
+            return;
+        }
+
+        if (!hasOperationalPower()) {
+            progress = 0;
+            setChanged();
+            return;
+        }
+
+        ItemStack card = items.get(CARD_SLOT);
+        if (card.isEmpty()) {
+            progress = 0;
+            status = STATUS_NO_CARD;
+            setChanged();
+            return;
+        }
+
+        if (targetItemId == null || !MarketItemManager.isTradeable(targetItemId)) {
+            progress = 0;
+            status = STATUS_NO_TARGET;
+            setChanged();
+            return;
+        }
+
+        if (level.getServer() == null) {
+            return;
+        }
+
+        int unitPrice = MarketPricingService.currentPrice(level.getServer(), targetItemId);
+        if (unitPrice <= 0) {
+            return;
+        }
+
+        Item targetItem = BuiltInRegistries.ITEM.get(targetItemId);
+        if (targetItem == null || targetItem == net.minecraft.world.item.Items.AIR) {
+            progress = 0;
+            status = STATUS_NO_TARGET;
+            setChanged();
+            return;
+        }
+
+        int requestedItemCount = toItemCount(batchSize, targetItem);
+        if (requestedItemCount <= 0) {
+            progress = 0;
+            status = STATUS_NO_TARGET;
+            setChanged();
+            return;
+        }
+
+        if (unitPrice > priceCapSpur) {
+            progress = 0;
+            status = STATUS_PRICE_TOO_HIGH;
+            setChanged();
+            return;
+        }
+
+        if (!canInsertFully(targetItemId, requestedItemCount)) {
+            progress = 0;
+            status = STATUS_OUTPUT_FULL;
+            setChanged();
+            return;
+        }
+
+        BankAccount account = MarketBanking.resolveCardAccount(null, card, false);
+        if (account == null) {
+            progress = 0;
+            status = STATUS_NO_CARD;
+            setChanged();
+            return;
+        }
+
+        long totalCostLong = (long) unitPrice * batchSize;
+        int totalCost = (int) Math.min(Integer.MAX_VALUE, totalCostLong);
+        if (MarketBanking.balanceSpur(account) < totalCost) {
+            progress = 0;
+            status = STATUS_NO_FUNDS;
+            setChanged();
+            return;
+        }
+
+        if (!consumePowerForWorkTick()) {
+            progress = 0;
+            setChanged();
+            return;
+        }
+
+        status = STATUS_READY;
+        progress++;
+
+        int interval = Math.max(1, Config.MARKET_AUTOTRADER_INTERVAL_TICKS.get());
+        if (progress < interval) {
+            setChanged();
+            return;
+        }
+
+        progress = 0;
+        if (!MarketBanking.withdraw(account, totalCost)) {
+            status = STATUS_NO_FUNDS;
+            setChanged();
+            return;
+        }
+
+        insertOutput(targetItemId, requestedItemCount);
+        MarketPricingService.applyBuy(level.getServer(), targetItemId, batchSize);
+        MarketService.syncActiveViewers(level.getServer());
+        setChanged();
+    }
+
+    protected boolean isRedstoneDisabled(Level level) {
+        return level.hasNeighborSignal(worldPosition);
+    }
+
+    protected boolean hasOperationalPower() {
+        if (isOverStressed()) {
+            status = STATUS_NO_STRESS;
+            return false;
+        }
+
+        if (Math.abs(getSpeed()) < MIN_REQUIRED_RPM) {
+            status = STATUS_NO_RPM;
+            return false;
+        }
+
+        return true;
+    }
+
+    protected boolean consumePowerForWorkTick() {
+        return true;
+    }
+
+    protected void refreshStressInNetwork() {
+        if (hasNetwork()) {
+            getOrCreateNetwork().updateStressFor(this, calculateStressApplied());
+        }
+    }
+
+    public int progressForDisplay() {
+        return progress;
+    }
+
+    public int maxProgressForDisplay() {
+        return Math.max(1, Config.MARKET_AUTOTRADER_INTERVAL_TICKS.get());
+    }
+
+    public int statusForDisplay() {
+        return status;
+    }
+
+    public @Nullable ResourceLocation targetItemIdForDisplay() {
+        return targetItemId;
+    }
+
+    public int priceCapSpurForDisplay() {
+        return priceCapSpur;
+    }
+
+    public int batchSizeForDisplay() {
+        return batchSize;
+    }
+
+    public int rpmForDisplay() {
+        return Math.round(Math.abs(getSpeed()));
+    }
+
+    @Override
+    public float calculateStressApplied() {
+        float speed = Math.abs(getTheoreticalSpeed());
+        float applied = speed <= 0 ? 0 : STATIC_STRESS / speed;
+        this.lastStressApplied = applied;
+        return applied;
+    }
+
+    public boolean canAccess(Player player) {
+        return MarketTeamAccess.canAccess(owner, player);
+    }
+
+    public void setOwner(@Nullable UUID owner) {
+        this.owner = owner;
+        setChanged();
+    }
+
+    public @Nullable ResourceLocation targetItemId() {
+        return targetItemId;
+    }
+
+    public void setTargetItemId(@Nullable ResourceLocation targetItemId) {
+        this.targetItemId = targetItemId;
+        setChanged();
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
+
+    public int priceCapSpur() {
+        return priceCapSpur;
+    }
+
+    public void setPriceCapSpur(int priceCapSpur) {
+        this.priceCapSpur = Math.max(1, priceCapSpur);
+        setChanged();
+    }
+
+    public int batchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = Math.clamp(batchSize, 1, 64);
+        setChanged();
+    }
+
+    private boolean canInsertFully(ResourceLocation itemId, int count) {
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            return false;
+        }
+
+        int remaining = count;
+        for (int slot = OUTPUT_START; slot < SLOT_COUNT; slot++) {
+            ItemStack stack = items.get(slot);
+            if (stack.isEmpty()) {
+                remaining -= Math.min(remaining, item.getDefaultMaxStackSize());
+            } else if (stack.getItem() == item) {
+                int space = Math.max(0, stack.getMaxStackSize() - stack.getCount());
+                remaining -= Math.min(remaining, space);
+            }
+
+            if (remaining <= 0) {
+                return true;
+            }
+        }
+
+        return remaining <= 0;
+    }
+
+    private static int toItemCount(int stackCount, Item item) {
+        int stackUnitSize = Math.max(1, item.getDefaultMaxStackSize());
+        long total = (long) Math.max(1, stackCount) * stackUnitSize;
+        return (int) Math.min(Integer.MAX_VALUE, total);
+    }
+
+    private void insertOutput(ResourceLocation itemId, int count) {
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == net.minecraft.world.item.Items.AIR) {
+            return;
+        }
+
+        int remaining = count;
+        for (int slot = OUTPUT_START; slot < SLOT_COUNT && remaining > 0; slot++) {
+            ItemStack stack = items.get(slot);
+            if (stack.isEmpty()) {
+                int move = Math.min(remaining, item.getDefaultMaxStackSize());
+                items.set(slot, new ItemStack(item, move));
+                remaining -= move;
+                continue;
+            }
+
+            if (stack.getItem() != item) {
+                continue;
+            }
+
+            int move = Math.min(remaining, stack.getMaxStackSize() - stack.getCount());
+            if (move <= 0) {
+                continue;
+            }
+            stack.grow(move);
+            remaining -= move;
+        }
+    }
+
+    @Override
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+
+        ListTag itemsTag = new ListTag();
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack stack = items.get(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+
+            CompoundTag row = new CompoundTag();
+            row.putInt("slot", i);
+            row.put("stack", stack.save(registries));
+            itemsTag.add(row);
+        }
+        tag.put("items", itemsTag);
+
+        if (owner != null) {
+            tag.putUUID("owner", owner);
+        }
+
+        if (targetItemId != null) {
+            tag.putString("targetItemId", targetItemId.toString());
+        }
+        tag.putInt("priceCapSpur", priceCapSpur);
+        tag.putInt("batchSize", batchSize);
+        tag.putInt("progress", progress);
+        tag.putInt("status", status);
+    }
+
+    @Override
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+
+        for (int i = 0; i < SLOT_COUNT; i++) {
+            items.set(i, ItemStack.EMPTY);
+        }
+
+        ListTag itemsTag = tag.getList("items", Tag.TAG_COMPOUND);
+        for (Tag rowTag : itemsTag) {
+            CompoundTag row = (CompoundTag) rowTag;
+            int slot = row.getInt("slot");
+            if (slot < 0 || slot >= items.size()) {
+                continue;
+            }
+            items.set(slot, ItemStack.parseOptional(registries, row.getCompound("stack")));
+        }
+
+        owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
+
+        targetItemId = tag.contains("targetItemId", Tag.TAG_STRING)
+                ? ResourceLocation.tryParse(tag.getString("targetItemId"))
+                : null;
+        priceCapSpur = Math.max(1, tag.getInt("priceCapSpur"));
+        batchSize = Math.clamp(tag.getInt("batchSize"), 1, 64);
+        progress = Math.max(0, tag.getInt("progress"));
+        status = tag.getInt("status");
+    }
+
+    @Override
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Override
+    public @Nullable ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public @NotNull Component getDisplayName() {
+        return Component.translatable("block.incore.market_autotrader");
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
+        return new MarketAutoTraderMenu(containerId, playerInventory, this);
+    }
+
+    @Override
+    public int getContainerSize() {
+        return SLOT_COUNT;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public @NotNull ItemStack getItem(int slot) {
+        if (slot < 0 || slot >= items.size()) {
+            return ItemStack.EMPTY;
+        }
+        return items.get(slot);
+    }
+
+    @Override
+    public @NotNull ItemStack removeItem(int slot, int amount) {
+        ItemStack stack = getItem(slot);
+        if (stack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack removed = stack.split(amount);
+        if (stack.isEmpty()) {
+            items.set(slot, ItemStack.EMPTY);
+        }
+        setChanged();
+        return removed;
+    }
+
+    @Override
+    public @NotNull ItemStack removeItemNoUpdate(int slot) {
+        ItemStack stack = getItem(slot);
+        items.set(slot, ItemStack.EMPTY);
+        setChanged();
+        return stack;
+    }
+
+    @Override
+    public void setItem(int slot, @NotNull ItemStack stack) {
+        if (slot < 0 || slot >= items.size()) {
+            return;
+        }
+        ItemStack normalized = stack;
+        if (slot == CARD_SLOT && !canPlaceItem(slot, stack)) {
+            normalized = ItemStack.EMPTY;
+        } else if (slot == CARD_SLOT && !normalized.isEmpty() && normalized.getCount() > 1) {
+            normalized = normalized.copy();
+            normalized.setCount(1);
+        }
+        items.set(slot, normalized);
+        setChanged();
+    }
+
+    @Override
+    public boolean stillValid(@NotNull Player player) {
+        return this.level != null
+                && this.level.getBlockEntity(this.worldPosition) == this
+                && player.distanceToSqr(
+                this.worldPosition.getX() + 0.5D,
+                this.worldPosition.getY() + 0.5D,
+                this.worldPosition.getZ() + 0.5D
+        ) <= 64.0D;
+    }
+
+    @Override
+    public void clearContent() {
+        for (int i = 0; i < items.size(); i++) {
+            items.set(i, ItemStack.EMPTY);
+        }
+        setChanged();
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, @NotNull ItemStack stack) {
+        if (slot == CARD_SLOT) {
+            return CardItem.isBound(stack);
+        }
+        return false;
+    }
+}
