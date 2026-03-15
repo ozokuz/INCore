@@ -15,7 +15,8 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
     private static final Set<ResourceLocation> ROUTES = Set.of(
             INCoreUiIds.PLAYER_STATUS,
             INCoreUiIds.PLAYER_LEVEL_REWARDS,
-            INCoreUiIds.DUNGEON_DIFFICULTY
+            INCoreUiIds.DUNGEON_DIFFICULTY,
+            INCoreUiIds.PARTY_MANAGEMENT
     );
     private volatile ResourceLocation currentRouteId = INCoreUiIds.PLAYER_STATUS;
 
@@ -29,7 +30,8 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
         root.addChildren(
                 routeView(player, INCoreUiIds.PLAYER_STATUS, PlayerStatusUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.PLAYER_LEVEL_REWARDS, PlayerLevelRewardsUiHolder.createView(player)),
-                routeView(player, INCoreUiIds.DUNGEON_DIFFICULTY, DungeonDifficultyUiHolder.createView(player))
+                routeView(player, INCoreUiIds.DUNGEON_DIFFICULTY, DungeonDifficultyUiHolder.createView(player)),
+                routeView(player, INCoreUiIds.PARTY_MANAGEMENT, PartyManagementUiHolder.createView(player))
         );
         return INCoreLdLibUiScaffold.build(player, root);
     }
