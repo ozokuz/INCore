@@ -41,30 +41,71 @@ repositories {
         }
     }
 
-    // Patchouli
-//    maven {
-//        url "https://maven.blamejared.com"
-//        content {
-//            includeGroup "vazkii.patchouli"
-//        }
-//    }
-
     // EMI
     maven {
         name = "TerraformersMC"
         url = "https://maven.terraformersmc.com/"
+        content {
+            includeGroup "dev.emi"
+        }
     }
-
-    // Pufferfish's Skills
-//    maven {
-//        url = uri("https://maven.puffish.net")
-//    }
 
     // Xaero
     maven {
         url "https://chocolateminecraft.com/maven"
         name "Xaero's Maven"
+        content {
+            includeGroupByRegex "xaero\\..*"
+        }
     }
+
+    // Architectury
+    maven {
+        url = "https://maven.architectury.dev"
+        content {
+            includeGroup "dev.architectury"
+        }
+    }
+
+    // Create
+    maven {
+        url = "https://maven.createmod.net"
+        content {
+            includeGroup "com.simibubi.create"
+            includeGroup "net.createmod.ponder"
+            includeGroup "dev.engine-room.flywheel"
+        }
+    }
+
+    // Registrate
+    maven {
+        url = "https://maven.ithundxr.dev/snapshots"
+        content {
+            includeGroup "com.tterrag.registrate"
+        }
+    }
+
+    // LDLib2
+    maven {
+        url = "https://maven.firstdark.dev/snapshots"
+        content {
+            includeGroup "com.lowdragmc.ldlib2"
+        }
+    }
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                url "https://cursemaven.com"
+            }
+        }
+        filter {
+            includeGroup "curse.maven"
+        }
+    }
+
+    // Accessories
+    // maven { url 'https://maven.wispforest.io/releases' }
 
     // Geckolib
 //    maven {
@@ -86,29 +127,16 @@ repositories {
 //        url = "https://code.redspace.io/releases"
 //    }
 
-    // Architectury
-    maven { url = "https://maven.architectury.dev" }
+    // Pufferfish's Skills
+//    maven {
+//        url = uri("https://maven.puffish.net")
+//    }
 
-    // Create
-    maven { url = "https://maven.createmod.net" }
-
-    // Registrate
-    maven { url = "https://maven.ithundxr.dev/snapshots" }
-
-    // Accessories
-    // maven { url 'https://maven.wispforest.io/releases' }
-
-    // LDLib2
-    maven { url = "https://maven.firstdark.dev/snapshots" }
-
-    exclusiveContent {
-        forRepository {
-            maven {
-                url "https://cursemaven.com"
-            }
-        }
-        filter {
-            includeGroup "curse.maven"
-        }
-    }
+    // Patchouli
+//    maven {
+//        url "https://maven.blamejared.com"
+//        content {
+//            includeGroup "vazkii.patchouli"
+//        }
+//    }
 }
