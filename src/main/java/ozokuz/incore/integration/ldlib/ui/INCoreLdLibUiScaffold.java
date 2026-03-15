@@ -172,8 +172,14 @@ public final class INCoreLdLibUiScaffold {
     }
 
     public static Button actionButton(Component text, float height) {
-        Button button = new Button();
-        button.setText(text);
+        return styleActionButton(new Button().setText(text), height);
+    }
+
+    public static <T extends Button> T styleActionButton(T button) {
+        return styleActionButton(button, 20);
+    }
+
+    public static <T extends Button> T styleActionButton(T button, float height) {
         button.addClass("incore-button");
         button.getLayout().widthPercent(100);
         button.getLayout().height(height);
