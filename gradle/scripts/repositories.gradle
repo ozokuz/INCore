@@ -1,0 +1,114 @@
+repositories {
+    mavenCentral()
+
+    // KubeJS
+    maven {
+        url "https://maven.latvian.dev/releases"
+        content {
+            includeGroup "dev.latvian.mods"
+            includeGroup "dev.latvian.apps"
+        }
+    }
+    maven {
+        url "https://jitpack.io"
+        content {
+            includeGroup "com.github.rtyley"
+        }
+    }
+
+    // FTB Mods
+    maven {
+        url "https://maven.ftb.dev/releases"
+        content {
+            includeGroup "dev.ftb.mods"
+        }
+    }
+
+    // Jade, Gateways to Eternity & Apotheosis
+    maven {
+        url "https://maven.shadowsoffire.dev/releases"
+        content {
+            includeGroup "dev.shadowsoffire"
+            includeGroup "snownee.jade"
+        }
+    }
+
+    // Curios
+    maven {
+        url "https://maven.theillusivec4.top"
+        content {
+            includeGroupByRegex "top\\.theillusivec4.*"
+        }
+    }
+
+    // Patchouli
+//    maven {
+//        url "https://maven.blamejared.com"
+//        content {
+//            includeGroup "vazkii.patchouli"
+//        }
+//    }
+
+    // EMI
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/"
+    }
+
+    // Pufferfish's Skills
+//    maven {
+//        url = uri("https://maven.puffish.net")
+//    }
+
+    // Xaero
+    maven {
+        url "https://chocolateminecraft.com/maven"
+        name "Xaero's Maven"
+    }
+
+    // Geckolib
+//    maven {
+//        url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+//        content {
+//            includeGroup("software.bernie.geckolib")
+//        }
+//    }
+
+    // playerAnimator
+//    maven {
+//        name "KosmX's maven"
+//        url 'https://maven.kosmx.dev/'
+//    }
+
+    // Iron's Mods
+//    maven {
+//        name = "Iron's Maven - Release"
+//        url = "https://code.redspace.io/releases"
+//    }
+
+    // Architectury
+    maven { url = "https://maven.architectury.dev" }
+
+    // Create
+    maven { url = "https://maven.createmod.net" }
+
+    // Registrate
+    maven { url = "https://maven.ithundxr.dev/snapshots" }
+
+    // Accessories
+    // maven { url 'https://maven.wispforest.io/releases' }
+
+    // LDLib2
+    maven { url = "https://maven.firstdark.dev/snapshots" }
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                url "https://cursemaven.com"
+            }
+        }
+        filter {
+            includeGroup "curse.maven"
+        }
+    }
+}

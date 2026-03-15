@@ -1,0 +1,75 @@
+neoForge {
+    version = libs.versions.neoForge.get()
+
+    parchment {
+        mappingsVersion = libs.versions.parchment.get()
+        minecraftVersion = libs.versions.minecraft.get()
+    }
+
+    // This line is optional. Access Transformers are automatically detected
+    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        client {
+            client()
+
+            jvmArgument("-Xmx4G")
+
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        client2 {
+            client()
+
+            jvmArgument("-Xmx4G")
+
+            programArguments.addAll '--username', 'AwesomeDev2'
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            data()
+
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            // Recommended logging data for a userdev environment
+            // The markers can be added/remove as needed separated by commas.
+            // "SCAN": For mods scan.
+            // "REGISTRIES": For firing of registry events.
+            // "REGISTRYDUMP": For getting the contents of all registries.
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+
+    unitTest {
+        enable()
+        testedMod = mods."${mod_id}"
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

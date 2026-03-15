@@ -1,0 +1,71 @@
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation libs.testFramework.get()
+
+    implementation(variantOf(mods.ldlib) { classifier("all") })
+    implementation(mods.registrate)
+    implementation(mods.guideme)
+    compileOnly(variantOf(mods.curios) { classifier("api") })
+    runtimeOnly(mods.curios)
+
+    compileOnly(variantOf(mods.emi) { classifier("api") })
+    runtimeOnly(mods.emi)
+    implementation(mods.jade)
+
+    runtimeOnly(mods.architectury)
+    api(mods.kubejs)
+    interfaceInjectionData(mods.kubejs)
+
+    implementation(variantOf(mods.create) { classifier("slim") }) { transitive = false }
+    implementation(mods.ponder)
+    compileOnly(mods.flywheel.api)
+    runtimeOnly(mods.flywheel)
+
+    implementation(mods.ae2)
+
+    implementation(mods.placebo)
+    implementation(mods.gatewaystoeternity)
+
+    implementation(mods.ftbteams)
+    implementation(mods.ftbquests)
+    implementation(mods.ftbultimine)
+
+    implementation(mods.paragliders.get())
+    implementation(mods.walljumptxf.get())
+    implementation(mods.createnumismatics.get())
+
+    implementation(mods.xaeroMinimap)
+    implementation(mods.xaeroWorldMap)
+
+//    if (extra_mods == "true") {
+//        implementation("io.wispforest:accessories-neoforge:${accessories_version}")
+//        implementation "curse.maven:accessories-compat-layer-1315611:7585673"
+//        implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+//        implementation "dev.kosmx.player-anim:player-animation-lib-forge:${player_animator_version}"
+//
+//        implementation "vazkii.patchouli:Patchouli:${patchouliVersion}"
+//        implementation "dev.shadowsoffire:Apotheosis:${minecraft_version}-${apotheosisVersion}"
+//
+//        compileOnly "io.redspace:atlas_api:${minecraft_version}-${atlas_api_version}:api"
+//        localRuntime "io.redspace:atlas_api:${minecraft_version}-${atlas_api_version}"
+//
+//        implementation "io.redspace:irons_spellbooks:${minecraft_version}-${irons_spells_version}"
+//        implementation "io.redspace:irons_jewelry:${minecraft_version}-${irons_jewelry_version}"
+//
+//        implementation("net.puffish:attributesmod:${pufferfishsAttributesVersion}:neoforge")
+//        implementation("net.puffish:skillsmod:${pufferfishsSkillsVersion}:neoforge")
+//
+//        implementation "curse.maven:pufferfishs-unofficial-additions-935166:7389968"
+//        implementation "curse.maven:additional-attributes-986624:6388896"
+//
+//        implementation "curse.maven:silent-lib-242998:6565251"
+//        implementation "curse.maven:silent-gear-297039:7634317"
+//        implementation "curse.maven:silents-gems-220311:7512691"
+//
+//        implementation "curse.maven:octo-lib-916747:6932487"
+//        implementation "curse.maven:artifacts-312353:7468997"
+//        implementation "curse.maven:relics-mod-445274:7586568"
+//        implementation "curse.maven:rar-compat-1100379:6879980"
+//    }
+}
