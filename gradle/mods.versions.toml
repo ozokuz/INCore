@@ -1,0 +1,64 @@
+[versions]
+ldlib = "2.2.4.a"
+registrate = "MC1.21-1.3.0+67"
+guideme = "21.1.5"
+curios = "9.5.1+1.21.1"
+
+emi = "1.1.22+1.21.1"
+jade = "1.21.1-15.10.2"
+
+kubejs = "2101.7.2-build.353"
+
+create = "6.0.9-215"
+ponder = "1.0.81+mc1.21.1"
+flywheel = "1.0.6"
+
+ae2 = "19.2.17"
+
+placebo = "1.21.1-9.9.1"
+gatewaystoeternity = "1.21.1-5.1.0"
+
+architectury = "13.0.8"
+ftbteams = "2101.1.9"
+ftbquests = "2101.1.21"
+ftbultimine = "2101.1.13"
+
+paragliders = "6739615"
+walljumptxf = "6584352"
+createnumismatics = "7168396"
+
+xaeroMinimap = "25.3.10"
+xaeroWorldMap = "1.40.11"
+
+[libraries]
+ldlib = { module = "com.lowdragmc.ldlib2:ldlib2-neoforge-1.21.1", version.ref = "ldlib" }
+registrate = { module = "com.tterrag.registrate:Registrate", version.ref = "registrate" }
+guideme = { module = "org.appliedenergistics:guideme", version.ref = "guideme" }
+curios = { module = "top.theillusivec4.curios:curios-neoforge", version.ref = "curios" }
+
+emi = { module = "dev.emi:emi-neoforge", version.ref = "emi" }
+jade = { module = "snownee.jade:Jade-NeoForge", version.ref = "jade" }
+
+kubejs = { module = "dev.latvian.mods:kubejs-neoforge", version.ref = "kubejs" }
+
+create = { module = "com.simibubi.create:create-1.21.1", version.ref = "create" }
+ponder = { module = "net.createmod.ponder:ponder-neoforge", version.ref = "ponder" }
+flywheel-api = { module = "dev.engine-room.flywheel:flywheel-neoforge-api-1.21.1", version.ref = "flywheel" }
+flywheel = { module = "dev.engine-room.flywheel:flywheel-neoforge-1.21.1", version.ref = "flywheel" }
+
+ae2 = { module = "org.appliedenergistics:appliedenergistics2", version.ref = "ae2" }
+
+placebo = { module = "dev.shadowsoffire:Placebo", version.ref = "placebo" }
+gatewaystoeternity = { module = "dev.shadowsoffire:GatewaysToEternity", version.ref = "gatewaystoeternity" }
+
+architectury = { module = "dev.architectury:architectury-neoforge", version.ref = "architectury" }
+ftbteams = { module = "dev.ftb.mods:ftb-teams-neoforge", version.ref = "ftbteams" }
+ftbquests = { module = "dev.ftb.mods:ftb-quests-neoforge", version.ref = "ftbquests" }
+ftbultimine = { module = "dev.ftb.mods:ftb-ultimine-neoforge", version.ref = "ftbultimine" }
+
+paragliders = { module = "curse.maven:paragliders-289240", version.ref = "paragliders" }
+walljumptxf = { module = "curse.maven:walljumptxf-909143", version.ref = "walljumptxf" }
+createnumismatics = { module = "curse.maven:numismatics-889722", version.ref = "createnumismatics" }
+
+xaeroMinimap = { module = "xaero.minimap:xaerominimap-neoforge-1.21.1", version.ref = "xaeroMinimap" }
+xaeroWorldMap = { module = "xaero.map:xaeroworldmap-neoforge-1.21.1", version.ref = "xaeroWorldMap" }
