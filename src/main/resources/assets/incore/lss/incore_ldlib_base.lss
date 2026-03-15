@@ -1,0 +1,49 @@
+.incore-title {
+  text-color: #f2f7ff;
+  font-size: 11;
+}
+
+.incore-window-header {
+  min-height: 16;
+}
+
+.incore-body {
+  gap-all: 6;
+}
+
+.incore-section-title {
+  text-color: #d6f1ff;
+  font-size: 9;
+}
+
+.incore-label {
+  text-color: #d7e6f6;
+  font-size: 8;
+}
+
+.incore-button {
+  text-color: #f8fbff;
+  font-size: 8;
+}
+
+.incore-status-value {
+  text-color: #ffffff;
+  font-size: 9;
+}
+
+.incore-status-secondary {
+  text-color: #e2ebf5;
+}
+
+.incore-status-muted {
+  text-color: #b8c8d9;
+}
+
+.incore-status-track {
+  text-color: #ccd5e1;
+}
+
+.incore-quick-nav-button {
+  text-color: #eaf4ff;
+  font-size: 8;
+}

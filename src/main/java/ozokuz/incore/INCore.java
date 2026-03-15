@@ -75,8 +75,11 @@ import com.simibubi.create.api.stress.BlockStressValues;
 import ozokuz.incore.features.vendingmachine.VendingMachineBootstrap;
 import ozokuz.incore.features.vendingmachine.VendingMachineOfferManager;
 import ozokuz.incore.features.vendingmachine.network.VendingMachineNetworking;
+import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiRegistry;
+import ozokuz.incore.integration.ldlib.ui.RequestOpenIncoreUiPayload;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -102,6 +105,7 @@ public class INCore {
 
     public INCore(IEventBus modEventBus, ModContainer modContainer) {
         Registration.register(modEventBus);
+        INCorePlayerUiRegistry.registerAll();
         modEventBus.register(this);
         modEventBus.addListener(EntropyNetworking::registerPayloads);
         modEventBus.addListener(GachaNetworking::registerPayloads);
@@ -115,6 +119,7 @@ public class INCore {
         modEventBus.addListener(VendingMachineNetworking::registerPayloads);
         modEventBus.addListener(PlayerStatusNetworking::registerPayloads);
         modEventBus.addListener(SurfaceOreNetworking::registerPayloads);
+        modEventBus.addListener(INCore::registerLdLibUiPayloads);
 
         VendingMachineBootstrap.initialize();
         CardVendingMachineIntegration.initialize();
@@ -139,6 +144,14 @@ public class INCore {
         NeoForge.EVENT_BUS.addListener(MarketEvents::onServerTick);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    private static void registerLdLibUiPayloads(RegisterPayloadHandlersEvent event) {
+        event.registrar("1").playToServer(
+                RequestOpenIncoreUiPayload.TYPE,
+                RequestOpenIncoreUiPayload.STREAM_CODEC,
+                RequestOpenIncoreUiPayload::handle
+        );
     }
 
     @SubscribeEvent
