@@ -1,5 +1,6 @@
 package ozokuz.incore.client.integration.ldlib;
 
+import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerMenu;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
@@ -23,6 +24,7 @@ import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import ozokuz.incore.features.research.network.ResearchNetworking;
 import ozokuz.incore.features.shop.network.ShopNetworking;
+import ozokuz.incore.integration.ldlib.ui.player.PlayerStatusRouteUiHolder;
 import ozokuz.incore.integration.ldlib.ui.player.PlayerStatusAction;
 
 @OnlyIn(Dist.CLIENT)
@@ -46,61 +48,96 @@ public final class INCoreStatusUiClientActions {
         };
     }
 
-    private static void prepareParent() {
-        Screen parent = currentScreen();
+    private static void prepareParent(Screen parent) {
         if (parent != null) {
             StatusScreenReturnTracker.prepare(parent);
         }
+    }
+
+    private static Screen legacyReturnTarget() {
+        return isPlayerStatusRouteOpen() ? new ReturnToPlayerStatusScreen() : currentScreen();
+    }
+
+    private static void prepareExternalReturnIfNeeded() {
+        if (!isPlayerStatusRouteOpen()) {
+            return;
+        }
+        StatusScreenReturnTracker.prepareExternal(new ReturnToPlayerStatusScreen());
+        closePlayerStatusRouteIfOpen();
     }
 
     private static void runAction(PlayerStatusAction action) {
         switch (action) {
             case GACHA -> {
                 if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.GACHA_BASIC)) {
-                    prepareParent();
+                    Screen parent = legacyReturnTarget();
+                    closePlayerStatusRouteIfOpen();
+                    prepareParent(parent);
                     GachaNetworking.requestOpenBannerScreen();
                 }
             }
             case TASKS -> {
                 if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.TASKS_SCREEN)) {
-                    openScreen(new TaskOverviewScreen(currentScreen()));
+                    Screen parent = legacyReturnTarget();
+                    closePlayerStatusRouteIfOpen();
+                    openScreen(new TaskOverviewScreen(parent));
                 }
             }
             case RESEARCH -> {
-                prepareParent();
-                openScreen(new ResearchTreeScreen());
+                Screen parent = legacyReturnTarget();
+                closePlayerStatusRouteIfOpen();
+                openScreen(new ResearchTreeScreen(parent));
                 ResearchNetworking.requestSnapshot();
             }
-            case FTB_QUESTS -> invokeStaticNoArgs("dev.ftb.mods.ftbquests.client.FTBQuestsClient", "openGui");
+            case FTB_QUESTS -> {
+                prepareExternalReturnIfNeeded();
+                invokeStaticNoArgs("dev.ftb.mods.ftbquests.client.FTBQuestsClient", "openGui");
+            }
             case BATTLE_PASS -> {
                 if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.BATTLEPASS_SCREEN)) {
-                    openScreen(new BattlePassScreen(currentScreen()));
+                    Screen parent = legacyReturnTarget();
+                    closePlayerStatusRouteIfOpen();
+                    openScreen(new BattlePassScreen(parent));
                 }
             }
             case MARKET -> {
                 if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.MARKET_BASIC)) {
-                    prepareParent();
+                    Screen parent = legacyReturnTarget();
+                    closePlayerStatusRouteIfOpen();
+                    prepareParent(parent);
                     MarketNetworking.requestOpenMarketScreen();
                 }
             }
             case SHOP -> {
                 if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.SHOP_SCREEN)) {
-                    prepareParent();
+                    Screen parent = legacyReturnTarget();
+                    closePlayerStatusRouteIfOpen();
+                    prepareParent(parent);
                     ShopNetworking.requestOpenShopScreen();
                 }
             }
-            case FTB_TEAMS -> invokeStaticNoArgs("dev.ftb.mods.ftbteams.net.OpenGUIMessage", "sendToServer");
+            case FTB_TEAMS -> {
+                prepareExternalReturnIfNeeded();
+                invokeStaticNoArgs("dev.ftb.mods.ftbteams.net.OpenGUIMessage", "sendToServer");
+            }
             case NUMISMATICS -> {
-                Screen parent = currentScreen();
+                Screen parent = legacyReturnTarget();
+                closePlayerStatusRouteIfOpen();
                 if (parent != null) {
                     StatusScreenReturnTracker.prepareExternal(parent);
                 }
                 NumismaticsNetworking.requestOpenBankScreen();
             }
-            case PARTY -> openScreen(new PartyManagementScreen(currentScreen()));
+            case PARTY -> {
+                Screen parent = legacyReturnTarget();
+                closePlayerStatusRouteIfOpen();
+                openScreen(new PartyManagementScreen(parent));
+            }
             case COMBAT_CATALOG -> {
                 if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.ARENA_TIER_1)) {
-                    prepareParent();
+                    Screen parent = legacyReturnTarget();
+                    closePlayerStatusRouteIfOpen();
+                    prepareParent(parent);
                     ArenaNetworking.requestOpenCatalog();
                 }
             }
@@ -152,6 +189,25 @@ public final class INCoreStatusUiClientActions {
             );
         }
         return false;
+    }
+
+    private static boolean isPlayerStatusRouteOpen() {
+        Minecraft minecraft = Minecraft.getInstance();
+        return minecraft != null
+                && minecraft.player != null
+                && minecraft.player.containerMenu instanceof ModularUIContainerMenu menu
+                && menu.uiHolder instanceof PlayerStatusRouteUiHolder;
+    }
+
+    private static void closePlayerStatusRouteIfOpen() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.player == null) {
+            return;
+        }
+        if (minecraft.player.containerMenu instanceof ModularUIContainerMenu menu
+                && menu.uiHolder instanceof PlayerStatusRouteUiHolder) {
+            minecraft.player.closeContainer();
+        }
     }
 
     private static void invokeStaticNoArgs(String className, String methodName) {

@@ -1,6 +1,7 @@
 package ozokuz.incore.integration.ldlib.ui;
 
 import com.lowdragmc.lowdraglib2.gui.factory.PlayerUIMenuType;
+import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerMenu;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import ozokuz.incore.integration.ldlib.ui.player.PlayerStatusRouteUiHolder;
 
 public final class INCorePlayerUiNavigator {
     private static final Map<UUID, INCoreUiNavigationState> STATES = new ConcurrentHashMap<>();
@@ -36,6 +38,9 @@ public final class INCorePlayerUiNavigator {
             return false;
         }
         state(player).pushAndOpen(routeId, context);
+        if (shouldUpdateInPlace(player, routeId)) {
+            return true;
+        }
         return PlayerUIMenuType.openUI(player, routeId);
     }
 
@@ -44,6 +49,9 @@ public final class INCorePlayerUiNavigator {
         if (previous.isEmpty()) {
             player.closeContainer();
             return false;
+        }
+        if (shouldUpdateInPlace(player, previous.get().routeId())) {
+            return true;
         }
         return PlayerUIMenuType.openUI(player, previous.get().routeId());
     }
@@ -58,5 +66,13 @@ public final class INCorePlayerUiNavigator {
 
     private static INCoreUiNavigationState state(Player player) {
         return STATES.computeIfAbsent(player.getUUID(), ignored -> new INCoreUiNavigationState());
+    }
+
+    private static boolean shouldUpdateInPlace(ServerPlayer player, ResourceLocation routeId) {
+        if (!PlayerStatusRouteUiHolder.supportsRoute(routeId)) {
+            return false;
+        }
+        return player.containerMenu instanceof ModularUIContainerMenu menu
+                && menu.uiHolder instanceof PlayerStatusRouteUiHolder;
     }
 }

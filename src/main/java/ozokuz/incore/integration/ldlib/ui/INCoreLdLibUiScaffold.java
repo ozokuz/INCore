@@ -1,7 +1,7 @@
 package ozokuz.incore.integration.ldlib.ui;
 
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib2.gui.texture.SpriteTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
@@ -13,13 +13,45 @@ import com.lowdragmc.lowdraglib2.gui.ui.style.StylesheetManager;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
-import dev.vfyjxf.taffy.style.TaffyPosition;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import ozokuz.incore.client.ui.UIScreenTheme;
+import ozokuz.incore.integration.ldlib.ui.elements.ClippedTextureProgressBar;
 import ozokuz.incore.integration.ldlib.ui.elements.INCoreInfoSurfaceElement;
+import ozokuz.incore.integration.ldlib.ui.texture.BeveledRectTexture;
 
 public final class INCoreLdLibUiScaffold {
+    private static final IGuiTexture BUTTON_IDLE_TEXTURE = new BeveledRectTexture(
+            0xFF293544,
+            0xFF141B24,
+            0xFF6B8096,
+            0xFF111821,
+            1,
+            1
+    );
+    private static final IGuiTexture BUTTON_HOVER_TEXTURE = new BeveledRectTexture(
+            0xFF35516B,
+            0xFF18212B,
+            0xFF9AD6FF,
+            0xFF15202B,
+            1,
+            1
+    );
+    private static final IGuiTexture BUTTON_PRESSED_TEXTURE = new BeveledRectTexture(
+            0xFF1E2A36,
+            0xFF10161D,
+            0xFF14202A,
+            0xFF7EB8D7,
+            1,
+            1
+    );
+    private static final SpriteTexture ENTROPY_BAR_BACKGROUND_TEXTURE = SpriteTexture.of(
+            ResourceLocation.fromNamespaceAndPath("incore", "textures/gui/sprites/hud/experience_bar_background_white.png")
+    );
+    private static final SpriteTexture ENTROPY_BAR_PROGRESS_TEXTURE = SpriteTexture.of(
+            ResourceLocation.fromNamespaceAndPath("incore", "textures/gui/sprites/hud/experience_bar_progress_white.png")
+    );
+
     private INCoreLdLibUiScaffold() {
     }
 
@@ -30,15 +62,6 @@ public final class INCoreLdLibUiScaffold {
         root.getLayout().heightPercent(100);
         root.getLayout().justifyContent(AlignContent.CENTER);
         root.getLayout().alignItems(AlignItems.CENTER);
-
-        UIElement backdrop = INCoreInfoSurfaceElement.backdrop();
-        backdrop.addClass("incore-backdrop");
-        backdrop.getLayout().positionType(TaffyPosition.ABSOLUTE);
-        backdrop.getLayout().left(0);
-        backdrop.getLayout().top(0);
-        backdrop.getLayout().widthPercent(100);
-        backdrop.getLayout().heightPercent(100);
-        backdrop.setAllowHitTest(false);
 
         UIElement window = INCoreInfoSurfaceElement.window();
         window.addClass("incore-window");
@@ -59,7 +82,7 @@ public final class INCoreLdLibUiScaffold {
         body.getLayout().gapAll(8);
 
         window.addChildren(header, body);
-        root.addChildren(backdrop, window);
+        root.addChild(window);
         return new WindowScaffold(root, window, header, body);
     }
 
@@ -163,25 +186,20 @@ public final class INCoreLdLibUiScaffold {
             style.textWrap(TextWrap.HIDE);
         });
         button.buttonStyle(style -> style
-                .baseTexture(new ColorRectTexture(0xFF293544))
-                .hoverTexture(new ColorRectTexture(0xFF35516B))
-                .pressedTexture(new ColorRectTexture(0xFF1E2A36))
+                .baseTexture(BUTTON_IDLE_TEXTURE)
+                .hoverTexture(BUTTON_HOVER_TEXTURE)
+                .pressedTexture(BUTTON_PRESSED_TEXTURE)
         );
         return button;
     }
 
     public static ProgressBar slimProgressBar() {
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setRange(0.0F, 1.0F);
+        ProgressBar progressBar = new ClippedTextureProgressBar(
+                ENTROPY_BAR_BACKGROUND_TEXTURE,
+                ENTROPY_BAR_PROGRESS_TEXTURE
+        ).setRange(0.0F, 1.0F);
         progressBar.getLayout().widthPercent(100);
         progressBar.getLayout().height(5);
-        progressBar.barContainer(element -> {
-            element.getLayout().paddingAll(0);
-            element.style(style -> style.backgroundTexture(IGuiTexture.EMPTY));
-        });
-        progressBar.barBackground.style(style -> style.backgroundTexture(new ColorRectTexture(UIScreenTheme.Info.PLR_SCROLL_TRACK_EMPTY_FILL)));
-        progressBar.bar.style(style -> style.backgroundTexture(new ColorRectTexture(UIScreenTheme.Info.PLR_SCROLL_THUMB_FILL)));
-        progressBar.label.setDisplay(false);
         return progressBar;
     }
 

@@ -77,6 +77,7 @@ import ozokuz.incore.features.vendingmachine.VendingMachineOfferManager;
 import ozokuz.incore.features.vendingmachine.network.VendingMachineNetworking;
 import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiRegistry;
 import ozokuz.incore.integration.ldlib.ui.RequestOpenIncoreUiPayload;
+import ozokuz.incore.integration.ldlib.ui.RequestBackIncoreUiPayload;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -147,11 +148,17 @@ public class INCore {
     }
 
     private static void registerLdLibUiPayloads(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToServer(
+        event.registrar("1")
+                .playToServer(
                 RequestOpenIncoreUiPayload.TYPE,
                 RequestOpenIncoreUiPayload.STREAM_CODEC,
                 RequestOpenIncoreUiPayload::handle
-        );
+                )
+                .playToServer(
+                        RequestBackIncoreUiPayload.TYPE,
+                        RequestBackIncoreUiPayload.STREAM_CODEC,
+                        RequestBackIncoreUiPayload::handle
+                );
     }
 
     @SubscribeEvent

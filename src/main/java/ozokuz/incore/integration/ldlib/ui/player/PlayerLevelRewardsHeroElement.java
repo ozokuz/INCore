@@ -1,6 +1,5 @@
 package ozokuz.incore.integration.ldlib.ui.player;
 
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ProgressBar;
 import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
@@ -9,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import ozokuz.incore.client.ui.UIScreenTheme;
 import ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
+import ozokuz.incore.integration.ldlib.ui.elements.ClippedTextureProgressBar;
 
 final class PlayerLevelRewardsHeroElement extends UIElement {
     private final PlayerLevelRewardsUiState state;
@@ -23,19 +23,17 @@ final class PlayerLevelRewardsHeroElement extends UIElement {
     }
 
     private static ProgressBar createExperienceBar() {
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setRange(0.0F, 1.0F);
-        progressBar.setAllowHitTest(false);
-        progressBar.getLayout().positionType(TaffyPosition.ABSOLUTE);
-        progressBar.getLayout().left(10);
-        progressBar.getLayout().right(14);
-        progressBar.getLayout().top(51);
-        progressBar.getLayout().height(PlayerLevelRewardsUiSupport.XP_BAR_HEIGHT);
-        progressBar.barContainer.layout(layout -> layout.paddingAll(0));
-        progressBar.barContainer.style(style -> style.backgroundTexture(IGuiTexture.EMPTY));
-        progressBar.barBackground.style(style -> style.backgroundTexture(PlayerLevelRewardsUiSupport.XP_BAR_BACKGROUND_TEXTURE));
-        progressBar.bar.style(style -> style.backgroundTexture(PlayerLevelRewardsUiSupport.XP_BAR_PROGRESS_TEXTURE));
-        progressBar.label.setDisplay(false);
+        ProgressBar progressBar = new ClippedTextureProgressBar(
+                PlayerLevelRewardsUiSupport.XP_BAR_BACKGROUND_TEXTURE,
+                PlayerLevelRewardsUiSupport.XP_BAR_PROGRESS_TEXTURE
+        ).setRange(0.0F, 1.0F);
+        progressBar.setAllowHitTest(false).layout(layout -> {
+            layout.positionType(TaffyPosition.ABSOLUTE);
+            layout.left(10);
+            layout.right(14);
+            layout.top(51);
+            layout.height(PlayerLevelRewardsUiSupport.XP_BAR_HEIGHT);
+        });
         return progressBar;
     }
 

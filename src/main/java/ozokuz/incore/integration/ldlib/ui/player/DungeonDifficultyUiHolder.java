@@ -16,6 +16,10 @@ import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
 public final class DungeonDifficultyUiHolder implements com.lowdragmc.lowdraglib2.gui.factory.PlayerUIMenuType.PlayerUIHolder {
     @Override
     public ModularUI createUI(Player player) {
+        return INCoreLdLibUiScaffold.build(player, createView(player));
+    }
+
+    static com.lowdragmc.lowdraglib2.gui.ui.UIElement createView(Player player) {
         var window = INCoreLdLibUiScaffold.createWindow(
                 Component.translatable("screen.incore.dungeon_difficulty.title"),
                 330,
@@ -43,7 +47,7 @@ public final class DungeonDifficultyUiHolder implements com.lowdragmc.lowdraglib
         });
 
         window.body().addChildren(currentLabel, descriptionLabel, softcoreButton, mediumcoreButton, hardcoreButton, backButton);
-        return INCoreLdLibUiScaffold.build(player, window.root());
+        return window.root();
     }
 
     private static Button choiceButton(Player player, DungeonDeathDifficulty difficulty) {
