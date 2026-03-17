@@ -211,6 +211,12 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
                         INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.TASK_OVERVIEW);
                     }
                 });
+            } else if (target.action() == PlayerStatusAction.GACHA) {
+                button.setOnServerClick(event -> {
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.GACHA_APP);
+                    }
+                });
             } else if (target.action() == PlayerStatusAction.PARTY) {
                 button.setOnServerClick(event -> {
                     if (player instanceof ServerPlayer serverPlayer) {

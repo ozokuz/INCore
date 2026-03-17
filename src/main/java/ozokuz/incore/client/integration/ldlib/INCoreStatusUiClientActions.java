@@ -14,7 +14,6 @@ import ozokuz.incore.client.INCoreKeyMappings;
 import ozokuz.incore.client.features.battlepass.BattlePassScreen;
 import ozokuz.incore.client.features.research.ResearchTreeScreen;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
-import ozokuz.incore.features.gacha.network.GachaNetworking;
 import ozokuz.incore.features.market.network.MarketNetworking;
 import ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
@@ -65,14 +64,6 @@ public final class INCoreStatusUiClientActions {
 
     private static void runAction(PlayerStatusAction action) {
         switch (action) {
-            case GACHA -> {
-                if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.GACHA_BASIC)) {
-                    Screen parent = legacyReturnTarget();
-                    closePlayerStatusRouteIfOpen();
-                    prepareParent(parent);
-                    GachaNetworking.requestOpenBannerScreen();
-                }
-            }
             case RESEARCH -> {
                 Screen parent = legacyReturnTarget();
                 closePlayerStatusRouteIfOpen();
