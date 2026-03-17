@@ -1,6 +1,5 @@
 package ozokuz.incore.features.arena;
 
-import com.google.gson.Gson;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
@@ -8,12 +7,13 @@ import ozokuz.incore.Registration;
 import ozokuz.incore.features.arena.content.ArenaRewardCrateData;
 import ozokuz.incore.features.arena.data.ArenaCatalogEntry;
 import ozokuz.incore.features.arena.data.ArenaCatalogManager;
-import ozokuz.incore.features.arena.network.ArenaNetworking;
 import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import ozokuz.incore.features.arena.state.ArenaSavedData;
 import ozokuz.incore.features.tasks.DailyTaskEvents;
 import ozokuz.incore.features.battlepass.BattlePassTaskHooks;
+import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
+import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -30,8 +30,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public final class ArenaService {
-    private static final Gson GSON = new Gson();
-
     private ArenaService() {
     }
 
@@ -42,7 +40,7 @@ public final class ArenaService {
             return;
         }
 
-        ArenaNetworking.openCatalog(player, GSON.toJson(toScreenData(player, entries)));
+        INCorePlayerUiNavigator.openRoot(player, INCoreUiIds.COMBAT_CATALOG);
     }
 
     public static void startRun(ServerPlayer player, ResourceLocation entryId) {
@@ -313,7 +311,11 @@ public final class ArenaService {
         player.teleportTo(level, pos.getX() + 0.5D, pos.getY() + 0.1D, pos.getZ() + 0.5D, player.getYRot(), player.getXRot());
     }
 
-    private static ScreenData toScreenData(ServerPlayer player, List<ArenaCatalogEntry> entries) {
+    public static ScreenData buildScreenData(ServerPlayer player) {
+        return buildScreenData(player, ArenaCatalogManager.all());
+    }
+
+    private static ScreenData buildScreenData(ServerPlayer player, List<ArenaCatalogEntry> entries) {
         Map<String, String> categoryNames = new LinkedHashMap<>();
         for (ArenaCatalogEntry entry : entries) {
             categoryNames.putIfAbsent(entry.categoryId(), entry.categoryName());
