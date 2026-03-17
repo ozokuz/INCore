@@ -12,8 +12,6 @@ import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
 import ozokuz.incore.features.arena.state.ArenaSavedData;
 import ozokuz.incore.features.tasks.DailyTaskEvents;
 import ozokuz.incore.features.battlepass.BattlePassTaskHooks;
-import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
-import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -31,16 +29,6 @@ import java.util.UUID;
 
 public final class ArenaService {
     private ArenaService() {
-    }
-
-    public static void openCombatCatalog(ServerPlayer player) {
-        List<ArenaCatalogEntry> entries = ArenaCatalogManager.all();
-        if (entries.isEmpty()) {
-            player.sendSystemMessage(Component.translatable("incore.arena.catalog.empty"));
-            return;
-        }
-
-        INCorePlayerUiNavigator.openRoot(player, INCoreUiIds.COMBAT_CATALOG);
     }
 
     public static void startRun(ServerPlayer player, ResourceLocation entryId) {

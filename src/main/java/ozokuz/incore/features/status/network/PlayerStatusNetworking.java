@@ -1,14 +1,12 @@
 package ozokuz.incore.features.status.network;
 
-import ozokuz.incore.features.roguelike.state.RoguelikeSavedData;
-import ozokuz.incore.features.vendingmachine.VendingMachineService;
-import ozokuz.incore.features.vendingmachine.VendingMachineService.BalanceEntryView;
+import java.util.List;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-
-import java.util.List;
+import ozokuz.incore.features.vendingmachine.VendingMachineService;
+import ozokuz.incore.features.vendingmachine.VendingMachineService.BalanceEntryView;
 
 public final class PlayerStatusNetworking {
     private PlayerStatusNetworking() {
@@ -21,38 +19,15 @@ public final class PlayerStatusNetworking {
                 PlayerStatusCurrencySyncPayload.STREAM_CODEC,
                 PlayerStatusCurrencySyncPayload::handle
         );
-        registrar.playToClient(
-                DungeonDifficultySyncPayload.TYPE,
-                DungeonDifficultySyncPayload.STREAM_CODEC,
-                DungeonDifficultySyncPayload::handle
-        );
         registrar.playToServer(
                 RequestPlayerStatusCurrencyPayload.TYPE,
                 RequestPlayerStatusCurrencyPayload.STREAM_CODEC,
                 RequestPlayerStatusCurrencyPayload::handle
         );
-        registrar.playToServer(
-                RequestDungeonDifficultyPayload.TYPE,
-                RequestDungeonDifficultyPayload.STREAM_CODEC,
-                RequestDungeonDifficultyPayload::handle
-        );
-        registrar.playToServer(
-                SetDungeonDifficultyPayload.TYPE,
-                SetDungeonDifficultyPayload.STREAM_CODEC,
-                SetDungeonDifficultyPayload::handle
-        );
     }
 
     public static void requestCurrencySync() {
         PacketDistributor.sendToServer(new RequestPlayerStatusCurrencyPayload(true));
-    }
-
-    public static void requestDungeonDifficultySync() {
-        PacketDistributor.sendToServer(new RequestDungeonDifficultyPayload(true));
-    }
-
-    public static void setDungeonDifficulty(String difficulty) {
-        PacketDistributor.sendToServer(new SetDungeonDifficultyPayload(difficulty));
     }
 
     static void syncCurrencyToPlayer(ServerPlayer player) {
@@ -66,15 +41,6 @@ public final class PlayerStatusNetworking {
                                         Math.max(0, balance.amount())
                                 ))
                                 .toList()
-                )
-        );
-    }
-
-    static void syncDungeonDifficultyToPlayer(ServerPlayer player) {
-        PacketDistributor.sendToPlayer(
-                player,
-                new DungeonDifficultySyncPayload(
-                        RoguelikeSavedData.get(player.getServer()).dungeonDeathDifficulty(player.getUUID()).name()
                 )
         );
     }

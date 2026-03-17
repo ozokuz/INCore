@@ -165,13 +165,11 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
                 Component.translatable("screen.incore.player_status.open_combat_catalog")
         );
         applyFeatureVisibility(player, combatCatalogButton, PlayerFeatureUnlockIds.ARENA_TIER_1);
-        if (player.level().isClientSide()) {
-            INCoreStatusUiClientActions.bindAction(
-                    combatCatalogButton,
-                    PlayerStatusAction.COMBAT_CATALOG,
-                    Component.translatable("screen.incore.player_status.open_combat_catalog")
-            );
-        }
+        combatCatalogButton.setOnServerClick(event -> {
+            if (player instanceof ServerPlayer serverPlayer) {
+                INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.COMBAT_CATALOG);
+            }
+        });
 
         section.body().addChildren(
                 entropyBar,
@@ -211,12 +209,6 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
                 button.setOnServerClick(event -> {
                     if (player instanceof ServerPlayer serverPlayer) {
                         INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.PARTY_MANAGEMENT);
-                    }
-                });
-            } else if (target.action() == PlayerStatusAction.COMBAT_CATALOG) {
-                button.setOnServerClick(event -> {
-                    if (player instanceof ServerPlayer serverPlayer) {
-                        INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.COMBAT_CATALOG);
                     }
                 });
             } else if (player.level().isClientSide()) {
