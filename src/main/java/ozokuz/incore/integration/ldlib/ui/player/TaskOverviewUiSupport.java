@@ -20,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import ozokuz.incore.client.ui.UIScreenTheme;
 import ozokuz.incore.features.tasks.DailyTaskService;
 import ozokuz.incore.features.tasks.TaskService;
-import ozokuz.incore.integration.ldlib.ui.INCoreLdLibUiScaffold;
 import ozokuz.incore.integration.ldlib.ui.elements.ClippedTextureProgressBar;
 import ozokuz.incore.integration.ldlib.ui.texture.BeveledRectTexture;
 
@@ -297,8 +296,16 @@ final class TaskOverviewUiSupport {
     }
 
     static Label lineLabel(Component text, int color) {
-        Label label = INCoreLdLibUiScaffold.wrappedLabel(text);
-        label.textStyle(style -> style.textColor(color).textWrap(TextWrap.HIDE));
+        Label label = new Label();
+        label.setText(text);
+        label.setAllowHitTest(false);
+        label.layout(layout -> layout.widthAuto());
+        label.textStyle(style -> style
+                .adaptiveWidth(true)
+                .adaptiveHeight(true)
+                .textColor(color)
+                .textWrap(TextWrap.HIDE)
+        );
         return label;
     }
 
