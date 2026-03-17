@@ -13,7 +13,6 @@ import ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import ozokuz.incore.client.features.battlepass.BattlePassScreen;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import ozokuz.incore.client.features.cards.CardDeckStationScreen;
-import ozokuz.incore.features.gacha.network.GachaNetworking;
 import ozokuz.incore.client.features.market.MarketAutoTraderScreen;
 import ozokuz.incore.client.features.market.MarketTerminalCardScreen;
 import ozokuz.incore.client.features.market.MarketTerminalMeCardScreen;
@@ -159,14 +158,15 @@ public class INCoreClient {
             }
         }
 
-        if (minecraft.screen != null) {
-            return;
+        while (INCoreKeyMappings.OPEN_GACHA_BANNERS.consumeClick()) {
+            if ((minecraft.screen == null || isPlayerStatusRouteUiOpen(minecraft))
+                    && ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.GACHA_BASIC)) {
+                PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(INCoreUiIds.GACHA_APP));
+            }
         }
 
-        while (INCoreKeyMappings.OPEN_GACHA_BANNERS.consumeClick()) {
-            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.GACHA_BASIC)) {
-                GachaNetworking.requestOpenBannerScreen();
-            }
+        if (minecraft.screen != null) {
+            return;
         }
 
         while (INCoreKeyMappings.OPEN_BATTLE_PASS.consumeClick()) {

@@ -4,9 +4,11 @@ import com.google.gson.Gson;
 import ozokuz.incore.Registration;
 import ozokuz.incore.features.battlepass.BattlePassTaskHooks;
 import ozokuz.incore.features.gacha.GachaBannerData.BannerType;
-import ozokuz.incore.features.gacha.network.GachaNetworking;
 import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
+import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
+import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,13 +39,16 @@ public final class GachaService {
     }
 
     public static void openBannerScreen(ServerPlayer player) {
-        GachaBannerData selected = resolveLastBanner(player, true);
-        if (selected == null) {
-            player.sendSystemMessage(Component.translatable("incore.gacha.banner.none_configured"));
-            return;
-        }
+        INCorePlayerUiNavigator.openRoot(player, INCoreUiIds.GACHA_APP);
+    }
 
-        ScreenData screenData = new ScreenData(
+    public static String buildScreenJson(ServerPlayer player) {
+        return GSON.toJson(buildScreenData(player));
+    }
+
+    public static ScreenData buildScreenData(ServerPlayer player) {
+        resolveLastBanner(player, true);
+        return new ScreenData(
                 GachaBannerManager.visible().stream()
                         .sorted(
                                 Comparator.comparingInt((GachaBannerData banner) -> banner.bannerType() == BannerType.EVENT ? 0 : 1)
@@ -52,8 +57,6 @@ public final class GachaService {
                         .map(banner -> toBannerView(player, banner))
                         .toList()
         );
-
-        GachaNetworking.openBannerScreen(player, GSON.toJson(screenData));
     }
 
     public static void acquireCrateForBanner(ServerPlayer player, ResourceLocation bannerId) {
@@ -171,7 +174,6 @@ public final class GachaService {
                 guaranteedReward.getHoverName(),
                 banner.name()
         ));
-        openBannerScreen(player);
         return true;
     }
 
@@ -531,8 +533,55 @@ public final class GachaService {
                 PlayerFeatureUnlockService.requiredLevel(requiredUnlock),
                 basicSelectableSix,
                 banner.resolvedFeaturedItems().stream().map(ResourceLocation::toString).toList(),
-                rewards
+                rewards,
+                permitUsageLines(player, banner)
         );
+    }
+
+    private static List<PermitUsageLineView> permitUsageLines(ServerPlayer player, GachaBannerData banner) {
+        if (player.isCreative()) {
+            return List.of();
+        }
+
+        int required = PULLS_PER_CRATE;
+        int specificCount = countMatching(player, stack -> stack.getItem() == Registration.TIME_PIECE_ITEM.get()
+                && GachaPermitItem.matchesBanner(stack, banner.id()));
+
+        if (banner.bannerType() == BannerType.BASIC) {
+            int basicCount = countMatching(player, stack -> stack.getItem() == Registration.BASIC_TIME_PIECE_ITEM.get());
+            int useSpecific = Math.min(required, specificCount);
+            int remaining = required - useSpecific;
+            int useBasic = Math.min(remaining, basicCount);
+            int missing = required - useSpecific - useBasic;
+            List<PermitUsageLineView> lines = new ArrayList<>();
+            if (useSpecific > 0) {
+                lines.add(new PermitUsageLineView(BuiltInRegistries.ITEM.getKey(Registration.TIME_PIECE_ITEM.get()).toString(), useSpecific, false));
+            }
+            if (useBasic > 0) {
+                lines.add(new PermitUsageLineView(BuiltInRegistries.ITEM.getKey(Registration.BASIC_TIME_PIECE_ITEM.get()).toString(), useBasic, false));
+            }
+            if (missing > 0) {
+                lines.add(new PermitUsageLineView(BuiltInRegistries.ITEM.getKey(Registration.BASIC_TIME_PIECE_ITEM.get()).toString(), missing, true));
+            }
+            return List.copyOf(lines);
+        }
+
+        int charteredCount = countMatching(player, stack -> stack.getItem() == Registration.CHARTERED_TIME_PIECE_ITEM.get());
+        int useSpecific = Math.min(required, specificCount);
+        int remaining = required - useSpecific;
+        int useChartered = Math.min(remaining, charteredCount);
+        int missing = required - useSpecific - useChartered;
+        List<PermitUsageLineView> lines = new ArrayList<>();
+        if (useSpecific > 0) {
+            lines.add(new PermitUsageLineView(BuiltInRegistries.ITEM.getKey(Registration.TIME_PIECE_ITEM.get()).toString(), useSpecific, false));
+        }
+        if (useChartered > 0) {
+            lines.add(new PermitUsageLineView(BuiltInRegistries.ITEM.getKey(Registration.CHARTERED_TIME_PIECE_ITEM.get()).toString(), useChartered, false));
+        }
+        if (missing > 0) {
+            lines.add(new PermitUsageLineView(BuiltInRegistries.ITEM.getKey(Registration.CHARTERED_TIME_PIECE_ITEM.get()).toString(), missing, true));
+        }
+        return List.copyOf(lines);
     }
 
     public static ResourceLocation requiredUnlockForBanner(GachaBannerData banner) {
@@ -609,11 +658,15 @@ public final class GachaService {
             int requiredLevel,
             List<String> basicSelectableSixItems,
             List<String> featuredItems,
-            List<RewardView> rewards
+            List<RewardView> rewards,
+            List<PermitUsageLineView> permitUsage
     ) {
     }
 
     public record RewardView(String itemId, int rarity, double chancePercent) {
+    }
+
+    public record PermitUsageLineView(String itemId, int count, boolean missing) {
     }
 
     public record PityView(

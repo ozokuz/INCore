@@ -18,7 +18,8 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
             INCoreUiIds.DUNGEON_DIFFICULTY,
             INCoreUiIds.TASK_OVERVIEW,
             INCoreUiIds.PARTY_MANAGEMENT,
-            INCoreUiIds.COMBAT_CATALOG
+            INCoreUiIds.COMBAT_CATALOG,
+            INCoreUiIds.GACHA_APP
     );
     private volatile ResourceLocation currentRouteId = INCoreUiIds.PLAYER_STATUS;
 
@@ -35,7 +36,8 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
                 routeView(player, INCoreUiIds.DUNGEON_DIFFICULTY, DungeonDifficultyUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.TASK_OVERVIEW, TaskOverviewUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.PARTY_MANAGEMENT, PartyManagementUiHolder.createView(player)),
-                routeView(player, INCoreUiIds.COMBAT_CATALOG, CombatCatalogUiHolder.createView(player))
+                routeView(player, INCoreUiIds.COMBAT_CATALOG, CombatCatalogUiHolder.createView(player)),
+                routeView(player, INCoreUiIds.GACHA_APP, GachaAppUiHolder.createView(player))
         );
         return INCoreLdLibUiScaffold.build(player, root);
     }
