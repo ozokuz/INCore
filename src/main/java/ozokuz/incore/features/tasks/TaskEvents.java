@@ -1,7 +1,6 @@
 package ozokuz.incore.features.tasks;
 
 import ozokuz.incore.INCore;
-import ozokuz.incore.features.tasks.network.TaskNetworking;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -15,7 +14,6 @@ public class TaskEvents {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             TaskService.tick(player);
-            TaskNetworking.syncToPlayer(player);
         }
     }
 
@@ -31,7 +29,6 @@ public class TaskEvents {
 
         TaskService.copyData(oldPlayer, newPlayer);
         TaskService.tick(newPlayer);
-        TaskNetworking.syncToPlayer(newPlayer);
     }
 
     @SubscribeEvent
@@ -44,14 +41,12 @@ public class TaskEvents {
         }
 
         TaskService.tick(player);
-        TaskNetworking.syncToPlayer(player);
     }
 
     @SubscribeEvent
     public static void onMobDeath(LivingDeathEvent event) {
         if (event.getSource().getEntity() instanceof ServerPlayer player) {
             TaskService.onMobKill(player, event.getEntity());
-            TaskNetworking.syncToPlayer(player);
         }
     }
 }

@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import ozokuz.incore.features.tasks.TaskService;
 
 public record TaskClaimRewardsPayload(int claimType) implements CustomPacketPayload {
     public static final int CLAIM_DAILY = 0;
@@ -37,12 +38,12 @@ public record TaskClaimRewardsPayload(int claimType) implements CustomPacketPayl
             }
 
             if (payload.claimType() == CLAIM_DAILY) {
-                TaskNetworking.applyDailyRewardClaim(player);
+                TaskService.claimDailyCompletionReward(player);
                 return;
             }
 
             if (payload.claimType() == CLAIM_WEEKLY_UNLOCKED) {
-                TaskNetworking.applyWeeklyRewardsClaim(player);
+                TaskService.claimUnlockedWeeklyTierRewards(player);
             }
         });
     }

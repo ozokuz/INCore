@@ -16,6 +16,7 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
             INCoreUiIds.PLAYER_STATUS,
             INCoreUiIds.PLAYER_LEVEL_REWARDS,
             INCoreUiIds.DUNGEON_DIFFICULTY,
+            INCoreUiIds.TASK_OVERVIEW,
             INCoreUiIds.PARTY_MANAGEMENT,
             INCoreUiIds.COMBAT_CATALOG
     );
@@ -32,6 +33,7 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
                 routeView(player, INCoreUiIds.PLAYER_STATUS, PlayerStatusUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.PLAYER_LEVEL_REWARDS, PlayerLevelRewardsUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.DUNGEON_DIFFICULTY, DungeonDifficultyUiHolder.createView(player)),
+                routeView(player, INCoreUiIds.TASK_OVERVIEW, TaskOverviewUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.PARTY_MANAGEMENT, PartyManagementUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.COMBAT_CATALOG, CombatCatalogUiHolder.createView(player))
         );
