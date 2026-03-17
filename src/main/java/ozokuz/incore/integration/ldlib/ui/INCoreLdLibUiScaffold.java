@@ -26,7 +26,7 @@ public final class INCoreLdLibUiScaffold {
             0xFF141B24,
             0xFF6B8096,
             0xFF111821,
-            1,
+            0,
             1
     );
     private static final IGuiTexture BUTTON_HOVER_TEXTURE = new BeveledRectTexture(
@@ -34,7 +34,7 @@ public final class INCoreLdLibUiScaffold {
             0xFF18212B,
             0xFF9AD6FF,
             0xFF15202B,
-            1,
+            0,
             1
     );
     private static final IGuiTexture BUTTON_PRESSED_TEXTURE = new BeveledRectTexture(
@@ -42,7 +42,7 @@ public final class INCoreLdLibUiScaffold {
             0xFF10161D,
             0xFF14202A,
             0xFF7EB8D7,
-            1,
+            0,
             1
     );
     private static final SpriteTexture ENTROPY_BAR_BACKGROUND_TEXTURE = SpriteTexture.of(

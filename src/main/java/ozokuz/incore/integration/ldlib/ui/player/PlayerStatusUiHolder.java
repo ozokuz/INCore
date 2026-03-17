@@ -213,6 +213,12 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
                         INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.PARTY_MANAGEMENT);
                     }
                 });
+            } else if (target.action() == PlayerStatusAction.COMBAT_CATALOG) {
+                button.setOnServerClick(event -> {
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.COMBAT_CATALOG);
+                    }
+                });
             } else if (player.level().isClientSide()) {
                 INCoreStatusUiClientActions.bindAction(button, target.action(), target.label());
             }

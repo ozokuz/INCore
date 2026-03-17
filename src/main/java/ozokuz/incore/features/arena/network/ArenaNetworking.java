@@ -13,7 +13,6 @@ public final class ArenaNetworking {
 
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar("1");
-        registrar.playToClient(OpenArenaCatalogPayload.TYPE, OpenArenaCatalogPayload.STREAM_CODEC, OpenArenaCatalogPayload::handle);
         registrar.playToServer(RequestOpenArenaCatalogPayload.TYPE, RequestOpenArenaCatalogPayload.STREAM_CODEC, RequestOpenArenaCatalogPayload::handle);
         registrar.playToServer(StartArenaRunPayload.TYPE, StartArenaRunPayload.STREAM_CODEC, StartArenaRunPayload::handle);
     }
@@ -24,10 +23,6 @@ public final class ArenaNetworking {
 
     public static void requestStartRun(ResourceLocation entryId) {
         PacketDistributor.sendToServer(new StartArenaRunPayload(entryId.toString()));
-    }
-
-    public static void openCatalog(ServerPlayer player, String json) {
-        PacketDistributor.sendToPlayer(player, new OpenArenaCatalogPayload(json));
     }
 
     public static void openCatalogFor(ServerPlayer player) {
