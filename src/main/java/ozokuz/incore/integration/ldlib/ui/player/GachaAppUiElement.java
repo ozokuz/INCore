@@ -176,6 +176,7 @@ final class GachaAppUiElement extends UIElement implements IBindable<String> {
         currentJson = next;
         syncedAtMs = System.currentTimeMillis();
         if (GachaAppUiSupport.isUiEquivalent(data, nextData)) {
+            data = nextData;
             return this;
         }
         data = nextData;
@@ -376,18 +377,9 @@ final class GachaAppUiElement extends UIElement implements IBindable<String> {
                                 .layout(layout -> {
                                     layout.flex(1);
                                     layout.minHeight(0);
-                                    layout.paddingAll(1);
                                 })
-                                .style(style -> style.backgroundTexture(RectTexture.of(UIScreenTheme.OtherContent.CATALOG_ROW_BORDER)))
-                                .addChild(
-                                        new UIElement()
-                                                .layout(layout -> {
-                                                    layout.widthPercent(100);
-                                                    layout.heightPercent(100);
-                                                })
-                                                .style(style -> style.backgroundTexture(RectTexture.of(UIScreenTheme.OtherContent.CATALOG_COLUMN_FILL)))
-                                                .addChild(scroller)
-                                )
+                                .style(style -> style.backgroundTexture(RectTexture.of(GachaAppUiSupport.BANNER_PANEL_FILL)))
+                                .addChild(scroller)
                 );
     }
 
@@ -396,22 +388,13 @@ final class GachaAppUiElement extends UIElement implements IBindable<String> {
                 .layout(layout -> {
                     layout.flex(1);
                     layout.heightPercent(100);
-                    layout.paddingAll(1);
                 })
-                .style(style -> style.backgroundTexture(RectTexture.of(UIScreenTheme.OtherContent.CATALOG_ROW_BORDER)))
+                .style(style -> style.backgroundTexture(RectTexture.of(GachaAppUiSupport.BANNER_PANEL_FILL)))
                 .addChild(
-                        new UIElement()
-                                .layout(layout -> {
-                                    layout.widthPercent(100);
-                                    layout.heightPercent(100);
-                                })
-                                .style(style -> style.backgroundTexture(RectTexture.of(UIScreenTheme.OtherContent.CATALOG_DETAILS_FILL)))
-                                .addChild(
-                                        new GachaBannerDetailsElement(this).layout(layout -> {
-                                            layout.widthPercent(100);
-                                            layout.heightPercent(100);
-                                        })
-                                )
+                        new GachaBannerDetailsElement(this).layout(layout -> {
+                            layout.widthPercent(100);
+                            layout.heightPercent(100);
+                        })
                 );
     }
 
