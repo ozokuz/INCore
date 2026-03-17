@@ -14,7 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
-import ozokuz.incore.client.ui.UIScreenTheme;
+import ozokuz.incore.features.gacha.GachaRarity;
 import ozokuz.incore.features.gacha.GachaService;
 
 final class GachaAppUiSupport {
@@ -26,6 +26,7 @@ final class GachaAppUiSupport {
     static final int GUARANTEE_CARD_WIDTH = 96;
     static final int GUARANTEE_CARD_HEIGHT = 90;
     static final int GUARANTEE_CARD_GAP = 8;
+    static final int BANNER_PANEL_FILL = 0x44000000;
 
     private static final Gson GSON = new Gson();
 
@@ -190,10 +191,6 @@ final class GachaAppUiSupport {
     }
 
     static int rarityColor(int rarity) {
-        return rarity >= 6
-                ? UIScreenTheme.OtherContent.GACHA_SHOWCASE_SIX_TEXT
-                : rarity >= 5
-                        ? UIScreenTheme.OtherContent.GACHA_SHOWCASE_FIVE_TEXT
-                        : UIScreenTheme.OtherContent.CATALOG_TEXT_META;
+        return GachaRarity.fromStars(rarity).rgb();
     }
 }
