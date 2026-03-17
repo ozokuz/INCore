@@ -205,7 +205,13 @@ public final class PlayerStatusUiHolder implements PlayerUIMenuType.PlayerUIHold
         for (QuickNavTarget target : quickNavTargets()) {
             Button button = quickNavButton(target);
             applyFeatureVisibility(player, button, target.featureId());
-            if (target.action() == PlayerStatusAction.PARTY) {
+            if (target.action() == PlayerStatusAction.TASKS) {
+                button.setOnServerClick(event -> {
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.TASK_OVERVIEW);
+                    }
+                });
+            } else if (target.action() == PlayerStatusAction.PARTY) {
                 button.setOnServerClick(event -> {
                     if (player instanceof ServerPlayer serverPlayer) {
                         INCorePlayerUiNavigator.pushAndOpen(serverPlayer, INCoreUiIds.PARTY_MANAGEMENT);

@@ -4,16 +4,14 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import ozokuz.incore.features.tasks.TaskService;
-import ozokuz.incore.features.tasks.network.TaskNetworking;
+import java.util.Collection;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-
-import java.util.Collection;
+import ozokuz.incore.features.tasks.TaskService;
 
 public final class TaskCommands {
     private TaskCommands() {
@@ -82,10 +80,9 @@ public final class TaskCommands {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         for (ServerPlayer target : targets) {
             TaskService.tick(target);
-            TaskNetworking.syncToPlayer(target);
         }
         context.getSource().sendSuccess(
-                () -> Component.literal("Synced tasks for " + targets.size() + " player(s)."),
+                () -> Component.literal("Refreshed task state for " + targets.size() + " player(s)."),
                 true
         );
         return targets.size();
@@ -95,7 +92,6 @@ public final class TaskCommands {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         for (ServerPlayer target : targets) {
             TaskService.forceResetDaily(target);
-            TaskNetworking.syncToPlayer(target);
         }
         context.getSource().sendSuccess(
                 () -> Component.literal("Reset daily tasks for " + targets.size() + " player(s)."),
@@ -109,7 +105,6 @@ public final class TaskCommands {
         int completedTasks = 0;
         for (ServerPlayer target : targets) {
             completedTasks += TaskService.completeActiveDailyTasks(target);
-            TaskNetworking.syncToPlayer(target);
         }
         int completedSnapshot = completedTasks;
         context.getSource().sendSuccess(
@@ -126,7 +121,6 @@ public final class TaskCommands {
             if (TaskService.claimDailyCompletionReward(target)) {
                 claimed++;
             }
-            TaskNetworking.syncToPlayer(target);
         }
         int claimedSnapshot = claimed;
         context.getSource().sendSuccess(
@@ -140,7 +134,6 @@ public final class TaskCommands {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         for (ServerPlayer target : targets) {
             TaskService.forceResetWeekly(target);
-            TaskNetworking.syncToPlayer(target);
         }
         context.getSource().sendSuccess(
                 () -> Component.literal("Reset weekly tasks for " + targets.size() + " player(s)."),
@@ -154,7 +147,6 @@ public final class TaskCommands {
         int completedTasks = 0;
         for (ServerPlayer target : targets) {
             completedTasks += TaskService.completeActiveWeeklyTasks(target);
-            TaskNetworking.syncToPlayer(target);
         }
         int completedSnapshot = completedTasks;
         context.getSource().sendSuccess(
@@ -169,7 +161,6 @@ public final class TaskCommands {
         int claimedTiers = 0;
         for (ServerPlayer target : targets) {
             claimedTiers += TaskService.claimUnlockedWeeklyTierRewards(target);
-            TaskNetworking.syncToPlayer(target);
         }
         int claimedTiersSnapshot = claimedTiers;
         context.getSource().sendSuccess(
@@ -188,7 +179,6 @@ public final class TaskCommands {
             if (TaskService.completeWeeklyTaskAtSlot(target, slot)) {
                 completed++;
             }
-            TaskNetworking.syncToPlayer(target);
         }
 
         int completedSnapshot = completed;
@@ -208,7 +198,6 @@ public final class TaskCommands {
             if (TaskService.claimWeeklyTierReward(target, tier)) {
                 claimed++;
             }
-            TaskNetworking.syncToPlayer(target);
         }
 
         int claimedSnapshot = claimed;

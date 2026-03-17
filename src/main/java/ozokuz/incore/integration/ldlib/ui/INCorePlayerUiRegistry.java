@@ -20,6 +20,7 @@ public final class INCorePlayerUiRegistry {
         register(INCoreUiIds.PLAYER_STATUS, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.PLAYER_LEVEL_REWARDS, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.DUNGEON_DIFFICULTY, ignored -> new PlayerStatusRouteUiHolder());
+        register(INCoreUiIds.TASK_OVERVIEW, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.PARTY_MANAGEMENT, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.COMBAT_CATALOG, ignored -> new PlayerStatusRouteUiHolder());
 

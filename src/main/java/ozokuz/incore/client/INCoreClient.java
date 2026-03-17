@@ -12,7 +12,6 @@ import ozokuz.incore.client.features.entropy.EntropyBarHudFeature;
 import ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import ozokuz.incore.client.features.battlepass.BattlePassScreen;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
-import ozokuz.incore.client.features.tasks.TaskOverviewScreen;
 import ozokuz.incore.client.features.cards.CardDeckStationScreen;
 import ozokuz.incore.features.gacha.network.GachaNetworking;
 import ozokuz.incore.client.features.market.MarketAutoTraderScreen;
@@ -146,6 +145,13 @@ public class INCoreClient {
             }
         }
 
+        while (INCoreKeyMappings.OPEN_TASK_OVERVIEW.consumeClick()) {
+            if ((minecraft.screen == null || isPlayerStatusRouteUiOpen(minecraft))
+                    && ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.TASKS_SCREEN)) {
+                PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(INCoreUiIds.TASK_OVERVIEW));
+            }
+        }
+
         while (INCoreKeyMappings.OPEN_COMBAT_CATALOG.consumeClick()) {
             if ((minecraft.screen == null || isPlayerStatusRouteUiOpen(minecraft))
                     && ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.ARENA_TIER_1)) {
@@ -160,12 +166,6 @@ public class INCoreClient {
         while (INCoreKeyMappings.OPEN_GACHA_BANNERS.consumeClick()) {
             if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.GACHA_BASIC)) {
                 GachaNetworking.requestOpenBannerScreen();
-            }
-        }
-
-        while (INCoreKeyMappings.OPEN_TASK_OVERVIEW.consumeClick()) {
-            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.TASKS_SCREEN)) {
-                minecraft.setScreen(new TaskOverviewScreen());
             }
         }
 
