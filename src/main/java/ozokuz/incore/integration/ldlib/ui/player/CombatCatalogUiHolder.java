@@ -3,6 +3,7 @@ package ozokuz.incore.integration.ldlib.ui.player;
 import com.google.gson.Gson;
 import com.lowdragmc.lowdraglib2.gui.factory.PlayerUIMenuType;
 import com.lowdragmc.lowdraglib2.gui.sync.bindings.impl.DataBindingBuilder;
+import com.lowdragmc.lowdraglib2.gui.texture.RectTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
@@ -46,6 +47,7 @@ public final class CombatCatalogUiHolder implements PlayerUIMenuType.PlayerUIHol
                     layout.paddingLeft(16);
                     layout.gapAll(10);
                 })
+                .style(style -> style.backgroundTexture(RectTexture.of(0x66000000)))
                 .addChildren(title, content);
     }
 

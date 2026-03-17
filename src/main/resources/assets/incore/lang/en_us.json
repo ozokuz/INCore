@@ -374,7 +374,7 @@
   "screen.incore.arena_catalog.details": "Selection Details",
   "screen.incore.arena_catalog.start": "Deploy to Arena",
   "screen.incore.arena_catalog.none": "No selection.",
-  "screen.incore.arena_catalog.locked": "Lvl %s",
+  "screen.incore.arena_catalog.locked": "\uD83D\uDD12 Lvl %s",
   "screen.incore.arena_catalog.locked_details": "Unlocks at player level %s",
   "screen.incore.arena_catalog.gateway": "Gateway: %s",
   "screen.incore.arena_catalog.rewards": "Rewards",

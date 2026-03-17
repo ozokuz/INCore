@@ -198,7 +198,9 @@ public class INCoreClient {
     }
 
     private void onScreenKeyPressed(ScreenEvent.KeyPressed.Pre event) {
-        if (event.getKeyCode() != GLFW.GLFW_KEY_ESCAPE) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (event.getKeyCode() != GLFW.GLFW_KEY_ESCAPE
+                && !minecraft.options.keyInventory.matches(event.getKeyCode(), event.getScanCode())) {
             return;
         }
         if (!(event.getScreen() instanceof ModularUIContainerScreen screen)) {
