@@ -108,6 +108,7 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
                 .layout(layout -> {
                     layout.flex(1);
                     layout.widthPercent(100);
+                    layout.minHeight(0);
                     layout.flexDirection(FlexDirection.ROW);
                     layout.gapAll(8);
                 })
@@ -128,6 +129,7 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
         panel.body().layout(layout -> {
             layout.flex(1);
             layout.heightPercent(100);
+            layout.minHeight(0);
             layout.gapAll(8);
         });
 
@@ -225,14 +227,30 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
                     Component.literal(task.title()),
                     complete ? TaskOverviewUiSupport.TEXT_COMPLETE : TaskOverviewUiSupport.TEXT_SOFT
             );
-            title.layout(layout -> layout.flex(1));
+            title.layout(layout -> {
+                layout.flex(1);
+                layout.minWidth(0);
+            });
+            title.textStyle(style -> style
+                    .adaptiveWidth(false)
+                    .textWrap(TextWrap.HIDE)
+                    .textAlignHorizontal(Horizontal.LEFT)
+            );
+
+            Label progressLabel = TaskOverviewUiSupport.lineLabel(
+                    Component.literal(complete ? "\u2713" : task.progress() + "/" + task.goal()),
+                    TaskOverviewUiSupport.TEXT_SECONDARY
+            );
+            progressLabel.layout(layout -> layout.width(28));
+            progressLabel.textStyle(style -> style
+                    .adaptiveWidth(false)
+                    .textWrap(TextWrap.HIDE)
+                    .textAlignHorizontal(Horizontal.RIGHT)
+            );
 
             row.body().addChildren(
                     title,
-                    TaskOverviewUiSupport.lineLabel(
-                            Component.literal(complete ? "\u2713" : task.progress() + "/" + task.goal()),
-                            TaskOverviewUiSupport.TEXT_SECONDARY
-                    )
+                    progressLabel
             );
             list.addChild(row.root());
         }
@@ -241,11 +259,14 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
 
     private UIElement createDailyClaimButton() {
         boolean claimable = data.fixedDailyAllCompleted() && !data.fixedDailyRewardClaimed();
-        Component text = claimable
-                ? Component.translatable("screen.incore.tasks.claim_daily")
-                : data.fixedDailyRewardClaimed()
-                        ? Component.translatable("screen.incore.tasks.claimed_daily")
-                        : Component.translatable("screen.incore.tasks.claim_daily_locked");
+        Component text;
+        if (claimable) {
+            text = Component.translatable("screen.incore.tasks.claim_daily");
+        } else if (data.fixedDailyRewardClaimed()) {
+            text = Component.translatable("screen.incore.tasks.claimed_daily");
+        } else {
+            text = Component.translatable("screen.incore.tasks.claim_daily_locked");
+        }
         Button button = TaskOverviewUiSupport.createButton(text, 140, claimable);
         button.layout(layout -> layout.widthPercent(100));
         button.setOnClick(event -> TaskNetworking.requestDailyRewardClaim());
@@ -261,6 +282,7 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
         panel.body().layout(layout -> {
             layout.flex(1);
             layout.heightPercent(100);
+            layout.minHeight(0);
             layout.gapAll(8);
         });
         panel.body().addChildren(
@@ -324,11 +346,13 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
         scroller.layout(layout -> {
             layout.flex(1);
             layout.widthPercent(100);
+            layout.minHeight(0);
         });
         scroller.viewPort
                 .style(style -> style.backgroundTexture(RectTexture.of(0x00000000)))
                 .layout(layout -> {
                     layout.flex(1);
+                    layout.minHeight(0);
                     layout.paddingAll(0);
                 });
         scroller.viewContainer.layout(layout -> {
@@ -365,6 +389,30 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
     private UIElement createWeeklyCard(TaskService.TaskView task) {
         boolean complete = task.progress() >= task.goal();
         int progress = Math.min(task.progress(), task.goal());
+        Label titleLabel = TaskOverviewUiSupport.lineLabel(
+                Component.literal(task.title()),
+                TaskOverviewUiSupport.TEXT_SOFT
+        );
+        titleLabel.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minWidth(0);
+        });
+        titleLabel.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.LEFT)
+        );
+
+        Label progressLabel = TaskOverviewUiSupport.lineLabel(
+                Component.literal(progress + "/" + task.goal()),
+                TaskOverviewUiSupport.TEXT_SECONDARY
+        );
+        progressLabel.layout(layout -> layout.widthPercent(100));
+        progressLabel.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.LEFT)
+        );
 
         var card = framedPanel(
                 complete ? TaskOverviewUiSupport.CARD_FILL_COMPLETE : TaskOverviewUiSupport.CARD_FILL,
@@ -400,6 +448,7 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
                 new UIElement()
                         .layout(layout -> {
                             layout.flex(1);
+                            layout.minWidth(0);
                             layout.heightPercent(100);
                             layout.paddingLeft(8);
                             layout.paddingRight(8);
@@ -409,14 +458,8 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
                             layout.gapAll(2);
                         })
                         .addChildren(
-                                TaskOverviewUiSupport.lineLabel(
-                                        Component.literal(task.title()),
-                                        TaskOverviewUiSupport.TEXT_SOFT
-                                ),
-                                TaskOverviewUiSupport.lineLabel(
-                                        Component.literal(progress + "/" + task.goal()),
-                                        TaskOverviewUiSupport.TEXT_SECONDARY
-                                ),
+                                titleLabel,
+                                progressLabel,
                                 progressBar(
                                         progress,
                                         task.goal(),
@@ -466,6 +509,7 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
         return new UIElement()
                 .layout(layout -> {
                     layout.widthPercent(100);
+                    layout.flexShrink(0);
                     layout.flexDirection(FlexDirection.COLUMN);
                     layout.gapAll(4);
                 })
@@ -524,7 +568,7 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
             card.root().layout(layout -> {
                 layout.flex(1);
                 layout.minWidth(56);
-                layout.height(54);
+                layout.height(36);
             });
             card.body().layout(layout -> {
                 layout.widthPercent(100);
@@ -559,9 +603,12 @@ final class TaskOverviewUiElement extends UIElement implements IBindable<String>
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
-            layout.flexWrap(FlexWrap.WRAP);
+            if (!compact) {
+                layout.flexWrap(FlexWrap.WRAP);
+            }
             layout.gapAll(4);
             layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
         });
 
         int visibleRewards = Math.min(maxVisible, rewards.size());
