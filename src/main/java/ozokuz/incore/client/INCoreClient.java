@@ -13,7 +13,6 @@ import ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import ozokuz.incore.client.features.battlepass.BattlePassScreen;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import ozokuz.incore.client.features.tasks.TaskOverviewScreen;
-import ozokuz.incore.features.arena.network.ArenaNetworking;
 import ozokuz.incore.client.features.cards.CardDeckStationScreen;
 import ozokuz.incore.features.gacha.network.GachaNetworking;
 import ozokuz.incore.client.features.market.MarketAutoTraderScreen;
@@ -147,6 +146,13 @@ public class INCoreClient {
             }
         }
 
+        while (INCoreKeyMappings.OPEN_COMBAT_CATALOG.consumeClick()) {
+            if ((minecraft.screen == null || isPlayerStatusRouteUiOpen(minecraft))
+                    && ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.ARENA_TIER_1)) {
+                PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(INCoreUiIds.COMBAT_CATALOG));
+            }
+        }
+
         if (minecraft.screen != null) {
             return;
         }
@@ -172,12 +178,6 @@ public class INCoreClient {
         while (INCoreKeyMappings.OPEN_RESEARCH_TREE.consumeClick()) {
             minecraft.setScreen(new ResearchTreeScreen());
             ResearchNetworking.requestSnapshot();
-        }
-
-        while (INCoreKeyMappings.OPEN_COMBAT_CATALOG.consumeClick()) {
-            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.ARENA_TIER_1)) {
-                ArenaNetworking.requestOpenCatalog();
-            }
         }
 
         while (INCoreKeyMappings.OPEN_NUMISMATICS_BANK.consumeClick()) {
@@ -206,7 +206,7 @@ public class INCoreClient {
         if (!(event.getScreen() instanceof ModularUIContainerScreen screen)) {
             return;
         }
-        if (!(screen.getMenu().uiHolder instanceof PlayerStatusRouteUiHolder routeHolder) || !routeHolder.canGoBackOnEscape()) {
+        if (!(screen.getMenu().uiHolder instanceof PlayerStatusRouteUiHolder)) {
             return;
         }
         event.setCanceled(true);

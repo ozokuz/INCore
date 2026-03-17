@@ -12,11 +12,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import ozokuz.incore.client.INCoreKeyMappings;
 import ozokuz.incore.client.features.battlepass.BattlePassScreen;
-import ozokuz.incore.client.features.party.PartyManagementScreen;
 import ozokuz.incore.client.features.research.ResearchTreeScreen;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import ozokuz.incore.client.features.tasks.TaskOverviewScreen;
-import ozokuz.incore.features.arena.network.ArenaNetworking;
 import ozokuz.incore.features.gacha.network.GachaNetworking;
 import ozokuz.incore.features.market.network.MarketNetworking;
 import ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
@@ -127,19 +125,6 @@ public final class INCoreStatusUiClientActions {
                     StatusScreenReturnTracker.prepareExternal(parent);
                 }
                 NumismaticsNetworking.requestOpenBankScreen();
-            }
-            case PARTY -> {
-                Screen parent = legacyReturnTarget();
-                closePlayerStatusRouteIfOpen();
-                openScreen(new PartyManagementScreen(parent));
-            }
-            case COMBAT_CATALOG -> {
-                if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.ARENA_TIER_1)) {
-                    Screen parent = legacyReturnTarget();
-                    closePlayerStatusRouteIfOpen();
-                    prepareParent(parent);
-                    ArenaNetworking.requestOpenCatalog();
-                }
             }
             default -> {
             }
