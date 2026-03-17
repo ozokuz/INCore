@@ -116,6 +116,14 @@ final class CombatCatalogUiElement extends UIElement implements IBindable<String
             0,
             1
     );
+    private static final IGuiTexture FOOTER_BUTTON_DISABLED_TEXTURE = new BeveledRectTexture(
+            0xFF2C2C2C,
+            0xFF3F3F3F,
+            0xFF535353,
+            0xFF090909,
+            0,
+            1
+    );
 
     private String currentJson = "";
     private ArenaService.ScreenData data = emptyData();
@@ -202,7 +210,12 @@ final class CombatCatalogUiElement extends UIElement implements IBindable<String
             layout.width(196);
             layout.height(24);
         });
-        startButton.setActive(canStartSelectedEntry());
+        boolean canDeploy = canStartSelectedEntry();
+        startButton.setActive(canDeploy);
+        if (!canDeploy) {
+            startButton.buttonStyle(bs -> bs.baseTexture(FOOTER_BUTTON_DISABLED_TEXTURE));
+            startButton.text.textStyle(ts -> ts.textColor(0xFF666666));
+        }
         startButton.setOnClick(event -> {
             ResourceLocation entryId = selectedEntryResource();
             if (entryId != null) {
@@ -337,7 +350,7 @@ final class CombatCatalogUiElement extends UIElement implements IBindable<String
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
             layout.flexWrap(FlexWrap.WRAP);
-            layout.gapAll(16);
+            layout.gapAll(8);
             layout.alignItems(AlignItems.CENTER);
         });
         for (ArenaService.RewardView reward : selectedEntry.rewardItems()) {
@@ -347,20 +360,34 @@ final class CombatCatalogUiElement extends UIElement implements IBindable<String
     }
 
     private Button categoryButton(ArenaService.CategoryView category) {
-        return listButton(Component.literal(category.name()), category.id().equals(selectedCategoryId), () -> {
+        boolean locked = isCategoryLocked(category.id());
+        int requiredLevel = requiredLevelForCategory(category.id());
+        Button button = listButton(
+                Component.literal(category.name()),
+                category.id().equals(selectedCategoryId),
+                locked,
+                requiredLevel,
+                () -> {
             selectedCategoryId = category.id();
             selectedEntryId = entriesForSelectedCategory().stream()
                     .map(ArenaService.ScreenEntry::id)
                     .findFirst()
                     .orElse(null);
             rebuild();
-        });
+                }
+        );
+        if (locked) {
+            button.style(style -> style.tooltips(Component.translatable("screen.incore.arena_catalog.locked_details", requiredLevel)));
+        }
+        return button;
     }
 
     private Button entryButton(ArenaService.ScreenEntry entry) {
         Button button = listButton(
                 Component.literal(entry.difficultyName()),
                 entry.id().equals(selectedEntryId),
+                entry.locked(),
+                entry.requiredLevel(),
                 () -> {
                     selectedEntryId = entry.id();
                     rebuild();
@@ -374,28 +401,31 @@ final class CombatCatalogUiElement extends UIElement implements IBindable<String
         return button;
     }
 
-    private static Button listButton(Component text, boolean selected, Runnable onClick) {
+    private static Button listButton(Component text, boolean selected, boolean locked, int requiredLevel, Runnable onClick) {
         Button button = new Button().setText(text);
         button.layout(layout -> {
             layout.widthPercent(100);
             layout.height(32);
             layout.alignItems(AlignItems.CENTER);
-            layout.justifyContent(AlignContent.FLEX_START);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
             layout.paddingHorizontal(10);
+            layout.gapAll(8);
         });
-        button.text.getLayout().flex(1);
+        button.text.getLayout().flex(2);
         button.text.getLayout().heightPercent(100);
         button.textStyle(style -> style
-                .adaptiveWidth(false)
                 .textWrap(TextWrap.HIDE)
                 .textAlignHorizontal(Horizontal.LEFT)
-                .textColor(UIScreenTheme.OtherContent.CATALOG_TEXT_HEADING)
+                .textColor(locked ? UIScreenTheme.OtherContent.CATALOG_TEXT_META : UIScreenTheme.OtherContent.CATALOG_TEXT_HEADING)
         );
         button.buttonStyle(style -> style
                 .baseTexture(selected ? LIST_SELECTED_TEXTURE : LIST_IDLE_TEXTURE)
                 .hoverTexture(selected ? LIST_SELECTED_TEXTURE : LIST_HOVER_TEXTURE)
                 .pressedTexture(LIST_SELECTED_TEXTURE)
         );
+        if (locked) {
+            button.addChild(lockLabel(requiredLevel));
+        }
         button.setOnClick(event -> onClick.run());
         return button;
     }
@@ -452,15 +482,29 @@ final class CombatCatalogUiElement extends UIElement implements IBindable<String
         return detailLine(text, UIScreenTheme.OtherContent.CATALOG_TEXT_META);
     }
 
+    private static UIElement lockLabel(int requiredLevel) {
+        Label label = detailLine(
+                Component.translatable("screen.incore.arena_catalog.locked", requiredLevel),
+                UIScreenTheme.OtherContent.CATALOG_TEXT_WARNING
+        );
+        label.textStyle(ts -> ts.textAlignHorizontal(Horizontal.CENTER));
+        label.setAllowHitTest(false);
+        return new UIElement()
+                .layout(layout -> layout.widthPercent(100).paddingAll(1).flex(1))
+                .style(style -> style.background(RectTexture.of(0xCCAA0000)))
+                .addChildren(label);
+    }
+
     private static UIElement rewardLine(ArenaService.RewardView reward) {
         ItemStack stack = displayStack(reward);
         return new UIElement()
                 .layout(layout -> {
                     layout.widthAuto();
                     layout.alignItems(AlignItems.CENTER);
+                    layout.paddingAll(4);
                     layout.gapAll(6);
                 })
-                .style(style -> style.tooltips(
+                .style(style -> style.background(LIST_IDLE_TEXTURE).tooltips(
                         stack.getHoverName(),
                         Component.literal("x" + stack.getCount())
                 ))
@@ -517,6 +561,21 @@ final class CombatCatalogUiElement extends UIElement implements IBindable<String
     private boolean canStartSelectedEntry() {
         ArenaService.ScreenEntry entry = selectedEntry();
         return entry != null && !entry.locked();
+    }
+
+    private boolean isCategoryLocked(String categoryId) {
+        List<ArenaService.ScreenEntry> entries = data.entries().stream()
+                .filter(entry -> categoryId.equals(entry.categoryId()))
+                .toList();
+        return !entries.isEmpty() && entries.stream().allMatch(ArenaService.ScreenEntry::locked);
+    }
+
+    private int requiredLevelForCategory(String categoryId) {
+        return data.entries().stream()
+                .filter(entry -> categoryId.equals(entry.categoryId()) && entry.locked())
+                .mapToInt(ArenaService.ScreenEntry::requiredLevel)
+                .min()
+                .orElse(0);
     }
 
     private @Nullable ResourceLocation selectedEntryResource() {
