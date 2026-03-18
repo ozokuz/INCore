@@ -372,7 +372,6 @@ final class GachaAppUiElement extends UIElement implements IBindable<String> {
                     layout.gapAll(4);
                 })
                 .addChildren(
-                        sidebarLabel(Component.translatable("screen.incore.gacha_banners.sidebar")),
                         new UIElement()
                                 .layout(layout -> {
                                     layout.flex(1);

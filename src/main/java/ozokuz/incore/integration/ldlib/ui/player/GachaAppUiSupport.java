@@ -26,7 +26,7 @@ final class GachaAppUiSupport {
     static final int GUARANTEE_CARD_WIDTH = 96;
     static final int GUARANTEE_CARD_HEIGHT = 90;
     static final int GUARANTEE_CARD_GAP = 8;
-    static final int BANNER_PANEL_FILL = 0x44000000;
+    static final int BANNER_PANEL_FILL = 0x33333333;
 
     private static final Gson GSON = new Gson();
 
