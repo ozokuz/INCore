@@ -144,6 +144,9 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
 
         ItemStack mainStack = GachaAppUiSupport.stackForId(banner.mainItemId());
         if (!mainStack.isEmpty()) {
+            button.style(style -> style.tooltips(GachaViewSupport.stackTooltip(mainStack)));
+        }
+        if (!mainStack.isEmpty()) {
             button.addChild(GachaViewSupport.icon(mainStack, 16));
         }
 
@@ -276,11 +279,15 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
             layout.widthPercent(100);
             layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.justifyContent(AlignContent.CENTER);
+            layout.alignItems(AlignItems.CENTER);
+        });
+        UIElement content = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
             layout.alignItems(AlignItems.CENTER);
             layout.gapAll(6);
         });
-        area.addChild(GachaViewSupport.centeredLabel(
+        content.addChild(GachaViewSupport.centeredLabel(
                 Component.translatable("screen.incore.gacha_banners.high_rarity_showcase"),
                 UIScreenTheme.OtherContent.GACHA_PITY_LABEL_TEXT
         ));
@@ -288,29 +295,38 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
         List<Item> sixStars = GachaAppUiSupport.uniqueRewardsByRarity(banner, 6);
         List<Item> fiveStars = GachaAppUiSupport.uniqueRewardsByRarity(banner, 5);
         if (sixStars.isEmpty() && fiveStars.isEmpty()) {
-            area.addChild(GachaViewSupport.centeredLabel(
+            content.addChild(GachaViewSupport.centeredLabel(
                     Component.translatable("screen.incore.gacha_banners.high_rarity_none"),
                     UIScreenTheme.OtherContent.GACHA_SHOWCASE_CHANCE_TEXT
             ));
-            return area;
+            return area.addChildren(
+                    new UIElement().layout(layout -> layout.flex(1)),
+                    content,
+                    new UIElement().layout(layout -> layout.flex(6))
+            );
         }
 
         if (!sixStars.isEmpty()) {
-            area.addChildren(
+            content.addChildren(
                     GachaViewSupport.centeredLabel(Component.translatable("screen.incore.gacha_banners.showcase.six"), UIScreenTheme.OtherContent.GACHA_SHOWCASE_SIX_TEXT),
-                    iconGrid(sixStars, 5, 22)
+                    iconGrid(sixStars, 5, 32)
             );
         }
         if (!fiveStars.isEmpty()) {
-            area.addChildren(
+            content.addChildren(
                     GachaViewSupport.centeredLabel(Component.translatable("screen.incore.gacha_banners.showcase.five"), UIScreenTheme.OtherContent.GACHA_SHOWCASE_FIVE_TEXT),
-                    iconGrid(fiveStars, 6, 18)
+                    iconGrid(fiveStars, 6, 22)
             );
         }
-        return area;
+        return area.addChildren(
+                new UIElement().layout(layout -> layout.flex(1)),
+                content,
+                new UIElement().layout(layout -> layout.flex(6))
+        );
     }
 
     private UIElement iconGrid(List<Item> items, int maxPerRow, int iconSize) {
+        int gap = 8;
         int visibleItemCount = 0;
         for (Item item : items) {
             if (visibleItemCount >= maxPerRow * 3) {
@@ -321,14 +337,14 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
             }
         }
         int columns = Math.min(visibleItemCount, maxPerRow);
-        int gridWidth = columns == 0 ? 0 : columns * iconSize + (columns - 1) * 6;
+        int gridWidth = columns == 0 ? 0 : columns * iconSize + (columns - 1) * gap;
         UIElement grid = new UIElement().layout(layout -> {
             layout.width(gridWidth);
             layout.flexDirection(FlexDirection.ROW);
             layout.flexWrap(FlexWrap.WRAP);
             layout.justifyContent(AlignContent.CENTER);
             layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(6);
+            layout.gapAll(gap);
         });
         int count = 0;
         for (Item item : items) {
@@ -336,7 +352,8 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
                 break;
             }
             if (item != Items.AIR) {
-                grid.addChild(GachaViewSupport.icon(item.getDefaultInstance(), iconSize));
+                ItemStack stack = item.getDefaultInstance();
+                grid.addChild(GachaViewSupport.tooltipIcon(stack, iconSize, GachaViewSupport.stackTooltip(stack)));
                 count++;
             }
         }
@@ -436,6 +453,14 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
                 layout.justifyContent(AlignContent.CENTER);
                 layout.gapAll(3);
             });
+            if (!stack.isEmpty()) {
+                row.style(style -> style.tooltips(
+                        GachaViewSupport.stackTooltip(
+                                stack,
+                                Component.literal("x" + line.count())
+                        )
+                ));
+            }
             if (!stack.isEmpty()) {
                 row.addChild(GachaViewSupport.icon(stack, 12));
             }
