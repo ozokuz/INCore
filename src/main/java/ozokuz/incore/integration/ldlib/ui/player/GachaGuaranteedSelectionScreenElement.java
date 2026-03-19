@@ -169,6 +169,10 @@ final class GachaGuaranteedSelectionScreenElement extends UIElement implements I
         card.text.setDisplay(false);
 
         ItemStack stack = GachaAppUiSupport.stackForId(itemId);
+        card.style(style -> style.tooltips(GachaViewSupport.stackTooltip(
+                stack,
+                Component.literal(itemId.toString())
+        )));
         UIElement iconRow = new UIElement()
                 .layout(layout -> {
                     layout.widthPercent(100);

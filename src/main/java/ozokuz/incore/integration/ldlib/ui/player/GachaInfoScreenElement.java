@@ -11,6 +11,7 @@ import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
 import java.util.List;
+import java.util.Locale;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -147,8 +148,15 @@ final class GachaInfoScreenElement extends UIElement implements IBindable<String
                         ? UIScreenTheme.OtherContent.INFO_ROW_FILL_A
                         : UIScreenTheme.OtherContent.INFO_ROW_FILL_B)));
         ItemStack stack = GachaAppUiSupport.stackForId(reward.itemId());
+        row.style(style -> style.tooltips(
+                GachaViewSupport.stackTooltip(
+                        stack,
+                        Component.literal(reward.rarity() + "★"),
+                        Component.literal(String.format(Locale.ROOT, "%.2f%%", reward.chancePercent()))
+                )
+        ));
         if (!stack.isEmpty()) {
-            row.addChild(GachaViewSupport.icon(stack, 14));
+            row.addChild(GachaViewSupport.tooltipIcon(stack, 14, GachaViewSupport.stackTooltip(stack)));
         }
         var nameLabel = GachaViewSupport.lineLabel(
                 stack.isEmpty() ? Component.literal(reward.itemId()) : stack.getHoverName(),

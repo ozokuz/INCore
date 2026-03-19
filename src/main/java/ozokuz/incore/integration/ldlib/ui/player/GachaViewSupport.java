@@ -139,6 +139,30 @@ final class GachaViewSupport {
                 .setAllowHitTest(false);
     }
 
+    static UIElement tooltipIcon(ItemStack stack, int size, Component... tooltips) {
+        return new UIElement()
+                .layout(layout -> {
+                    layout.width(size);
+                    layout.height(size);
+                })
+                .style(style -> style
+                        .backgroundTexture(new ItemStackTexture(stack))
+                        .tooltips(tooltips)
+                );
+    }
+
+    static Component[] stackTooltip(ItemStack stack, Component... extraLines) {
+        if (stack.isEmpty()) {
+            return extraLines;
+        }
+        Component[] lines = new Component[extraLines.length + 1];
+        lines[0] = stack.getHoverName();
+        if (extraLines.length > 0) {
+            System.arraycopy(extraLines, 0, lines, 1, extraLines.length);
+        }
+        return lines;
+    }
+
     static ScrollerView scroller() {
         ScrollerView scroller = new ScrollerView()
                 .scrollerStyle(style -> style
