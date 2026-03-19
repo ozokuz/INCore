@@ -1,8 +1,8 @@
 package ozokuz.incore.integration.ldlib.ui.player;
 
 import com.lowdragmc.lowdraglib2.gui.sync.bindings.IBindable;
-import com.lowdragmc.lowdraglib2.gui.texture.RectTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
 import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import dev.vfyjxf.taffy.style.AlignContent;
@@ -18,6 +18,7 @@ import ozokuz.incore.client.ui.UIScreenTheme;
 import ozokuz.incore.features.gacha.GachaService;
 import ozokuz.incore.features.gacha.network.GachaNetworking;
 import ozokuz.incore.integration.ldlib.ui.RequestBackIncoreUiPayload;
+import ozokuz.incore.integration.ldlib.ui.texture.BeveledRectTexture;
 
 final class GachaGuaranteedSelectionScreenElement extends UIElement implements IBindable<String> {
     private String currentJson = "";
@@ -145,29 +146,80 @@ final class GachaGuaranteedSelectionScreenElement extends UIElement implements I
             layout.alignItems(AlignItems.CENTER);
             layout.justifyContent(AlignContent.FLEX_START);
             layout.paddingTop(10);
-            layout.paddingHorizontal(6);
-            layout.paddingBottom(8);
-            layout.gapAll(4);
+            layout.paddingHorizontal(8);
+            layout.paddingBottom(6);
+            layout.gapAll(2);
         });
-        card.style(style -> style.backgroundTexture(RectTexture.of(selected
-                ? UIScreenTheme.OtherContent.GUARANTEE_ROW_FILL_SELECTED
-                : UIScreenTheme.OtherContent.GUARANTEE_ROW_FILL)));
+        int fillColor = UIScreenTheme.OtherContent.GUARANTEE_ROW_FILL;
+        int borderColor = selected
+                ? UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_SELECTED
+                : UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER;
+        card.buttonStyle(style -> style
+                .baseTexture(new BeveledRectTexture(fillColor, borderColor, borderColor, borderColor, 1, 0))
+                .hoverTexture(new BeveledRectTexture(
+                        fillColor,
+                        selected ? UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_SELECTED : UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_HOVER,
+                        selected ? UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_SELECTED : UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_HOVER,
+                        selected ? UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_SELECTED : UIScreenTheme.OtherContent.GUARANTEE_ROW_BORDER_HOVER,
+                        1,
+                        0
+                ))
+                .pressedTexture(new BeveledRectTexture(fillColor, borderColor, borderColor, borderColor, 1, 0))
+        );
         card.text.setDisplay(false);
 
         ItemStack stack = GachaAppUiSupport.stackForId(itemId);
+        UIElement iconRow = new UIElement()
+                .layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.height(20);
+                    layout.justifyContent(AlignContent.CENTER);
+                    layout.alignItems(AlignItems.CENTER);
+                });
         if (!stack.isEmpty()) {
-            card.addChild(GachaViewSupport.icon(stack, 16));
+            iconRow.addChild(GachaViewSupport.icon(stack, 16));
         }
 
-        card.addChildren(
-                GachaViewSupport.centeredLabel(
-                        stack.isEmpty() ? Component.literal(itemId.toString()) : stack.getHoverName(),
-                        UIScreenTheme.OtherContent.CATALOG_TEXT_HEADING
-                ).textStyle(style -> style.textWrap(TextWrap.HIDE)),
-                GachaViewSupport.centeredLabel(Component.literal(itemId.toString()), UIScreenTheme.OtherContent.GUARANTEE_ID_TEXT)
-                        .textStyle(style -> style.textWrap(TextWrap.HIDE)),
-                GachaViewSupport.centeredLabel(Component.literal("6★"), UIScreenTheme.OtherContent.GACHA_SHOWCASE_SIX_TEXT)
+        var nameLabel = GachaViewSupport.centeredLabel(
+                stack.isEmpty() ? Component.literal(itemId.toString()) : stack.getHoverName(),
+                UIScreenTheme.OtherContent.CATALOG_TEXT_HEADING
         );
+        nameLabel.layout(layout -> {
+            layout.widthPercent(100);
+            layout.height(20);
+        });
+        nameLabel.textStyle(style -> style
+                .adaptiveWidth(false)
+                .adaptiveHeight(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.CENTER)
+        );
+
+        var idLabel = GachaViewSupport.centeredLabel(Component.literal(itemId.toString()), UIScreenTheme.OtherContent.GUARANTEE_ID_TEXT);
+        idLabel.layout(layout -> {
+            layout.widthPercent(100);
+            layout.height(16);
+        });
+        idLabel.textStyle(style -> style
+                .adaptiveWidth(false)
+                .adaptiveHeight(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.CENTER)
+        );
+
+        var rarityLabel = GachaViewSupport.centeredLabel(Component.literal("6★"), UIScreenTheme.OtherContent.GACHA_SHOWCASE_SIX_TEXT);
+        rarityLabel.layout(layout -> {
+            layout.widthPercent(100);
+            layout.height(12);
+        });
+        rarityLabel.textStyle(style -> style
+                .adaptiveWidth(false)
+                .adaptiveHeight(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.CENTER)
+        );
+
+        card.addChildren(iconRow, nameLabel, idLabel, rarityLabel);
         card.setOnClick(event -> {
             selectedItemId = itemId;
             rebuild();

@@ -156,6 +156,10 @@ final class GachaAppUiSupport {
         return (r << 16) | (g << 8) | b;
     }
 
+    static int withAlpha(int alpha, int rgb) {
+        return ((alpha & 0xFF) << 24) | (rgb & 0x00FFFFFF);
+    }
+
     static List<Item> uniqueRewardsByRarity(GachaService.BannerView banner, int rarity) {
         LinkedHashSet<Item> items = new LinkedHashSet<>();
         for (GachaService.RewardView reward : banner.rewards()) {
