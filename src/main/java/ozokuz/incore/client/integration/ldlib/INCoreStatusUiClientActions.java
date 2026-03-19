@@ -8,10 +8,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import ozokuz.incore.client.INCoreKeyMappings;
-import ozokuz.incore.client.features.battlepass.BattlePassScreen;
 import ozokuz.incore.client.features.research.ResearchTreeScreen;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import ozokuz.incore.features.market.network.MarketNetworking;
@@ -20,6 +20,9 @@ import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import ozokuz.incore.features.research.network.ResearchNetworking;
 import ozokuz.incore.features.shop.network.ShopNetworking;
+import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
+import ozokuz.incore.integration.ldlib.ui.RequestOpenIncoreUiPayload;
+import ozokuz.incore.integration.ldlib.ui.RequestPushIncoreUiPayload;
 import ozokuz.incore.integration.ldlib.ui.player.PlayerStatusRouteUiHolder;
 import ozokuz.incore.integration.ldlib.ui.player.PlayerStatusAction;
 
@@ -76,9 +79,7 @@ public final class INCoreStatusUiClientActions {
             }
             case BATTLE_PASS -> {
                 if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.BATTLEPASS_SCREEN)) {
-                    Screen parent = legacyReturnTarget();
-                    closePlayerStatusRouteIfOpen();
-                    openScreen(new BattlePassScreen(parent));
+                    openPlayerRoute(INCoreUiIds.BATTLE_PASS);
                 }
             }
             case MARKET -> {
@@ -165,6 +166,14 @@ public final class INCoreStatusUiClientActions {
                 && minecraft.player != null
                 && minecraft.player.containerMenu instanceof ModularUIContainerMenu menu
                 && menu.uiHolder instanceof PlayerStatusRouteUiHolder;
+    }
+
+    private static void openPlayerRoute(ResourceLocation routeId) {
+        if (isPlayerStatusRouteOpen()) {
+            PacketDistributor.sendToServer(new RequestPushIncoreUiPayload(routeId));
+            return;
+        }
+        PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(routeId));
     }
 
     private static void closePlayerStatusRouteIfOpen() {

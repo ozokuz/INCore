@@ -10,7 +10,6 @@ import ozokuz.incore.client.features.roguelike.RoguelikeMinimapHudFeature;
 import ozokuz.incore.client.features.party.PartyHudFeature;
 import ozokuz.incore.client.features.entropy.EntropyBarHudFeature;
 import ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
-import ozokuz.incore.client.features.battlepass.BattlePassScreen;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
 import ozokuz.incore.client.features.cards.CardDeckStationScreen;
 import ozokuz.incore.client.features.market.MarketAutoTraderScreen;
@@ -165,14 +164,15 @@ public class INCoreClient {
             }
         }
 
-        if (minecraft.screen != null) {
-            return;
+        while (INCoreKeyMappings.OPEN_BATTLE_PASS.consumeClick()) {
+            if ((minecraft.screen == null || isPlayerStatusRouteUiOpen(minecraft))
+                    && ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.BATTLEPASS_SCREEN)) {
+                PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(INCoreUiIds.BATTLE_PASS));
+            }
         }
 
-        while (INCoreKeyMappings.OPEN_BATTLE_PASS.consumeClick()) {
-            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.BATTLEPASS_SCREEN)) {
-                minecraft.setScreen(new BattlePassScreen(null));
-            }
+        if (minecraft.screen != null) {
+            return;
         }
 
         while (INCoreKeyMappings.OPEN_RESEARCH_TREE.consumeClick()) {
