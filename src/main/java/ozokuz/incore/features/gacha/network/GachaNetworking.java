@@ -13,8 +13,13 @@ public final class GachaNetworking {
 
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar("1");
+        registrar.playToServer(SelectGachaBannerPayload.TYPE, SelectGachaBannerPayload.STREAM_CODEC, SelectGachaBannerPayload::handle);
         registrar.playToServer(BuyGachaBannerPayload.TYPE, BuyGachaBannerPayload.STREAM_CODEC, BuyGachaBannerPayload::handle);
         registrar.playToServer(ClaimBasicGuaranteedSixPayload.TYPE, ClaimBasicGuaranteedSixPayload.STREAM_CODEC, ClaimBasicGuaranteedSixPayload::handle);
+    }
+
+    public static void sendBannerSelection(ResourceLocation bannerId) {
+        PacketDistributor.sendToServer(new SelectGachaBannerPayload(bannerId.toString()));
     }
 
     public static void sendBannerPurchase(ResourceLocation bannerId) {
