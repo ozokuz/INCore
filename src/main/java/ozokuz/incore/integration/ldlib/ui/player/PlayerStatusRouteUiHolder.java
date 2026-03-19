@@ -19,7 +19,9 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
             INCoreUiIds.TASK_OVERVIEW,
             INCoreUiIds.PARTY_MANAGEMENT,
             INCoreUiIds.COMBAT_CATALOG,
-            INCoreUiIds.GACHA_APP
+            INCoreUiIds.GACHA_APP,
+            INCoreUiIds.GACHA_INFO,
+            INCoreUiIds.GACHA_GUARANTEED_SELECTION
     );
     private volatile ResourceLocation currentRouteId = INCoreUiIds.PLAYER_STATUS;
 
@@ -37,7 +39,9 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
                 routeView(player, INCoreUiIds.TASK_OVERVIEW, TaskOverviewUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.PARTY_MANAGEMENT, PartyManagementUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.COMBAT_CATALOG, CombatCatalogUiHolder.createView(player)),
-                routeView(player, INCoreUiIds.GACHA_APP, GachaAppUiHolder.createView(player))
+                routeView(player, INCoreUiIds.GACHA_APP, GachaAppUiHolder.createView(player)),
+                routeView(player, INCoreUiIds.GACHA_INFO, GachaInfoUiHolder.createView(player)),
+                routeView(player, INCoreUiIds.GACHA_GUARANTEED_SELECTION, GachaGuaranteedSelectionUiHolder.createView(player))
         );
         return INCoreLdLibUiScaffold.build(player, root);
     }

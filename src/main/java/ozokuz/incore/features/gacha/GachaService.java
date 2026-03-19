@@ -47,8 +47,9 @@ public final class GachaService {
     }
 
     public static ScreenData buildScreenData(ServerPlayer player) {
-        resolveLastBanner(player, true);
+        GachaBannerData selectedBanner = resolveLastBanner(player, true);
         return new ScreenData(
+                selectedBanner == null ? "" : selectedBanner.id().toString(),
                 GachaBannerManager.visible().stream()
                         .sorted(
                                 Comparator.comparingInt((GachaBannerData banner) -> banner.bannerType() == BannerType.EVENT ? 0 : 1)
@@ -57,6 +58,15 @@ public final class GachaService {
                         .map(banner -> toBannerView(player, banner))
                         .toList()
         );
+    }
+
+    public static boolean selectBanner(ServerPlayer player, ResourceLocation bannerId) {
+        GachaBannerData banner = GachaBannerManager.get(bannerId);
+        if (banner == null || !GachaEventRotation.isCurrentlyVisible(banner)) {
+            return false;
+        }
+        GachaPityManager.setLastBanner(player, banner.id());
+        return true;
     }
 
     public static void acquireCrateForBanner(ServerPlayer player, ResourceLocation bannerId) {
@@ -638,7 +648,7 @@ public final class GachaService {
     public record HighRarityReward(ItemStack stack, int rarity) {
     }
 
-    public record ScreenData(List<BannerView> banners) {
+    public record ScreenData(String selectedBannerId, List<BannerView> banners) {
     }
 
     public record BannerView(

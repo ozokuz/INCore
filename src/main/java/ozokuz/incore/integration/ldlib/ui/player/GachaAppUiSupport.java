@@ -39,15 +39,15 @@ final class GachaAppUiSupport {
 
     static GachaService.ScreenData parseScreenData(@Nullable String json) {
         if (json == null || json.isBlank()) {
-            return new GachaService.ScreenData(List.of());
+            return new GachaService.ScreenData("", List.of());
         }
         try {
             GachaService.ScreenData parsed = GSON.fromJson(json, GachaService.ScreenData.class);
             return parsed == null || parsed.banners() == null
-                    ? new GachaService.ScreenData(List.of())
-                    : new GachaService.ScreenData(List.copyOf(parsed.banners()));
+                    ? new GachaService.ScreenData("", List.of())
+                    : new GachaService.ScreenData(parsed.selectedBannerId(), List.copyOf(parsed.banners()));
         } catch (Exception ignored) {
-            return new GachaService.ScreenData(List.of());
+            return new GachaService.ScreenData("", List.of());
         }
     }
 
@@ -57,9 +57,9 @@ final class GachaAppUiSupport {
 
     private static GachaService.ScreenData stableScreenData(@Nullable GachaService.ScreenData data) {
         if (data == null || data.banners() == null) {
-            return new GachaService.ScreenData(List.of());
+            return new GachaService.ScreenData("", List.of());
         }
-        return new GachaService.ScreenData(data.banners().stream()
+        return new GachaService.ScreenData(data.selectedBannerId(), data.banners().stream()
                 .map(GachaAppUiSupport::stableBannerView)
                 .toList());
     }
@@ -88,11 +88,14 @@ final class GachaAppUiSupport {
     }
 
     static @Nullable GachaService.BannerView findBanner(GachaService.ScreenData data, @Nullable String bannerId) {
-        if (bannerId == null || data == null || data.banners() == null) {
+        String effectiveBannerId = bannerId == null || bannerId.isBlank()
+                ? (data == null ? null : data.selectedBannerId())
+                : bannerId;
+        if (effectiveBannerId == null || effectiveBannerId.isBlank() || data == null || data.banners() == null) {
             return data == null || data.banners().isEmpty() ? null : data.banners().getFirst();
         }
         return data.banners().stream()
-                .filter(banner -> banner.id().equals(bannerId))
+                .filter(banner -> banner.id().equals(effectiveBannerId))
                 .findFirst()
                 .orElse(data.banners().isEmpty() ? null : data.banners().getFirst());
     }

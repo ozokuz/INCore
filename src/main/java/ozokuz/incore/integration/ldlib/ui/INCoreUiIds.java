@@ -17,6 +17,8 @@ public final class INCoreUiIds {
     public static final ResourceLocation MARKET_APP = id("market");
     public static final ResourceLocation SHOP_APP = id("shop");
     public static final ResourceLocation GACHA_APP = id("gacha");
+    public static final ResourceLocation GACHA_INFO = id("gacha_info");
+    public static final ResourceLocation GACHA_GUARANTEED_SELECTION = id("gacha_guaranteed_selection");
 
     public static final Set<ResourceLocation> ALL_PLAYER_UI_IDS = Set.of(
             PLAYER_STATUS,
@@ -30,7 +32,9 @@ public final class INCoreUiIds {
             CARD_PACK_OPENING,
             MARKET_APP,
             SHOP_APP,
-            GACHA_APP
+            GACHA_APP,
+            GACHA_INFO,
+            GACHA_GUARANTEED_SELECTION
     );
 
     private INCoreUiIds() {
