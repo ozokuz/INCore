@@ -2,6 +2,7 @@ package ozokuz.incore.integration.ldlib.ui.player;
 
 import com.lowdragmc.lowdraglib2.gui.sync.bindings.IBindable;
 import com.lowdragmc.lowdraglib2.gui.sync.bindings.impl.DataBindingBuilder;
+import com.lowdragmc.lowdraglib2.gui.sync.bindings.impl.SupplierDataSource;
 import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.RectTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
@@ -12,11 +13,11 @@ import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -86,12 +87,17 @@ final class GachaViewSupport {
         return label;
     }
 
-    static Label timerLabel(GachaService.BannerView banner, LongSupplier syncedAtMsSupplier, int color) {
+    static Label liveLabel(Supplier<Component> textSupplier, int color) {
         Label label = lineLabel(Component.empty(), color);
-        Runnable update = () -> label.setText(Component.literal(GachaAppUiSupport.renderRemainingLabel(banner, syncedAtMsSupplier.getAsLong())));
-        update.run();
-        label.addEventListener(UIEvents.TICK, event -> update.run());
+        label.bindDataSource(SupplierDataSource.of(textSupplier));
         return label;
+    }
+
+    static Label timerLabel(GachaService.BannerView banner, LongSupplier syncedAtMsSupplier, int color) {
+        return liveLabel(
+                () -> Component.literal(GachaAppUiSupport.renderRemainingLabel(banner, syncedAtMsSupplier.getAsLong())),
+                color
+        );
     }
 
     static Button footerButton(Component text, int width, boolean active) {

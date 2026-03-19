@@ -1,7 +1,10 @@
 package ozokuz.incore.integration.ldlib.ui.player;
 
 import com.lowdragmc.lowdraglib2.gui.sync.bindings.IBindable;
+import com.lowdragmc.lowdraglib2.gui.texture.RectTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
+import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
 import dev.vfyjxf.taffy.style.AlignContent;
@@ -60,8 +63,9 @@ final class GachaInfoScreenElement extends UIElement implements IBindable<String
 
         ScrollerView scroller = GachaViewSupport.scroller();
         if (banner != null) {
-            for (GachaService.RewardView reward : GachaAppUiSupport.rewardsForPage(banner, page)) {
-                scroller.addScrollViewChild(oddsRow(reward));
+            List<GachaService.RewardView> rewards = GachaAppUiSupport.rewardsForPage(banner, page);
+            for (int index = 0; index < rewards.size(); index++) {
+                scroller.addScrollViewChild(oddsRow(rewards.get(index), index));
             }
         }
 
@@ -129,7 +133,7 @@ final class GachaInfoScreenElement extends UIElement implements IBindable<String
         );
     }
 
-    private UIElement oddsRow(GachaService.RewardView reward) {
+    private UIElement oddsRow(GachaService.RewardView reward, int index) {
         UIElement row = new UIElement()
                 .layout(layout -> {
                     layout.widthPercent(100);
@@ -138,26 +142,51 @@ final class GachaInfoScreenElement extends UIElement implements IBindable<String
                     layout.alignItems(AlignItems.CENTER);
                     layout.paddingHorizontal(4);
                     layout.gapAll(6);
-                });
+                })
+                .style(style -> style.backgroundTexture(RectTexture.of((index & 1) == 0
+                        ? UIScreenTheme.OtherContent.INFO_ROW_FILL_A
+                        : UIScreenTheme.OtherContent.INFO_ROW_FILL_B)));
         ItemStack stack = GachaAppUiSupport.stackForId(reward.itemId());
         if (!stack.isEmpty()) {
             row.addChild(GachaViewSupport.icon(stack, 14));
         }
-        row.addChild(GachaViewSupport.lineLabel(
+        var nameLabel = GachaViewSupport.lineLabel(
                 stack.isEmpty() ? Component.literal(reward.itemId()) : stack.getHoverName(),
                 stack.isEmpty() ? UIScreenTheme.OtherContent.INFO_ITEM_MISSING_TEXT : UIScreenTheme.OtherContent.INFO_ITEM_TEXT
-        ).layout(layout -> {
+        );
+        nameLabel.layout(layout -> {
             layout.flex(1);
             layout.minWidth(0);
-        }));
-        row.addChild(GachaViewSupport.lineLabel(
+        });
+        nameLabel.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+        );
+        row.addChild(nameLabel);
+
+        var rarityLabel = GachaViewSupport.lineLabel(
                 Component.literal(reward.rarity() + "★"),
                 GachaAppUiSupport.rarityColor(reward.rarity())
-        ));
-        row.addChild(GachaViewSupport.lineLabel(
+        );
+        rarityLabel.layout(layout -> layout.width(34));
+        rarityLabel.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.RIGHT)
+        );
+        row.addChild(rarityLabel);
+
+        var chanceLabel = GachaViewSupport.lineLabel(
                 Component.literal(String.format(java.util.Locale.ROOT, "%.2f%%", reward.chancePercent())),
                 UIScreenTheme.OtherContent.INFO_CHANCE_TEXT
-        ));
+        );
+        chanceLabel.layout(layout -> layout.width(48));
+        chanceLabel.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.RIGHT)
+        );
+        row.addChild(chanceLabel);
         return row;
     }
 

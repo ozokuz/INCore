@@ -7,11 +7,14 @@ import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
+import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
 import dev.vfyjxf.taffy.style.FlexWrap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -28,9 +31,13 @@ import ozokuz.incore.integration.ldlib.ui.RequestPushIncoreUiPayload;
 import ozokuz.incore.integration.ldlib.ui.texture.BeveledRectTexture;
 
 final class GachaBannerScreenElement extends UIElement implements IBindable<String> {
+    private static final int PULL_BUTTON_WIDTH = 78;
+
     private String currentJson = "";
     private GachaService.ScreenData data = new GachaService.ScreenData("", List.of());
     private long syncedAtMs = System.currentTimeMillis();
+    private final Map<String, Label> sidebarTimerLabels = new HashMap<>();
+    private @Nullable Label detailTimeLabel;
 
     GachaBannerScreenElement() {
         layout(layout -> {
@@ -38,6 +45,7 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
             layout.heightPercent(100);
         });
         internalSetup();
+        addEventListener(UIEvents.TICK, event -> refreshCountdownLabels());
         rebuild();
     }
 
@@ -63,6 +71,8 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
 
     private void rebuild() {
         clearAllChildren();
+        sidebarTimerLabels.clear();
+        detailTimeLabel = null;
         addChild(
                 new UIElement()
                         .layout(layout -> {
@@ -105,7 +115,6 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
                     layout.gapAll(4);
                 })
                 .addChildren(
-                        GachaViewSupport.lineLabel(Component.translatable("screen.incore.gacha_banners.sidebar"), UIScreenTheme.OtherContent.GACHA_SIDEBAR_LABEL_TEXT),
                         GachaViewSupport.panel(scroller)
                 );
     }
@@ -115,10 +124,11 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
         Button button = GachaViewSupport.rowButton(Component.empty(), GachaAppUiSupport.BANNER_ROW_HEIGHT, selected
                 ? UIScreenTheme.OtherContent.CATALOG_ROW_SELECTED_FILL
                 : UIScreenTheme.OtherContent.CATALOG_ROW_FILL);
-        int borderColor = selected
+        int baseBorderRgb = selected
                 ? GachaAppUiSupport.brightenColor(banner.sidebarColor(), 0.22F)
                 : banner.sidebarColor();
-        int hoverBorderColor = GachaAppUiSupport.brightenColor(borderColor, 0.16F);
+        int borderColor = GachaAppUiSupport.withAlpha(0xFF, baseBorderRgb);
+        int hoverBorderColor = GachaAppUiSupport.withAlpha(0xFF, GachaAppUiSupport.brightenColor(baseBorderRgb, 0.16F));
         int fillColor = selected
                 ? UIScreenTheme.OtherContent.CATALOG_ROW_SELECTED_FILL
                 : UIScreenTheme.OtherContent.CATALOG_ROW_FILL;
@@ -149,13 +159,23 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
                 : UIScreenTheme.OtherContent.GACHA_TEXT_PRIMARY);
         nameLabel.textStyle(style -> style.textWrap(TextWrap.HIDE));
 
-        Label secondaryLabel = banner.locked()
-                ? GachaViewSupport.lineLabel(
-                        Component.translatable("screen.incore.gacha_banners.locked", banner.requiredLevel()),
-                        UIScreenTheme.OtherContent.GACHA_ERROR_TEXT
-                )
-                : GachaViewSupport.timerLabel(banner, () -> syncedAtMs, UIScreenTheme.OtherContent.GACHA_TEXT_SECONDARY);
-        secondaryLabel.textStyle(style -> style.textWrap(TextWrap.HIDE));
+        UIElement secondaryLabel;
+        if (banner.locked()) {
+            Label lockedLabel = GachaViewSupport.lineLabel(
+                    Component.translatable("screen.incore.gacha_banners.locked", banner.requiredLevel()),
+                    UIScreenTheme.OtherContent.GACHA_ERROR_TEXT
+            );
+            lockedLabel.textStyle(style -> style.textWrap(TextWrap.HIDE));
+            secondaryLabel = lockedLabel;
+        } else {
+            Label timerLabel = GachaViewSupport.lineLabel(
+                    Component.literal(GachaAppUiSupport.renderRemainingLabel(banner, syncedAtMs)),
+                    UIScreenTheme.OtherContent.GACHA_TEXT_SECONDARY
+            );
+            timerLabel.textStyle(style -> style.textWrap(TextWrap.HIDE));
+            sidebarTimerLabels.put(banner.id(), timerLabel);
+            secondaryLabel = timerLabel;
+        }
         textColumn.addChildren(nameLabel, secondaryLabel);
         button.addChild(textColumn);
 
@@ -178,6 +198,8 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
         UIElement content = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.heightPercent(100);
+            layout.minWidth(0);
+            layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.paddingAll(10);
             layout.gapAll(6);
@@ -188,8 +210,21 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
                     GachaViewSupport.lineLabel(Component.translatable("incore.gacha.banner.none_configured"), UIScreenTheme.OtherContent.GACHA_ERROR_TEXT),
                     INCoreLdLibUiScaffold.spacer()
             );
-            return GachaViewSupport.panel(content);
+            return GachaViewSupport.panel(content).layout(layout -> {
+                layout.flex(1);
+                layout.widthAuto();
+                layout.minWidth(0);
+                layout.heightPercent(100);
+            });
         }
+
+        detailTimeLabel = GachaViewSupport.lineLabel(
+                Component.translatable(
+                        "screen.incore.gacha_banners.time_left",
+                        GachaAppUiSupport.renderRemainingLabel(banner, syncedAtMs)
+                ),
+                UIScreenTheme.OtherContent.GACHA_SIDEBAR_LABEL_TEXT
+        );
 
         content.addChildren(
                 GachaViewSupport.lineLabel(Component.literal(banner.name()), UIScreenTheme.OtherContent.GACHA_TEXT_PRIMARY),
@@ -204,20 +239,16 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
                         UIScreenTheme.OtherContent.GACHA_SIDEBAR_LABEL_TEXT
                 ),
                 pityDetailLabel(banner),
-                GachaViewSupport.lineLabel(
-                        Component.translatable("screen.incore.gacha_banners.time_left", GachaAppUiSupport.renderRemainingLabel(banner, syncedAtMs)),
-                        UIScreenTheme.OtherContent.GACHA_SIDEBAR_LABEL_TEXT
-                ).addEventListener(com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents.TICK, event -> {
-                    ((Label) event.currentElement).setText(Component.translatable(
-                            "screen.incore.gacha_banners.time_left",
-                            GachaAppUiSupport.renderRemainingLabel(banner, syncedAtMs)
-                    ));
-                }),
-                showcaseArea(banner),
-                INCoreLdLibUiScaffold.spacer()
+                detailTimeLabel,
+                showcaseArea(banner)
         );
 
-        return GachaViewSupport.panel(content);
+        return GachaViewSupport.panel(content).layout(layout -> {
+            layout.flex(1);
+            layout.widthAuto();
+            layout.minWidth(0);
+            layout.heightPercent(100);
+        });
     }
 
     private Label pityDetailLabel(GachaService.BannerView banner) {
@@ -241,8 +272,12 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
 
     private UIElement showcaseArea(GachaService.BannerView banner) {
         UIElement area = new UIElement().layout(layout -> {
+            layout.flex(1);
             layout.widthPercent(100);
+            layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
+            layout.justifyContent(AlignContent.CENTER);
+            layout.alignItems(AlignItems.CENTER);
             layout.gapAll(6);
         });
         area.addChild(GachaViewSupport.centeredLabel(
@@ -276,11 +311,23 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
     }
 
     private UIElement iconGrid(List<Item> items, int maxPerRow, int iconSize) {
+        int visibleItemCount = 0;
+        for (Item item : items) {
+            if (visibleItemCount >= maxPerRow * 3) {
+                break;
+            }
+            if (item != Items.AIR) {
+                visibleItemCount++;
+            }
+        }
+        int columns = Math.min(visibleItemCount, maxPerRow);
+        int gridWidth = columns == 0 ? 0 : columns * iconSize + (columns - 1) * 6;
         UIElement grid = new UIElement().layout(layout -> {
-            layout.widthPercent(100);
+            layout.width(gridWidth);
             layout.flexDirection(FlexDirection.ROW);
             layout.flexWrap(FlexWrap.WRAP);
             layout.justifyContent(AlignContent.CENTER);
+            layout.alignItems(AlignItems.CENTER);
             layout.gapAll(6);
         });
         int count = 0;
@@ -298,6 +345,10 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
 
     private UIElement footerRow() {
         GachaService.BannerView banner = selectedBanner();
+        boolean canOpenSelector = banner != null
+                && banner.basicGuaranteeBlocked()
+                && !banner.locked()
+                && !banner.basicSelectableSixItems().isEmpty();
         UIElement actionRow = new UIElement().layout(layout -> {
             layout.flexDirection(FlexDirection.ROW);
             layout.justifyContent(AlignContent.FLEX_END);
@@ -308,8 +359,9 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
         Button selectorButton = GachaViewSupport.footerButton(
                 Component.translatable("screen.incore.gacha_banners.open_guaranteed_six_selector"),
                 136,
-                banner != null && banner.basicGuaranteeBlocked() && !banner.locked() && !banner.basicSelectableSixItems().isEmpty()
+                canOpenSelector
         );
+        selectorButton.setDisplay(canOpenSelector);
         selectorButton.setOnClick(event -> net.neoforged.neoforge.network.PacketDistributor.sendToServer(
                 new RequestPushIncoreUiPayload(INCoreUiIds.GACHA_GUARANTEED_SELECTION)
         ));
@@ -321,7 +373,7 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
 
         Button pullButton = GachaViewSupport.footerButton(
                 Component.translatable("screen.incore.gacha_banners.pull_x10"),
-                78,
+                PULL_BUTTON_WIDTH,
                 banner != null && !banner.locked() && !banner.basicGuaranteeBlocked()
         );
         pullButton.setOnClick(event -> {
@@ -341,7 +393,7 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
             layout.alignItems(AlignItems.FLEX_END);
             layout.gapAll(0);
         });
-        if (banner != null && !banner.permitUsage().isEmpty() && !banner.basicGuaranteeBlocked()) {
+        if (banner != null) {
             actionColumn.addChild(permitUsagePanel(banner));
         }
         actionColumn.addChild(actionRow);
@@ -363,30 +415,38 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
     private UIElement permitUsagePanel(GachaService.BannerView banner) {
         UIElement panel = new UIElement()
                 .layout(layout -> {
-                    layout.flexDirection(FlexDirection.COLUMN);
-                    layout.alignItems(AlignItems.FLEX_END);
+                    layout.width(PULL_BUTTON_WIDTH);
+                    layout.flexDirection(FlexDirection.ROW);
+                    layout.flexWrap(FlexWrap.WRAP);
+                    layout.justifyContent(AlignContent.CENTER);
+                    layout.alignItems(AlignItems.CENTER);
                     layout.paddingTop(4);
-                    layout.paddingRight(6);
+                    layout.paddingRight(4);
                     layout.paddingBottom(4);
-                    layout.paddingLeft(6);
-                    layout.gapAll(2);
+                    layout.paddingLeft(4);
+                    layout.gapAll(4);
                 })
                 .style(style -> style.backgroundTexture(RectTexture.of(UIScreenTheme.OtherContent.GACHA_BALANCE_PANEL_FILL)));
         for (GachaService.PermitUsageLineView line : banner.permitUsage()) {
             ItemStack stack = GachaAppUiSupport.stackForId(line.itemId());
             UIElement row = new UIElement().layout(layout -> {
+                layout.height(12);
                 layout.flexDirection(FlexDirection.ROW);
                 layout.alignItems(AlignItems.CENTER);
-                layout.justifyContent(AlignContent.FLEX_END);
-                layout.gapAll(4);
+                layout.justifyContent(AlignContent.CENTER);
+                layout.gapAll(3);
             });
             if (!stack.isEmpty()) {
                 row.addChild(GachaViewSupport.icon(stack, 12));
             }
-            row.addChild(GachaViewSupport.lineLabel(
+            Label countLabel = TaskOverviewUiSupport.lineLabel(
                     Component.literal("x" + line.count()),
                     line.missing() ? UIScreenTheme.OtherContent.GACHA_COST_MISSING_TEXT : UIScreenTheme.OtherContent.GACHA_COST_OK_TEXT
+            );
+            countLabel.textStyle(style -> style.textColor(
+                    line.missing() ? UIScreenTheme.OtherContent.GACHA_COST_MISSING_TEXT : UIScreenTheme.OtherContent.GACHA_COST_OK_TEXT
             ));
+            row.addChild(countLabel);
             panel.addChild(row);
         }
         return panel;
@@ -394,5 +454,29 @@ final class GachaBannerScreenElement extends UIElement implements IBindable<Stri
 
     private @Nullable GachaService.BannerView selectedBanner() {
         return GachaAppUiSupport.findBanner(data, null);
+    }
+
+    private void refreshCountdownLabels() {
+        if (data.banners().isEmpty()) {
+            return;
+        }
+
+        for (GachaService.BannerView banner : data.banners()) {
+            if (banner.locked()) {
+                continue;
+            }
+            Label timerLabel = sidebarTimerLabels.get(banner.id());
+            if (timerLabel != null) {
+                timerLabel.setText(Component.literal(GachaAppUiSupport.renderRemainingLabel(banner, syncedAtMs)));
+            }
+        }
+
+        GachaService.BannerView selectedBanner = selectedBanner();
+        if (detailTimeLabel != null && selectedBanner != null) {
+            detailTimeLabel.setText(Component.translatable(
+                    "screen.incore.gacha_banners.time_left",
+                    GachaAppUiSupport.renderRemainingLabel(selectedBanner, syncedAtMs)
+            ));
+        }
     }
 }
