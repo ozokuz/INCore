@@ -24,6 +24,7 @@ public final class INCorePlayerUiRegistry {
         register(INCoreUiIds.BATTLE_PASS, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.PARTY_MANAGEMENT, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.COMBAT_CATALOG, ignored -> new PlayerStatusRouteUiHolder());
+        register(INCoreUiIds.SHOP_APP, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.GACHA_APP, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.GACHA_INFO, ignored -> new PlayerStatusRouteUiHolder());
         register(INCoreUiIds.GACHA_GUARANTEED_SELECTION, ignored -> new PlayerStatusRouteUiHolder());

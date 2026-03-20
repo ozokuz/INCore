@@ -103,7 +103,7 @@ public final class ShopCommands {
     private static int sync(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         for (ServerPlayer target : targets) {
-            ShopService.openShopScreen(target);
+            ShopService.openShopApp(target);
         }
 
         context.getSource().sendSuccess(
@@ -122,7 +122,7 @@ public final class ShopCommands {
             if (ShopService.setPlayerCategoryLock(target, categoryId, locked)) {
                 changed++;
             }
-            ShopService.openShopScreen(target, categoryId, null);
+            ShopService.openShopApp(target, categoryId, null);
         }
 
         String action = locked ? "Locked" : "Unlocked";
@@ -143,7 +143,7 @@ public final class ShopCommands {
             if (ShopService.setPlayerOfferLock(target, offerId, locked)) {
                 changed++;
             }
-            ShopService.openShopScreen(target, null, offerId);
+            ShopService.openShopApp(target, null, offerId);
         }
 
         String action = locked ? "Locked" : "Unlocked";

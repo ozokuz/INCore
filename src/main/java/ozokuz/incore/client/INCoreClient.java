@@ -36,7 +36,6 @@ import ozokuz.incore.client.features.research.ResearchTreeScreen;
 import ozokuz.incore.client.features.research.TranslatorScreen;
 import ozokuz.incore.client.features.research.WirelessLinkScreen;
 import ozokuz.incore.features.research.network.ResearchNetworking;
-import ozokuz.incore.features.shop.network.ShopNetworking;
 import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
 import ozokuz.incore.integration.ldlib.ui.RequestOpenIncoreUiPayload;
 import net.minecraft.client.Minecraft;
@@ -171,6 +170,13 @@ public class INCoreClient {
             }
         }
 
+        while (INCoreKeyMappings.OPEN_SHOP.consumeClick()) {
+            if ((minecraft.screen == null || isPlayerStatusRouteUiOpen(minecraft))
+                    && ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.SHOP_SCREEN)) {
+                PacketDistributor.sendToServer(new RequestOpenIncoreUiPayload(INCoreUiIds.SHOP_APP));
+            }
+        }
+
         if (minecraft.screen != null) {
             return;
         }
@@ -189,12 +195,6 @@ public class INCoreClient {
                 MarketNetworking.requestOpenMarketScreen();
             }
         }
-
-        while (INCoreKeyMappings.OPEN_SHOP.consumeClick()) {
-            if (ensureFeatureUnlocked(minecraft, PlayerFeatureUnlockIds.SHOP_SCREEN)) {
-                ShopNetworking.requestOpenShopScreen();
-            }
-        }
     }
 
     private void onScreenKeyPressed(ScreenEvent.KeyPressed.Pre event) {
@@ -206,7 +206,11 @@ public class INCoreClient {
         if (!(event.getScreen() instanceof ModularUIContainerScreen screen)) {
             return;
         }
-        if (!(screen.getMenu().uiHolder instanceof PlayerStatusRouteUiHolder)) {
+        if (!(screen.getMenu().uiHolder instanceof PlayerStatusRouteUiHolder routeHolder)) {
+            return;
+        }
+        if (routeHolder.consumeCurrentRouteEscape()) {
+            event.setCanceled(true);
             return;
         }
         event.setCanceled(true);
