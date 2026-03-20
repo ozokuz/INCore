@@ -19,7 +19,6 @@ import ozokuz.incore.features.numismatics.network.NumismaticsNetworking;
 import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import ozokuz.incore.features.playerlevel.network.PlayerLevelClientCache;
 import ozokuz.incore.features.research.network.ResearchNetworking;
-import ozokuz.incore.features.shop.network.ShopNetworking;
 import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
 import ozokuz.incore.integration.ldlib.ui.RequestOpenIncoreUiPayload;
 import ozokuz.incore.integration.ldlib.ui.RequestPushIncoreUiPayload;
@@ -92,10 +91,7 @@ public final class INCoreStatusUiClientActions {
             }
             case SHOP -> {
                 if (ensureFeatureUnlocked(PlayerFeatureUnlockIds.SHOP_SCREEN)) {
-                    Screen parent = legacyReturnTarget();
-                    closePlayerStatusRouteIfOpen();
-                    prepareParent(parent);
-                    ShopNetworking.requestOpenShopScreen();
+                    openPlayerRoute(INCoreUiIds.SHOP_APP);
                 }
             }
             case FTB_TEAMS -> {

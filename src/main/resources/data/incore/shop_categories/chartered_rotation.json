@@ -1,5 +1,6 @@
 {
   "display_name": "Chartered Rotation",
+  "tab": "rotations",
   "sort_order": 30,
   "enabled": true,
   "stock_mode": "category_bucket",

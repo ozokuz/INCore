@@ -1,5 +1,6 @@
 package ozokuz.incore.features.shop;
 
+import com.google.gson.Gson;
 import dev.ithundxr.createnumismatics.Numismatics;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
 import ozokuz.incore.features.gacha.GachaEventRotation;
@@ -7,8 +8,11 @@ import ozokuz.incore.features.market.MarketBanking;
 import ozokuz.incore.features.market.MarketTime;
 import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
 import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
-import ozokuz.incore.features.shop.network.ShopNetworking;
 import ozokuz.incore.features.tasks.DailyTaskEvents;
+import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
+import ozokuz.incore.integration.ldlib.ui.INCoreUiRouteContext;
+import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
+import ozokuz.incore.integration.ldlib.ui.ShopUiRouteContext;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -24,22 +28,30 @@ import java.util.Comparator;
 import java.util.List;
 
 public final class ShopService {
+    private static final Gson GSON = new Gson();
+
     private ShopService() {
     }
 
-    public static void openShopScreen(ServerPlayer player) {
-        openShopScreen(player, null, null);
+    public static void openShopApp(ServerPlayer player) {
+        openShopApp(player, null, null);
     }
 
-    public static void openShopScreen(
+    public static void openShopApp(
             ServerPlayer player,
             @Nullable ResourceLocation selectedCategoryId,
             @Nullable ResourceLocation selectedOfferId
     ) {
-        if (player.getServer() == null) {
-            return;
-        }
-        ShopNetworking.openShopScreen(player, buildScreenData(player, selectedCategoryId, selectedOfferId));
+        INCorePlayerUiNavigator.openRoot(
+                player,
+                INCoreUiIds.SHOP_APP,
+                new ShopUiRouteContext(selectedCategoryId, selectedOfferId)
+        );
+    }
+
+    public static String buildScreenJson(ServerPlayer player) {
+        RequestedSelection selection = requestedSelection(player, null, null);
+        return GSON.toJson(buildScreenData(player, selection.categoryId(), selection.offerId()));
     }
 
     public static ScreenData buildScreenData(
@@ -66,6 +78,7 @@ public final class ShopService {
             categories.add(new CategoryView(
                     category.id().toString(),
                     category.displayName(),
+                    category.tab().serialized(),
                     category.sortOrder(),
                     category.stockMode().serialized(),
                     category.replenishMode().serialized(),
@@ -227,6 +240,32 @@ public final class ShopService {
 
     public static int globalLockedOfferCount(MinecraftServer server) {
         return ShopSavedData.get(server).globalLockedOffers().size();
+    }
+
+    static RequestedSelection requestedSelection(
+            ServerPlayer player,
+            @Nullable ResourceLocation requestedCategoryId,
+            @Nullable ResourceLocation requestedOfferId
+    ) {
+        INCoreUiRouteContext context = INCorePlayerUiNavigator.current(player)
+                .filter(entry -> INCoreUiIds.SHOP_APP.equals(entry.routeId()))
+                .map(entry -> entry.context())
+                .orElse(INCoreUiRouteContext.Empty.INSTANCE);
+        return requestedSelectionForContext(requestedCategoryId, requestedOfferId, context);
+    }
+
+    static RequestedSelection requestedSelectionForContext(
+            @Nullable ResourceLocation requestedCategoryId,
+            @Nullable ResourceLocation requestedOfferId,
+            INCoreUiRouteContext context
+    ) {
+        if (requestedCategoryId != null || requestedOfferId != null) {
+            return new RequestedSelection(requestedCategoryId, requestedOfferId);
+        }
+        if (context instanceof ShopUiRouteContext shopContext) {
+            return new RequestedSelection(shopContext.selectedCategoryId(), shopContext.selectedOfferId());
+        }
+        return new RequestedSelection(null, null);
     }
 
     private static String resolveSelectedCategory(
@@ -507,6 +546,7 @@ public final class ShopService {
     public record CategoryView(
             String categoryId,
             String displayName,
+            String tabId,
             int sortOrder,
             String stockMode,
             String replenishMode,
@@ -525,6 +565,12 @@ public final class ShopService {
             int itemCount,
             int availableStock,
             boolean locked
+    ) {
+    }
+
+    record RequestedSelection(
+            @Nullable ResourceLocation categoryId,
+            @Nullable ResourceLocation offerId
     ) {
     }
 }

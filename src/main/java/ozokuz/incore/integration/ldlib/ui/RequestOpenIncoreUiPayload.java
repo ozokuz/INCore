@@ -1,7 +1,6 @@
 package ozokuz.incore.integration.ldlib.ui;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -27,8 +26,11 @@ public record RequestOpenIncoreUiPayload(ResourceLocation routeId) implements Cu
             if (!(context.player() instanceof ServerPlayer player) || !INCoreUiIds.isKnownPlayerUi(payload.routeId())) {
                 return;
             }
+            if (!INCoreUiRouteAccess.canOpen(player, payload.routeId())) {
+                return;
+            }
             if (!INCorePlayerUiNavigator.openRoot(player, payload.routeId())) {
-                player.sendSystemMessage(Component.literal("UI route is not available yet: " + payload.routeId()));
+                player.sendSystemMessage(INCoreUiRouteAccess.unavailableMessage(payload.routeId()));
             }
         });
     }

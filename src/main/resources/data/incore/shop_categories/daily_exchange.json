@@ -1,5 +1,6 @@
 {
   "display_name": "Daily Exchange",
+  "tab": "rotations",
   "sort_order": 20,
   "enabled": true,
   "stock_mode": "per_item",

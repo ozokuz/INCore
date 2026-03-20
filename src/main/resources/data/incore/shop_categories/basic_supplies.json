@@ -1,5 +1,6 @@
 {
   "display_name": "Basic Supplies",
+  "tab": "supplies",
   "sort_order": 10,
   "enabled": true,
   "stock_mode": "none",

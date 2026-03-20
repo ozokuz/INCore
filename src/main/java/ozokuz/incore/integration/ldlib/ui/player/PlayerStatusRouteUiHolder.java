@@ -4,9 +4,13 @@ import com.lowdragmc.lowdraglib2.gui.factory.PlayerUIMenuType;
 import com.lowdragmc.lowdraglib2.gui.sync.bindings.impl.DataBindingBuilder;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import ozokuz.incore.features.shop.ShopService;
 import ozokuz.incore.integration.ldlib.ui.INCoreLdLibUiScaffold;
 import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
 import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
@@ -20,11 +24,14 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
             INCoreUiIds.BATTLE_PASS,
             INCoreUiIds.PARTY_MANAGEMENT,
             INCoreUiIds.COMBAT_CATALOG,
+            INCoreUiIds.SHOP_APP,
             INCoreUiIds.GACHA_APP,
             INCoreUiIds.GACHA_INFO,
             INCoreUiIds.GACHA_GUARANTEED_SELECTION
     );
     private volatile ResourceLocation currentRouteId = INCoreUiIds.PLAYER_STATUS;
+    private final Map<ResourceLocation, PlayerStatusRouteEscapeHandler> escapeHandlers = new HashMap<>();
+    private final ShopAppUiElement shopView = new ShopAppUiElement();
 
     @Override
     public ModularUI createUI(Player player) {
@@ -41,6 +48,7 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
                 routeView(player, INCoreUiIds.BATTLE_PASS, BattlePassUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.PARTY_MANAGEMENT, PartyManagementUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.COMBAT_CATALOG, CombatCatalogUiHolder.createView(player)),
+                routeView(player, INCoreUiIds.SHOP_APP, bindShopView(player)),
                 routeView(player, INCoreUiIds.GACHA_APP, GachaAppUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.GACHA_INFO, GachaInfoUiHolder.createView(player)),
                 routeView(player, INCoreUiIds.GACHA_GUARANTEED_SELECTION, GachaGuaranteedSelectionUiHolder.createView(player))
@@ -56,15 +64,28 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
         return !INCoreUiIds.PLAYER_STATUS.equals(currentRouteId);
     }
 
+    public boolean consumeCurrentRouteEscape() {
+        PlayerStatusRouteEscapeHandler escapeHandler = escapeHandlers.get(currentRouteId);
+        return escapeHandler != null && escapeHandler.consumeEscape();
+    }
+
     void updateCurrentRoute(String routeKey) {
         ResourceLocation routeId = ResourceLocation.tryParse(routeKey);
         currentRouteId = routeId == null ? INCoreUiIds.PLAYER_STATUS : routeId;
     }
 
     private UIElement routeView(Player player, ResourceLocation routeId, UIElement view) {
+        if (view instanceof PlayerStatusRouteEscapeHandler escapeHandler) {
+            escapeHandlers.put(routeId, escapeHandler);
+        }
         PlayerStatusRouteVisibilityElement wrapper = new PlayerStatusRouteVisibilityElement(this, routeId, view);
         wrapper.bind(DataBindingBuilder.stringS2C(() -> currentRouteKey(player)).build());
         return wrapper;
+    }
+
+    private ShopAppUiElement bindShopView(Player player) {
+        shopView.bind(DataBindingBuilder.stringS2C(() -> player instanceof ServerPlayer serverPlayer ? ShopService.buildScreenJson(serverPlayer) : "").build());
+        return shopView;
     }
 
     private static String currentRouteKey(Player player) {
