@@ -157,6 +157,7 @@ final class BattlePassScreenElement extends UIElement {
             style.adaptiveWidth(false);
             style.textWrap(TextWrap.HIDE);
             style.textAlignHorizontal(Horizontal.CENTER);
+            style.textShadow(false);
         });
         return button;
     }
@@ -182,6 +183,7 @@ final class BattlePassScreenElement extends UIElement {
                 .adaptiveWidth(false)
                 .textWrap(TextWrap.HIDE)
                 .textAlignHorizontal(Horizontal.CENTER)
+                .textShadow(false)
                 .textColor(UIScreenTheme.BattlepassTasks.TEXT_PRIMARY)
         );
         closeButton.setOnClick(event -> PacketDistributor.sendToServer(RequestBackIncoreUiPayload.INSTANCE));
@@ -200,6 +202,7 @@ final class BattlePassScreenElement extends UIElement {
                 .adaptiveWidth(false)
                 .textWrap(TextWrap.HIDE)
                 .textAlignHorizontal(Horizontal.CENTER)
+                .textShadow(false)
                 .textColor(UIScreenTheme.BattlepassTasks.TEXT_PRIMARY)
         );
         this.claimAllButton.setOnClick(event -> BattlePassNetworking.requestClaimAllRewards());
@@ -234,10 +237,11 @@ final class BattlePassScreenElement extends UIElement {
                         .pressedTexture(TAB_HOVER_TEXTURE);
             }
         });
-        button.textStyle(style -> {
+        button.text.textStyle(style -> {
             style.adaptiveWidth(false);
             style.textWrap(TextWrap.HIDE);
             style.textAlignHorizontal(Horizontal.CENTER);
+            style.textShadow(false);
             style.textColor(selected
                     ? UIScreenTheme.BattlepassTasks.TAB_TEXT_SELECTED
                     : UIScreenTheme.BattlepassTasks.TAB_TEXT_DEFAULT);
