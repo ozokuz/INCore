@@ -183,6 +183,62 @@ final class ShopAppUiSupport {
         };
     }
 
+    static LayoutStyle layoutStyleFor(ShopTabId tabId) {
+        return switch (tabId) {
+            case SUPPLIES -> LayoutStyle.INDUSTRIAL;
+            case ROTATIONS -> LayoutStyle.LUXURY;
+            case CACHES -> LayoutStyle.ARCADE;
+        };
+    }
+
+    static int visibleOfferRowsFor(ShopTabId tabId) {
+        return switch (layoutStyleFor(tabId)) {
+            case INDUSTRIAL -> 8;
+            case LUXURY -> 7;
+            case ARCADE -> 6;
+        };
+    }
+
+    static Component subtitleFor(ShopTabId tabId) {
+        return switch (layoutStyleFor(tabId)) {
+            case INDUSTRIAL -> Component.translatable("screen.incore.shop.style.industrial.subtitle");
+            case LUXURY -> Component.translatable("screen.incore.shop.style.luxury.subtitle");
+            case ARCADE -> Component.translatable("screen.incore.shop.style.arcade.subtitle");
+        };
+    }
+
+    static Component sidebarSubtitleFor(ShopTabId tabId) {
+        return switch (layoutStyleFor(tabId)) {
+            case INDUSTRIAL -> Component.translatable("screen.incore.shop.style.industrial.sidebar");
+            case LUXURY -> Component.translatable("screen.incore.shop.style.luxury.sidebar");
+            case ARCADE -> Component.translatable("screen.incore.shop.style.arcade.sidebar");
+        };
+    }
+
+    static Component offersSubtitleFor(ShopTabId tabId, String stockText) {
+        return switch (layoutStyleFor(tabId)) {
+            case INDUSTRIAL -> Component.literal(stockText);
+            case LUXURY -> Component.translatable("screen.incore.shop.style.luxury.offers", stockText);
+            case ARCADE -> Component.translatable("screen.incore.shop.style.arcade.offers", stockText);
+        };
+    }
+
+    static int offerCardHeight(ShopTabId tabId) {
+        return switch (layoutStyleFor(tabId)) {
+            case INDUSTRIAL -> 44;
+            case LUXURY -> 54;
+            case ARCADE -> 50;
+        };
+    }
+
+    static int offerIconSize(ShopTabId tabId) {
+        return switch (layoutStyleFor(tabId)) {
+            case INDUSTRIAL -> 16;
+            case LUXURY -> 20;
+            case ARCADE -> 18;
+        };
+    }
+
     static Button actionButton(Component text, TabTheme theme, int height) {
         Button button = new Button().setText(text);
         button.layout(layout -> {
@@ -206,10 +262,10 @@ final class ShopAppUiSupport {
     }
 
     static Button chipButton(Component text, TabTheme theme, boolean active) {
-        Button button = actionButton(text, theme, 24);
+        Button button = actionButton(text, theme, 20);
         button.layout(layout -> {
-            layout.minWidth(108);
-            layout.paddingHorizontal(8);
+            layout.minWidth(88);
+            layout.paddingHorizontal(6);
         });
         if (active) {
             button.buttonStyle(style -> style
@@ -217,16 +273,52 @@ final class ShopAppUiSupport {
                     .hoverTexture(buttonTexture(theme.accent(), theme.primaryText(), theme.priceText(), 1))
                     .pressedTexture(buttonTexture(theme.accent(), theme.primaryText(), theme.priceText(), 1))
             );
-            button.text.textStyle(style -> style.textColor(0xFF111111));
+            button.text.textStyle(style -> style.textColor(0xFFFFFFFF));
         }
         return button;
+    }
+
+    static Button tabButton(Component text, TabTheme theme, boolean active) {
+        Button button = new Button().setText(text);
+        button.layout(layout -> {
+            layout.height(active ? 24 : 20);
+            layout.minWidth(104);
+            layout.paddingHorizontal(10);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+        });
+        button.text.getLayout().flex(1);
+        button.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.CENTER)
+                .textColor(active ? 0xFFFFFFFF : theme.secondaryText())
+        );
+        if (active) {
+            button.buttonStyle(style -> style
+                    .baseTexture(tabTexture(theme.panelFill(), theme.panelBorder()))
+                    .hoverTexture(tabTexture(theme.panelFill(), theme.panelBorder()))
+                    .pressedTexture(tabTexture(theme.panelEdge(), theme.panelEdge()))
+            );
+        } else {
+            button.buttonStyle(style -> style
+                    .baseTexture(tabTexture(theme.panelEdge(), theme.panelBorder()))
+                    .hoverTexture(tabTexture(theme.panelBorder(), theme.panelEdge()))
+                    .pressedTexture(tabTexture(theme.panelEdge(), theme.panelEdge()))
+            );
+        }
+        return button;
+    }
+
+    private static IGuiTexture tabTexture(int fill, int border) {
+        return new BeveledRectTexture(fill, border, 0, 0, 1, 0);
     }
 
     static UIElement surface(TabTheme theme, int padding, int radius) {
         UIElement element = new UIElement();
         element.layout(layout -> {
             layout.widthPercent(100);
-            layout.gapAll(8);
+            layout.gapAll(6);
             layout.paddingAll(padding);
         });
         element.style(style -> style.backgroundTexture(buttonTexture(theme.panelFill(), theme.panelBorder(), theme.panelEdge(), radius)));
@@ -292,5 +384,11 @@ final class ShopAppUiSupport {
             int panelEdge,
             int rowHover
     ) {
+    }
+
+    enum LayoutStyle {
+        INDUSTRIAL,
+        LUXURY,
+        ARCADE
     }
 }
