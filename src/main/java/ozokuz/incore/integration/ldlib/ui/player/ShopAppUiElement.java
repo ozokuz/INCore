@@ -63,6 +63,8 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
 
     private void rebuild() {
         clearAllChildren();
+        state.setVisibleOfferRows(ShopAppUiSupport.visibleOfferRowsFor(state.activeTab()));
+        state.reconcile(data);
         ShopAppUiSupport.TabTheme theme = ShopAppUiSupport.themeFor(state.activeTab());
         addChild(
                 new UIElement()
@@ -95,11 +97,9 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.widthPercent(100);
             layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(10);
+            layout.gapAll(6);
         });
         window.body().addChildren(
-                createTabs(theme),
-                createCategoryRow(theme),
                 createContentRow(theme),
                 createFooter(theme)
         );
@@ -118,16 +118,16 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         UIElement titleBlock = new UIElement().layout(layout -> {
             layout.flex(1);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(2);
+            layout.gapAll(6);
         });
         titleBlock.addChildren(
                 ShopAppUiSupport.heading(Component.translatable("screen.incore.shop.title"), theme.primaryText()),
-                ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.workspace.subtitle"), theme.secondaryText())
+                createTabs(theme)
         );
 
         UIElement balancePanel = ShopAppUiSupport.surface(theme, 8, 1).layout(layout -> {
             layout.widthAuto();
-            layout.minWidth(150);
+            layout.minWidth(132);
         });
         balancePanel.addChildren(
                 ShopAppUiSupport.heading(Component.translatable("screen.incore.shop.balance_label"), theme.secondaryText()),
@@ -139,69 +139,77 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
     }
 
     private UIElement createTabs(ShopAppUiSupport.TabTheme theme) {
+        UIElement strip = new UIElement();
+        strip.layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(0);
+        });
+
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
+            layout.height(24);
             layout.flexDirection(FlexDirection.ROW);
-            layout.gapAll(8);
+            layout.gapAll(1);
+            layout.justifyContent(AlignContent.FLEX_START);
+            layout.alignItems(AlignItems.FLEX_END);
         });
         for (ShopTabId tabId : ShopTabId.values()) {
-            Button button = ShopAppUiSupport.chipButton(tabId.displayName(), theme, state.activeTab() == tabId);
-            button.layout(layout -> layout.flex(1));
+            boolean active = state.activeTab() == tabId;
+            UIElement slot = new UIElement().layout(layout -> {
+                layout.flexGrow(0);
+                layout.heightPercent(100);
+                layout.flexDirection(FlexDirection.COLUMN);
+                layout.justifyContent(AlignContent.FLEX_END);
+                layout.alignItems(AlignItems.FLEX_START);
+            });
+
+            Button button = ShopAppUiSupport.tabButton(tabId.displayName(), theme, active);
+            button.layout(layout -> layout.minWidth(96));
             button.setOnClick(event -> {
                 state.selectTab(tabId, data);
                 rebuild();
             });
-            row.addChild(button);
+            slot.addChild(button);
+            row.addChild(slot);
         }
-        return row;
-    }
 
-    private UIElement createCategoryRow(ShopAppUiSupport.TabTheme theme) {
-        UIElement row = ShopAppUiSupport.surface(theme, 8, 1);
-        row.layout(layout -> {
+        UIElement underline = new UIElement().layout(layout -> {
             layout.widthPercent(100);
-            layout.flexDirection(FlexDirection.ROW);
-            layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(8);
+            layout.height(1);
         });
+        underline.style(style -> style.backgroundTexture(ShopAppUiSupport.buttonTexture(theme.panelBorder(), theme.panelBorder(), theme.panelBorder(), 0)));
 
-        List<ShopService.CategoryView> categories = ShopAppUiSupport.categoriesForTab(data, state.activeTab());
-        if (categories.isEmpty()) {
-            row.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_categories"), theme.secondaryText()));
-            return row;
-        }
-
-        for (ShopService.CategoryView category : categories) {
-            boolean active = category.categoryId().equals(state.selectedCategoryId());
-            Button button = ShopAppUiSupport.chipButton(Component.literal(category.displayName()), theme, active);
-            button.layout(layout -> layout.flex(1));
-            button.setOnClick(event -> {
-                state.selectCategory(category.categoryId(), data);
-                rebuild();
-            });
-            row.addChild(button);
-        }
-        return row;
+        strip.addChildren(row, underline);
+        return strip;
     }
 
     private UIElement createContentRow(ShopAppUiSupport.TabTheme theme) {
-        return new UIElement()
-                .layout(layout -> {
-                    layout.flex(1);
-                    layout.widthPercent(100);
-                    layout.minHeight(0);
-                    layout.flexDirection(FlexDirection.ROW);
-                    layout.gapAll(12);
-                })
+        return switch (ShopAppUiSupport.layoutStyleFor(state.activeTab())) {
+            case INDUSTRIAL -> createIndustrialContentRow(theme);
+            case LUXURY -> createLuxuryContentRow(theme);
+            case ARCADE -> createArcadeContentRow(theme);
+        };
+    }
+
+    private UIElement createIndustrialContentRow(ShopAppUiSupport.TabTheme theme) {
+        return baseContentRow()
                 .addChildren(
+                        createCategorySidebar(theme).layout(layout -> {
+                            layout.flexBasis(144);
+                            layout.flexGrow(0);
+                            layout.heightPercent(100);
+                            layout.minWidth(128);
+                            layout.maxWidth(156);
+                        }),
                         createOfferColumn(theme).layout(layout -> {
-                            layout.flexBasisPercent(56);
+                            layout.flexBasisPercent(44);
                             layout.flexGrow(1);
                             layout.heightPercent(100);
                             layout.minWidth(0);
                         }),
                         createWorkspaceColumn(theme).layout(layout -> {
-                            layout.flexBasisPercent(44);
+                            layout.flexBasisPercent(36);
                             layout.flexGrow(1);
                             layout.heightPercent(100);
                             layout.minWidth(0);
@@ -209,13 +217,131 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
                 );
     }
 
+    private UIElement createLuxuryContentRow(ShopAppUiSupport.TabTheme theme) {
+        return baseContentRow()
+                .addChildren(
+                        createCategorySidebar(theme).layout(layout -> {
+                            layout.flexBasis(136);
+                            layout.flexGrow(0);
+                            layout.heightPercent(100);
+                            layout.minWidth(124);
+                            layout.maxWidth(148);
+                        }),
+                        createWorkspaceColumn(theme).layout(layout -> {
+                            layout.flexBasisPercent(42);
+                            layout.flexGrow(1);
+                            layout.heightPercent(100);
+                            layout.minWidth(0);
+                        }),
+                        createOfferColumn(theme).layout(layout -> {
+                            layout.flexBasisPercent(34);
+                            layout.flexGrow(1);
+                            layout.heightPercent(100);
+                            layout.minWidth(0);
+                        })
+                );
+    }
+
+    private UIElement createArcadeContentRow(ShopAppUiSupport.TabTheme theme) {
+        UIElement rightColumn = new UIElement().layout(layout -> {
+            layout.flex(1);
+            layout.heightPercent(100);
+            layout.minWidth(0);
+            layout.minHeight(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(8);
+        });
+        rightColumn.addChildren(
+                createWorkspaceColumn(theme).layout(layout -> {
+                    layout.flexBasisPercent(44);
+                    layout.flexGrow(1);
+                    layout.minHeight(0);
+                }),
+                createOfferColumn(theme).layout(layout -> {
+                    layout.flexBasisPercent(56);
+                    layout.flexGrow(1);
+                    layout.minHeight(0);
+                })
+        );
+
+        return baseContentRow()
+                .addChildren(
+                        createCategorySidebar(theme).layout(layout -> {
+                            layout.flexBasis(140);
+                            layout.flexGrow(0);
+                            layout.heightPercent(100);
+                            layout.minWidth(124);
+                            layout.maxWidth(152);
+                        }),
+                        rightColumn
+                );
+    }
+
+    private UIElement baseContentRow() {
+        return new UIElement()
+                .layout(layout -> {
+                    layout.flex(1);
+                    layout.widthPercent(100);
+                    layout.minHeight(0);
+                    layout.flexDirection(FlexDirection.ROW);
+                    layout.gapAll(8);
+                });
+    }
+
+    private UIElement createCategorySidebar(ShopAppUiSupport.TabTheme theme) {
+        UIElement sidebar = ShopAppUiSupport.surface(theme, 6, 1);
+        sidebar.layout(layout -> {
+            layout.heightPercent(100);
+            layout.minHeight(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(6);
+        });
+        sidebar.addChildren(
+                sectionHeader(
+                        Component.translatable("screen.incore.shop.categories_heading"),
+                        ShopAppUiSupport.sidebarSubtitleFor(state.activeTab()),
+                        theme
+                ),
+                createCategoryList(theme)
+        );
+        return sidebar;
+    }
+
+    private UIElement createCategoryList(ShopAppUiSupport.TabTheme theme) {
+        UIElement list = new UIElement().layout(layout -> {
+            layout.flex(1);
+            layout.widthPercent(100);
+            layout.minHeight(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(4);
+        });
+
+        List<ShopService.CategoryView> categories = ShopAppUiSupport.categoriesForTab(data, state.activeTab());
+        if (categories.isEmpty()) {
+            list.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_categories"), theme.secondaryText()));
+            return list;
+        }
+
+        for (ShopService.CategoryView category : categories) {
+            boolean active = category.categoryId().equals(state.selectedCategoryId());
+            Button button = ShopAppUiSupport.chipButton(Component.literal(category.displayName()), theme, active);
+            button.layout(layout -> layout.widthPercent(100));
+            button.setOnClick(event -> {
+                state.selectCategory(category.categoryId(), data);
+                rebuild();
+            });
+            list.addChild(button);
+        }
+        return list;
+    }
+
     private UIElement createOfferColumn(ShopAppUiSupport.TabTheme theme) {
-        UIElement column = ShopAppUiSupport.surface(theme, 10, 1);
+        UIElement column = ShopAppUiSupport.surface(theme, 6, 1);
         column.layout(layout -> {
             layout.heightPercent(100);
             layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(10);
+            layout.gapAll(6);
         });
 
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(data, state.selectedCategoryId());
@@ -225,7 +351,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         column.addChildren(
                 sectionHeader(
                         Component.translatable("screen.incore.shop.offers_heading"),
-                        Component.literal(stockText),
+                        ShopAppUiSupport.offersSubtitleFor(state.activeTab(), stockText),
                         theme
                 ),
                 createOfferList(theme),
@@ -240,7 +366,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.widthPercent(100);
             layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(8);
+            layout.gapAll(4);
         });
 
         List<ShopService.OfferView> offers = state.visibleOffers(data);
@@ -256,15 +382,16 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
     }
 
     private UIElement createOfferCard(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        ShopAppUiSupport.LayoutStyle layoutStyle = ShopAppUiSupport.layoutStyleFor(state.activeTab());
         boolean selected = offer.offerId().equals(state.selectedOfferId());
         Button card = new Button().setText(Component.empty());
         card.layout(layout -> {
             layout.widthPercent(100);
-            layout.height(56);
+            layout.height(ShopAppUiSupport.offerCardHeight(state.activeTab()));
             layout.flexDirection(FlexDirection.ROW);
             layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(8);
-            layout.paddingAll(8);
+            layout.gapAll(6);
+            layout.paddingAll(6);
         });
         card.text.setDisplay(false);
         card.buttonStyle(style -> style
@@ -276,15 +403,36 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
                 .hoverTexture(ShopAppUiSupport.buttonTexture(theme.rowHover(), theme.accent(), theme.primaryText(), 1))
                 .pressedTexture(ShopAppUiSupport.buttonTexture(theme.panelFill(), theme.accent(), theme.primaryText(), 1))
         );
-        card.addChildren(
-                ShopAppUiSupport.itemIcon(
-                        ShopAppUiSupport.stackForOffer(offer),
-                        20,
-                        Component.literal(offer.displayName())
-                ),
-                offerTextColumn(offer, theme),
-                offerPriceColumn(offer, theme)
-        );
+        switch (layoutStyle) {
+            case INDUSTRIAL -> card.addChildren(
+                    ShopAppUiSupport.itemIcon(
+                            ShopAppUiSupport.stackForOffer(offer),
+                            ShopAppUiSupport.offerIconSize(state.activeTab()),
+                            Component.literal(offer.displayName())
+                    ),
+                    offerTextColumn(offer, theme),
+                    offerPriceColumn(offer, theme)
+            );
+            case LUXURY -> card.addChildren(
+                    ShopAppUiSupport.itemIcon(
+                            ShopAppUiSupport.stackForOffer(offer),
+                            ShopAppUiSupport.offerIconSize(state.activeTab()),
+                            Component.literal(offer.displayName())
+                    ),
+                    luxuryOfferTextColumn(offer, theme),
+                    luxuryOfferBadgeColumn(offer, theme)
+            );
+            case ARCADE -> card.addChildren(
+                    ShopAppUiSupport.itemIcon(
+                            ShopAppUiSupport.stackForOffer(offer),
+                            ShopAppUiSupport.offerIconSize(state.activeTab()),
+                            Component.literal(offer.displayName())
+                    ),
+                    arcadeOfferTextColumn(offer, theme),
+                    arcadeOfferBadgeColumn(offer, theme)
+            );
+            default -> throw new IllegalStateException("Unhandled shop layout style: " + layoutStyle);
+        }
         card.setOnClick(event -> {
             state.openPurchase(offer.offerId(), data);
             rebuild();
@@ -297,7 +445,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.flex(1);
             layout.minWidth(0);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(2);
+            layout.gapAll(1);
         });
 
         Label name = ShopAppUiSupport.heading(Component.literal(offer.displayName()), offer.locked() ? theme.secondaryText() : theme.primaryText());
@@ -323,10 +471,10 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
 
     private UIElement offerPriceColumn(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
         UIElement column = new UIElement().layout(layout -> {
-            layout.width(136);
+            layout.width(112);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.alignItems(AlignItems.FLEX_END);
-            layout.gapAll(2);
+            layout.gapAll(1);
         });
 
         Label price = ShopAppUiSupport.heading(Component.literal(offer.priceSpur() + " spur"), theme.priceText());
@@ -347,25 +495,114 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         return column;
     }
 
+    private UIElement luxuryOfferTextColumn(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = new UIElement().layout(layout -> {
+            layout.flex(1);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(4);
+        });
+
+        Label name = ShopAppUiSupport.heading(Component.literal(offer.displayName()), theme.primaryText());
+        name.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.LEFT)
+        );
+
+        UIElement metaRow = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(4);
+        });
+        metaRow.addChildren(
+                compactPill(Component.literal(ShopAppUiSupport.bundleLabel(offer.itemCount())), theme.secondaryText(), theme.panelEdge(), theme),
+                compactPill(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.priceText(), theme.panelBorder(), theme)
+        );
+
+        column.addChildren(name, metaRow);
+        return column;
+    }
+
+    private UIElement luxuryOfferBadgeColumn(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = new UIElement().layout(layout -> {
+            layout.width(98);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.FLEX_END);
+            layout.justifyContent(AlignContent.CENTER);
+            layout.gapAll(4);
+        });
+        column.addChildren(
+                compactPill(Component.literal(offer.priceSpur() + " spur"), theme.priceText(), theme.accent(), theme),
+                compactPill(
+                        Component.translatable(offer.locked() ? "screen.incore.shop.locked_short" : "screen.incore.shop.select"),
+                        offer.locked() ? theme.alertText() : theme.primaryText(),
+                        offer.locked() ? theme.alertText() : theme.panelBorder(),
+                        theme
+                )
+        );
+        return column;
+    }
+
+    private UIElement arcadeOfferTextColumn(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = new UIElement().layout(layout -> {
+            layout.flex(1);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(2);
+        });
+
+        Label name = ShopAppUiSupport.heading(Component.literal(offer.displayName()), theme.primaryText());
+        name.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.LEFT)
+        );
+        Label bundle = ShopAppUiSupport.heading(Component.literal(ShopAppUiSupport.bundleLabel(offer.itemCount())), theme.secondaryText());
+        bundle.textStyle(style -> style
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.LEFT)
+        );
+        column.addChildren(name, bundle);
+        return column;
+    }
+
+    private UIElement arcadeOfferBadgeColumn(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = new UIElement().layout(layout -> {
+            layout.width(104);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.FLEX_END);
+            layout.justifyContent(AlignContent.CENTER);
+            layout.gapAll(4);
+        });
+        column.addChildren(
+                loudBadge(Component.literal(offer.priceSpur() + " spur"), theme.priceText(), theme.accent(), theme),
+                loudBadge(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.primaryText(), theme.rowHover(), theme)
+        );
+        return column;
+    }
+
     private UIElement createPager(ShopAppUiSupport.TabTheme theme) {
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
             layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(8);
+            layout.gapAll(6);
         });
 
-        Button previous = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.prev"), theme, 22);
-        previous.layout(layout -> layout.width(88));
+        Button previous = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.prev"), theme, 20);
+        previous.layout(layout -> layout.width(72));
         previous.setActive(state.canScrollPrevious());
         previous.setOnClick(event -> {
             state.scrollBy(-1, data);
             rebuild();
         });
 
-        Button next = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.next"), theme, 22);
-        next.layout(layout -> layout.width(88));
+        Button next = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.next"), theme, 20);
+        next.layout(layout -> layout.width(72));
         next.setActive(state.canScrollNext(data));
         next.setOnClick(event -> {
             state.scrollBy(1, data);
@@ -388,13 +625,13 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
     }
 
     private UIElement createStandbyWorkspace(ShopAppUiSupport.TabTheme theme) {
-        UIElement column = ShopAppUiSupport.surface(theme, 12, 1);
+        UIElement column = ShopAppUiSupport.surface(theme, 8, 1);
         column.layout(layout -> {
             layout.heightPercent(100);
             layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
-            layout.gapAll(10);
+            layout.gapAll(6);
         });
 
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(data, state.selectedCategoryId());
@@ -404,7 +641,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         UIElement top = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(8);
+            layout.gapAll(6);
         });
         top.addChildren(
                 sectionHeader(
@@ -412,7 +649,6 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
                         Component.literal(categoryName),
                         theme
                 ),
-                ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.workspace.empty"), theme.secondaryText()),
                 metricRow(Component.translatable("screen.incore.shop.workspace.stock_bucket"), Component.literal(stockText), theme),
                 metricRow(
                         Component.translatable("screen.incore.shop.workspace.available_offers"),
@@ -420,25 +656,18 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
                         theme
                 )
         );
-
-        UIElement footer = ShopAppUiSupport.surface(theme, 8, 1);
-        footer.addChildren(
-                ShopAppUiSupport.heading(Component.translatable("screen.incore.shop.workspace.tip_heading"), theme.priceText()),
-                ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.workspace.tip_body"), theme.secondaryText())
-        );
-
-        column.addChildren(top, footer);
+        column.addChildren(top, standbyAccentPanel(theme));
         return column;
     }
 
     private UIElement createPurchaseWorkspace(ShopAppUiSupport.TabTheme theme) {
-        UIElement column = ShopAppUiSupport.surface(theme, 12, 1);
+        UIElement column = ShopAppUiSupport.surface(theme, 8, 1);
         column.layout(layout -> {
             layout.heightPercent(100);
             layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
-            layout.gapAll(10);
+            layout.gapAll(6);
         });
 
         ShopService.OfferView offer = state.selectedOffer(data);
@@ -453,7 +682,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         UIElement top = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(10);
+            layout.gapAll(6);
         });
         top.addChildren(
                 sectionHeader(
@@ -480,19 +709,19 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.flexDirection(FlexDirection.ROW);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
             layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(8);
+            layout.gapAll(6);
         });
 
-        Button close = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.close_workspace"), theme, 24);
-        close.layout(layout -> layout.width(112));
+        Button close = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.close_workspace"), theme, 20);
+        close.layout(layout -> layout.width(98));
         close.setOnClick(event -> {
             state.closePurchase(data);
             rebuild();
         });
 
-        Button purchase = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.purchase"), theme, 24);
+        Button purchase = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.purchase"), theme, 20);
         purchase.layout(layout -> {
-            layout.width(140);
+            layout.width(118);
             layout.flexGrow(0);
         });
         purchase.setActive(canPurchase);
@@ -513,17 +742,17 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
     }
 
     private UIElement createHero(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
-        UIElement hero = ShopAppUiSupport.surface(theme, 10, 1);
+        UIElement hero = ShopAppUiSupport.surface(theme, 6, 1);
         hero.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
             layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(10);
+            layout.gapAll(6);
         });
         hero.addChildren(
                 ShopAppUiSupport.itemIcon(
                         ShopAppUiSupport.stackForOffer(offer),
-                        28,
+                        ShopAppUiSupport.layoutStyleFor(state.activeTab()) == ShopAppUiSupport.LayoutStyle.LUXURY ? 26 : 20,
                         Component.literal(offer.displayName()),
                         Component.literal(ShopAppUiSupport.priceLabel(offer.priceSpur()))
                 ),
@@ -532,7 +761,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
                             layout.flex(1);
                             layout.minWidth(0);
                             layout.flexDirection(FlexDirection.COLUMN);
-                            layout.gapAll(2);
+                            layout.gapAll(1);
                         })
                         .addChildren(
                                 ShopAppUiSupport.heading(Component.literal(offer.displayName()), theme.primaryText()),
@@ -543,17 +772,17 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
     }
 
     private UIElement createQuantityControls(ShopAppUiSupport.TabTheme theme) {
-        UIElement row = ShopAppUiSupport.surface(theme, 8, 1);
+        UIElement row = ShopAppUiSupport.surface(theme, 6, 1);
         row.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
             layout.alignItems(AlignItems.CENTER);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
-            layout.gapAll(8);
+            layout.gapAll(6);
         });
 
-        Button decrease = ShopAppUiSupport.actionButton(Component.literal("-"), theme, 22);
-        decrease.layout(layout -> layout.width(28));
+        Button decrease = ShopAppUiSupport.actionButton(Component.literal("-"), theme, 18);
+        decrease.layout(layout -> layout.width(24));
         decrease.setActive(state.quantity() > 1);
         decrease.setOnClick(event -> {
             state.decreaseQuantity();
@@ -564,8 +793,8 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         quantity.layout(layout -> layout.flex(1));
         quantity.textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER));
 
-        Button increase = ShopAppUiSupport.actionButton(Component.literal("+"), theme, 22);
-        increase.layout(layout -> layout.width(28));
+        Button increase = ShopAppUiSupport.actionButton(Component.literal("+"), theme, 18);
+        increase.layout(layout -> layout.width(24));
         increase.setActive(state.quantity() < state.quantityMax(data));
         increase.setOnClick(event -> {
             state.increaseQuantity(data);
@@ -582,22 +811,13 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.flexDirection(FlexDirection.ROW);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
             layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(8);
+            layout.gapAll(6);
         });
 
-        Button done = ShopAppUiSupport.actionButton(Component.translatable("gui.done"), theme, 24);
-        done.layout(layout -> layout.width(90));
+        Button done = ShopAppUiSupport.actionButton(Component.translatable("gui.done"), theme, 20);
+        done.layout(layout -> layout.width(72));
         done.setOnClick(event -> PacketDistributor.sendToServer(RequestBackIncoreUiPayload.INSTANCE));
-
-        Label caption = ShopAppUiSupport.heading(Component.translatable("screen.incore.shop.footer.caption"), theme.secondaryText());
-        caption.layout(layout -> layout.flex(1));
-        caption.textStyle(style -> style
-                .adaptiveWidth(false)
-                .textWrap(TextWrap.HIDE)
-                .textAlignHorizontal(Horizontal.RIGHT)
-        );
-
-        row.addChildren(done, caption);
+        row.addChildren(done, ShopAppUiSupport.spacer());
         return row;
     }
 
@@ -605,7 +825,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(2);
+            layout.gapAll(1);
         });
         row.addChildren(
                 ShopAppUiSupport.heading(title, theme.primaryText()),
@@ -620,7 +840,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.flexDirection(FlexDirection.ROW);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
             layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(8);
+            layout.gapAll(6);
         });
         Label leftLabel = ShopAppUiSupport.heading(left, theme.secondaryText());
         leftLabel.layout(layout -> layout.flex(1));
@@ -636,5 +856,37 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             row.addChild(rightLabel);
         }
         return row;
+    }
+
+    private UIElement compactPill(Component text, int textColor, int borderColor, ShopAppUiSupport.TabTheme theme) {
+        UIElement pill = ShopAppUiSupport.surface(theme, 4, 1);
+        pill.layout(layout -> {
+            layout.widthAuto();
+            layout.paddingHorizontal(4);
+        });
+        pill.style(style -> style.backgroundTexture(ShopAppUiSupport.buttonTexture(theme.panelEdge(), borderColor, borderColor, 1)));
+        pill.addChild(ShopAppUiSupport.heading(text, textColor).textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER)));
+        return pill;
+    }
+
+    private UIElement loudBadge(Component text, int textColor, int fillColor, ShopAppUiSupport.TabTheme theme) {
+        UIElement badge = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.paddingVertical(3);
+            layout.paddingHorizontal(4);
+        });
+        badge.style(style -> style.backgroundTexture(ShopAppUiSupport.buttonTexture(fillColor, theme.accent(), theme.primaryText(), 1)));
+        Label label = ShopAppUiSupport.heading(text, textColor);
+        label.textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER));
+        badge.addChild(label);
+        return badge;
+    }
+
+    private UIElement standbyAccentPanel(ShopAppUiSupport.TabTheme theme) {
+        return switch (ShopAppUiSupport.layoutStyleFor(state.activeTab())) {
+            case INDUSTRIAL -> metricRow(Component.translatable("screen.incore.shop.workspace.focus"), Component.translatable("screen.incore.shop.ready"), theme);
+            case LUXURY -> compactPill(Component.translatable("screen.incore.shop.curated"), theme.priceText(), theme.accent(), theme);
+            case ARCADE -> loudBadge(Component.translatable("screen.incore.shop.choose_offer"), theme.primaryText(), theme.accent(), theme);
+        };
     }
 }
