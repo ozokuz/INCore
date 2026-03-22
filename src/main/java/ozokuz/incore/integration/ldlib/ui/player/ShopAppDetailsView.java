@@ -22,11 +22,12 @@ final class ShopAppDetailsView {
             ShopService.OfferView offer,
             boolean modal
     ) {
-        UIElement column = ShopAppUiSupport.surface(theme, modal ? 10 : 8, 1);
+        boolean compactInline = !modal;
+        UIElement column = ShopAppUiSupport.surface(theme, modal ? 10 : 6, 1);
         column.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(6);
+            layout.gapAll(compactInline ? 4 : 6);
         });
 
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), offer.categoryId());
@@ -39,10 +40,10 @@ final class ShopAppDetailsView {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
             layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(6);
+            layout.gapAll(compactInline ? 4 : 6);
         });
         header.addChildren(
-                previewFrame(offer, theme, modal ? 54 : 44),
+                previewFrame(offer, theme, modal ? 54 : 36),
                 new UIElement().layout(layout -> {
                     layout.flex(1);
                     layout.minWidth(0);
@@ -66,9 +67,12 @@ final class ShopAppDetailsView {
                 metricRow(Component.translatable("screen.incore.shop.price_each"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme),
                 metricRow(Component.translatable("screen.incore.shop.balance_label"), Component.literal(ShopAppUiSupport.availableCurrencyLabel(offer.currency())), theme),
                 metricRow(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme),
-                quantityControls(context, theme),
-                metricRow(Component.translatable("screen.incore.shop.total_cost"), Component.literal(totalCost + " " + offer.currency().label()), theme),
-                rewardContents(offer, theme)
+                rewardContents(offer, theme, compactInline)
+        );
+
+        column.addChildren(
+                quantityControls(context, theme, compactInline),
+                metricRow(Component.translatable("screen.incore.shop.total_cost"), Component.literal(totalCost + " " + offer.currency().label()), theme)
         );
 
         if (offer.locked()) {
@@ -77,7 +81,7 @@ final class ShopAppDetailsView {
             column.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.out_of_stock_inline"), theme.alertText()));
         }
 
-        Button purchase = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.purchase"), theme, 20);
+        Button purchase = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.purchase"), theme, compactInline ? 18 : 20);
         purchase.layout(layout -> layout.widthPercent(100));
         purchase.setActive(canPurchase);
         purchase.setOnClick(event -> {
@@ -121,18 +125,18 @@ final class ShopAppDetailsView {
         return frame;
     }
 
-    private static UIElement quantityControls(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+    private static UIElement quantityControls(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme, boolean compactInline) {
         UIElement row = ShopAppUiSupport.surface(theme, 6, 1);
         row.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
             layout.alignItems(AlignItems.CENTER);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
-            layout.gapAll(6);
+            layout.gapAll(compactInline ? 4 : 6);
         });
 
-        Button decrease = ShopAppUiSupport.actionButton(Component.literal("-"), theme, 18);
-        decrease.layout(layout -> layout.width(24));
+        Button decrease = ShopAppUiSupport.actionButton(Component.literal("-"), theme, compactInline ? 16 : 18);
+        decrease.layout(layout -> layout.width(compactInline ? 20 : 24));
         decrease.setActive(context.state().quantity() > 1);
         decrease.setOnClick(event -> context.state().decreaseQuantity());
 
@@ -140,8 +144,8 @@ final class ShopAppDetailsView {
         quantity.layout(layout -> layout.flex(1));
         quantity.textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER));
 
-        Button increase = ShopAppUiSupport.actionButton(Component.literal("+"), theme, 18);
-        increase.layout(layout -> layout.width(24));
+        Button increase = ShopAppUiSupport.actionButton(Component.literal("+"), theme, compactInline ? 16 : 18);
+        increase.layout(layout -> layout.width(compactInline ? 20 : 24));
         increase.setActive(context.state().quantity() < context.state().quantityMax(context.data()));
         increase.setOnClick(event -> context.state().increaseQuantity(context.data()));
 
@@ -149,12 +153,12 @@ final class ShopAppDetailsView {
         return row;
     }
 
-    private static UIElement rewardContents(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+    private static UIElement rewardContents(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, boolean compactInline) {
         UIElement column = ShopAppUiSupport.surface(theme, 6, 1);
         column.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(4);
+            layout.gapAll(compactInline ? 3 : 4);
         });
         column.addChildren(
                 titleLabel(Component.translatable("screen.incore.shop.reward_contents"), theme.primaryText()),
@@ -190,9 +194,15 @@ final class ShopAppDetailsView {
             layout.gapAll(6);
         });
         Label leftLabel = titleLabel(left, theme.secondaryText());
-        leftLabel.layout(layout -> layout.flex(1));
+        leftLabel.layout(layout -> {
+            layout.width(84);
+        });
         leftLabel.textStyle(style -> style.adaptiveWidth(false).textWrap(TextWrap.HIDE).textAlignHorizontal(Horizontal.LEFT));
         Label rightLabel = titleLabel(right, theme.primaryText());
+        rightLabel.layout(layout -> {
+            layout.flex(1);
+            layout.minWidth(0);
+        });
         rightLabel.textStyle(style -> style.textAlignHorizontal(Horizontal.RIGHT));
         row.addChildren(leftLabel, rightLabel);
         return row;

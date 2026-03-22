@@ -132,7 +132,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         ShopService.CurrencyView currency = category == null ? ShopAppUiSupport.emptyCurrencyView() : category.currency();
         UIElement balancePanel = ShopAppUiSupport.surface(theme, 8, 1).layout(layout -> {
             layout.widthAuto();
-            layout.minWidth(154);
+            layout.minWidth(132);
         });
         balancePanel.addChildren(
                 ShopAppUiSupport.heading(Component.translatable("screen.incore.shop.balance_label"), theme.secondaryText()),
@@ -160,7 +160,10 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             ShopTabId tabId = ShopTabId.fromString(tab.tabId());
             boolean active = state.activeTab() == tabId;
             Button button = ShopAppUiSupport.tabButton(Component.literal(tab.displayName()), theme, active);
-            button.layout(layout -> layout.minWidth(96));
+            button.layout(layout -> {
+                layout.flex(1);
+                layout.minWidth(72);
+            });
             button.setOnClick(event -> {
                 state.selectTab(tabId, data);
                 rebuild();
