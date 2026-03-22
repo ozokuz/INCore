@@ -15,16 +15,19 @@ import ozokuz.incore.features.shop.ShopLayoutId;
 import ozokuz.incore.features.shop.ShopService;
 
 final class ShopAppLayouts {
-    private static final ShopAppLayout INDUSTRIAL = new FixedLayout(6) {
+    private static final int INDUSTRIAL_RAIL_ROWS = 3;
+    private static final int INDUSTRIAL_BOARD_ROWS = 2;
+
+    private static final ShopAppLayout INDUSTRIAL = new FixedLayout(INDUSTRIAL_RAIL_ROWS + INDUSTRIAL_BOARD_ROWS) {
         @Override
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
             main.addChildren(
                     sidebar(context, theme).layout(layout -> {
                         layout.heightPercent(100);
-                        layout.flexBasis(150);
-                        layout.minWidth(144);
-                        layout.maxWidth(156);
+                        layout.flexBasis(136);
+                        layout.minWidth(128);
+                        layout.maxWidth(140);
                     }),
                     industrialCenter(context, theme).layout(layout -> {
                         layout.heightPercent(100);
@@ -34,9 +37,9 @@ final class ShopAppLayouts {
                     }),
                     compactRail(context, theme, Component.translatable("screen.incore.shop.bulk_rows")).layout(layout -> {
                         layout.heightPercent(100);
-                        layout.flexBasis(196);
-                        layout.minWidth(184);
-                        layout.maxWidth(208);
+                        layout.flexBasis(188);
+                        layout.minWidth(176);
+                        layout.maxWidth(196);
                     })
             );
             return main;
@@ -143,11 +146,15 @@ final class ShopAppLayouts {
         UIElement column = fillPanelColumn(theme);
         column.addChildren(
                 showcaseWithDetails(context, theme, Component.translatable("screen.incore.shop.featured_asset")),
-                boardSection(context, theme, Component.translatable("screen.incore.shop.bulk_rows"), context.state().visibleOffers(context.data()), false, true)
-                        .layout(layout -> {
-                            layout.flex(1);
-                            layout.minHeight(0);
-                        })
+                boardSection(
+                        context,
+                        theme,
+                        Component.translatable("screen.incore.shop.bulk_rows"),
+                        industrialBoardOffers(context),
+                        true,
+                        true
+                ),
+                ShopAppUiSupport.spacer()
         );
         return column;
     }
@@ -271,10 +278,8 @@ final class ShopAppLayouts {
         UIElement rail = fillPanelColumn(theme);
         rail.addChildren(
                 sectionHeader(title, Component.translatable("screen.incore.shop.remaining_feed"), theme),
-                denseRows(context, theme, context.state().visibleOffers(context.data()), false).layout(layout -> {
-                    layout.flex(1);
-                    layout.minHeight(0);
-                }),
+                denseRows(context, theme, industrialRailOffers(context), true),
+                ShopAppUiSupport.spacer(),
                 pager(context, theme)
         );
         return rail;
@@ -323,7 +328,7 @@ final class ShopAppLayouts {
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.minWidth(0);
-            layout.minHeight(176);
+            layout.minHeight(212);
             layout.flexDirection(FlexDirection.ROW);
             layout.alignItems(AlignItems.STRETCH);
             layout.gapAll(8);
@@ -334,13 +339,13 @@ final class ShopAppLayouts {
                     layout.flexGrow(5);
                     layout.minWidth(0);
                     layout.heightPercent(100);
-                    layout.minHeight(176);
                 }),
                 inlineDetailsDock(context, theme, Component.translatable("screen.incore.shop.details_dock")).layout(layout -> {
-                    layout.flexBasis(236);
+                    layout.flexBasis(210);
                     layout.flexGrow(2);
-                    layout.minWidth(220);
-                    layout.maxWidth(272);
+                    layout.minWidth(196);
+                    layout.maxWidth(236);
+                    layout.minHeight(212);
                 })
         );
         return row;
@@ -357,8 +362,9 @@ final class ShopAppLayouts {
         hero.layout(layout -> {
             layout.widthPercent(100);
             layout.minWidth(0);
-            layout.minHeight(156);
             layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.justifyContent(AlignContent.FLEX_START);
             layout.gapAll(8);
             layout.paddingAll(8);
         });
@@ -390,7 +396,7 @@ final class ShopAppLayouts {
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
-            layout.alignItems(AlignItems.CENTER);
+            layout.alignItems(AlignItems.FLEX_START);
             layout.gapAll(10);
         });
         UIElement media = ShopAppUiSupport.surface(theme, 10, 1);
@@ -432,6 +438,20 @@ final class ShopAppLayouts {
                 )
         );
         return row;
+    }
+
+    private static List<ShopService.OfferView> industrialRailOffers(ShopAppLayoutContext context) {
+        ShopService.TabFeedView feed = ShopAppUiSupport.activeFeed(context.data(), context.state());
+        return ShopAppUiSupport.visibleOffers(feed, context.state().offerScrollRow(), INDUSTRIAL_RAIL_ROWS);
+    }
+
+    private static List<ShopService.OfferView> industrialBoardOffers(ShopAppLayoutContext context) {
+        ShopService.TabFeedView feed = ShopAppUiSupport.activeFeed(context.data(), context.state());
+        return ShopAppUiSupport.visibleOffers(
+                feed,
+                context.state().offerScrollRow() + INDUSTRIAL_RAIL_ROWS,
+                INDUSTRIAL_BOARD_ROWS
+        );
     }
 
     private static UIElement boardSection(
@@ -540,7 +560,7 @@ final class ShopAppLayouts {
         card.addChildren(
                 ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), compact ? 16 : 18, Component.literal(offer.displayName())),
                 offerText(offer, theme).layout(layout -> layout.flex(1)),
-                offerBadge(offer, theme)
+                offerBadge(offer, theme, compact)
         );
         card.setOnClick(event -> {
             context.state().openDetails(offer.offerId(), context.data());
@@ -571,17 +591,17 @@ final class ShopAppLayouts {
         return column;
     }
 
-    private static UIElement offerBadge(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+    private static UIElement offerBadge(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, boolean compact) {
         UIElement column = new UIElement().layout(layout -> {
-            layout.width(118);
+            layout.width(compact ? 54 : 104);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.alignItems(AlignItems.FLEX_END);
             layout.gapAll(1);
         });
-        column.addChildren(
-                textLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText(), true),
-                textLabel(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.secondaryText(), true)
-        );
+        column.addChild(textLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText(), true));
+        if (!compact) {
+            column.addChild(textLabel(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.secondaryText(), true));
+        }
         return column;
     }
 
