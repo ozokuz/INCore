@@ -21,17 +21,22 @@ final class ShopAppLayouts {
             UIElement main = baseRow();
             main.addChildren(
                     sidebar(context, theme).layout(layout -> {
-                        layout.flexBasis(148);
-                        layout.minWidth(132);
-                        layout.maxWidth(160);
+                        layout.heightPercent(100);
+                        layout.flexBasis(150);
+                        layout.minWidth(144);
+                        layout.maxWidth(156);
                     }),
                     industrialCenter(context, theme).layout(layout -> {
-                        layout.flexBasisPercent(56);
+                        layout.heightPercent(100);
+                        layout.flexBasis(0);
                         layout.flexGrow(1);
+                        layout.minWidth(0);
                     }),
                     compactRail(context, theme, Component.translatable("screen.incore.shop.bulk_rows")).layout(layout -> {
-                        layout.flexBasisPercent(24);
-                        layout.flexGrow(1);
+                        layout.heightPercent(100);
+                        layout.flexBasis(196);
+                        layout.minWidth(184);
+                        layout.maxWidth(208);
                     })
             );
             return main;
@@ -135,10 +140,14 @@ final class ShopAppLayouts {
     }
 
     private static UIElement industrialCenter(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        UIElement column = panelColumn(theme);
+        UIElement column = fillPanelColumn(theme);
         column.addChildren(
                 showcaseWithDetails(context, theme, Component.translatable("screen.incore.shop.featured_asset")),
                 boardSection(context, theme, Component.translatable("screen.incore.shop.bulk_rows"), context.state().visibleOffers(context.data()), false, true)
+                        .layout(layout -> {
+                            layout.flex(1);
+                            layout.minHeight(0);
+                        })
         );
         return column;
     }
@@ -220,7 +229,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement sidebar(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        UIElement sidebar = panelColumn(theme);
+        UIElement sidebar = fillPanelColumn(theme);
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
         sidebar.addChildren(
                 sectionHeader(
@@ -259,10 +268,13 @@ final class ShopAppLayouts {
     }
 
     private static UIElement compactRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme, Component title) {
-        UIElement rail = panelColumn(theme);
+        UIElement rail = fillPanelColumn(theme);
         rail.addChildren(
                 sectionHeader(title, Component.translatable("screen.incore.shop.remaining_feed"), theme),
-                denseRows(context, theme, context.state().visibleOffers(context.data()), false),
+                denseRows(context, theme, context.state().visibleOffers(context.data()), false).layout(layout -> {
+                    layout.flex(1);
+                    layout.minHeight(0);
+                }),
                 pager(context, theme)
         );
         return rail;
@@ -310,17 +322,25 @@ final class ShopAppLayouts {
     private static UIElement showcaseWithDetails(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme, Component title) {
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
+            layout.minWidth(0);
+            layout.minHeight(176);
             layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.STRETCH);
             layout.gapAll(8);
         });
         row.addChildren(
                 heroPanel(context, theme, context.state().showcaseOffer(context.data()), title).layout(layout -> {
-                    layout.flexBasisPercent(52);
-                    layout.flexGrow(1);
+                    layout.flexBasis(0);
+                    layout.flexGrow(5);
+                    layout.minWidth(0);
+                    layout.heightPercent(100);
+                    layout.minHeight(176);
                 }),
                 inlineDetailsDock(context, theme, Component.translatable("screen.incore.shop.details_dock")).layout(layout -> {
-                    layout.flexBasisPercent(40);
-                    layout.flexGrow(1);
+                    layout.flexBasis(236);
+                    layout.flexGrow(2);
+                    layout.minWidth(220);
+                    layout.maxWidth(272);
                 })
         );
         return row;
@@ -336,6 +356,8 @@ final class ShopAppLayouts {
         hero.text.setDisplay(false);
         hero.layout(layout -> {
             layout.widthPercent(100);
+            layout.minWidth(0);
+            layout.minHeight(156);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.gapAll(8);
             layout.paddingAll(8);
@@ -421,6 +443,10 @@ final class ShopAppLayouts {
             boolean twoColumns
     ) {
         UIElement column = panelColumn(theme);
+        column.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(0);
+        });
         column.addChildren(
                 sectionHeader(title, Component.literal(Integer.toString(offers.size())), theme),
                 twoColumns ? splitBoard(context, theme, offers, compact) : denseRows(context, theme, offers, compact)
@@ -677,11 +703,17 @@ final class ShopAppLayouts {
     private static UIElement panelColumn(ShopAppUiSupport.TabTheme theme) {
         UIElement column = ShopAppUiSupport.surface(theme, 8, 1);
         column.layout(layout -> {
-            layout.heightPercent(100);
+            layout.widthPercent(100);
             layout.minHeight(0);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.gapAll(8);
         });
+        return column;
+    }
+
+    private static UIElement fillPanelColumn(ShopAppUiSupport.TabTheme theme) {
+        UIElement column = panelColumn(theme);
+        column.layout(layout -> layout.heightPercent(100));
         return column;
     }
 

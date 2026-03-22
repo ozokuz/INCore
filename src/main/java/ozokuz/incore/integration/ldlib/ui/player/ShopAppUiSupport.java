@@ -324,7 +324,6 @@ final class ShopAppUiSupport {
     static UIElement surface(TabTheme theme, int padding, int radius) {
         UIElement element = new UIElement();
         element.layout(layout -> {
-            layout.widthPercent(100);
             layout.gapAll(6);
             layout.paddingAll(padding);
         });
@@ -335,7 +334,6 @@ final class ShopAppUiSupport {
     static Label heading(Component text, int color) {
         Label label = new Label();
         label.setText(text);
-        label.getLayout().widthPercent(100);
         label.textStyle(style -> style
                 .adaptiveWidth(false)
                 .textWrap(TextWrap.HIDE)
@@ -348,7 +346,6 @@ final class ShopAppUiSupport {
     static Label bodyLabel(Component text, int color) {
         Label label = new Label();
         label.setText(text);
-        label.getLayout().widthPercent(100);
         label.textStyle(style -> style
                 .adaptiveHeight(true)
                 .textWrap(TextWrap.WRAP)
