@@ -4,5 +4,9 @@
   "sort_order": 10,
   "enabled": true,
   "stock_mode": "none",
-  "replenish_mode": "none"
+  "replenish_mode": "none",
+  "currency": {
+    "type": "incore:bank_spur"
+  },
+  "offer_sort": "id"
 }

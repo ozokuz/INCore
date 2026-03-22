@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Oak Timber",
+  "price": 12,
+  "reward": {
+    "stack": "minecraft:oak_log",
+    "count": 16
+  }
+}

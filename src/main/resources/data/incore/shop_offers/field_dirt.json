@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Dirt Crate",
+  "price": 8,
+  "reward": {
+    "stack": "minecraft:dirt",
+    "count": 64
+  }
+}

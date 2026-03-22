@@ -1,0 +1,20 @@
+{
+  "type": "bundle",
+  "category": "incore:salvage_exchange",
+  "display_name": "Nether Salvage Bundle",
+  "price": 12,
+  "reward": [
+    {
+      "stack": "minecraft:blaze_rod",
+      "count": 4
+    },
+    {
+      "stack": "minecraft:ghast_tear",
+      "count": 1
+    },
+    {
+      "stack": "minecraft:nether_wart",
+      "count": 16
+    }
+  ]
+}

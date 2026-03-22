@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Honeycomb Bundle",
+  "price": 6,
+  "reward": {
+    "stack": "minecraft:honeycomb",
+    "count": 8
+  }
+}

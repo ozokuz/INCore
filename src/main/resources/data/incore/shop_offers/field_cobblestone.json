@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Cobblestone Pallet",
+  "price": 14,
+  "reward": {
+    "stack": "minecraft:cobblestone",
+    "count": 64
+  }
+}

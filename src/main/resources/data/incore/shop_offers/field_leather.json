@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Leather Strips",
+  "price": 30,
+  "reward": {
+    "stack": "minecraft:leather",
+    "count": 8
+  }
+}

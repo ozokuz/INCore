@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Potato Crate",
+  "price": 18,
+  "reward": {
+    "stack": "minecraft:potato",
+    "count": 16
+  }
+}

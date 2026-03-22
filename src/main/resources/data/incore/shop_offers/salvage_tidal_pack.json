@@ -1,0 +1,20 @@
+{
+  "type": "bundle",
+  "category": "incore:salvage_exchange",
+  "display_name": "Tidal Pack",
+  "price": 9,
+  "reward": [
+    {
+      "stack": "minecraft:prismarine_crystals",
+      "count": 8
+    },
+    {
+      "stack": "minecraft:prismarine_shard",
+      "count": 16
+    },
+    {
+      "stack": "minecraft:glowstone_dust",
+      "count": 8
+    }
+  ]
+}

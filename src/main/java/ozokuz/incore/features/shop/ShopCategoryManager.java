@@ -2,19 +2,17 @@ package ozokuz.incore.features.shop;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import ozokuz.incore.INCore;
-import ozokuz.incore.features.gacha.GachaEventCategoryManager;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
-import net.minecraft.util.profiling.ProfilerFiller;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
+import org.jetbrains.annotations.NotNull;
+import ozokuz.incore.INCore;
 
 public final class ShopCategoryManager extends SimpleJsonResourceReloadListener {
     private static volatile Map<ResourceLocation, ShopCategoryDefinition> byId = Map.of();
@@ -41,16 +39,6 @@ public final class ShopCategoryManager extends SimpleJsonResourceReloadListener 
                         if (!category.enabled()) {
                             return;
                         }
-
-                        if (category.replenishMode() == ShopReplenishMode.GACHA_ROTATION
-                                && (category.gachaCategoryId() == null || GachaEventCategoryManager.get(category.gachaCategoryId()) == null)) {
-                            INCore.LOGGER.warn(
-                                    "Shop category {} uses gacha_rotation but gacha_category {} is missing.",
-                                    id,
-                                    category.gachaCategoryId()
-                            );
-                        }
-
                         next.put(category.id(), category);
                     } catch (Exception exception) {
                         INCore.LOGGER.error("Failed to parse shop category {}", id, exception);

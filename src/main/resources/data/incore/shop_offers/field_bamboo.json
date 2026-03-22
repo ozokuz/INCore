@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Bamboo Bundle",
+  "price": 16,
+  "reward": {
+    "stack": "minecraft:bamboo",
+    "count": 24
+  }
+}

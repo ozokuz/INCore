@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Feather Pack",
+  "price": 4,
+  "reward": {
+    "stack": "minecraft:feather",
+    "count": 16
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "bundle",
+  "category": "incore:field_requisitions",
+  "display_name": "Builder Kit",
+  "price": 40,
+  "reward": [
+    {
+      "stack": "minecraft:cobblestone",
+      "count": 32
+    },
+    {
+      "stack": "minecraft:oak_planks",
+      "count": 32
+    },
+    {
+      "stack": "minecraft:torch",
+      "count": 16
+    }
+  ]
+}

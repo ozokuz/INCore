@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Experience Bottles",
+  "price": 7,
+  "reward": {
+    "stack": "minecraft:experience_bottle",
+    "count": 8
+  }
+}

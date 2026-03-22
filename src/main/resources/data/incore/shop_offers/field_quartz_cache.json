@@ -1,0 +1,14 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Quartz Cache",
+  "price": 2,
+  "currency": {
+    "type": "incore:item",
+    "item": "minecraft:emerald"
+  },
+  "reward": {
+    "stack": "minecraft:quartz",
+    "count": 12
+  }
+}

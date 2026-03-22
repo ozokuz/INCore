@@ -56,6 +56,14 @@ public final class INCoreLdLibUiScaffold {
     }
 
     public static WindowScaffold createWindowShell(int width, int height) {
+        return createWindowShell(INCoreInfoSurfaceElement.window(), width, height);
+    }
+
+    public static WindowScaffold createPlainWindowShell(int width, int height) {
+        return createWindowShell(new UIElement(), width, height);
+    }
+
+    private static WindowScaffold createWindowShell(UIElement window, int width, int height) {
         UIElement root = new UIElement();
         root.addClass("incore-overlay-root");
         root.getLayout().widthPercent(100);
@@ -63,7 +71,6 @@ public final class INCoreLdLibUiScaffold {
         root.getLayout().justifyContent(AlignContent.CENTER);
         root.getLayout().alignItems(AlignItems.CENTER);
 
-        UIElement window = INCoreInfoSurfaceElement.window();
         window.addClass("incore-window");
         window.getLayout().width(width);
         window.getLayout().height(height);

@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Nether Wart",
+  "price": 4,
+  "reward": {
+    "stack": "minecraft:nether_wart",
+    "count": 16
+  }
+}

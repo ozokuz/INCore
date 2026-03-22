@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Oak Planks",
+  "price": 18,
+  "reward": {
+    "stack": "minecraft:oak_planks",
+    "count": 32
+  }
+}

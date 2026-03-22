@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Wheat Sack",
+  "price": 18,
+  "reward": {
+    "stack": "minecraft:wheat",
+    "count": 16
+  }
+}

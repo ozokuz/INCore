@@ -1,9 +1,10 @@
 {
+  "type": "single_item",
   "category": "incore:daily_exchange",
-  "item": "minecraft:gold_ingot",
   "display_name": "Gold Ingot",
-  "sort_order": 20,
-  "enabled": true,
-  "price_spur": 60,
-  "item_count": 4
+  "price": 60,
+  "reward": {
+    "stack": "minecraft:gold_ingot",
+    "count": 4
+  }
 }

@@ -1,0 +1,20 @@
+{
+  "type": "bundle",
+  "category": "incore:salvage_exchange",
+  "display_name": "Scout Cache",
+  "price": 8,
+  "reward": [
+    {
+      "stack": "minecraft:ender_pearl",
+      "count": 2
+    },
+    {
+      "stack": "minecraft:feather",
+      "count": 8
+    },
+    {
+      "stack": "minecraft:paper",
+      "count": 12
+    }
+  ]
+}

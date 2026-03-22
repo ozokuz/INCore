@@ -5,6 +5,14 @@
   "enabled": true,
   "stock_mode": "category_bucket",
   "initial_stock": 24,
-  "replenish_mode": "gacha_rotation",
-  "gacha_category": "incore:chartered"
+  "replenish_mode": "shop_rotation",
+  "currency": {
+    "type": "incore:item",
+    "item": "minecraft:emerald"
+  },
+  "offer_sort": "rotation_time_remaining",
+  "rotation": {
+    "duration_hours": 24,
+    "visible_count": 1
+  }
 }

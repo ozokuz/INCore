@@ -5,7 +5,7 @@ import java.util.Locale;
 public enum ShopReplenishMode {
     NONE("none"),
     DAILY_NOON("daily_noon"),
-    GACHA_ROTATION("gacha_rotation");
+    SHOP_ROTATION("shop_rotation");
 
     private final String serialized;
 

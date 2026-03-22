@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Redstone Stack",
+  "price": 4,
+  "reward": {
+    "stack": "minecraft:redstone",
+    "count": 24
+  }
+}

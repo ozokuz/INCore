@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_field_requisitions",
+  "required_level": 7,
+  "icon_item": "minecraft:oak_log",
+  "display_name": "Shop: Field Requisitions"
+}

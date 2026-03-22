@@ -1,9 +1,10 @@
 {
+  "type": "single_item",
   "category": "incore:expedition_cache",
-  "item": "minecraft:ender_pearl",
   "display_name": "Ender Pearl",
-  "sort_order": 10,
-  "enabled": true,
-  "price_spur": 90,
-  "item_count": 2
+  "price": 90,
+  "reward": {
+    "stack": "minecraft:ender_pearl",
+    "count": 2
+  }
 }

@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Ender Pearls",
+  "price": 6,
+  "reward": {
+    "stack": "minecraft:ender_pearl",
+    "count": 4
+  }
+}

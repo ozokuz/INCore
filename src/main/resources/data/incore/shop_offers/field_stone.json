@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Stone Pallet",
+  "price": 18,
+  "reward": {
+    "stack": "minecraft:stone",
+    "count": 64
+  }
+}

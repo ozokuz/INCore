@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Paper Sheaf",
+  "price": 22,
+  "reward": {
+    "stack": "minecraft:paper",
+    "count": 24
+  }
+}

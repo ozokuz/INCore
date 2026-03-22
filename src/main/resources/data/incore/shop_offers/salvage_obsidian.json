@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Obsidian Stack",
+  "price": 8,
+  "reward": {
+    "stack": "minecraft:obsidian",
+    "count": 12
+  }
+}

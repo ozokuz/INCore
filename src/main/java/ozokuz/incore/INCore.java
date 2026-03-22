@@ -63,6 +63,7 @@ import ozokuz.incore.features.roguelike.network.RoguelikeNetworking;
 import ozokuz.incore.features.entropy.command.EntropyCommands;
 import ozokuz.incore.features.entropy.network.EntropyNetworking;
 import ozokuz.incore.features.shop.ShopCategoryManager;
+import ozokuz.incore.features.shop.ShopBootstrap;
 import ozokuz.incore.features.shop.ShopOfferManager;
 import ozokuz.incore.features.shop.command.ShopCommands;
 import ozokuz.incore.features.shop.network.ShopNetworking;
@@ -125,6 +126,7 @@ public class INCore {
 
         VendingMachineBootstrap.initialize();
         CardVendingMachineIntegration.initialize();
+        ShopBootstrap.initialize();
         modEventBus.addListener(NumismaticsNetworking::registerPayloads);
         modEventBus.addListener(MarketNetworking::registerPayloads);
         modEventBus.addListener(ShopNetworking::registerPayloads);

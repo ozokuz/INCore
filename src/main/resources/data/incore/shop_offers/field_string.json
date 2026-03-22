@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "String Spool",
+  "price": 26,
+  "reward": {
+    "stack": "minecraft:string",
+    "count": 16
+  }
+}

@@ -1,9 +1,10 @@
 {
+  "type": "single_item",
   "category": "incore:basic_supplies",
-  "item": "minecraft:torch",
   "display_name": "Torch Bundle",
-  "sort_order": 20,
-  "enabled": true,
-  "price_spur": 24,
-  "item_count": 32
+  "price": 24,
+  "reward": {
+    "stack": "minecraft:torch",
+    "count": 32
+  }
 }

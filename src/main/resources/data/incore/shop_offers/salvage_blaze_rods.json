@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Blaze Rods",
+  "price": 5,
+  "reward": {
+    "stack": "minecraft:blaze_rod",
+    "count": 4
+  }
+}

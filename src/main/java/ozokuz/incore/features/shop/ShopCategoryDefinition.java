@@ -14,7 +14,9 @@ public record ShopCategoryDefinition(
         ShopStockMode stockMode,
         int initialStock,
         ShopReplenishMode replenishMode,
-        @Nullable ResourceLocation gachaCategoryId
+        ShopCurrencySpec defaultCurrency,
+        ShopOfferSortMode offerSortMode,
+        @Nullable ShopCategoryRotationDefinition rotation
 ) {
     public static ShopCategoryDefinition fromJson(ResourceLocation id, JsonObject object) {
         String displayName = GsonHelper.getAsString(object, "display_name", id.toString());
@@ -32,10 +34,22 @@ public record ShopCategoryDefinition(
                 GsonHelper.getAsString(object, "replenish_mode", ShopReplenishMode.NONE.serialized())
         );
 
-        ResourceLocation gachaCategoryId = null;
-        if (object.has("gacha_category")) {
-            String raw = GsonHelper.getAsString(object, "gacha_category");
-            gachaCategoryId = ResourceLocation.tryParse(raw);
+        ShopCurrencyRegistry.ParsedCurrency parsedCurrency = ShopCurrencyRegistry.parse(GsonHelper.getAsJsonObject(object, "currency"));
+        if (parsedCurrency == null) {
+            throw new IllegalArgumentException("Missing or invalid shop category currency for " + id);
+        }
+
+        ShopOfferSortMode offerSortMode = ShopOfferSortMode.fromString(GsonHelper.getAsString(object, "offer_sort", ShopOfferSortMode.ID.serialized()));
+        ShopCategoryRotationDefinition rotation = null;
+        if (object.has("rotation")) {
+            rotation = ShopCategoryRotationDefinition.fromJson(GsonHelper.getAsJsonObject(object, "rotation"));
+        }
+
+        if (replenishMode == ShopReplenishMode.SHOP_ROTATION && rotation == null) {
+            throw new IllegalArgumentException("Shop category " + id + " uses shop_rotation without rotation config");
+        }
+        if (offerSortMode == ShopOfferSortMode.ROTATION_TIME_REMAINING && rotation == null) {
+            throw new IllegalArgumentException("Shop category " + id + " uses rotation_time_remaining without rotation config");
         }
 
         return new ShopCategoryDefinition(
@@ -47,7 +61,9 @@ public record ShopCategoryDefinition(
                 stockMode,
                 initialStock,
                 replenishMode,
-                gachaCategoryId
+                parsedCurrency.spec(),
+                offerSortMode,
+                rotation
         );
     }
 }
