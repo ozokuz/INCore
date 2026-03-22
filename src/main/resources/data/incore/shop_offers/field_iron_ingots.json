@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Iron Ingot Lot",
+  "price": 48,
+  "reward": {
+    "stack": "minecraft:iron_ingot",
+    "count": 8
+  }
+}

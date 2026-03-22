@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Bone Stock",
+  "price": 24,
+  "reward": {
+    "stack": "minecraft:bone",
+    "count": 12
+  }
+}

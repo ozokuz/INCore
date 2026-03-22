@@ -1,0 +1,23 @@
+{
+  "type": "bundle",
+  "category": "incore:salvage_exchange",
+  "display_name": "Signal Cache",
+  "price": 84,
+  "currency": {
+    "type": "incore:bank_spur"
+  },
+  "reward": [
+    {
+      "stack": "minecraft:redstone",
+      "count": 16
+    },
+    {
+      "stack": "minecraft:lapis_lazuli",
+      "count": 12
+    },
+    {
+      "stack": "minecraft:quartz",
+      "count": 8
+    }
+  ]
+}

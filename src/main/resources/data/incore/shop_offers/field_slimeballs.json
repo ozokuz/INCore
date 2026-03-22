@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Slimeball Jar",
+  "price": 34,
+  "reward": {
+    "stack": "minecraft:slime_ball",
+    "count": 8
+  }
+}

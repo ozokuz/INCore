@@ -1,0 +1,13 @@
+{
+  "display_name": "Field Requisitions",
+  "tab": "supplies",
+  "sort_order": 15,
+  "enabled": true,
+  "stock_mode": "per_item",
+  "initial_stock": 20,
+  "replenish_mode": "daily_noon",
+  "currency": {
+    "type": "incore:bank_spur"
+  },
+  "offer_sort": "id"
+}

@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Gold Ingots",
+  "price": 5,
+  "reward": {
+    "stack": "minecraft:gold_ingot",
+    "count": 6
+  }
+}

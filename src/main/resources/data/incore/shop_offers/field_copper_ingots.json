@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Copper Ingot Lot",
+  "price": 36,
+  "reward": {
+    "stack": "minecraft:copper_ingot",
+    "count": 12
+  }
+}

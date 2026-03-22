@@ -13,12 +13,8 @@ import dev.vfyjxf.taffy.style.AlignItems;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 import ozokuz.incore.features.shop.ShopService;
 import ozokuz.incore.features.shop.ShopTabId;
@@ -37,7 +33,7 @@ final class ShopAppUiSupport {
     }
 
     static ShopService.ScreenData emptyData() {
-        return new ShopService.ScreenData(0, "", "", List.of(), List.of());
+        return new ShopService.ScreenData("", "", List.of(), List.of());
     }
 
     static ShopService.ScreenData parse(String json) {
@@ -46,7 +42,6 @@ final class ShopAppUiSupport {
             return emptyData();
         }
         return new ShopService.ScreenData(
-                parsed.balanceSpur(),
                 parsed.selectedCategoryId() == null ? "" : parsed.selectedCategoryId(),
                 parsed.selectedOfferId() == null ? "" : parsed.selectedOfferId(),
                 parsed.categories(),
@@ -76,10 +71,6 @@ final class ShopAppUiSupport {
                 filtered.add(offer);
             }
         }
-        filtered.sort(Comparator
-                .comparingInt(ShopService.OfferView::sortOrder)
-                .thenComparing(ShopService.OfferView::displayName, String.CASE_INSENSITIVE_ORDER)
-                .thenComparing(ShopService.OfferView::offerId));
         return filtered;
     }
 
@@ -117,15 +108,23 @@ final class ShopAppUiSupport {
     }
 
     static ItemStack stackForOffer(ShopService.OfferView offer) {
-        ResourceLocation itemId = ResourceLocation.tryParse(offer.itemId());
-        if (itemId == null) {
+        return stackFromSpec(offer.previewStackSpec(), Math.max(1, offer.rewardItemCount()));
+    }
+
+    static ItemStack stackFromRewardEntry(ShopService.RewardEntryView entry) {
+        return stackFromSpec(entry.stackSpec(), entry.count());
+    }
+
+    static ItemStack stackFromSpec(@Nullable String stackSpec, int count) {
+        if (stackSpec == null || stackSpec.isBlank()) {
             return ItemStack.EMPTY;
         }
-        Item item = BuiltInRegistries.ITEM.get(itemId);
-        if (item == null || item == Items.AIR) {
-            return ItemStack.EMPTY;
-        }
-        return new ItemStack(item);
+        ItemStack stack = ShopService.parseStack(stackSpec, count);
+        return stack == null ? ItemStack.EMPTY : stack;
+    }
+
+    static ShopService.CurrencyView emptyCurrencyView() {
+        return new ShopService.CurrencyView("", "", "", 1, 0);
     }
 
     static String stockLabel(int stock) {
@@ -134,12 +133,56 @@ final class ShopAppUiSupport {
                 : Component.translatable("screen.incore.shop.stock.remaining", stock).getString();
     }
 
-    static String bundleLabel(int count) {
-        return Component.translatable("screen.incore.shop.bundle", count).getString();
+    static String currencyAmountLabel(ShopService.CurrencyView currency) {
+        if (currency.label() == null || currency.label().isBlank()) {
+            return Integer.toString(Math.max(1, currency.amountPerUnit()));
+        }
+        return currency.amountPerUnit() + " " + currency.label();
     }
 
-    static String priceLabel(int price) {
-        return Component.translatable("screen.incore.shop.price_each", price).getString();
+    static String availableCurrencyLabel(ShopService.CurrencyView currency) {
+        if (currency.label() == null || currency.label().isBlank()) {
+            return Integer.toString(Math.max(0, currency.availableAmount()));
+        }
+        return currency.availableAmount() + " " + currency.label();
+    }
+
+    static String rewardSummary(ShopService.OfferView offer) {
+        return switch (offer.type()) {
+            case "single_item" -> Component.translatable("screen.incore.shop.reward_count", offer.rewardItemCount()).getString();
+            case "bundle" -> Component.translatable(
+                    "screen.incore.shop.bundle_summary",
+                    offer.rewardBundleEntryCount(),
+                    offer.rewardItemCount()
+            ).getString();
+            default -> Component.translatable("screen.incore.shop.reward_count", offer.rewardItemCount()).getString();
+        };
+    }
+
+    static String rotationRemainingLabel(long remainingMillis) {
+        if (remainingMillis < 0L) {
+            return "";
+        }
+        long totalSeconds = Math.max(0L, remainingMillis / 1000L);
+        long hours = totalSeconds / 3600L;
+        long minutes = (totalSeconds % 3600L) / 60L;
+        if (hours > 0L) {
+            return Component.translatable("screen.incore.shop.rotation_remaining.hours_minutes", hours, minutes).getString();
+        }
+        return Component.translatable("screen.incore.shop.rotation_remaining.minutes", minutes).getString();
+    }
+
+    static String rewardEntryLabel(ShopService.RewardEntryView entry) {
+        ItemStack stack = stackFromRewardEntry(entry);
+        return stack.isEmpty() ? entry.stackSpec() : stack.getHoverName().getString();
+    }
+
+    static Component sidebarSubtitleFor(ShopTabId tabId) {
+        return switch (tabId) {
+            case SUPPLIES -> Component.translatable("screen.incore.shop.style.industrial.sidebar");
+            case ROTATIONS -> Component.translatable("screen.incore.shop.style.luxury.sidebar");
+            case CACHES -> Component.translatable("screen.incore.shop.style.arcade.sidebar");
+        };
     }
 
     static TabTheme themeFor(ShopTabId tabId) {
@@ -183,60 +226,8 @@ final class ShopAppUiSupport {
         };
     }
 
-    static LayoutStyle layoutStyleFor(ShopTabId tabId) {
-        return switch (tabId) {
-            case SUPPLIES -> LayoutStyle.INDUSTRIAL;
-            case ROTATIONS -> LayoutStyle.LUXURY;
-            case CACHES -> LayoutStyle.ARCADE;
-        };
-    }
-
-    static int visibleOfferRowsFor(ShopTabId tabId) {
-        return switch (layoutStyleFor(tabId)) {
-            case INDUSTRIAL -> 8;
-            case LUXURY -> 7;
-            case ARCADE -> 6;
-        };
-    }
-
-    static Component subtitleFor(ShopTabId tabId) {
-        return switch (layoutStyleFor(tabId)) {
-            case INDUSTRIAL -> Component.translatable("screen.incore.shop.style.industrial.subtitle");
-            case LUXURY -> Component.translatable("screen.incore.shop.style.luxury.subtitle");
-            case ARCADE -> Component.translatable("screen.incore.shop.style.arcade.subtitle");
-        };
-    }
-
-    static Component sidebarSubtitleFor(ShopTabId tabId) {
-        return switch (layoutStyleFor(tabId)) {
-            case INDUSTRIAL -> Component.translatable("screen.incore.shop.style.industrial.sidebar");
-            case LUXURY -> Component.translatable("screen.incore.shop.style.luxury.sidebar");
-            case ARCADE -> Component.translatable("screen.incore.shop.style.arcade.sidebar");
-        };
-    }
-
-    static Component offersSubtitleFor(ShopTabId tabId, String stockText) {
-        return switch (layoutStyleFor(tabId)) {
-            case INDUSTRIAL -> Component.literal(stockText);
-            case LUXURY -> Component.translatable("screen.incore.shop.style.luxury.offers", stockText);
-            case ARCADE -> Component.translatable("screen.incore.shop.style.arcade.offers", stockText);
-        };
-    }
-
-    static int offerCardHeight(ShopTabId tabId) {
-        return switch (layoutStyleFor(tabId)) {
-            case INDUSTRIAL -> 44;
-            case LUXURY -> 54;
-            case ARCADE -> 50;
-        };
-    }
-
-    static int offerIconSize(ShopTabId tabId) {
-        return switch (layoutStyleFor(tabId)) {
-            case INDUSTRIAL -> 16;
-            case LUXURY -> 20;
-            case ARCADE -> 18;
-        };
+    static ShopAppLayout layoutFor(ShopTabId tabId) {
+        return ShopAppLayouts.forTab(tabId);
     }
 
     static Button actionButton(Component text, TabTheme theme, int height) {
@@ -269,11 +260,17 @@ final class ShopAppUiSupport {
         });
         if (active) {
             button.buttonStyle(style -> style
-                    .baseTexture(buttonTexture(theme.accent(), theme.primaryText(), theme.priceText(), 1))
-                    .hoverTexture(buttonTexture(theme.accent(), theme.primaryText(), theme.priceText(), 1))
-                    .pressedTexture(buttonTexture(theme.accent(), theme.primaryText(), theme.priceText(), 1))
+                    .baseTexture(new BeveledRectTexture(theme.accent(), theme.primaryText(), theme.accent(), theme.accent(), 1, 0))
+                    .hoverTexture(new BeveledRectTexture(theme.accent(), theme.primaryText(), theme.accent(), theme.accent(), 1, 0))
+                    .pressedTexture(new BeveledRectTexture(theme.accent(), theme.primaryText(), theme.accent(), theme.accent(), 1, 0))
             );
             button.text.textStyle(style -> style.textColor(0xFFFFFFFF));
+        } else {
+            button.buttonStyle(style -> style
+                    .baseTexture(new BeveledRectTexture(theme.panelFill(), theme.panelBorder(), theme.panelFill(), theme.panelFill(), 1, 0))
+                    .hoverTexture(new BeveledRectTexture(theme.rowHover(), theme.panelBorder(), theme.rowHover(), theme.rowHover(), 1, 0))
+                    .pressedTexture(new BeveledRectTexture(theme.panelEdge(), theme.panelBorder(), theme.panelEdge(), theme.panelEdge(), 1, 0))
+            );
         }
         return button;
     }
@@ -296,22 +293,18 @@ final class ShopAppUiSupport {
         );
         if (active) {
             button.buttonStyle(style -> style
-                    .baseTexture(tabTexture(theme.panelFill(), theme.panelBorder()))
-                    .hoverTexture(tabTexture(theme.panelFill(), theme.panelBorder()))
-                    .pressedTexture(tabTexture(theme.panelEdge(), theme.panelEdge()))
+                    .baseTexture(new BeveledRectTexture(theme.panelFill(), theme.panelBorder(), theme.panelFill(), theme.panelFill(), 1, 0))
+                    .hoverTexture(new BeveledRectTexture(theme.panelFill(), theme.panelBorder(), theme.panelFill(), theme.panelFill(), 1, 0))
+                    .pressedTexture(new BeveledRectTexture(theme.panelEdge(), theme.panelBorder(), theme.panelEdge(), theme.panelEdge(), 1, 0))
             );
         } else {
             button.buttonStyle(style -> style
-                    .baseTexture(tabTexture(theme.panelEdge(), theme.panelBorder()))
-                    .hoverTexture(tabTexture(theme.panelBorder(), theme.panelEdge()))
-                    .pressedTexture(tabTexture(theme.panelEdge(), theme.panelEdge()))
+                    .baseTexture(new BeveledRectTexture(theme.panelEdge(), theme.panelBorder(), theme.panelEdge(), theme.panelEdge(), 1, 0))
+                    .hoverTexture(new BeveledRectTexture(theme.panelBorder(), theme.panelBorder(), theme.panelBorder(), theme.panelBorder(), 1, 0))
+                    .pressedTexture(new BeveledRectTexture(theme.panelEdge(), theme.panelBorder(), theme.panelEdge(), theme.panelEdge(), 1, 0))
             );
         }
         return button;
-    }
-
-    private static IGuiTexture tabTexture(int fill, int border) {
-        return new BeveledRectTexture(fill, border, 0, 0, 1, 0);
     }
 
     static UIElement surface(TabTheme theme, int padding, int radius) {
@@ -384,11 +377,5 @@ final class ShopAppUiSupport {
             int panelEdge,
             int rowHover
     ) {
-    }
-
-    enum LayoutStyle {
-        INDUSTRIAL,
-        LUXURY,
-        ARCADE
     }
 }

@@ -12,6 +12,7 @@ public final class PlayerFeatureUnlockIds {
     public static final ResourceLocation MARKET_BASIC = id("market_basic");
     public static final ResourceLocation BATTLEPASS_LANE_NORTHIUM_ACCESS = id("battlepass_lane_northium_access");
     public static final ResourceLocation SHOP_DAILY_EXCHANGE = id("shop_daily_exchange");
+    public static final ResourceLocation SHOP_FIELD_REQUISITIONS = id("shop_field_requisitions");
     public static final ResourceLocation ARENA_TIER_2 = id("arena_tier_2");
     public static final ResourceLocation GACHA_CHARTERED = id("gacha_chartered");
     public static final ResourceLocation MARKET_SHIPMENT_TERMINAL = id("market_shipment_terminal");
@@ -23,6 +24,7 @@ public final class PlayerFeatureUnlockIds {
     public static final ResourceLocation MARKET_AUTOTRADER = id("market_autotrader");
     public static final ResourceLocation ARENA_TIER_5 = id("arena_tier_5");
     public static final ResourceLocation SHOP_EXPEDITION_CACHE = id("shop_expedition_cache");
+    public static final ResourceLocation SHOP_SALVAGE_EXCHANGE = id("shop_salvage_exchange");
     public static final ResourceLocation MARKET_SHIPMENT_TERMINAL_MK2 = id("market_shipment_terminal_mk2");
     public static final ResourceLocation MARKET_AUTOTRADER_MK2 = id("market_autotrader_mk2");
 

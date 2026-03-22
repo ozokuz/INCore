@@ -2,20 +2,17 @@ package ozokuz.incore.features.shop;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import ozokuz.incore.INCore;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.item.Items;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
+import org.jetbrains.annotations.NotNull;
+import ozokuz.incore.INCore;
 
 public final class ShopOfferManager extends SimpleJsonResourceReloadListener {
     private static volatile Map<ResourceLocation, ShopOfferDefinition> byId = Map.of();
@@ -39,15 +36,12 @@ public final class ShopOfferManager extends SimpleJsonResourceReloadListener {
                         }
 
                         ShopOfferDefinition offer = ShopOfferDefinition.fromJson(id, json.getAsJsonObject());
-                        if (!offer.enabled()) {
-                            return;
-                        }
                         if (ShopCategoryManager.get(offer.categoryId()) == null) {
                             INCore.LOGGER.warn("Skipping shop offer {} due to unknown category {}", id, offer.categoryId());
                             return;
                         }
-                        if (BuiltInRegistries.ITEM.get(offer.itemId()) == Items.AIR) {
-                            INCore.LOGGER.warn("Skipping shop offer {} due to unknown item {}", id, offer.itemId());
+                        if (!isValidPurchaseable(offer.purchaseable())) {
+                            INCore.LOGGER.warn("Skipping shop offer {} due to invalid reward stack(s)", id);
                             return;
                         }
 
@@ -63,8 +57,6 @@ public final class ShopOfferManager extends SimpleJsonResourceReloadListener {
                     ShopCategoryDefinition category = ShopCategoryManager.get(offer.categoryId());
                     return category == null ? Integer.MAX_VALUE : category.sortOrder();
                 })
-                .thenComparingInt(ShopOfferDefinition::sortOrder)
-                .thenComparing(ShopOfferDefinition::displayName, String.CASE_INSENSITIVE_ORDER)
                 .thenComparing(offer -> offer.id().toString()));
 
         byId = Map.copyOf(next);
@@ -77,7 +69,10 @@ public final class ShopOfferManager extends SimpleJsonResourceReloadListener {
     }
 
     public static List<ShopOfferDefinition> byCategory(ResourceLocation categoryId) {
-        return ordered.stream().filter(offer -> offer.categoryId().equals(categoryId)).toList();
+        return ordered.stream()
+                .filter(offer -> offer.categoryId().equals(categoryId))
+                .sorted(Comparator.comparing(offer -> offer.id().toString()))
+                .toList();
     }
 
     public static ShopOfferDefinition get(ResourceLocation id) {
@@ -86,5 +81,13 @@ public final class ShopOfferManager extends SimpleJsonResourceReloadListener {
 
     public static List<ResourceLocation> ids() {
         return ordered.stream().map(ShopOfferDefinition::id).toList();
+    }
+
+    private static boolean isValidPurchaseable(ShopPurchaseableDefinition purchaseable) {
+        return switch (purchaseable) {
+            case ShopSingleItemPurchaseableDefinition singleItem -> ShopService.parseStack(singleItem.stackSpec(), singleItem.count()) != null;
+            case ShopBundlePurchaseableDefinition bundle -> bundle.items().stream()
+                    .allMatch(entry -> ShopService.parseStack(entry.stackSpec(), entry.count()) != null);
+        };
     }
 }

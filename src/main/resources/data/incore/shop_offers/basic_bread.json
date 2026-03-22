@@ -1,9 +1,10 @@
 {
+  "type": "single_item",
   "category": "incore:basic_supplies",
-  "item": "minecraft:bread",
   "display_name": "Field Rations",
-  "sort_order": 10,
-  "enabled": true,
-  "price_spur": 18,
-  "item_count": 8
+  "price": 18,
+  "reward": {
+    "stack": "minecraft:bread",
+    "count": 8
+  }
 }

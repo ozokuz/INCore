@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Gunpowder Cache",
+  "price": 5,
+  "reward": {
+    "stack": "minecraft:gunpowder",
+    "count": 12
+  }
+}

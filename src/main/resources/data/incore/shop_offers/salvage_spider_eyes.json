@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Spider Eye Pack",
+  "price": 4,
+  "reward": {
+    "stack": "minecraft:spider_eye",
+    "count": 12
+  }
+}

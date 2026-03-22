@@ -1,9 +1,10 @@
 {
+  "type": "single_item",
   "category": "incore:daily_exchange",
-  "item": "minecraft:iron_ingot",
   "display_name": "Iron Ingot",
-  "sort_order": 10,
-  "enabled": true,
-  "price_spur": 40,
-  "item_count": 4
+  "price": 40,
+  "reward": {
+    "stack": "minecraft:iron_ingot",
+    "count": 4
+  }
 }

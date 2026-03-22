@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Magma Cream",
+  "price": 6,
+  "reward": {
+    "stack": "minecraft:magma_cream",
+    "count": 8
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Crying Obsidian",
+  "price": 8,
+  "reward": {
+    "stack": "minecraft:crying_obsidian",
+    "count": 6
+  }
+}

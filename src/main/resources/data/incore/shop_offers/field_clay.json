@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Clay Lot",
+  "price": 20,
+  "reward": {
+    "stack": "minecraft:clay_ball",
+    "count": 24
+  }
+}

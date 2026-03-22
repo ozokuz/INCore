@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Amethyst Shards",
+  "price": 5,
+  "reward": {
+    "stack": "minecraft:amethyst_shard",
+    "count": 12
+  }
+}

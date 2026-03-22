@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Spruce Timber",
+  "price": 12,
+  "reward": {
+    "stack": "minecraft:spruce_log",
+    "count": 16
+  }
+}

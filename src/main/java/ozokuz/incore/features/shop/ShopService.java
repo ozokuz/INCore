@@ -1,18 +1,9 @@
 package ozokuz.incore.features.shop;
 
 import com.google.gson.Gson;
-import dev.ithundxr.createnumismatics.Numismatics;
-import dev.ithundxr.createnumismatics.content.backend.BankAccount;
-import ozokuz.incore.features.gacha.GachaEventRotation;
-import ozokuz.incore.features.market.MarketBanking;
-import ozokuz.incore.features.market.MarketTime;
-import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
-import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
-import ozokuz.incore.features.tasks.DailyTaskEvents;
-import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
-import ozokuz.incore.integration.ldlib.ui.INCoreUiRouteContext;
-import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
-import ozokuz.incore.integration.ldlib.ui.ShopUiRouteContext;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -22,13 +13,19 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import ozokuz.incore.features.market.MarketTime;
+import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockIds;
+import ozokuz.incore.features.playerlevel.PlayerFeatureUnlockService;
+import ozokuz.incore.features.tasks.DailyTaskEvents;
+import ozokuz.incore.features.vendingmachine.VendingMachineItemUtil;
+import ozokuz.incore.integration.ldlib.ui.INCorePlayerUiNavigator;
+import ozokuz.incore.integration.ldlib.ui.INCoreUiIds;
+import ozokuz.incore.integration.ldlib.ui.INCoreUiRouteContext;
+import ozokuz.incore.integration.ldlib.ui.ShopUiRouteContext;
 
 public final class ShopService {
     private static final Gson GSON = new Gson();
+    private static final long UI_TIMER_BUCKET_MILLIS = 60_000L;
 
     private ShopService() {
     }
@@ -61,20 +58,24 @@ public final class ShopService {
     ) {
         MinecraftServer server = player.getServer();
         if (server == null) {
-            return new ScreenData(0, "", "", List.of(), List.of());
+            return new ScreenData("", "", List.of(), List.of());
         }
 
         ShopSavedData data = ShopSavedData.get(server);
         ShopSavedData.PlayerState playerState = data.stateFor(player.getUUID());
         reconcilePlayerState(player, data, playerState);
 
+        long now = System.currentTimeMillis();
         List<CategoryView> categories = new ArrayList<>();
+        List<OfferView> offers = new ArrayList<>();
+
         for (ShopCategoryDefinition category : ShopCategoryManager.all()) {
             boolean locked = isCategoryLocked(data, player, category.id());
             int stock = category.stockMode() == ShopStockMode.CATEGORY_BUCKET
                     ? stockForCategoryBucket(data, playerState, category)
                     : -1;
 
+            List<VisibleOffer> visibleOffers = visibleOffersForCategory(now, category);
             categories.add(new CategoryView(
                     category.id().toString(),
                     category.displayName(),
@@ -83,49 +84,38 @@ public final class ShopService {
                     category.stockMode().serialized(),
                     category.replenishMode().serialized(),
                     stock,
-                    locked
+                    locked,
+                    currencyView(player, category.defaultCurrency(), 1),
+                    category.rotation() != null,
+                    category.rotation() == null ? -1L : uiRemainingMillis(remainingMillisForCurrentStep(now, category.rotation())),
+                    visibleOffers.size()
             ));
-        }
 
-        List<OfferView> offers = new ArrayList<>();
-        for (ShopOfferDefinition offer : ShopOfferManager.all()) {
-            ShopCategoryDefinition category = ShopCategoryManager.get(offer.categoryId());
-            if (category == null) {
-                continue;
+            for (VisibleOffer visibleOffer : visibleOffers) {
+                ShopOfferDefinition offer = visibleOffer.offer();
+                boolean offerLocked = data.isOfferLocked(player.getUUID(), offer.id());
+                int availableStock = stockForOffer(data, playerState, category, offer);
+                offers.add(new OfferView(
+                        offer.id().toString(),
+                        category.id().toString(),
+                        offer.displayName(),
+                        offer.price(),
+                        offer.purchaseable().serializedType(),
+                        currencyView(player, effectiveCurrencySpec(category, offer), offer.price()),
+                        previewStackSpec(offer.purchaseable()),
+                        rewardItemCount(offer.purchaseable()),
+                        rewardBundleEntryCount(offer.purchaseable()),
+                        rewardEntryViews(offer.purchaseable()),
+                        availableStock,
+                        locked || offerLocked,
+                        uiRemainingMillis(visibleOffer.rotationRemainingMillis())
+                ));
             }
-
-            boolean categoryLocked = isCategoryLocked(data, player, category.id());
-            boolean offerLocked = data.isOfferLocked(player.getUUID(), offer.id());
-            boolean locked = categoryLocked || offerLocked;
-            int availableStock = stockForOffer(data, playerState, category, offer);
-
-            offers.add(new OfferView(
-                    offer.id().toString(),
-                    offer.categoryId().toString(),
-                    offer.itemId().toString(),
-                    offer.displayName(),
-                    offer.sortOrder(),
-                    offer.priceSpur(),
-                    offer.itemCount(),
-                    availableStock,
-                    locked
-            ));
         }
-        offers.sort(Comparator
-                .comparing((OfferView view) -> {
-                    ShopCategoryDefinition category = ShopCategoryManager.get(ResourceLocation.parse(view.categoryId()));
-                    return category == null ? Integer.MAX_VALUE : category.sortOrder();
-                })
-                .thenComparingInt(OfferView::sortOrder)
-                .thenComparing(OfferView::displayName, String.CASE_INSENSITIVE_ORDER)
-                .thenComparing(OfferView::offerId));
 
         String resolvedCategory = resolveSelectedCategory(categories, offers, selectedCategoryId);
         String resolvedOffer = resolveSelectedOffer(resolvedCategory, offers, selectedOfferId);
-
-        BankAccount account = Numismatics.BANK.getAccount(player);
-        int balanceSpur = MarketBanking.balanceSpur(account);
-        return new ScreenData(balanceSpur, resolvedCategory, resolvedOffer, categories, offers);
+        return new ScreenData(resolvedCategory, resolvedOffer, categories, offers);
     }
 
     public static boolean purchase(ServerPlayer player, ResourceLocation offerId, int quantity) {
@@ -146,6 +136,11 @@ public final class ShopService {
             return false;
         }
 
+        if (!isOfferCurrentlyVisible(category, offer.id(), System.currentTimeMillis())) {
+            player.sendSystemMessage(Component.translatable("incore.shop.offer_missing"));
+            return false;
+        }
+
         ShopSavedData data = ShopSavedData.get(server);
         ShopSavedData.PlayerState playerState = data.stateFor(player.getUUID());
         reconcilePlayerState(player, data, playerState);
@@ -162,43 +157,32 @@ public final class ShopService {
             return false;
         }
 
-        Item item = BuiltInRegistries.ITEM.get(offer.itemId());
-        if (item == null || item == Items.AIR) {
-            player.sendSystemMessage(Component.translatable("incore.shop.offer_missing"));
-            return false;
-        }
-
-        int itemsPerPurchase = Math.max(1, offer.itemCount());
-        long totalItemsLong = (long) purchaseCount * itemsPerPurchase;
-        if (totalItemsLong > Integer.MAX_VALUE) {
-            return false;
-        }
-        int totalItems = (int) totalItemsLong;
-
-        if (!canFit(player, item, totalItems)) {
+        List<ItemStack> grantedStacks = resolveGrantedStacks(offer.purchaseable(), purchaseCount);
+        if (grantedStacks.isEmpty() || !canFitAll(player, grantedStacks)) {
             player.sendSystemMessage(Component.translatable("incore.shop.inventory_full"));
             return false;
         }
 
-        long totalPriceLong = (long) offer.priceSpur() * purchaseCount;
-        if (totalPriceLong > Integer.MAX_VALUE) {
+        long totalPriceLong = (long) offer.price() * purchaseCount;
+        if (totalPriceLong <= 0L || totalPriceLong > Integer.MAX_VALUE) {
             player.sendSystemMessage(Component.translatable("incore.shop.insufficient_funds"));
             return false;
         }
         int totalPrice = (int) totalPriceLong;
 
-        BankAccount account = Numismatics.BANK.getAccount(player);
-        if (account == null) {
-            player.sendSystemMessage(Component.translatable("incore.shop.no_account"));
+        ShopCurrencySpec effectiveCurrency = effectiveCurrencySpec(category, offer);
+        ShopCurrencyType currencyType = ShopCurrencyRegistry.get(effectiveCurrency.typeId());
+        if (currencyType == null || currencyType.availableAmount(player, effectiveCurrency) < totalPrice) {
+            player.sendSystemMessage(Component.translatable("incore.shop.insufficient_funds"));
             return false;
         }
-        if (!MarketBanking.withdraw(account, totalPrice)) {
+        if (!currencyType.consume(player, effectiveCurrency, totalPrice)) {
             player.sendSystemMessage(Component.translatable("incore.shop.insufficient_funds"));
             return false;
         }
 
         consumeStock(data, playerState, category, offer, purchaseCount);
-        giveItems(player, item, totalItems);
+        giveOrDropAll(player, grantedStacks);
         data.setDirty();
         DailyTaskEvents.onShopPurchase(player);
         return true;
@@ -242,6 +226,51 @@ public final class ShopService {
         return ShopSavedData.get(server).globalLockedOffers().size();
     }
 
+    public static @Nullable ItemStack parseStack(String stackSpec, int count) {
+        ResourceLocation itemId = ResourceLocation.tryParse(stackSpec);
+        if (itemId == null) {
+            return null;
+        }
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == Items.AIR) {
+            return null;
+        }
+        return new ItemStack(item, Math.max(1, count));
+    }
+
+    static List<ResourceLocation> visibleOfferIdsForCategory(ShopCategoryDefinition category, long now) {
+        return visibleOffersForCategory(now, category).stream()
+                .map(visibleOffer -> visibleOffer.offer().id())
+                .toList();
+    }
+
+    static List<ResourceLocation> visibleOfferIdsForOrderedOffers(
+            List<ResourceLocation> orderedOfferIds,
+            ShopCategoryRotationDefinition rotation,
+            long now
+    ) {
+        if (orderedOfferIds.isEmpty()) {
+            return List.of();
+        }
+        int offerCount = orderedOfferIds.size();
+        int visibleCount = Math.min(rotation.visibleCount(), offerCount);
+        int start = Math.floorMod((int) rotationStep(now, rotation), offerCount);
+        List<ResourceLocation> visible = new ArrayList<>(visibleCount);
+        for (int offset = 0; offset < visibleCount; offset++) {
+            visible.add(orderedOfferIds.get(Math.floorMod(start + offset, offerCount)));
+        }
+        return List.copyOf(visible);
+    }
+
+    static long rotationRemainingMillisForOffer(ShopCategoryDefinition category, ResourceLocation offerId, long now) {
+        for (VisibleOffer visibleOffer : visibleOffersForCategory(now, category)) {
+            if (visibleOffer.offer().id().equals(offerId)) {
+                return visibleOffer.rotationRemainingMillis();
+            }
+        }
+        return -1L;
+    }
+
     static RequestedSelection requestedSelection(
             ServerPlayer player,
             @Nullable ResourceLocation requestedCategoryId,
@@ -273,21 +302,18 @@ public final class ShopService {
             List<OfferView> offers,
             @Nullable ResourceLocation requestedCategoryId
     ) {
-        if (!categories.isEmpty() && requestedCategoryId != null) {
+        if (requestedCategoryId != null) {
             String raw = requestedCategoryId.toString();
             if (categories.stream().anyMatch(category -> category.categoryId().equals(raw))) {
                 return raw;
             }
         }
-
         if (!categories.isEmpty()) {
             return categories.getFirst().categoryId();
         }
-
         if (!offers.isEmpty()) {
             return offers.getFirst().categoryId();
         }
-
         return "";
     }
 
@@ -296,20 +322,18 @@ public final class ShopService {
             List<OfferView> offers,
             @Nullable ResourceLocation requestedOfferId
     ) {
-        if (!offers.isEmpty() && requestedOfferId != null) {
+        if (requestedOfferId != null) {
             String raw = requestedOfferId.toString();
             if (offers.stream().anyMatch(offer -> offer.offerId().equals(raw))) {
                 return raw;
             }
         }
-
         for (OfferView offer : offers) {
             if (offer.categoryId().equals(resolvedCategoryId)) {
                 return offer.offerId();
             }
         }
-
-        return offers.isEmpty() ? "" : offers.getFirst().offerId();
+        return "";
     }
 
     private static boolean isLocked(
@@ -332,8 +356,10 @@ public final class ShopService {
         return switch (categoryId.toString()) {
             case "incore:basic_supplies" -> PlayerFeatureUnlockIds.SHOP_BASIC_SUPPLIES;
             case "incore:daily_exchange" -> PlayerFeatureUnlockIds.SHOP_DAILY_EXCHANGE;
+            case "incore:field_requisitions" -> PlayerFeatureUnlockIds.SHOP_FIELD_REQUISITIONS;
             case "incore:chartered_rotation" -> PlayerFeatureUnlockIds.SHOP_CHARTERED_ROTATION;
             case "incore:expedition_cache" -> PlayerFeatureUnlockIds.SHOP_EXPEDITION_CACHE;
+            case "incore:salvage_exchange" -> PlayerFeatureUnlockIds.SHOP_SALVAGE_EXCHANGE;
             default -> null;
         };
     }
@@ -349,22 +375,19 @@ public final class ShopService {
         }
 
         boolean changed = false;
-
+        long now = System.currentTimeMillis();
         for (ShopCategoryDefinition category : ShopCategoryManager.all()) {
             changed |= ensureStockInitialized(playerState, category);
-
-            String token = replenishToken(server, category);
+            String token = replenishToken(category, now);
             if (token.isEmpty()) {
                 continue;
             }
-
             String previousToken = playerState.replenishTokens().get(category.id());
             if (previousToken == null) {
                 playerState.replenishTokens().put(category.id(), token);
                 changed = true;
                 continue;
             }
-
             if (!previousToken.equals(token)) {
                 resetStockForCategory(playerState, category);
                 playerState.replenishTokens().put(category.id(), token);
@@ -397,19 +420,18 @@ public final class ShopService {
         };
     }
 
-    private static String replenishToken(MinecraftServer server, ShopCategoryDefinition category) {
+    private static String replenishToken(ShopCategoryDefinition category, long now) {
         return switch (category.replenishMode()) {
             case NONE -> "";
-            case DAILY_NOON -> "daily:" + MarketTime.noonDayKey(MarketTime.now(server));
-            case GACHA_ROTATION -> {
-                if (category.gachaCategoryId() == null) {
-                    yield "gacha:missing";
-                }
-                yield "gacha:" + GachaEventRotation.getRotationTokenForCategory(category.gachaCategoryId());
-            }
-            default -> throw new IllegalArgumentException(
-                    "Unknown replenish mode " + category.replenishMode() + " for shop category " + category.id()
+            case DAILY_NOON -> "daily:" + MarketTime.noonDayKey(
+                    java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.systemDefault())
             );
+            case SHOP_ROTATION -> {
+                if (category.rotation() == null) {
+                    yield "shop:missing:" + category.id();
+                }
+                yield "shop:" + category.id() + "#" + rotationStep(now, category.rotation());
+            }
         };
     }
 
@@ -423,9 +445,7 @@ public final class ShopService {
                     playerState.itemStocks().put(offer.id(), category.initialStock());
                 }
             }
-            default -> throw new IllegalArgumentException(
-                    "Unknown stock mode " + category.stockMode() + " for shop category " + category.id()
-            );
+            default -> throw new IllegalArgumentException("Unknown stock mode " + category.stockMode() + " for " + category.id());
         }
     }
 
@@ -447,11 +467,6 @@ public final class ShopService {
                 }
                 yield Math.max(0, stock);
             }
-            default -> throw new IllegalArgumentException(
-                    "Unknown stock mode " + category.stockMode()
-                            + " for shop category " + category.id()
-                            + " while resolving offer " + offer.id()
-            );
         };
     }
 
@@ -487,55 +502,212 @@ public final class ShopService {
                 int current = stockForOffer(savedData, playerState, category, offer);
                 playerState.itemStocks().put(offer.id(), Math.max(0, current - quantity));
             }
-            default -> throw new IllegalArgumentException(
-                    "Unknown stock mode " + category.stockMode()
-                            + " for shop category " + category.id()
-                            + " while consuming offer " + offer.id()
-            );
+            default -> throw new IllegalArgumentException("Unknown stock mode " + category.stockMode() + " for " + category.id());
         }
     }
 
-    private static boolean canFit(ServerPlayer player, Item item, int totalItems) {
-        int remaining = totalItems;
-        int maxStack = Math.max(1, item.getDefaultMaxStackSize());
-        ItemStack reference = new ItemStack(item);
+    private static ShopCurrencySpec effectiveCurrencySpec(ShopCategoryDefinition category, ShopOfferDefinition offer) {
+        return offer.currencyOverride() != null ? offer.currencyOverride() : category.defaultCurrency();
+    }
 
+    private static CurrencyView currencyView(ServerPlayer player, ShopCurrencySpec spec, int amountPerUnit) {
+        ShopCurrencyType type = ShopCurrencyRegistry.get(spec.typeId());
+        if (type == null) {
+            return new CurrencyView("", "", "", amountPerUnit, 0);
+        }
+        ShopCurrencyView built = type.buildView(player, spec, amountPerUnit);
+        return new CurrencyView(
+                built.typeId(),
+                built.iconItemId(),
+                built.label(),
+                built.amountPerUnit(),
+                built.availableAmount()
+        );
+    }
+
+    private static List<VisibleOffer> visibleOffersForCategory(long now, ShopCategoryDefinition category) {
+        List<ShopOfferDefinition> baseOffers = ShopOfferManager.byCategory(category.id()).stream()
+                .sorted(Comparator.comparing(offer -> offer.id().toString()))
+                .toList();
+        if (baseOffers.isEmpty()) {
+            return List.of();
+        }
+        if (category.rotation() == null) {
+            return baseOffers.stream()
+                    .map(offer -> new VisibleOffer(offer, -1L, 0))
+                    .sorted(visibleOfferComparator(category.offerSortMode()))
+                    .toList();
+        }
+
+        ShopCategoryRotationDefinition rotation = category.rotation();
+        int offerCount = baseOffers.size();
+        int visibleCount = Math.min(rotation.visibleCount(), offerCount);
+        int start = Math.floorMod((int) rotationStep(now, rotation), offerCount);
+        long remaining = remainingMillisForCurrentStep(now, rotation);
+        List<VisibleOffer> visible = new ArrayList<>();
+        for (int offset = 0; offset < visibleCount; offset++) {
+            int index = Math.floorMod(start + offset, offerCount);
+            visible.add(new VisibleOffer(
+                    baseOffers.get(index),
+                    remaining + (long) offset * rotationDurationMillis(rotation),
+                    offset
+            ));
+        }
+        visible.sort(visibleOfferComparator(category.offerSortMode()));
+        return List.copyOf(visible);
+    }
+
+    private static Comparator<VisibleOffer> visibleOfferComparator(ShopOfferSortMode sortMode) {
+        return switch (sortMode) {
+            case ID -> Comparator.comparing(visibleOffer -> visibleOffer.offer().id().toString());
+            case ROTATION_TIME_REMAINING -> Comparator
+                    .comparingLong(VisibleOffer::rotationRemainingMillis)
+                    .thenComparingInt(VisibleOffer::windowOffset)
+                    .thenComparing(visibleOffer -> visibleOffer.offer().id().toString());
+        };
+    }
+
+    private static boolean isOfferCurrentlyVisible(ShopCategoryDefinition category, ResourceLocation offerId, long now) {
+        return visibleOffersForCategory(now, category).stream().anyMatch(offer -> offer.offer().id().equals(offerId));
+    }
+
+    private static String previewStackSpec(ShopPurchaseableDefinition purchaseable) {
+        return switch (purchaseable) {
+            case ShopSingleItemPurchaseableDefinition singleItem -> singleItem.stackSpec();
+            case ShopBundlePurchaseableDefinition bundle -> bundle.items().isEmpty() ? "" : bundle.items().getFirst().stackSpec();
+        };
+    }
+
+    private static int rewardItemCount(ShopPurchaseableDefinition purchaseable) {
+        return switch (purchaseable) {
+            case ShopSingleItemPurchaseableDefinition singleItem -> singleItem.count();
+            case ShopBundlePurchaseableDefinition bundle -> bundle.items().stream().mapToInt(ShopRewardStackDefinition::count).sum();
+        };
+    }
+
+    private static int rewardBundleEntryCount(ShopPurchaseableDefinition purchaseable) {
+        return switch (purchaseable) {
+            case ShopSingleItemPurchaseableDefinition ignored -> 1;
+            case ShopBundlePurchaseableDefinition bundle -> bundle.items().size();
+        };
+    }
+
+    private static List<RewardEntryView> rewardEntryViews(ShopPurchaseableDefinition purchaseable) {
+        return switch (purchaseable) {
+            case ShopSingleItemPurchaseableDefinition singleItem -> List.of(new RewardEntryView(singleItem.stackSpec(), singleItem.count()));
+            case ShopBundlePurchaseableDefinition bundle -> bundle.items().stream()
+                    .map(entry -> new RewardEntryView(entry.stackSpec(), entry.count()))
+                    .toList();
+        };
+    }
+
+    private static List<ItemStack> resolveGrantedStacks(ShopPurchaseableDefinition purchaseable, int quantity) {
+        List<ItemStack> stacks = new ArrayList<>();
+        switch (purchaseable) {
+            case ShopSingleItemPurchaseableDefinition singleItem -> addGrantedStack(stacks, singleItem.stackSpec(), singleItem.count(), quantity);
+            case ShopBundlePurchaseableDefinition bundle -> {
+                for (ShopRewardStackDefinition entry : bundle.items()) {
+                    addGrantedStack(stacks, entry.stackSpec(), entry.count(), quantity);
+                }
+            }
+        }
+        return stacks;
+    }
+
+    private static void addGrantedStack(List<ItemStack> stacks, String stackSpec, int countPerUnit, int quantity) {
+        long total = (long) countPerUnit * quantity;
+        if (total <= 0L || total > Integer.MAX_VALUE) {
+            return;
+        }
+        ItemStack stack = parseStack(stackSpec, (int) total);
+        if (stack != null && !stack.isEmpty()) {
+            stacks.add(stack);
+        }
+    }
+
+    private static boolean canFitAll(ServerPlayer player, List<ItemStack> stacks) {
+        List<ItemStack> simulated = new ArrayList<>(player.getInventory().items.size());
         for (ItemStack stack : player.getInventory().items) {
-            if (remaining <= 0) {
+            simulated.add(stack.copy());
+        }
+        for (ItemStack stack : expandStacks(stacks)) {
+            if (!insertIntoSimulation(simulated, stack)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean insertIntoSimulation(List<ItemStack> inventory, ItemStack incoming) {
+        for (ItemStack slot : inventory) {
+            if (slot.isEmpty() || !ItemStack.isSameItemSameComponents(slot, incoming)) {
+                continue;
+            }
+            int space = slot.getMaxStackSize() - slot.getCount();
+            if (space <= 0) {
+                continue;
+            }
+            int moved = Math.min(space, incoming.getCount());
+            slot.grow(moved);
+            incoming.shrink(moved);
+            if (incoming.isEmpty()) {
                 return true;
             }
-
-            if (stack.isEmpty()) {
-                remaining -= maxStack;
-                continue;
-            }
-
-            if (!ItemStack.isSameItemSameComponents(stack, reference)) {
-                continue;
-            }
-
-            remaining -= Math.max(0, maxStack - stack.getCount());
         }
-
-        return remaining <= 0;
+        for (int i = 0; i < inventory.size(); i++) {
+            if (!inventory.get(i).isEmpty()) {
+                continue;
+            }
+            inventory.set(i, incoming.copy());
+            return true;
+        }
+        return false;
     }
 
-    private static void giveItems(ServerPlayer player, Item item, int totalItems) {
-        int remaining = totalItems;
-        int maxStack = Math.max(1, item.getDefaultMaxStackSize());
-
-        while (remaining > 0) {
-            int giving = Math.min(remaining, maxStack);
-            ItemStack stack = new ItemStack(item, giving);
-            if (!player.addItem(stack)) {
-                player.drop(stack, false);
+    private static List<ItemStack> expandStacks(List<ItemStack> stacks) {
+        List<ItemStack> expanded = new ArrayList<>();
+        for (ItemStack stack : stacks) {
+            int remaining = stack.getCount();
+            while (remaining > 0) {
+                int next = Math.min(stack.getMaxStackSize(), remaining);
+                expanded.add(stack.copyWithCount(next));
+                remaining -= next;
             }
-            remaining -= giving;
         }
+        return expanded;
+    }
+
+    private static void giveOrDropAll(ServerPlayer player, List<ItemStack> stacks) {
+        for (ItemStack stack : stacks) {
+            VendingMachineItemUtil.giveOrDropStacked(player, stack);
+        }
+    }
+
+    private static long rotationStep(long now, ShopCategoryRotationDefinition rotation) {
+        return Math.floorDiv(now, rotationDurationMillis(rotation));
+    }
+
+    private static long remainingMillisForCurrentStep(long now, ShopCategoryRotationDefinition rotation) {
+        long duration = rotationDurationMillis(rotation);
+        long elapsed = Math.floorMod(now, duration);
+        return Math.max(0L, duration - elapsed);
+    }
+
+    private static long rotationDurationMillis(ShopCategoryRotationDefinition rotation) {
+        return Math.max(1L, rotation.durationHours()) * 60L * 60L * 1000L;
+    }
+
+    private static long uiRemainingMillis(long remainingMillis) {
+        if (remainingMillis < 0L) {
+            return -1L;
+        }
+        if (remainingMillis == 0L) {
+            return 0L;
+        }
+        return ((remainingMillis + UI_TIMER_BUCKET_MILLIS - 1L) / UI_TIMER_BUCKET_MILLIS) * UI_TIMER_BUCKET_MILLIS;
     }
 
     public record ScreenData(
-            int balanceSpur,
             String selectedCategoryId,
             String selectedOfferId,
             List<CategoryView> categories,
@@ -551,26 +723,49 @@ public final class ShopService {
             String stockMode,
             String replenishMode,
             int availableStock,
-            boolean locked
+            boolean locked,
+            CurrencyView currency,
+            boolean rotating,
+            long rotationRemainingMillis,
+            int visibleOfferCount
     ) {
     }
 
     public record OfferView(
             String offerId,
             String categoryId,
-            String itemId,
             String displayName,
-            int sortOrder,
-            int priceSpur,
-            int itemCount,
+            int price,
+            String type,
+            CurrencyView currency,
+            String previewStackSpec,
+            int rewardItemCount,
+            int rewardBundleEntryCount,
+            List<RewardEntryView> rewardEntries,
             int availableStock,
-            boolean locked
+            boolean locked,
+            long rotationRemainingMillis
     ) {
+    }
+
+    public record CurrencyView(
+            String typeId,
+            String iconItemId,
+            String label,
+            int amountPerUnit,
+            int availableAmount
+    ) {
+    }
+
+    public record RewardEntryView(String stackSpec, int count) {
     }
 
     record RequestedSelection(
             @Nullable ResourceLocation categoryId,
             @Nullable ResourceLocation offerId
     ) {
+    }
+
+    private record VisibleOffer(ShopOfferDefinition offer, long rotationRemainingMillis, int windowOffset) {
     }
 }

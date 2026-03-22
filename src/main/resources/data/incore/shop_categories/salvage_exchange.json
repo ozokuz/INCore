@@ -1,0 +1,18 @@
+{
+  "display_name": "Salvage Exchange",
+  "tab": "caches",
+  "sort_order": 50,
+  "enabled": true,
+  "stock_mode": "category_bucket",
+  "initial_stock": 18,
+  "replenish_mode": "shop_rotation",
+  "currency": {
+    "type": "incore:item",
+    "item": "minecraft:emerald"
+  },
+  "offer_sort": "rotation_time_remaining",
+  "rotation": {
+    "duration_hours": 12,
+    "visible_count": 5
+  }
+}

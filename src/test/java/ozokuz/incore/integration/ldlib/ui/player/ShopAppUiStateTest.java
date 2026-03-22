@@ -54,18 +54,60 @@ class ShopAppUiStateTest {
     }
 
     private static ShopService.ScreenData screenData() {
+        ShopService.CurrencyView spur = new ShopService.CurrencyView("incore:bank_spur", "numismatics:spur", "SPUR", 1, 120);
         return new ShopService.ScreenData(
-                120,
                 "incore:daily_exchange",
                 "incore:daily_redstone",
                 List.of(
-                        new ShopService.CategoryView("incore:basic_supplies", "Basic Supplies", "supplies", 10, "none", "none", -1, false),
-                        new ShopService.CategoryView("incore:daily_exchange", "Daily Exchange", "rotations", 20, "per_item", "daily_noon", 12, false)
+                        new ShopService.CategoryView("incore:basic_supplies", "Basic Supplies", "supplies", 10, "none", "none", -1, false, spur, false, -1, 1),
+                        new ShopService.CategoryView("incore:daily_exchange", "Daily Exchange", "rotations", 20, "per_item", "daily_noon", 12, false, spur, false, -1, 2)
                 ),
                 List.of(
-                        new ShopService.OfferView("incore:basic_bread", "incore:basic_supplies", "minecraft:bread", "Bread", 0, 4, 4, -1, false),
-                        new ShopService.OfferView("incore:daily_redstone", "incore:daily_exchange", "minecraft:redstone", "Redstone", 0, 8, 2, 3, false),
-                        new ShopService.OfferView("incore:daily_iron_ingot", "incore:daily_exchange", "minecraft:iron_ingot", "Iron Ingot", 1, 12, 1, 1, false)
+                        new ShopService.OfferView(
+                                "incore:basic_bread",
+                                "incore:basic_supplies",
+                                "Bread",
+                                18,
+                                "single_item",
+                                new ShopService.CurrencyView("incore:bank_spur", "numismatics:spur", "SPUR", 18, 120),
+                                "minecraft:bread",
+                                8,
+                                1,
+                                List.of(new ShopService.RewardEntryView("minecraft:bread", 8)),
+                                -1,
+                                false,
+                                -1
+                        ),
+                        new ShopService.OfferView(
+                                "incore:daily_redstone",
+                                "incore:daily_exchange",
+                                "Redstone",
+                                28,
+                                "single_item",
+                                new ShopService.CurrencyView("incore:bank_spur", "numismatics:spur", "SPUR", 28, 120),
+                                "minecraft:redstone",
+                                8,
+                                1,
+                                List.of(new ShopService.RewardEntryView("minecraft:redstone", 8)),
+                                3,
+                                false,
+                                -1
+                        ),
+                        new ShopService.OfferView(
+                                "incore:daily_iron_ingot",
+                                "incore:daily_exchange",
+                                "Iron Ingot",
+                                40,
+                                "single_item",
+                                new ShopService.CurrencyView("incore:bank_spur", "numismatics:spur", "SPUR", 40, 120),
+                                "minecraft:iron_ingot",
+                                4,
+                                1,
+                                List.of(new ShopService.RewardEntryView("minecraft:iron_ingot", 4)),
+                                1,
+                                false,
+                                -1
+                        )
                 )
         );
     }

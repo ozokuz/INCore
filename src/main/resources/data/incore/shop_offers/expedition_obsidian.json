@@ -1,9 +1,10 @@
 {
+  "type": "single_item",
   "category": "incore:expedition_cache",
-  "item": "minecraft:obsidian",
   "display_name": "Obsidian Crate",
-  "sort_order": 20,
-  "enabled": true,
-  "price_spur": 72,
-  "item_count": 8
+  "price": 72,
+  "reward": {
+    "stack": "minecraft:obsidian",
+    "count": 8
+  }
 }

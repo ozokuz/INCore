@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Gravel Crate",
+  "price": 10,
+  "reward": {
+    "stack": "minecraft:gravel",
+    "count": 64
+  }
+}

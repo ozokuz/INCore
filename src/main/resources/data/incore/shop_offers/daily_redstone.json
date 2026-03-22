@@ -1,9 +1,10 @@
 {
+  "type": "single_item",
   "category": "incore:daily_exchange",
-  "item": "minecraft:redstone",
   "display_name": "Redstone Dust",
-  "sort_order": 30,
-  "enabled": true,
-  "price_spur": 28,
-  "item_count": 8
+  "price": 28,
+  "reward": {
+    "stack": "minecraft:redstone",
+    "count": 8
+  }
 }

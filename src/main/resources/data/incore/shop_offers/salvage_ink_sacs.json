@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Ink Sac Pack",
+  "price": 4,
+  "reward": {
+    "stack": "minecraft:ink_sac",
+    "count": 12
+  }
+}

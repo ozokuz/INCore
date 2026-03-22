@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Deepslate Stack",
+  "price": 20,
+  "reward": {
+    "stack": "minecraft:deepslate",
+    "count": 64
+  }
+}

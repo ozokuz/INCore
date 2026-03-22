@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:field_requisitions",
+  "display_name": "Coal Cache",
+  "price": 24,
+  "reward": {
+    "stack": "minecraft:coal",
+    "count": 16
+  }
+}

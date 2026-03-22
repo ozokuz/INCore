@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Prismarine Crystals",
+  "price": 6,
+  "reward": {
+    "stack": "minecraft:prismarine_crystals",
+    "count": 10
+  }
+}

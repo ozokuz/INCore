@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Lapis Lazuli",
+  "price": 4,
+  "reward": {
+    "stack": "minecraft:lapis_lazuli",
+    "count": 16
+  }
+}

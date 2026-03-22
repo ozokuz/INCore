@@ -5,5 +5,9 @@
   "enabled": true,
   "stock_mode": "category_bucket",
   "initial_stock": 40,
-  "replenish_mode": "none"
+  "replenish_mode": "none",
+  "currency": {
+    "type": "incore:bank_spur"
+  },
+  "offer_sort": "id"
 }

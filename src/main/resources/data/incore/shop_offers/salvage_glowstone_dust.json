@@ -1,0 +1,10 @@
+{
+  "type": "single_item",
+  "category": "incore:salvage_exchange",
+  "display_name": "Glowstone Dust",
+  "price": 5,
+  "reward": {
+    "stack": "minecraft:glowstone_dust",
+    "count": 16
+  }
+}

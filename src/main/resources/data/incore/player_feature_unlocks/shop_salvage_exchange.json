@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_salvage_exchange",
+  "required_level": 12,
+  "icon_item": "minecraft:blaze_rod",
+  "display_name": "Shop: Salvage Exchange"
+}
