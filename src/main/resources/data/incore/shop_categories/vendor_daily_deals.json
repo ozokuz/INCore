@@ -1,0 +1,11 @@
+{
+  "display_name": "Vendor Daily Deals",
+  "enabled": true,
+  "stock_mode": "category_bucket",
+  "initial_stock": 24,
+  "replenish_mode": "daily_noon",
+  "currency": {
+    "type": "incore:bank_spur"
+  },
+  "offer_sort": "id"
+}

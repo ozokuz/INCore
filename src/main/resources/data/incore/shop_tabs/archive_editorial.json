@@ -1,0 +1,19 @@
+{
+  "display_name": "Archive Editorial",
+  "palette": "blood_protocol",
+  "layout": "archive_editorial",
+  "category_navigation": "sidebar",
+  "details_mode": "modal",
+  "categories": [
+    "incore:archive_artifacts",
+    "incore:expedition_cache"
+  ],
+  "showcase": {
+    "enabled": true,
+    "slots": 1,
+    "source": "category_pinned",
+    "category_scope": [
+      "incore:archive_artifacts"
+    ]
+  }
+}

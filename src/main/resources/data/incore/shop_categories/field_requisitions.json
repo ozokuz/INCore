@@ -1,7 +1,5 @@
 {
   "display_name": "Field Requisitions",
-  "tab": "supplies",
-  "sort_order": 15,
   "enabled": true,
   "stock_mode": "per_item",
   "initial_stock": 20,

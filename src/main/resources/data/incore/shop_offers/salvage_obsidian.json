@@ -1,6 +1,6 @@
 {
   "type": "single_item",
-  "category": "incore:salvage_exchange",
+  "category": "incore:expedition_cache",
   "display_name": "Obsidian Stack",
   "price": 8,
   "reward": {

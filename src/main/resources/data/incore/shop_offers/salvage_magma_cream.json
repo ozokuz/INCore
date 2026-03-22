@@ -1,6 +1,6 @@
 {
   "type": "single_item",
-  "category": "incore:salvage_exchange",
+  "category": "incore:exchange_coolants",
   "display_name": "Magma Cream",
   "price": 6,
   "reward": {

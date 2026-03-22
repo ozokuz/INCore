@@ -3,15 +3,16 @@ package ozokuz.incore.integration.ldlib.ui.player;
 import java.util.List;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
+import ozokuz.incore.features.shop.ShopDetailsPresentationMode;
 import ozokuz.incore.features.shop.ShopService;
 import ozokuz.incore.features.shop.ShopTabId;
 
 final class ShopAppUiState {
-    private ShopTabId activeTab = ShopTabId.SUPPLIES;
+    private ShopTabId activeTab = ShopTabId.INDUSTRIAL_MARKET;
     private @Nullable String selectedCategoryId;
     private @Nullable String selectedOfferId;
     private int offerScrollRow;
-    private boolean purchaseWorkspaceOpen;
+    private boolean detailsModalOpen;
     private int quantity = 1;
     private int visibleOfferRows = ShopAppUiSupport.VISIBLE_OFFER_ROWS;
 
@@ -20,31 +21,34 @@ final class ShopAppUiState {
     }
 
     void reconcile(ShopService.ScreenData data) {
-        List<ShopService.CategoryView> categories = ShopAppUiSupport.orderedCategories(data);
-        if (categories.isEmpty()) {
-            activeTab = ShopTabId.SUPPLIES;
+        if (data.tabs().isEmpty()) {
+            activeTab = ShopTabId.INDUSTRIAL_MARKET;
             selectedCategoryId = null;
             selectedOfferId = null;
             offerScrollRow = 0;
+            detailsModalOpen = false;
             quantity = 1;
-            purchaseWorkspaceOpen = false;
             return;
         }
 
-        activeTab = resolveActiveTab(data, categories);
+        activeTab = resolveActiveTab(data);
         List<ShopService.CategoryView> tabCategories = ShopAppUiSupport.categoriesForTab(data, activeTab);
         if (tabCategories.isEmpty()) {
-            activeTab = ShopAppUiSupport.tabForCategory(categories.getFirst());
+            activeTab = ShopTabId.fromString(data.tabs().getFirst().tabId());
             tabCategories = ShopAppUiSupport.categoriesForTab(data, activeTab);
         }
 
         selectedCategoryId = resolveCategoryId(data, tabCategories);
-        List<ShopService.OfferView> offers = ShopAppUiSupport.offersForCategory(data, selectedCategoryId);
-        offerScrollRow = Math.clamp(offerScrollRow, 0, maxOfferScroll(offers.size()));
+        ShopService.TabFeedView feed = ShopAppUiSupport.feedForTab(data, activeTab, selectedCategoryId);
+        if (!feed.activeCategoryId().isBlank()) {
+            selectedCategoryId = feed.activeCategoryId();
+        }
+        offerScrollRow = Math.clamp(offerScrollRow, 0, maxOfferScroll(feed.remainingOffers().size()));
+
         String previousOfferId = selectedOfferId;
-        selectedOfferId = resolveOfferId(data, offers);
+        selectedOfferId = resolveOfferId(data, feed);
         if (selectedOfferId == null) {
-            purchaseWorkspaceOpen = false;
+            detailsModalOpen = false;
             quantity = 1;
             return;
         }
@@ -53,8 +57,10 @@ final class ShopAppUiState {
             quantity = 1;
         }
 
-        if (purchaseWorkspaceOpen && selectedOffer(data) == null) {
-            purchaseWorkspaceOpen = false;
+        if (ShopAppUiSupport.detailsModeFor(data, activeTab) != ShopDetailsPresentationMode.MODAL_OVERLAY) {
+            detailsModalOpen = false;
+        } else if (detailsModalOpen && selectedOffer(data) == null) {
+            detailsModalOpen = false;
         }
         clampQuantity(data);
     }
@@ -71,8 +77,8 @@ final class ShopAppUiState {
         return selectedOfferId;
     }
 
-    boolean purchaseWorkspaceOpen() {
-        return purchaseWorkspaceOpen;
+    boolean detailsModalOpen() {
+        return detailsModalOpen;
     }
 
     int quantity() {
@@ -86,12 +92,12 @@ final class ShopAppUiState {
     void selectTab(ShopTabId tabId, ShopService.ScreenData data) {
         activeTab = tabId;
         offerScrollRow = 0;
-        purchaseWorkspaceOpen = false;
+        detailsModalOpen = false;
         quantity = 1;
         List<ShopService.CategoryView> categories = ShopAppUiSupport.categoriesForTab(data, tabId);
         selectedCategoryId = categories.isEmpty() ? null : categories.getFirst().categoryId();
-        List<ShopService.OfferView> offers = ShopAppUiSupport.offersForCategory(data, selectedCategoryId);
-        selectedOfferId = offers.isEmpty() ? null : offers.getFirst().offerId();
+        ShopService.TabFeedView feed = ShopAppUiSupport.feedForTab(data, tabId, selectedCategoryId);
+        selectedOfferId = firstDisplayOffer(feed);
     }
 
     void selectCategory(String categoryId, ShopService.ScreenData data) {
@@ -99,16 +105,16 @@ final class ShopAppUiState {
         if (category == null) {
             return;
         }
-        activeTab = ShopAppUiSupport.tabForCategory(category);
+        activeTab = ShopAppUiSupport.tabForCategory(data, category);
         selectedCategoryId = category.categoryId();
         offerScrollRow = 0;
-        purchaseWorkspaceOpen = false;
+        detailsModalOpen = false;
         quantity = 1;
-        List<ShopService.OfferView> offers = ShopAppUiSupport.offersForCategory(data, selectedCategoryId);
-        selectedOfferId = offers.isEmpty() ? null : offers.getFirst().offerId();
+        ShopService.TabFeedView feed = ShopAppUiSupport.feedForTab(data, activeTab, selectedCategoryId);
+        selectedOfferId = firstDisplayOffer(feed);
     }
 
-    void openPurchase(String offerId, ShopService.ScreenData data) {
+    void selectOffer(String offerId, ShopService.ScreenData data) {
         ShopService.OfferView offer = ShopAppUiSupport.findOffer(data, offerId);
         if (offer == null) {
             return;
@@ -117,26 +123,31 @@ final class ShopAppUiState {
         if (category == null) {
             return;
         }
-        activeTab = ShopAppUiSupport.tabForCategory(category);
+        activeTab = ShopAppUiSupport.tabForCategory(data, category);
         selectedCategoryId = category.categoryId();
         if (!offerId.equals(selectedOfferId)) {
             quantity = 1;
         }
         selectedOfferId = offerId;
-        purchaseWorkspaceOpen = true;
         clampQuantity(data);
     }
 
-    void closePurchase(ShopService.ScreenData data) {
-        purchaseWorkspaceOpen = false;
-        clampQuantity(data);
+    void openDetails(String offerId, ShopService.ScreenData data) {
+        selectOffer(offerId, data);
+        if (ShopAppUiSupport.detailsModeFor(data, activeTab) == ShopDetailsPresentationMode.MODAL_OVERLAY) {
+            detailsModalOpen = true;
+        }
+    }
+
+    void closeDetails() {
+        detailsModalOpen = false;
     }
 
     boolean consumeEscape() {
-        if (!purchaseWorkspaceOpen) {
+        if (!detailsModalOpen) {
             return false;
         }
-        purchaseWorkspaceOpen = false;
+        detailsModalOpen = false;
         return true;
     }
 
@@ -149,8 +160,8 @@ final class ShopAppUiState {
     }
 
     void scrollBy(int delta, ShopService.ScreenData data) {
-        List<ShopService.OfferView> offers = ShopAppUiSupport.offersForCategory(data, selectedCategoryId);
-        offerScrollRow = Math.clamp(offerScrollRow + delta, 0, maxOfferScroll(offers.size()));
+        ShopService.TabFeedView feed = ShopAppUiSupport.activeFeed(data, this);
+        offerScrollRow = Math.clamp(offerScrollRow + delta, 0, maxOfferScroll(feed.remainingOffers().size()));
     }
 
     boolean canScrollPrevious() {
@@ -158,18 +169,17 @@ final class ShopAppUiState {
     }
 
     boolean canScrollNext(ShopService.ScreenData data) {
-        List<ShopService.OfferView> offers = ShopAppUiSupport.offersForCategory(data, selectedCategoryId);
-        return offerScrollRow < maxOfferScroll(offers.size());
+        ShopService.TabFeedView feed = ShopAppUiSupport.activeFeed(data, this);
+        return offerScrollRow < maxOfferScroll(feed.remainingOffers().size());
     }
 
     List<ShopService.OfferView> visibleOffers(ShopService.ScreenData data) {
-        List<ShopService.OfferView> offers = ShopAppUiSupport.offersForCategory(data, selectedCategoryId);
-        if (offers.isEmpty()) {
-            return List.of();
-        }
-        int start = Math.min(offerScrollRow, Math.max(0, offers.size() - 1));
-        int end = Math.min(offers.size(), start + visibleOfferRows);
-        return offers.subList(start, end);
+        return ShopAppUiSupport.visibleOffers(ShopAppUiSupport.activeFeed(data, this), offerScrollRow, visibleOfferRows);
+    }
+
+    @Nullable ShopService.OfferView showcaseOffer(ShopService.ScreenData data) {
+        ShopService.TabFeedView feed = ShopAppUiSupport.activeFeed(data, this);
+        return feed.showcaseOffers().isEmpty() ? null : feed.showcaseOffers().getFirst();
     }
 
     @Nullable ShopService.OfferView selectedOffer(ShopService.ScreenData data) {
@@ -199,26 +209,17 @@ final class ShopAppUiState {
         quantity = Math.clamp(quantity, 1, quantityMax(data));
     }
 
-    private ShopTabId resolveActiveTab(ShopService.ScreenData data, List<ShopService.CategoryView> categories) {
+    private ShopTabId resolveActiveTab(ShopService.ScreenData data) {
         if (selectedCategoryId != null) {
-            ShopService.CategoryView selectedCategory = ShopAppUiSupport.findCategory(data, selectedCategoryId);
-            if (selectedCategory != null) {
-                return ShopAppUiSupport.tabForCategory(selectedCategory);
-            }
+            return ShopAppUiSupport.tabForCategoryId(data, selectedCategoryId);
         }
-
         if (!data.selectedCategoryId().isBlank()) {
-            ShopService.CategoryView selectedCategory = ShopAppUiSupport.findCategory(data, data.selectedCategoryId());
-            if (selectedCategory != null) {
-                return ShopAppUiSupport.tabForCategory(selectedCategory);
-            }
+            return ShopAppUiSupport.tabForCategoryId(data, data.selectedCategoryId());
         }
-
-        List<ShopService.CategoryView> currentTabCategories = ShopAppUiSupport.categoriesForTab(data, activeTab);
-        if (!currentTabCategories.isEmpty()) {
+        if (ShopAppUiSupport.findTab(data, activeTab) != null) {
             return activeTab;
         }
-        return ShopAppUiSupport.tabForCategory(categories.getFirst());
+        return ShopTabId.fromString(data.tabs().getFirst().tabId());
     }
 
     private @Nullable String resolveCategoryId(
@@ -232,7 +233,6 @@ final class ShopAppUiState {
                 }
             }
         }
-
         if (!data.selectedCategoryId().isBlank()) {
             for (ShopService.CategoryView category : tabCategories) {
                 if (data.selectedCategoryId().equals(category.categoryId())) {
@@ -240,31 +240,33 @@ final class ShopAppUiState {
                 }
             }
         }
-
         return tabCategories.isEmpty() ? null : tabCategories.getFirst().categoryId();
     }
 
-    private @Nullable String resolveOfferId(
-            ShopService.ScreenData data,
-            List<ShopService.OfferView> offers
-    ) {
+    private @Nullable String resolveOfferId(ShopService.ScreenData data, ShopService.TabFeedView feed) {
+        List<ShopService.OfferView> displayOffers = ShopAppUiSupport.displayOffers(feed);
         if (selectedOfferId != null) {
-            for (ShopService.OfferView offer : offers) {
+            for (ShopService.OfferView offer : displayOffers) {
                 if (selectedOfferId.equals(offer.offerId())) {
                     return selectedOfferId;
                 }
             }
         }
-
         if (!data.selectedOfferId().isBlank()) {
-            for (ShopService.OfferView offer : offers) {
+            for (ShopService.OfferView offer : displayOffers) {
                 if (data.selectedOfferId().equals(offer.offerId())) {
                     return data.selectedOfferId();
                 }
             }
         }
+        return firstDisplayOffer(feed);
+    }
 
-        return offers.isEmpty() ? null : offers.getFirst().offerId();
+    private @Nullable String firstDisplayOffer(ShopService.TabFeedView feed) {
+        if (!feed.showcaseOffers().isEmpty()) {
+            return feed.showcaseOffers().getFirst().offerId();
+        }
+        return feed.remainingOffers().isEmpty() ? null : feed.remainingOffers().getFirst().offerId();
     }
 
     private int maxOfferScroll(int offerCount) {

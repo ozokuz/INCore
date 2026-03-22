@@ -4,9 +4,12 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 public enum ShopTabId {
-    SUPPLIES("supplies", "screen.incore.shop.tab.supplies"),
-    ROTATIONS("rotations", "screen.incore.shop.tab.rotations"),
-    CACHES("caches", "screen.incore.shop.tab.caches");
+    INDUSTRIAL_MARKET("industrial_market", "screen.incore.shop.tab.industrial_market"),
+    COMMODITY_EXCHANGE("commodity_exchange", "screen.incore.shop.tab.commodity_exchange"),
+    LUXURY_BOUTIQUE("luxury_boutique", "screen.incore.shop.tab.luxury_boutique"),
+    ARCADE_VENDOR("arcade_vendor", "screen.incore.shop.tab.arcade_vendor"),
+    ARCHIVE_EDITORIAL("archive_editorial", "screen.incore.shop.tab.archive_editorial"),
+    ABYSSAL_TERMINAL("abyssal_terminal", "screen.incore.shop.tab.abyssal_terminal");
 
     private final String serialized;
     private final String translationKey;
@@ -24,7 +27,7 @@ public enum ShopTabId {
         return Component.translatable(translationKey);
     }
 
-    public static ShopTabId fromString(@Nullable String value) {
+    public static @Nullable ShopTabId tryParse(@Nullable String value) {
         if (value != null) {
             for (ShopTabId tabId : values()) {
                 if (tabId.serialized.equalsIgnoreCase(value)) {
@@ -32,6 +35,11 @@ public enum ShopTabId {
                 }
             }
         }
-        return SUPPLIES;
+        return null;
+    }
+
+    public static ShopTabId fromString(@Nullable String value) {
+        ShopTabId parsed = tryParse(value);
+        return parsed == null ? INDUSTRIAL_MARKET : parsed;
     }
 }

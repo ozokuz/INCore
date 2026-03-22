@@ -1,6 +1,6 @@
 {
   "type": "single_item",
-  "category": "incore:expedition_cache",
+  "category": "incore:archive_artifacts",
   "display_name": "Ender Pearl",
   "price": 90,
   "reward": {

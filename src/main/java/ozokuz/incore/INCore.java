@@ -65,6 +65,7 @@ import ozokuz.incore.features.entropy.network.EntropyNetworking;
 import ozokuz.incore.features.shop.ShopCategoryManager;
 import ozokuz.incore.features.shop.ShopBootstrap;
 import ozokuz.incore.features.shop.ShopOfferManager;
+import ozokuz.incore.features.shop.ShopTabManager;
 import ozokuz.incore.features.shop.command.ShopCommands;
 import ozokuz.incore.features.shop.network.ShopNetworking;
 import ozokuz.incore.features.status.network.PlayerStatusNetworking;
@@ -304,6 +305,7 @@ public class INCore {
         event.addListener(new VendingMachineOfferManager());
         event.addListener(new MarketItemManager());
         event.addListener(new ShopCategoryManager());
+        event.addListener(new ShopTabManager());
         event.addListener(new ShopOfferManager());
     }
 }

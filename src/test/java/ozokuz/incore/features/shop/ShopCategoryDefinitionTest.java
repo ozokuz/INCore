@@ -14,7 +14,6 @@ class ShopCategoryDefinitionTest {
     void fromJsonParsesCurrencySortAndRotationMetadata() {
         JsonObject json = new JsonObject();
         json.addProperty("display_name", "Daily Exchange");
-        json.addProperty("tab", "rotations");
         json.addProperty("stock_mode", "per_item");
         json.addProperty("initial_stock", 12);
         json.addProperty("replenish_mode", "shop_rotation");
@@ -32,7 +31,6 @@ class ShopCategoryDefinitionTest {
 
         ShopCategoryDefinition definition = ShopCategoryDefinition.fromJson(ResourceLocation.parse("incore:daily_exchange"), json);
 
-        assertEquals(ShopTabId.ROTATIONS, definition.tab());
         assertEquals(ShopOfferSortMode.ROTATION_TIME_REMAINING, definition.offerSortMode());
         assertInstanceOf(ItemShopCurrencyType.Spec.class, definition.defaultCurrency());
         assertNotNull(definition.rotation());
@@ -44,7 +42,6 @@ class ShopCategoryDefinitionTest {
     void fromJsonRejectsRotationSortWithoutRotationConfig() {
         JsonObject json = new JsonObject();
         json.addProperty("display_name", "Basic Supplies");
-        json.addProperty("tab", "supplies");
         json.addProperty("stock_mode", "none");
         json.addProperty("replenish_mode", "none");
         json.addProperty("offer_sort", "rotation_time_remaining");

@@ -1,6 +1,6 @@
 {
   "type": "single_item",
-  "category": "incore:salvage_exchange",
+  "category": "incore:boutique_premium_gear",
   "display_name": "Experience Bottles",
   "price": 7,
   "reward": {

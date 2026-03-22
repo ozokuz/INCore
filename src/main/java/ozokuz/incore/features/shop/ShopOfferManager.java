@@ -52,12 +52,7 @@ public final class ShopOfferManager extends SimpleJsonResourceReloadListener {
                 });
 
         List<ShopOfferDefinition> sorted = new ArrayList<>(next.values());
-        sorted.sort(Comparator
-                .comparing((ShopOfferDefinition offer) -> {
-                    ShopCategoryDefinition category = ShopCategoryManager.get(offer.categoryId());
-                    return category == null ? Integer.MAX_VALUE : category.sortOrder();
-                })
-                .thenComparing(offer -> offer.id().toString()));
+        sorted.sort(Comparator.comparing(offer -> offer.id().toString()));
 
         byId = Map.copyOf(next);
         ordered = List.copyOf(sorted);

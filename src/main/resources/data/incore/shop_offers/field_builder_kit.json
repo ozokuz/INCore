@@ -1,6 +1,6 @@
 {
   "type": "bundle",
-  "category": "incore:field_requisitions",
+  "category": "incore:industrial_components",
   "display_name": "Builder Kit",
   "price": 40,
   "reward": [

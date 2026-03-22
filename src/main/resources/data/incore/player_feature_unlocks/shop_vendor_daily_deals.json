@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_vendor_daily_deals",
+  "required_level": 7,
+  "icon_item": "minecraft:amethyst_shard",
+  "display_name": "Shop: Vendor Daily Deals"
+}

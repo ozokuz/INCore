@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_boutique_premium_gear",
+  "required_level": 15,
+  "icon_item": "minecraft:ender_pearl",
+  "display_name": "Shop: Boutique Premium Gear"
+}

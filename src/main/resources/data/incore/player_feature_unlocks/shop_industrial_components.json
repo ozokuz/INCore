@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_industrial_components",
+  "required_level": 9,
+  "icon_item": "minecraft:iron_ingot",
+  "display_name": "Shop: Industrial Components"
+}

@@ -13,18 +13,24 @@ public final class PlayerFeatureUnlockIds {
     public static final ResourceLocation BATTLEPASS_LANE_NORTHIUM_ACCESS = id("battlepass_lane_northium_access");
     public static final ResourceLocation SHOP_DAILY_EXCHANGE = id("shop_daily_exchange");
     public static final ResourceLocation SHOP_FIELD_REQUISITIONS = id("shop_field_requisitions");
+    public static final ResourceLocation SHOP_INDUSTRIAL_COMPONENTS = id("shop_industrial_components");
+    public static final ResourceLocation SHOP_EXCHANGE_COOLANTS = id("shop_exchange_coolants");
     public static final ResourceLocation ARENA_TIER_2 = id("arena_tier_2");
     public static final ResourceLocation GACHA_CHARTERED = id("gacha_chartered");
     public static final ResourceLocation MARKET_SHIPMENT_TERMINAL = id("market_shipment_terminal");
     public static final ResourceLocation ARENA_TIER_3 = id("arena_tier_3");
     public static final ResourceLocation BATTLEPASS_LANE_INTEGRATED_ACCESS = id("battlepass_lane_integrated_access");
     public static final ResourceLocation SHOP_CHARTERED_ROTATION = id("shop_chartered_rotation");
+    public static final ResourceLocation SHOP_BOUTIQUE_PREMIUM_GEAR = id("shop_boutique_premium_gear");
     public static final ResourceLocation ARENA_TIER_4 = id("arena_tier_4");
     public static final ResourceLocation GACHA_EXPEDITION = id("gacha_expedition");
     public static final ResourceLocation MARKET_AUTOTRADER = id("market_autotrader");
+    public static final ResourceLocation SHOP_VENDOR_DAILY_DEALS = id("shop_vendor_daily_deals");
+    public static final ResourceLocation SHOP_ARCHIVE_ARTIFACTS = id("shop_archive_artifacts");
     public static final ResourceLocation ARENA_TIER_5 = id("arena_tier_5");
     public static final ResourceLocation SHOP_EXPEDITION_CACHE = id("shop_expedition_cache");
     public static final ResourceLocation SHOP_SALVAGE_EXCHANGE = id("shop_salvage_exchange");
+    public static final ResourceLocation SHOP_ABYSSAL_SIGNAL_KITS = id("shop_abyssal_signal_kits");
     public static final ResourceLocation MARKET_SHIPMENT_TERMINAL_MK2 = id("market_shipment_terminal_mk2");
     public static final ResourceLocation MARKET_AUTOTRADER_MK2 = id("market_autotrader_mk2");
 

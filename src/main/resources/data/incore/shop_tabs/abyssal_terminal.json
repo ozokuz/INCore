@@ -1,0 +1,15 @@
+{
+  "display_name": "Abyssal Terminal",
+  "palette": "abyssal_protocol",
+  "layout": "abyssal_terminal",
+  "category_navigation": "inline_module_strip",
+  "details_mode": "inline",
+  "categories": [
+    "incore:abyssal_signal_kits"
+  ],
+  "showcase": {
+    "enabled": true,
+    "slots": 1,
+    "source": "top_of_feed"
+  }
+}

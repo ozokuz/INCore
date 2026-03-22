@@ -1,7 +1,5 @@
 {
   "display_name": "Salvage Exchange",
-  "tab": "caches",
-  "sort_order": 50,
   "enabled": true,
   "stock_mode": "category_bucket",
   "initial_stock": 18,
