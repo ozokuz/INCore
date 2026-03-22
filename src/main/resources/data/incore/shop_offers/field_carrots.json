@@ -1,6 +1,6 @@
 {
   "type": "single_item",
-  "category": "incore:field_requisitions",
+  "category": "incore:basic_supplies",
   "display_name": "Carrot Crate",
   "price": 18,
   "reward": {

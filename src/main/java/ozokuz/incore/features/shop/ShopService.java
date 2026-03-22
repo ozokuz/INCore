@@ -1,9 +1,13 @@
 package ozokuz.incore.features.shop;
 
 import com.google.gson.Gson;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -58,7 +62,7 @@ public final class ShopService {
     ) {
         MinecraftServer server = player.getServer();
         if (server == null) {
-            return new ScreenData("", "", List.of(), List.of());
+            return new ScreenData("", "", List.of(), List.of(), List.of());
         }
 
         ShopSavedData data = ShopSavedData.get(server);
@@ -79,8 +83,6 @@ public final class ShopService {
             categories.add(new CategoryView(
                     category.id().toString(),
                     category.displayName(),
-                    category.tab().serialized(),
-                    category.sortOrder(),
                     category.stockMode().serialized(),
                     category.replenishMode().serialized(),
                     stock,
@@ -100,11 +102,7 @@ public final class ShopService {
                         category.id().toString(),
                         offer.displayName(),
                         offer.price(),
-                        offer.purchaseable().serializedType(),
                         currencyView(player, effectiveCurrencySpec(category, offer), offer.price()),
-                        previewStackSpec(offer.purchaseable()),
-                        rewardItemCount(offer.purchaseable()),
-                        rewardBundleEntryCount(offer.purchaseable()),
                         rewardEntryViews(offer.purchaseable()),
                         availableStock,
                         locked || offerLocked,
@@ -113,9 +111,61 @@ public final class ShopService {
             }
         }
 
-        String resolvedCategory = resolveSelectedCategory(categories, offers, selectedCategoryId);
-        String resolvedOffer = resolveSelectedOffer(resolvedCategory, offers, selectedOfferId);
-        return new ScreenData(resolvedCategory, resolvedOffer, categories, offers);
+        List<TabView> tabs = buildTabViews();
+        String resolvedCategory = resolveSelectedCategory(tabs, categories, offers, selectedCategoryId);
+        String resolvedOffer = resolveSelectedOffer(tabs, categories, offers, resolvedCategory, selectedOfferId);
+        return new ScreenData(resolvedCategory, resolvedOffer, tabs, categories, offers);
+    }
+
+    public static List<CategoryView> orderedCategoriesForTab(ScreenData data, ShopTabId tabId) {
+        TabView tab = findTab(data, tabId);
+        if (tab == null) {
+            return List.of();
+        }
+        List<CategoryView> ordered = new ArrayList<>();
+        for (String categoryId : tab.categoryIds()) {
+            CategoryView category = findCategory(data, categoryId);
+            if (category != null) {
+                ordered.add(category);
+            }
+        }
+        return List.copyOf(ordered);
+    }
+
+    public static TabFeedView buildTabFeed(ScreenData data, ShopTabId tabId, @Nullable String requestedCategoryId) {
+        List<CategoryView> orderedCategories = orderedCategoriesForTab(data, tabId);
+        if (orderedCategories.isEmpty()) {
+            return new TabFeedView("", List.of(), List.of(), List.of());
+        }
+
+        String activeCategoryId = orderedCategories.stream()
+                .map(CategoryView::categoryId)
+                .filter(categoryId -> categoryId.equals(requestedCategoryId))
+                .findFirst()
+                .orElseGet(() -> orderedCategories.getFirst().categoryId());
+
+        List<OfferView> primaryFeed = offersForCategory(data, activeCategoryId);
+        TabView tab = findTab(data, tabId);
+        if (tab == null || !tab.showcase().enabled()) {
+            return new TabFeedView(
+                    activeCategoryId,
+                    orderedCategories.stream().map(CategoryView::categoryId).toList(),
+                    List.of(),
+                    primaryFeed
+            );
+        }
+
+        List<OfferView> showcase = selectShowcaseOffers(data, tab, orderedCategories, activeCategoryId, primaryFeed);
+        Set<String> showcasedIds = showcase.stream().map(OfferView::offerId).collect(java.util.stream.Collectors.toCollection(HashSet::new));
+        List<OfferView> remaining = primaryFeed.stream()
+                .filter(offer -> !showcasedIds.contains(offer.offerId()))
+                .toList();
+        return new TabFeedView(
+                activeCategoryId,
+                orderedCategories.stream().map(CategoryView::categoryId).toList(),
+                showcase,
+                remaining
+        );
     }
 
     public static boolean purchase(ServerPlayer player, ResourceLocation offerId, int quantity) {
@@ -297,7 +347,30 @@ public final class ShopService {
         return new RequestedSelection(null, null);
     }
 
+    private static List<TabView> buildTabViews() {
+        List<TabView> tabs = new ArrayList<>();
+        for (ShopTabDefinition definition : ShopTabManager.all()) {
+            tabs.add(new TabView(
+                    definition.id().serialized(),
+                    definition.displayName(),
+                    definition.paletteId().serialized(),
+                    definition.layoutId().serialized(),
+                    definition.categoryNavigationMode().serialized(),
+                    definition.detailsMode().serialized(),
+                    definition.categoryIds().stream().map(ResourceLocation::toString).toList(),
+                    new ShowcaseView(
+                            definition.showcase().enabled(),
+                            definition.showcase().slots(),
+                            definition.showcase().source().serialized(),
+                            definition.showcase().categoryScope().stream().map(ResourceLocation::toString).toList()
+                    )
+            ));
+        }
+        return List.copyOf(tabs);
+    }
+
     private static String resolveSelectedCategory(
+            List<TabView> tabs,
             List<CategoryView> categories,
             List<OfferView> offers,
             @Nullable ResourceLocation requestedCategoryId
@@ -308,9 +381,15 @@ public final class ShopService {
                 return raw;
             }
         }
-        if (!categories.isEmpty()) {
-            return categories.getFirst().categoryId();
+
+        for (TabView tab : tabs) {
+            for (String categoryId : tab.categoryIds()) {
+                if (categories.stream().anyMatch(category -> category.categoryId().equals(categoryId))) {
+                    return categoryId;
+                }
+            }
         }
+
         if (!offers.isEmpty()) {
             return offers.getFirst().categoryId();
         }
@@ -318,8 +397,10 @@ public final class ShopService {
     }
 
     private static String resolveSelectedOffer(
-            String resolvedCategoryId,
+            List<TabView> tabs,
+            List<CategoryView> categories,
             List<OfferView> offers,
+            String resolvedCategoryId,
             @Nullable ResourceLocation requestedOfferId
     ) {
         if (requestedOfferId != null) {
@@ -328,6 +409,22 @@ public final class ShopService {
                 return raw;
             }
         }
+
+        ShopTabId tabId = null;
+        for (TabView tab : tabs) {
+            if (tab.categoryIds().contains(resolvedCategoryId)) {
+                tabId = ShopTabId.fromString(tab.tabId());
+                break;
+            }
+        }
+        if (tabId != null) {
+            TabFeedView feed = buildTabFeed(new ScreenData(resolvedCategoryId, "", tabs, categories, offers), tabId, resolvedCategoryId);
+            List<OfferView> displayOffers = !feed.showcaseOffers().isEmpty() ? feed.showcaseOffers() : feed.remainingOffers();
+            if (!displayOffers.isEmpty()) {
+                return displayOffers.getFirst().offerId();
+            }
+        }
+
         for (OfferView offer : offers) {
             if (offer.categoryId().equals(resolvedCategoryId)) {
                 return offer.offerId();
@@ -355,11 +452,17 @@ public final class ShopService {
     private static @Nullable ResourceLocation requiredUnlockForCategory(ResourceLocation categoryId) {
         return switch (categoryId.toString()) {
             case "incore:basic_supplies" -> PlayerFeatureUnlockIds.SHOP_BASIC_SUPPLIES;
-            case "incore:daily_exchange" -> PlayerFeatureUnlockIds.SHOP_DAILY_EXCHANGE;
             case "incore:field_requisitions" -> PlayerFeatureUnlockIds.SHOP_FIELD_REQUISITIONS;
+            case "incore:industrial_components" -> PlayerFeatureUnlockIds.SHOP_INDUSTRIAL_COMPONENTS;
+            case "incore:daily_exchange" -> PlayerFeatureUnlockIds.SHOP_DAILY_EXCHANGE;
+            case "incore:exchange_coolants" -> PlayerFeatureUnlockIds.SHOP_EXCHANGE_COOLANTS;
             case "incore:chartered_rotation" -> PlayerFeatureUnlockIds.SHOP_CHARTERED_ROTATION;
+            case "incore:boutique_premium_gear" -> PlayerFeatureUnlockIds.SHOP_BOUTIQUE_PREMIUM_GEAR;
+            case "incore:vendor_daily_deals" -> PlayerFeatureUnlockIds.SHOP_VENDOR_DAILY_DEALS;
+            case "incore:archive_artifacts" -> PlayerFeatureUnlockIds.SHOP_ARCHIVE_ARTIFACTS;
             case "incore:expedition_cache" -> PlayerFeatureUnlockIds.SHOP_EXPEDITION_CACHE;
             case "incore:salvage_exchange" -> PlayerFeatureUnlockIds.SHOP_SALVAGE_EXCHANGE;
+            case "incore:abyssal_signal_kits" -> PlayerFeatureUnlockIds.SHOP_ABYSSAL_SIGNAL_KITS;
             default -> null;
         };
     }
@@ -423,9 +526,7 @@ public final class ShopService {
     private static String replenishToken(ShopCategoryDefinition category, long now) {
         return switch (category.replenishMode()) {
             case NONE -> "";
-            case DAILY_NOON -> "daily:" + MarketTime.noonDayKey(
-                    java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.systemDefault())
-            );
+            case DAILY_NOON -> "daily:" + MarketTime.noonDayKey(Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()));
             case SHOP_ROTATION -> {
                 if (category.rotation() == null) {
                     yield "shop:missing:" + category.id();
@@ -513,12 +614,10 @@ public final class ShopService {
     private static CurrencyView currencyView(ServerPlayer player, ShopCurrencySpec spec, int amountPerUnit) {
         ShopCurrencyType type = ShopCurrencyRegistry.get(spec.typeId());
         if (type == null) {
-            return new CurrencyView("", "", "", amountPerUnit, 0);
+            return new CurrencyView("", amountPerUnit, 0);
         }
         ShopCurrencyView built = type.buildView(player, spec, amountPerUnit);
         return new CurrencyView(
-                built.typeId(),
-                built.iconItemId(),
                 built.label(),
                 built.amountPerUnit(),
                 built.availableAmount()
@@ -569,27 +668,6 @@ public final class ShopService {
 
     private static boolean isOfferCurrentlyVisible(ShopCategoryDefinition category, ResourceLocation offerId, long now) {
         return visibleOffersForCategory(now, category).stream().anyMatch(offer -> offer.offer().id().equals(offerId));
-    }
-
-    private static String previewStackSpec(ShopPurchaseableDefinition purchaseable) {
-        return switch (purchaseable) {
-            case ShopSingleItemPurchaseableDefinition singleItem -> singleItem.stackSpec();
-            case ShopBundlePurchaseableDefinition bundle -> bundle.items().isEmpty() ? "" : bundle.items().getFirst().stackSpec();
-        };
-    }
-
-    private static int rewardItemCount(ShopPurchaseableDefinition purchaseable) {
-        return switch (purchaseable) {
-            case ShopSingleItemPurchaseableDefinition singleItem -> singleItem.count();
-            case ShopBundlePurchaseableDefinition bundle -> bundle.items().stream().mapToInt(ShopRewardStackDefinition::count).sum();
-        };
-    }
-
-    private static int rewardBundleEntryCount(ShopPurchaseableDefinition purchaseable) {
-        return switch (purchaseable) {
-            case ShopSingleItemPurchaseableDefinition ignored -> 1;
-            case ShopBundlePurchaseableDefinition bundle -> bundle.items().size();
-        };
     }
 
     private static List<RewardEntryView> rewardEntryViews(ShopPurchaseableDefinition purchaseable) {
@@ -707,19 +785,126 @@ public final class ShopService {
         return ((remainingMillis + UI_TIMER_BUCKET_MILLIS - 1L) / UI_TIMER_BUCKET_MILLIS) * UI_TIMER_BUCKET_MILLIS;
     }
 
+    private static @Nullable TabView findTab(ScreenData data, ShopTabId tabId) {
+        for (TabView tab : data.tabs()) {
+            if (tab.tabId().equals(tabId.serialized())) {
+                return tab;
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable CategoryView findCategory(ScreenData data, String categoryId) {
+        for (CategoryView category : data.categories()) {
+            if (category.categoryId().equals(categoryId)) {
+                return category;
+            }
+        }
+        return null;
+    }
+
+    private static List<OfferView> offersForCategory(ScreenData data, String categoryId) {
+        return data.offers().stream()
+                .filter(offer -> offer.categoryId().equals(categoryId))
+                .toList();
+    }
+
+    private static List<OfferView> selectShowcaseOffers(
+            ScreenData data,
+            TabView tab,
+            List<CategoryView> orderedCategories,
+            String activeCategoryId,
+            List<OfferView> primaryFeed
+    ) {
+        if (!tab.showcase().enabled() || tab.showcase().slots() <= 0) {
+            return List.of();
+        }
+
+        List<OfferView> showcaseCandidates = switch (ShopShowcaseSource.fromString(tab.showcase().source())) {
+            case TOP_OF_FEED -> primaryFeed;
+            case ROTATING_FIRST -> rotatingFirstCandidates(data, tab, orderedCategories, primaryFeed);
+            case CATEGORY_PINNED -> categoryPinnedCandidates(data, tab, orderedCategories, activeCategoryId);
+        };
+
+        if (showcaseCandidates.isEmpty()) {
+            return List.of();
+        }
+        int end = Math.min(tab.showcase().slots(), showcaseCandidates.size());
+        return List.copyOf(showcaseCandidates.subList(0, end));
+    }
+
+    private static List<OfferView> rotatingFirstCandidates(
+            ScreenData data,
+            TabView tab,
+            List<CategoryView> orderedCategories,
+            List<OfferView> primaryFeed
+    ) {
+        List<String> scope = !tab.showcase().categoryScope().isEmpty()
+                ? tab.showcase().categoryScope()
+                : orderedCategories.stream().map(CategoryView::categoryId).toList();
+        for (String categoryId : scope) {
+            CategoryView category = findCategory(data, categoryId);
+            if (category == null || !category.rotating()) {
+                continue;
+            }
+            List<OfferView> categoryOffers = offersForCategory(data, categoryId);
+            if (!categoryOffers.isEmpty()) {
+                return categoryOffers;
+            }
+        }
+        return primaryFeed;
+    }
+
+    private static List<OfferView> categoryPinnedCandidates(
+            ScreenData data,
+            TabView tab,
+            List<CategoryView> orderedCategories,
+            String activeCategoryId
+    ) {
+        List<String> scope = !tab.showcase().categoryScope().isEmpty()
+                ? tab.showcase().categoryScope()
+                : orderedCategories.stream().map(CategoryView::categoryId).toList();
+        for (String categoryId : scope) {
+            List<OfferView> categoryOffers = offersForCategory(data, categoryId);
+            if (!categoryOffers.isEmpty()) {
+                return categoryOffers;
+            }
+        }
+        return offersForCategory(data, activeCategoryId);
+    }
+
     public record ScreenData(
             String selectedCategoryId,
             String selectedOfferId,
+            List<TabView> tabs,
             List<CategoryView> categories,
             List<OfferView> offers
+    ) {
+    }
+
+    public record TabView(
+            String tabId,
+            String displayName,
+            String paletteId,
+            String layoutId,
+            String categoryNavigation,
+            String detailsMode,
+            List<String> categoryIds,
+            ShowcaseView showcase
+    ) {
+    }
+
+    public record ShowcaseView(
+            boolean enabled,
+            int slots,
+            String source,
+            List<String> categoryScope
     ) {
     }
 
     public record CategoryView(
             String categoryId,
             String displayName,
-            String tabId,
-            int sortOrder,
             String stockMode,
             String replenishMode,
             int availableStock,
@@ -736,11 +921,7 @@ public final class ShopService {
             String categoryId,
             String displayName,
             int price,
-            String type,
             CurrencyView currency,
-            String previewStackSpec,
-            int rewardItemCount,
-            int rewardBundleEntryCount,
             List<RewardEntryView> rewardEntries,
             int availableStock,
             boolean locked,
@@ -749,8 +930,6 @@ public final class ShopService {
     }
 
     public record CurrencyView(
-            String typeId,
-            String iconItemId,
             String label,
             int amountPerUnit,
             int availableAmount
@@ -758,6 +937,14 @@ public final class ShopService {
     }
 
     public record RewardEntryView(String stackSpec, int count) {
+    }
+
+    public record TabFeedView(
+            String activeCategoryId,
+            List<String> orderedCategoryIds,
+            List<OfferView> showcaseOffers,
+            List<OfferView> remainingOffers
+    ) {
     }
 
     record RequestedSelection(

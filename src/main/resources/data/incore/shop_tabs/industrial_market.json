@@ -1,0 +1,17 @@
+{
+  "display_name": "Industrial Market",
+  "palette": "tactical_archive",
+  "layout": "industrial_market",
+  "category_navigation": "sidebar",
+  "details_mode": "inline",
+  "categories": [
+    "incore:basic_supplies",
+    "incore:field_requisitions",
+    "incore:industrial_components"
+  ],
+  "showcase": {
+    "enabled": true,
+    "slots": 1,
+    "source": "top_of_feed"
+  }
+}

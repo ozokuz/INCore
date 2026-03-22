@@ -47,8 +47,7 @@ public final class ShopCategoryManager extends SimpleJsonResourceReloadListener 
 
         List<ShopCategoryDefinition> sorted = new ArrayList<>(next.values());
         sorted.sort(Comparator
-                .comparingInt(ShopCategoryDefinition::sortOrder)
-                .thenComparing(ShopCategoryDefinition::displayName, String.CASE_INSENSITIVE_ORDER)
+                .comparing(ShopCategoryDefinition::displayName, String.CASE_INSENSITIVE_ORDER)
                 .thenComparing(definition -> definition.id().toString()));
 
         byId = Map.copyOf(next);

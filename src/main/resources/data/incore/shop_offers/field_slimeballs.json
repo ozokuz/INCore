@@ -1,6 +1,6 @@
 {
   "type": "single_item",
-  "category": "incore:field_requisitions",
+  "category": "incore:exchange_coolants",
   "display_name": "Slimeball Jar",
   "price": 34,
   "reward": {

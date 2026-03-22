@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_archive_artifacts",
+  "required_level": 13,
+  "icon_item": "minecraft:experience_bottle",
+  "display_name": "Shop: Archive Artifacts"
+}

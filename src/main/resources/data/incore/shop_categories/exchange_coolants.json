@@ -1,0 +1,11 @@
+{
+  "display_name": "Exchange Coolants",
+  "enabled": true,
+  "stock_mode": "per_item",
+  "initial_stock": 14,
+  "replenish_mode": "daily_noon",
+  "currency": {
+    "type": "incore:bank_spur"
+  },
+  "offer_sort": "id"
+}

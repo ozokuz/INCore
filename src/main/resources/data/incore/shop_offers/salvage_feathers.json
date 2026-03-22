@@ -1,6 +1,6 @@
 {
   "type": "single_item",
-  "category": "incore:salvage_exchange",
+  "category": "incore:archive_artifacts",
   "display_name": "Feather Pack",
   "price": 4,
   "reward": {

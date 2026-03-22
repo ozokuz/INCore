@@ -1,6 +1,6 @@
 {
   "type": "bundle",
-  "category": "incore:salvage_exchange",
+  "category": "incore:vendor_daily_deals",
   "display_name": "Tidal Pack",
   "price": 9,
   "reward": [

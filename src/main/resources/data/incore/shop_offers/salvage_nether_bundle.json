@@ -1,6 +1,6 @@
 {
   "type": "bundle",
-  "category": "incore:salvage_exchange",
+  "category": "incore:vendor_daily_deals",
   "display_name": "Nether Salvage Bundle",
   "price": 12,
   "reward": [

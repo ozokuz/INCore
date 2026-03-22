@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_abyssal_signal_kits",
+  "required_level": 18,
+  "icon_item": "minecraft:prismarine_crystals",
+  "display_name": "Shop: Abyssal Signal Kits"
+}

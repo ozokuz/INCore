@@ -1,0 +1,12 @@
+{
+  "display_name": "Boutique Premium Gear",
+  "enabled": true,
+  "stock_mode": "category_bucket",
+  "initial_stock": 16,
+  "replenish_mode": "none",
+  "currency": {
+    "type": "incore:item",
+    "item": "minecraft:emerald"
+  },
+  "offer_sort": "id"
+}

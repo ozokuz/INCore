@@ -1,0 +1,16 @@
+{
+  "display_name": "Luxury Boutique",
+  "palette": "obsidian_ember",
+  "layout": "luxury_boutique",
+  "category_navigation": "inline_segmented_selector",
+  "details_mode": "inline",
+  "categories": [
+    "incore:chartered_rotation",
+    "incore:boutique_premium_gear"
+  ],
+  "showcase": {
+    "enabled": true,
+    "slots": 1,
+    "source": "rotating_first"
+  }
+}

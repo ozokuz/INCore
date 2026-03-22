@@ -9,6 +9,7 @@ import dev.vfyjxf.taffy.style.FlexDirection;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
+import ozokuz.incore.features.shop.ShopDetailsPresentationMode;
 import ozokuz.incore.features.shop.ShopService;
 import ozokuz.incore.features.shop.ShopTabId;
 import ozokuz.incore.integration.ldlib.ui.INCoreLdLibUiScaffold;
@@ -26,7 +27,6 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.heightPercent(100);
         });
         state.setVisibleOfferRows(ShopAppUiSupport.VISIBLE_OFFER_ROWS);
-        internalSetup();
         rebuild();
     }
 
@@ -59,10 +59,11 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
 
     private void rebuild() {
         clearAllChildren();
-        ShopAppLayout shopLayout = ShopAppUiSupport.layoutFor(state.activeTab());
+        ShopAppLayout shopLayout = ShopAppUiSupport.layoutFor(data, state.activeTab());
         state.setVisibleOfferRows(shopLayout.visibleOfferRows());
         state.reconcile(data);
-        ShopAppUiSupport.TabTheme theme = ShopAppUiSupport.themeFor(state.activeTab());
+        ShopAppUiSupport.TabTheme theme = ShopAppUiSupport.themeFor(data, state.activeTab());
+
         addChild(
                 new UIElement()
                         .layout(layout -> {
@@ -100,6 +101,11 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
                 createContentRow(theme),
                 createFooter(theme)
         );
+
+        if (state.detailsModalOpen() && ShopAppUiSupport.detailsModeFor(data, state.activeTab()) == ShopDetailsPresentationMode.MODAL_OVERLAY) {
+            window.root().addChild(ShopAppDetailsModalHost.create(layoutContext, theme));
+        }
+
         return window.root();
     }
 
@@ -124,7 +130,6 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
 
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(data, state.selectedCategoryId());
         ShopService.CurrencyView currency = category == null ? ShopAppUiSupport.emptyCurrencyView() : category.currency();
-
         UIElement balancePanel = ShopAppUiSupport.surface(theme, 8, 1).layout(layout -> {
             layout.widthAuto();
             layout.minWidth(154);
@@ -139,13 +144,10 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
     }
 
     private UIElement createTabs(ShopAppUiSupport.TabTheme theme) {
-        UIElement strip = new UIElement();
-        strip.layout(layout -> {
+        UIElement strip = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(0);
         });
-
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.height(24);
@@ -154,32 +156,23 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.justifyContent(AlignContent.FLEX_START);
             layout.alignItems(AlignItems.FLEX_END);
         });
-        for (ShopTabId tabId : ShopTabId.values()) {
+        for (ShopService.TabView tab : ShopAppUiSupport.orderedTabs(data)) {
+            ShopTabId tabId = ShopTabId.fromString(tab.tabId());
             boolean active = state.activeTab() == tabId;
-            UIElement slot = new UIElement().layout(layout -> {
-                layout.flexGrow(0);
-                layout.heightPercent(100);
-                layout.flexDirection(FlexDirection.COLUMN);
-                layout.justifyContent(AlignContent.FLEX_END);
-                layout.alignItems(AlignItems.FLEX_START);
-            });
-
-            Button button = ShopAppUiSupport.tabButton(tabId.displayName(), theme, active);
+            Button button = ShopAppUiSupport.tabButton(Component.literal(tab.displayName()), theme, active);
             button.layout(layout -> layout.minWidth(96));
             button.setOnClick(event -> {
                 state.selectTab(tabId, data);
                 rebuild();
             });
-            slot.addChild(button);
-            row.addChild(slot);
+            row.addChild(button);
         }
-
         strip.addChild(row);
         return strip;
     }
 
     private UIElement createContentRow(ShopAppUiSupport.TabTheme theme) {
-        return ShopAppUiSupport.layoutFor(state.activeTab()).createContentRow(layoutContext, theme);
+        return ShopAppUiSupport.layoutFor(data, state.activeTab()).createContentRow(layoutContext, theme);
     }
 
     private UIElement createFooter(ShopAppUiSupport.TabTheme theme) {

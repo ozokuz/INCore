@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 public record ShopCategoryDefinition(
         ResourceLocation id,
         String displayName,
-        ShopTabId tab,
-        int sortOrder,
         boolean enabled,
         ShopStockMode stockMode,
         int initialStock,
@@ -20,8 +18,6 @@ public record ShopCategoryDefinition(
 ) {
     public static ShopCategoryDefinition fromJson(ResourceLocation id, JsonObject object) {
         String displayName = GsonHelper.getAsString(object, "display_name", id.toString());
-        ShopTabId tab = ShopTabId.fromString(GsonHelper.getAsString(object, "tab", ShopTabId.SUPPLIES.serialized()));
-        int sortOrder = GsonHelper.getAsInt(object, "sort_order", 0);
         boolean enabled = GsonHelper.getAsBoolean(object, "enabled", true);
 
         ShopStockMode stockMode = ShopStockMode.fromString(GsonHelper.getAsString(object, "stock_mode", ShopStockMode.NONE.serialized()));
@@ -55,8 +51,6 @@ public record ShopCategoryDefinition(
         return new ShopCategoryDefinition(
                 id,
                 displayName,
-                tab,
-                sortOrder,
                 enabled,
                 stockMode,
                 initialStock,

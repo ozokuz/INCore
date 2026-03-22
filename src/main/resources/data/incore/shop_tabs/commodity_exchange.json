@@ -1,0 +1,16 @@
+{
+  "display_name": "Commodity Exchange",
+  "palette": "steel_aegis",
+  "layout": "commodity_exchange",
+  "category_navigation": "inline_header_strip",
+  "details_mode": "inline",
+  "categories": [
+    "incore:daily_exchange",
+    "incore:exchange_coolants"
+  ],
+  "showcase": {
+    "enabled": false,
+    "slots": 0,
+    "source": "top_of_feed"
+  }
+}

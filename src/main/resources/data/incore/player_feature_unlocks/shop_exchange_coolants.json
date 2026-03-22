@@ -1,0 +1,6 @@
+{
+  "id": "incore:shop_exchange_coolants",
+  "required_level": 11,
+  "icon_item": "minecraft:magma_cream",
+  "display_name": "Shop: Exchange Coolants"
+}

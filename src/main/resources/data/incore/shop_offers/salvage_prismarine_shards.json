@@ -1,6 +1,6 @@
 {
   "type": "single_item",
-  "category": "incore:salvage_exchange",
+  "category": "incore:abyssal_signal_kits",
   "display_name": "Prismarine Shards",
   "price": 5,
   "reward": {

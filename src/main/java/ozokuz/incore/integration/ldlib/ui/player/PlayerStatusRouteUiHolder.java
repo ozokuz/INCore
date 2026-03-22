@@ -84,7 +84,15 @@ public final class PlayerStatusRouteUiHolder implements PlayerUIMenuType.PlayerU
     }
 
     private ShopAppUiElement bindShopView(Player player) {
-        shopView.bind(DataBindingBuilder.stringS2C(() -> player instanceof ServerPlayer serverPlayer ? ShopService.buildScreenJson(serverPlayer) : "").build());
+        shopView.bind(DataBindingBuilder.stringS2C(() -> {
+            if (!(player instanceof ServerPlayer serverPlayer)) {
+                return "";
+            }
+            ResourceLocation current = INCorePlayerUiNavigator.current(player)
+                    .map(entry -> entry.routeId())
+                    .orElse(INCoreUiIds.PLAYER_STATUS);
+            return INCoreUiIds.SHOP_APP.equals(current) ? ShopService.buildScreenJson(serverPlayer) : "";
+        }).build());
         return shopView;
     }
 

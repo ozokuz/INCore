@@ -1,0 +1,11 @@
+{
+  "display_name": "Industrial Components",
+  "enabled": true,
+  "stock_mode": "per_item",
+  "initial_stock": 16,
+  "replenish_mode": "daily_noon",
+  "currency": {
+    "type": "incore:bank_spur"
+  },
+  "offer_sort": "id"
+}
