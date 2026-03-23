@@ -255,9 +255,9 @@ final class ShopAppUiSupport {
                 .textColor(theme.primaryText())
         );
         button.buttonStyle(style -> style
-                .baseTexture(buttonTexture(theme.panelFill(), theme.panelBorder(), theme.accent(), 1))
-                .hoverTexture(buttonTexture(theme.panelBorder(), theme.accent(), theme.primaryText(), 1))
-                .pressedTexture(buttonTexture(theme.panelFill(), theme.accent(), theme.primaryText(), 1))
+                .baseTexture(framedTexture(theme.buttonFill(), theme.accentDivider()))
+                .hoverTexture(framedTexture(theme.buttonHoverFill(), theme.accent()))
+                .pressedTexture(framedTexture(theme.buttonPressedFill(), theme.accent()))
         );
         return button;
     }
@@ -290,15 +290,15 @@ final class ShopAppUiSupport {
         );
         if (active) {
             button.buttonStyle(style -> style
-                    .baseTexture(new BeveledRectTexture(theme.panelFill(), theme.panelBorder(), theme.panelFill(), theme.panelFill(), 1, 0))
-                    .hoverTexture(new BeveledRectTexture(theme.panelFill(), theme.panelBorder(), theme.panelFill(), theme.panelFill(), 1, 0))
-                    .pressedTexture(new BeveledRectTexture(theme.panelEdge(), theme.panelBorder(), theme.panelEdge(), theme.panelEdge(), 1, 0))
+                    .baseTexture(framedTexture(theme.tabActiveFill(), theme.accentDivider()))
+                    .hoverTexture(framedTexture(theme.tabActiveFill(), theme.accentDivider()))
+                    .pressedTexture(framedTexture(theme.buttonPressedFill(), theme.accent()))
             );
         } else {
             button.buttonStyle(style -> style
-                    .baseTexture(new BeveledRectTexture(theme.panelEdge(), theme.panelBorder(), theme.panelEdge(), theme.panelEdge(), 1, 0))
-                    .hoverTexture(new BeveledRectTexture(theme.panelBorder(), theme.panelBorder(), theme.panelBorder(), theme.panelBorder(), 1, 0))
-                    .pressedTexture(new BeveledRectTexture(theme.panelEdge(), theme.panelBorder(), theme.panelEdge(), theme.panelEdge(), 1, 0))
+                    .baseTexture(softTexture(theme.tabFill()))
+                    .hoverTexture(softTexture(theme.tabHoverFill()))
+                    .pressedTexture(softTexture(theme.sectionFill()))
             );
         }
         return button;
@@ -307,27 +307,43 @@ final class ShopAppUiSupport {
     static void styleSelectable(Button button, TabTheme theme, boolean active) {
         if (active) {
             button.buttonStyle(style -> style
-                    .baseTexture(new BeveledRectTexture(theme.accent(), theme.primaryText(), theme.accent(), theme.accent(), 1, 0))
-                    .hoverTexture(new BeveledRectTexture(theme.accent(), theme.primaryText(), theme.accent(), theme.accent(), 1, 0))
-                    .pressedTexture(new BeveledRectTexture(theme.accent(), theme.primaryText(), theme.accent(), theme.accent(), 1, 0))
+                    .baseTexture(framedTexture(theme.cardSelectedFill(), theme.accentDivider()))
+                    .hoverTexture(framedTexture(theme.cardSelectedFill(), theme.accentDivider()))
+                    .pressedTexture(framedTexture(theme.buttonPressedFill(), theme.accent()))
             );
             button.text.textStyle(style -> style.textColor(0xFFFFFFFF));
         } else {
             button.buttonStyle(style -> style
-                    .baseTexture(new BeveledRectTexture(theme.panelFill(), theme.panelBorder(), theme.panelFill(), theme.panelFill(), 1, 0))
-                    .hoverTexture(new BeveledRectTexture(theme.rowHover(), theme.panelBorder(), theme.rowHover(), theme.rowHover(), 1, 0))
-                    .pressedTexture(new BeveledRectTexture(theme.panelEdge(), theme.panelBorder(), theme.panelEdge(), theme.panelEdge(), 1, 0))
+                    .baseTexture(softTexture(theme.cardFill()))
+                    .hoverTexture(softTexture(theme.cardHoverFill()))
+                    .pressedTexture(softTexture(theme.sectionFill()))
             );
         }
     }
 
     static UIElement surface(TabTheme theme, int padding, int radius) {
+        return tintedSurface(theme, theme.sectionFill(), padding, radius > 0);
+    }
+
+    static UIElement mutedSurface(TabTheme theme, int padding) {
+        return tintedSurface(theme, theme.insetFill(), padding, false);
+    }
+
+    static UIElement accentSurface(TabTheme theme, int padding) {
+        return tintedSurface(theme, theme.accentSoftFill(), padding, false);
+    }
+
+    static UIElement highlightedSurface(TabTheme theme, int padding) {
+        return tintedSurface(theme, theme.accentFill(), padding, false);
+    }
+
+    static UIElement tintedSurface(TabTheme theme, int fill, int padding, boolean outlined) {
         UIElement element = new UIElement();
         element.layout(layout -> {
             layout.gapAll(6);
             layout.paddingAll(padding);
         });
-        element.style(style -> style.backgroundTexture(buttonTexture(theme.panelFill(), theme.panelBorder(), theme.panelEdge(), radius)));
+        element.style(style -> style.backgroundTexture(outlined ? framedTexture(fill, theme.divider()) : softTexture(fill)));
         return element;
     }
 
@@ -370,6 +386,53 @@ final class ShopAppUiSupport {
         return new BeveledRectTexture(fill, borderTop, borderBottom, borderBottom, radius, 1);
     }
 
+    static IGuiTexture softTexture(int fill) {
+        return new BeveledRectTexture(
+                fill,
+                fill,
+                brightenColor(fill, 0.04F),
+                darkenColor(fill, 0.14F),
+                0,
+                1
+        );
+    }
+
+    static IGuiTexture framedTexture(int fill, int outline) {
+        return new BeveledRectTexture(
+                fill,
+                outline,
+                brightenColor(fill, 0.05F),
+                darkenColor(fill, 0.18F),
+                1,
+                1
+        );
+    }
+
+    static IGuiTexture flatTexture(int fill) {
+        return new BeveledRectTexture(fill, fill, fill, fill, 0, 0);
+    }
+
+    static int brightenColor(int argb, float amount) {
+        return mixColor(argb, 0xFFFFFFFF, amount);
+    }
+
+    static int darkenColor(int argb, float amount) {
+        return mixColor(argb, 0xFF000000, amount);
+    }
+
+    static int mixColor(int from, int to, float amount) {
+        float clamped = Math.clamp(amount, 0.0F, 1.0F);
+        int a = mixChannel((from >>> 24) & 0xFF, (to >>> 24) & 0xFF, clamped);
+        int r = mixChannel((from >>> 16) & 0xFF, (to >>> 16) & 0xFF, clamped);
+        int g = mixChannel((from >>> 8) & 0xFF, (to >>> 8) & 0xFF, clamped);
+        int b = mixChannel(from & 0xFF, to & 0xFF, clamped);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    private static int mixChannel(int from, int to, float amount) {
+        return Math.clamp((int) (from + ((to - from) * amount)), 0, 255);
+    }
+
     static UIElement spacer() {
         UIElement spacer = new UIElement();
         spacer.getLayout().flex(1);
@@ -388,5 +451,80 @@ final class ShopAppUiSupport {
             int panelEdge,
             int rowHover
     ) {
+        int shellFill() {
+            return mixColor(panelFill, panelEdge, 0.55F);
+        }
+
+        int shellBorder() {
+            return mixColor(panelBorder, panelEdge, 0.45F);
+        }
+
+        int headerFill() {
+            return mixColor(panelFill, accent, 0.10F);
+        }
+
+        int sectionFill() {
+            return mixColor(panelFill, panelEdge, 0.18F);
+        }
+
+        int railFill() {
+            return mixColor(sectionFill(), accent, 0.08F);
+        }
+
+        int insetFill() {
+            return mixColor(panelEdge, panelFill, 0.28F);
+        }
+
+        int accentSoftFill() {
+            return mixColor(sectionFill(), accent, 0.12F);
+        }
+
+        int accentFill() {
+            return mixColor(sectionFill(), accent, 0.24F);
+        }
+
+        int cardFill() {
+            return mixColor(sectionFill(), rowHover, 0.42F);
+        }
+
+        int cardHoverFill() {
+            return mixColor(cardFill(), accent, 0.10F);
+        }
+
+        int cardSelectedFill() {
+            return mixColor(sectionFill(), accent, 0.34F);
+        }
+
+        int buttonFill() {
+            return mixColor(sectionFill(), accent, 0.24F);
+        }
+
+        int buttonHoverFill() {
+            return mixColor(buttonFill(), primaryText, 0.08F);
+        }
+
+        int buttonPressedFill() {
+            return mixColor(panelEdge, accent, 0.18F);
+        }
+
+        int divider() {
+            return mixColor(panelBorder, panelEdge, 0.56F);
+        }
+
+        int accentDivider() {
+            return mixColor(accent, primaryText, 0.18F);
+        }
+
+        int tabFill() {
+            return mixColor(shellFill(), sectionFill(), 0.52F);
+        }
+
+        int tabHoverFill() {
+            return mixColor(tabFill(), accent, 0.10F);
+        }
+
+        int tabActiveFill() {
+            return mixColor(headerFill(), accent, 0.22F);
+        }
     }
 }

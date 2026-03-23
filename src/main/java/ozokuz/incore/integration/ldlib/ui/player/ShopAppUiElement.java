@@ -72,7 +72,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
                             layout.justifyContent(AlignContent.CENTER);
                             layout.alignItems(AlignItems.CENTER);
                         })
-                        .style(style -> style.backgroundTexture(ShopAppUiSupport.buttonTexture(theme.backdropFill(), theme.panelFill(), theme.panelBorder(), 0)))
+                        .style(style -> style.backgroundTexture(ShopAppUiSupport.flatTexture(theme.backdropFill())))
                         .addChild(createWindow(theme))
         );
     }
@@ -87,8 +87,10 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
             layout.minWidth(ShopAppUiSupport.MIN_WINDOW_WIDTH);
             layout.minHeight(ShopAppUiSupport.MIN_WINDOW_HEIGHT);
         });
-        window.window().style(style -> style.backgroundTexture(ShopAppUiSupport.buttonTexture(theme.panelFill(), theme.panelBorder(), theme.panelEdge(), 2)));
+        window.window().style(style -> style.backgroundTexture(ShopAppUiSupport.framedTexture(theme.shellFill(), theme.shellBorder())));
 
+        window.header().layout(layout -> layout.paddingAll(6));
+        window.header().style(style -> style.backgroundTexture(ShopAppUiSupport.softTexture(theme.headerFill())));
         window.header().addChildren(createHeader(theme));
         window.body().layout(layout -> {
             layout.flex(1);
@@ -130,7 +132,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
 
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(data, state.selectedCategoryId());
         ShopService.CurrencyView currency = category == null ? ShopAppUiSupport.emptyCurrencyView() : category.currency();
-        UIElement balancePanel = ShopAppUiSupport.surface(theme, 8, 1).layout(layout -> {
+        UIElement balancePanel = ShopAppUiSupport.highlightedSurface(theme, 8).layout(layout -> {
             layout.widthAuto();
             layout.minWidth(132);
         });

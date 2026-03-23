@@ -236,7 +236,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement sidebar(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        UIElement sidebar = fillPanelColumn(theme);
+        UIElement sidebar = fillPanelColumn(theme, theme.railFill());
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
         sidebar.addChildren(
                 sectionHeader(
@@ -275,7 +275,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement compactRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme, Component title) {
-        UIElement rail = fillPanelColumn(theme);
+        UIElement rail = fillPanelColumn(theme, theme.railFill());
         rail.addChildren(
                 sectionHeader(title, Component.translatable("screen.incore.shop.remaining_feed"), theme),
                 denseRows(context, theme, industrialRailOffers(context), true),
@@ -294,7 +294,7 @@ final class ShopAppLayouts {
                     Component.translatable("screen.incore.shop.no_offer_selected")
             );
         }
-        UIElement dock = panelColumn(theme);
+        UIElement dock = panelColumn(theme, theme.accentSoftFill());
         dock.addChildren(
                 sectionHeader(title, Component.literal(offer.displayName()), theme),
                 ShopAppDetailsView.create(context, theme, offer, false)
@@ -304,7 +304,7 @@ final class ShopAppLayouts {
 
     private static UIElement selectionSummary(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         var offer = context.state().selectedOffer(context.data());
-        UIElement column = panelColumn(theme);
+        UIElement column = panelColumn(theme, theme.accentSoftFill());
         column.addChildren(
                 sectionHeader(
                         Component.translatable("screen.incore.shop.selection_rail"),
@@ -369,9 +369,9 @@ final class ShopAppLayouts {
             layout.paddingAll(8);
         });
         hero.buttonStyle(style -> style
-                .baseTexture(ShopAppUiSupport.buttonTexture(theme.panelFill(), theme.panelBorder(), theme.panelEdge(), 1))
-                .hoverTexture(ShopAppUiSupport.buttonTexture(theme.rowHover(), theme.accent(), theme.primaryText(), 1))
-                .pressedTexture(ShopAppUiSupport.buttonTexture(theme.panelFill(), theme.accent(), theme.primaryText(), 1))
+                .baseTexture(ShopAppUiSupport.softTexture(theme.cardFill()))
+                .hoverTexture(ShopAppUiSupport.softTexture(theme.cardHoverFill()))
+                .pressedTexture(ShopAppUiSupport.softTexture(theme.cardSelectedFill()))
         );
         if (offer == null) {
             hero.addChildren(
@@ -399,7 +399,7 @@ final class ShopAppLayouts {
             layout.alignItems(AlignItems.FLEX_START);
             layout.gapAll(10);
         });
-        UIElement media = ShopAppUiSupport.surface(theme, 10, 1);
+        UIElement media = ShopAppUiSupport.mutedSurface(theme, 10);
         media.layout(layout -> {
             layout.width(88);
             layout.height(88);
@@ -687,7 +687,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement metricTile(Component title, Component value, ShopAppUiSupport.TabTheme theme) {
-        UIElement tile = ShopAppUiSupport.surface(theme, 5, 1);
+        UIElement tile = ShopAppUiSupport.mutedSurface(theme, 5);
         tile.layout(layout -> {
             layout.flex(1);
             layout.minWidth(0);
@@ -721,7 +721,11 @@ final class ShopAppLayouts {
     }
 
     private static UIElement panelColumn(ShopAppUiSupport.TabTheme theme) {
-        UIElement column = ShopAppUiSupport.surface(theme, 8, 1);
+        return panelColumn(theme, theme.sectionFill());
+    }
+
+    private static UIElement panelColumn(ShopAppUiSupport.TabTheme theme, int fill) {
+        UIElement column = ShopAppUiSupport.tintedSurface(theme, fill, 8, false);
         column.layout(layout -> {
             layout.widthPercent(100);
             layout.minHeight(0);
@@ -733,6 +737,12 @@ final class ShopAppLayouts {
 
     private static UIElement fillPanelColumn(ShopAppUiSupport.TabTheme theme) {
         UIElement column = panelColumn(theme);
+        column.layout(layout -> layout.heightPercent(100));
+        return column;
+    }
+
+    private static UIElement fillPanelColumn(ShopAppUiSupport.TabTheme theme, int fill) {
+        UIElement column = panelColumn(theme, fill);
         column.layout(layout -> layout.heightPercent(100));
         return column;
     }
