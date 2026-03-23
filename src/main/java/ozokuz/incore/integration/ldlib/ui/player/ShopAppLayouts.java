@@ -145,11 +145,6 @@ final class ShopAppLayouts {
         UIElement column = fillPanelColumn(theme);
         column.layout(layout -> layout.minWidth(0));
         column.addChildren(
-                sectionHeader(
-                        Component.translatable("screen.incore.shop.featured_asset"),
-                        Component.empty(),
-                        theme
-                ),
                 industrialListingScroller(context, theme)
         );
         return column;
@@ -157,11 +152,9 @@ final class ShopAppLayouts {
 
     private static UIElement industrialSidebar(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement sidebar = fillPanelColumn(theme, theme.railFill());
-        ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
         sidebar.addChildren(
                 sectionHeader(
                         Component.translatable("screen.incore.shop.categories_heading"),
-                        Component.literal(category == null ? "" : ShopAppUiSupport.availableCurrencyLabel(category.currency())),
                         theme
                 ),
                 categoryScroller(context, theme)
@@ -208,7 +201,15 @@ final class ShopAppLayouts {
                     layout.heightPercent(100);
                 })
         );
-        return row;
+        return new UIElement().layout(layout -> {
+            layout.widthPercent(100).minWidth(0).flexDirection(FlexDirection.COLUMN).alignItems(AlignItems.STRETCH).gapAll(8);
+        }).addChildren(
+                sectionHeader(
+                        Component.translatable("screen.incore.shop.featured_asset"),
+                        theme
+                ),
+                row
+        );
     }
 
     private static UIElement industrialFeaturePanel(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
@@ -229,6 +230,7 @@ final class ShopAppLayouts {
             layout.flexDirection(FlexDirection.COLUMN);
             layout.gapAll(8);
             layout.paddingAll(8);
+            layout.justifyContent(AlignContent.FLEX_START);
         });
         panel.buttonStyle(style -> style
                 .baseTexture(ShopAppUiSupport.framedTexture(theme.accentSoftFill(), theme.divider()))
@@ -242,8 +244,17 @@ final class ShopAppLayouts {
             layout.flexDirection(FlexDirection.COLUMN);
             layout.gapAll(8);
         });
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.gapAll(1);
+        });
+        row.addChildren(
+                textLabel(Component.literal(slotOffer.displayName()), theme.primaryText(), true),
+                textLabel(Component.literal(ShopAppUiSupport.rewardSummary(slotOffer)), theme.secondaryText(), true)
+        );
         content.addChildren(
-                sectionHeader(Component.literal(slotOffer.displayName()), Component.literal(ShopAppUiSupport.rewardSummary(slotOffer)), theme),
+                row,
                 new UIElement().layout(layout -> {
                     layout.widthPercent(100);
                     layout.minWidth(0);
@@ -289,7 +300,6 @@ final class ShopAppLayouts {
         column.addChildren(
                 sectionHeader(
                         Component.translatable("screen.incore.shop.remaining_feed"),
-                        Component.literal(Integer.toString(industrialHighlightOffers(context).size())),
                         theme
                 ),
                 industrialHighlightScroller(context, theme)
@@ -320,7 +330,7 @@ final class ShopAppLayouts {
         card.text.setDisplay(false);
         card.layout(layout -> {
             layout.widthPercent(100);
-            layout.minHeight(60);
+            layout.minHeight(40);
             layout.flexDirection(FlexDirection.ROW);
             layout.alignItems(AlignItems.CENTER);
             layout.gapAll(6);
@@ -389,7 +399,7 @@ final class ShopAppLayouts {
     private static UIElement exchangeBoard(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement column = panelColumn(theme);
         column.addChildren(
-                sectionHeader(
+                dualSectionHeader(
                         Component.translatable("screen.incore.shop.exchange_board"),
                         Component.translatable("screen.incore.shop.exchange_board_subtitle"),
                         theme
@@ -404,7 +414,7 @@ final class ShopAppLayouts {
     private static UIElement boutiqueBoard(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement column = panelColumn(theme);
         column.addChildren(
-                sectionHeader(
+                dualSectionHeader(
                         Component.translatable("screen.incore.shop.boutique_heading"),
                         Component.translatable("screen.incore.shop.boutique_subtitle"),
                         theme
@@ -466,7 +476,7 @@ final class ShopAppLayouts {
         UIElement sidebar = fillPanelColumn(theme, theme.railFill());
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
         sidebar.addChildren(
-                sectionHeader(
+                dualSectionHeader(
                         Component.translatable("screen.incore.shop.categories_heading"),
                         Component.literal(category == null ? "" : ShopAppUiSupport.availableCurrencyLabel(category.currency())),
                         theme
@@ -504,7 +514,7 @@ final class ShopAppLayouts {
     private static UIElement compactRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme, Component title) {
         UIElement rail = fillPanelColumn(theme, theme.railFill());
         rail.addChildren(
-                sectionHeader(title, Component.translatable("screen.incore.shop.remaining_feed"), theme),
+                dualSectionHeader(title, Component.translatable("screen.incore.shop.remaining_feed"), theme),
                 denseRows(context, theme, industrialRailOffers(context), true),
                 ShopAppUiSupport.spacer(),
                 pager(context, theme)
@@ -523,7 +533,7 @@ final class ShopAppLayouts {
         }
         UIElement dock = panelColumn(theme, theme.accentSoftFill());
         dock.addChildren(
-                sectionHeader(title, Component.literal(offer.displayName()), theme),
+                dualSectionHeader(title, Component.literal(offer.displayName()), theme),
                 ShopAppDetailsView.create(context, theme, offer, false)
         );
         return dock;
@@ -533,7 +543,7 @@ final class ShopAppLayouts {
         var offer = context.state().selectedOffer(context.data());
         UIElement column = panelColumn(theme, theme.accentSoftFill());
         column.addChildren(
-                sectionHeader(
+                dualSectionHeader(
                         Component.translatable("screen.incore.shop.selection_rail"),
                         Component.translatable("screen.incore.shop.selection_rail_subtitle"),
                         theme
@@ -602,13 +612,13 @@ final class ShopAppLayouts {
         );
         if (offer == null) {
             hero.addChildren(
-                    sectionHeader(title, Component.translatable("screen.incore.shop.no_offer_selected"), theme),
+                    dualSectionHeader(title, Component.translatable("screen.incore.shop.no_offer_selected"), theme),
                     ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.workspace.empty"), theme.secondaryText())
             );
             return hero;
         }
         hero.addChildren(
-                sectionHeader(title, Component.literal(offer.displayName()), theme),
+                dualSectionHeader(title, Component.literal(offer.displayName()), theme),
                 offerPreviewHero(offer, theme),
                 offerMetaLine(offer, theme)
         );
@@ -757,8 +767,7 @@ final class ShopAppLayouts {
                     textLabel(Component.literal(ShopAppUiSupport.rewardEntryLabel(entry)), theme.primaryText(), true).layout(layout -> {
                         layout.flex(1);
                         layout.minWidth(0);
-                    }),
-                    textLabel(Component.literal("x" + entry.count()), theme.secondaryText(), true)
+                    })
             );
             column.addChild(row);
         }
@@ -837,13 +846,14 @@ final class ShopAppLayouts {
             boolean compact,
             boolean twoColumns
     ) {
-        UIElement column = panelColumn(theme);
+        UIElement column = new UIElement();
         column.layout(layout -> {
             layout.widthPercent(100);
             layout.minHeight(0);
+            layout.gapAll(6);
         });
         column.addChildren(
-                sectionHeader(title, Component.literal(Integer.toString(offers.size())), theme),
+                sectionHeader(title, theme),
                 twoColumns ? splitBoard(context, theme, offers, compact) : denseRows(context, theme, offers, compact)
         );
         return column;
@@ -1092,7 +1102,19 @@ final class ShopAppLayouts {
         return tile;
     }
 
-    private static UIElement sectionHeader(Component title, Component subtitle, ShopAppUiSupport.TabTheme theme) {
+    private static UIElement sectionHeader(Component title, ShopAppUiSupport.TabTheme theme) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(1);
+        });
+        row.addChildren(
+                textLabel(title, theme.primaryText(), true)
+        );
+        return row;
+    }
+
+    private static UIElement dualSectionHeader(Component title, Component subtitle, ShopAppUiSupport.TabTheme theme) {
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);

@@ -193,7 +193,7 @@ final class ShopAppUiSupport {
     static String stockLabel(int stock) {
         return stock < 0
                 ? Component.translatable("screen.incore.shop.stock.unlimited").getString()
-                : Component.translatable("screen.incore.shop.stock.remaining", stock).getString();
+                : Integer.toString(stock);
     }
 
     static String currencyAmountLabel(ShopService.CurrencyView currency) {
