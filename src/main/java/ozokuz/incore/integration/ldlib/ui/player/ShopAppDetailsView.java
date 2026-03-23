@@ -23,7 +23,9 @@ final class ShopAppDetailsView {
             boolean modal
     ) {
         boolean compactInline = !modal;
-        UIElement column = ShopAppUiSupport.surface(theme, modal ? 10 : 6, 1);
+        UIElement column = modal
+                ? ShopAppUiSupport.tintedSurface(theme, theme.sectionFill(), 10, true)
+                : ShopAppUiSupport.accentSurface(theme, 6);
         column.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
@@ -99,7 +101,7 @@ final class ShopAppDetailsView {
     }
 
     static UIElement createEmpty(ShopAppUiSupport.TabTheme theme, Component title, Component subtitle) {
-        UIElement empty = ShopAppUiSupport.surface(theme, 8, 1);
+        UIElement empty = ShopAppUiSupport.accentSurface(theme, 8);
         empty.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
@@ -114,7 +116,7 @@ final class ShopAppDetailsView {
     }
 
     private static UIElement previewFrame(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, int size) {
-        UIElement frame = ShopAppUiSupport.surface(theme, 4, 1);
+        UIElement frame = ShopAppUiSupport.mutedSurface(theme, 4);
         frame.layout(layout -> {
             layout.width(size + 12);
             layout.height(size + 12);
@@ -126,7 +128,7 @@ final class ShopAppDetailsView {
     }
 
     private static UIElement quantityControls(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme, boolean compactInline) {
-        UIElement row = ShopAppUiSupport.surface(theme, 6, 1);
+        UIElement row = ShopAppUiSupport.highlightedSurface(theme, 6);
         row.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.ROW);
@@ -154,7 +156,7 @@ final class ShopAppDetailsView {
     }
 
     private static UIElement rewardContents(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, boolean compactInline) {
-        UIElement column = ShopAppUiSupport.surface(theme, 6, 1);
+        UIElement column = ShopAppUiSupport.mutedSurface(theme, 6);
         column.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
