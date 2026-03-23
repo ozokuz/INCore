@@ -59,14 +59,17 @@ final class ShopAppDetailsView {
         if (modal) {
             Button close = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.close_overlay"), theme, 20);
             close.layout(layout -> layout.width(74));
-            close.setOnClick(event -> context.state().closeDetails());
+            close.setOnClick(event -> {
+                context.state().closeDetails();
+                context.rebuild();
+            });
             header.addChild(close);
         }
 
         column.addChildren(
                 header,
                 metricRow(Component.translatable("screen.incore.shop.category_label"), Component.literal(category == null ? "" : category.displayName()), theme),
-                metricRow(Component.translatable("screen.incore.shop.price_each"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme),
+                metricRow(Component.translatable("screen.incore.shop.price_label"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme),
                 metricRow(Component.translatable("screen.incore.shop.balance_label"), Component.literal(ShopAppUiSupport.availableCurrencyLabel(offer.currency())), theme),
                 metricRow(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme),
                 rewardContents(offer, theme, compactInline)
@@ -74,7 +77,7 @@ final class ShopAppDetailsView {
 
         column.addChildren(
                 quantityControls(context, theme, compactInline),
-                metricRow(Component.translatable("screen.incore.shop.total_cost"), Component.literal(totalCost + " " + offer.currency().label()), theme)
+                metricRow(Component.translatable("screen.incore.shop.total_cost_label"), Component.literal(totalCost + " " + offer.currency().label()), theme)
         );
 
         if (offer.locked()) {
@@ -140,7 +143,10 @@ final class ShopAppDetailsView {
         Button decrease = ShopAppUiSupport.actionButton(Component.literal("-"), theme, compactInline ? 16 : 18);
         decrease.layout(layout -> layout.width(compactInline ? 20 : 24));
         decrease.setActive(context.state().quantity() > 1);
-        decrease.setOnClick(event -> context.state().decreaseQuantity());
+        decrease.setOnClick(event -> {
+            context.state().decreaseQuantity();
+            context.rebuild();
+        });
 
         Label quantity = ShopAppUiSupport.heading(Component.translatable("screen.incore.shop.quantity", context.state().quantity()), theme.primaryText());
         quantity.layout(layout -> layout.flex(1));
@@ -149,7 +155,10 @@ final class ShopAppDetailsView {
         Button increase = ShopAppUiSupport.actionButton(Component.literal("+"), theme, compactInline ? 16 : 18);
         increase.layout(layout -> layout.width(compactInline ? 20 : 24));
         increase.setActive(context.state().quantity() < context.state().quantityMax(context.data()));
-        increase.setOnClick(event -> context.state().increaseQuantity(context.data()));
+        increase.setOnClick(event -> {
+            context.state().increaseQuantity(context.data());
+            context.rebuild();
+        });
 
         row.addChildren(decrease, quantity, increase);
         return row;

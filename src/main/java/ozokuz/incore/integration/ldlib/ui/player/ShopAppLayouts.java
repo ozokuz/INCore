@@ -2,15 +2,20 @@ package ozokuz.incore.integration.ldlib.ui.player;
 
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
+import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollDisplay;
+import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
 import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
+import ozokuz.incore.features.shop.ShopDetailsPresentationMode;
 import ozokuz.incore.features.shop.ShopLayoutId;
 import ozokuz.incore.features.shop.ShopService;
 
@@ -23,23 +28,17 @@ final class ShopAppLayouts {
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
             main.addChildren(
-                    sidebar(context, theme).layout(layout -> {
+                    industrialSidebar(context, theme).layout(layout -> {
                         layout.heightPercent(100);
-                        layout.flexBasis(136);
-                        layout.minWidth(128);
-                        layout.maxWidth(140);
+                        layout.flexBasis(168);
+                        layout.minWidth(152);
+                        layout.maxWidth(184);
                     }),
                     industrialCenter(context, theme).layout(layout -> {
                         layout.heightPercent(100);
                         layout.flexBasis(0);
                         layout.flexGrow(1);
                         layout.minWidth(0);
-                    }),
-                    compactRail(context, theme, Component.translatable("screen.incore.shop.bulk_rows")).layout(layout -> {
-                        layout.heightPercent(100);
-                        layout.flexBasis(188);
-                        layout.minWidth(176);
-                        layout.maxWidth(196);
                     })
             );
             return main;
@@ -144,19 +143,247 @@ final class ShopAppLayouts {
 
     private static UIElement industrialCenter(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement column = fillPanelColumn(theme);
+        column.layout(layout -> layout.minWidth(0));
         column.addChildren(
-                showcaseWithDetails(context, theme, Component.translatable("screen.incore.shop.featured_asset")),
+                sectionHeader(
+                        Component.translatable("screen.incore.shop.featured_asset"),
+                        Component.empty(),
+                        theme
+                ),
+                industrialListingScroller(context, theme)
+        );
+        return column;
+    }
+
+    private static UIElement industrialSidebar(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement sidebar = fillPanelColumn(theme, theme.railFill());
+        ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
+        sidebar.addChildren(
+                sectionHeader(
+                        Component.translatable("screen.incore.shop.categories_heading"),
+                        Component.literal(category == null ? "" : ShopAppUiSupport.availableCurrencyLabel(category.currency())),
+                        theme
+                ),
+                categoryScroller(context, theme)
+        );
+        return sidebar;
+    }
+
+    private static UIElement industrialListingScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ScrollerView scroller = verticalScroller(theme, 8);
+        scroller.addScrollViewChildren(
+                industrialTopShelf(context, theme),
                 boardSection(
                         context,
                         theme,
-                        Component.translatable("screen.incore.shop.bulk_rows"),
-                        industrialBoardOffers(context),
-                        true,
+                        Component.translatable("screen.incore.shop.offers_heading"),
+                        industrialRemainingOffers(context),
+                        false,
                         true
+                )
+        );
+        return scroller;
+    }
+
+    private static UIElement industrialTopShelf(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(8);
+        });
+        row.addChildren(
+                industrialFeaturePanel(context, theme).layout(layout -> {
+                    layout.flexBasis(0);
+                    layout.flexGrow(3);
+                    layout.minWidth(0);
+                    layout.heightPercent(100);
+                }),
+                industrialHighlightRail(context, theme).layout(layout -> {
+                    layout.flexBasis(208);
+                    layout.flexGrow(1);
+                    layout.minWidth(188);
+                    layout.maxWidth(224);
+                    layout.heightPercent(100);
+                })
+        );
+        return row;
+    }
+
+    private static UIElement industrialFeaturePanel(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ShopService.OfferView slotOffer = industrialSlotOffer(context);
+        if (slotOffer == null) {
+            return ShopAppDetailsView.createEmpty(
+                    theme,
+                    Component.translatable("screen.incore.shop.featured_asset"),
+                    Component.translatable("screen.incore.shop.no_offer_selected")
+            );
+        }
+
+        Button panel = new Button().setText(Component.empty());
+        panel.text.setDisplay(false);
+        panel.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(8);
+            layout.paddingAll(8);
+        });
+        panel.buttonStyle(style -> style
+                .baseTexture(ShopAppUiSupport.framedTexture(theme.accentSoftFill(), theme.divider()))
+                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
+                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
+        );
+        UIElement content = new UIElement().setAllowHitTest(false);
+        content.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(8);
+        });
+        content.addChildren(
+                sectionHeader(Component.literal(slotOffer.displayName()), Component.literal(ShopAppUiSupport.rewardSummary(slotOffer)), theme),
+                new UIElement().layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.minWidth(0);
+                    layout.flexDirection(FlexDirection.ROW);
+                    layout.alignItems(AlignItems.STRETCH);
+                    layout.gapAll(8);
+                }).addChildren(
+                        industrialHeroMedia(slotOffer, theme),
+                        new UIElement().layout(layout -> {
+                            layout.flexBasis(0);
+                            layout.flexGrow(1);
+                            layout.minWidth(0);
+                            layout.flexDirection(FlexDirection.COLUMN);
+                            layout.gapAll(4);
+                        }).addChildren(
+                                industrialStatsBox(slotOffer, theme),
+                                industrialEditorialShowcase(context, theme, slotOffer)
+                        )
+                )
+        );
+        panel.setOnClick(event -> {
+            context.state().openDetails(slotOffer.offerId(), context.data());
+            context.rebuild();
+        });
+        panel.addChild(content);
+        return panel;
+    }
+
+    private static UIElement industrialHeroMedia(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        UIElement media = ShopAppUiSupport.tintedSurface(theme, theme.cardFill(), 10, true);
+        media.layout(layout -> {
+            layout.width(148);
+            layout.minHeight(148);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+        });
+        media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 72, Component.literal(offer.displayName())));
+        return media;
+    }
+
+    private static UIElement industrialHighlightRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = fillPanelColumn(theme, theme.railFill());
+        column.addChildren(
+                sectionHeader(
+                        Component.translatable("screen.incore.shop.remaining_feed"),
+                        Component.literal(Integer.toString(industrialHighlightOffers(context).size())),
+                        theme
                 ),
-                ShopAppUiSupport.spacer()
+                industrialHighlightScroller(context, theme)
         );
         return column;
+    }
+
+    private static UIElement industrialHighlightScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ScrollerView scroller = verticalScroller(theme, 6);
+        List<ShopService.OfferView> offers = industrialHighlightOffers(context);
+        if (offers.isEmpty()) {
+            scroller.addScrollViewChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText()));
+            return scroller;
+        }
+        for (ShopService.OfferView offer : offers) {
+            scroller.addScrollViewChild(industrialHighlightCard(context, theme, offer));
+        }
+        return scroller;
+    }
+
+    private static UIElement industrialHighlightCard(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        boolean selected = showOfferSelectionState(context) && offer.offerId().equals(context.state().selectedOfferId());
+        Button card = new Button().setText(Component.empty());
+        card.text.setDisplay(false);
+        card.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(60);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(6);
+            layout.paddingAll(6);
+        });
+        ShopAppUiSupport.styleSelectable(card, theme, selected);
+        card.addChildren(
+                ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 20, Component.literal(offer.displayName())),
+                offerText(offer, theme).layout(layout -> layout.flex(1)),
+                offerBadge(offer, theme, true)
+        );
+        card.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return card;
+    }
+
+    private static UIElement categoryScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ScrollerView scroller = verticalScroller(theme, 4);
+        scroller.addScrollViewChild(categoryButtons(context, theme, true));
+        return scroller;
+    }
+
+    private static ScrollerView verticalScroller(ShopAppUiSupport.TabTheme theme, int gap) {
+        ScrollerView scroller = new ScrollerView()
+                .scrollerStyle(style -> style
+                        .mode(ScrollerMode.VERTICAL)
+                        .horizontalScrollDisplay(ScrollDisplay.NEVER)
+                        .verticalScrollDisplay(ScrollDisplay.AUTO)
+                        .minScrollPixel(0.0F)
+                        .maxScrollPixel(18.0F)
+                );
+        scroller.layout(layout -> {
+            layout.flex(1);
+            layout.widthPercent(100);
+            layout.minHeight(0);
+        });
+        scroller.viewPort
+                .style(style -> style.backgroundTexture(ShopAppUiSupport.flatTexture(0x00000000)))
+                .layout(layout -> {
+                    layout.flex(1);
+                    layout.minHeight(0);
+                    layout.paddingAll(0);
+                });
+        scroller.viewContainer.layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(gap);
+        });
+        scroller.verticalContainer.layout(layout -> layout.gapColumn(4));
+        scroller.verticalScroller.layout(layout -> layout.width(6));
+        scroller.verticalScroller.headButton.setDisplay(false);
+        scroller.verticalScroller.tailButton.setDisplay(false);
+        scroller.horizontalScroller.headButton.setDisplay(false);
+        scroller.horizontalScroller.tailButton.setDisplay(false);
+        scroller.verticalScroller.scrollContainer.style(style -> style.backgroundTexture(ShopAppUiSupport.softTexture(theme.insetFill())));
+        scroller.verticalScroller.scrollBar.buttonStyle(style -> style
+                .baseTexture(ShopAppUiSupport.framedTexture(theme.accentSoftFill(), theme.accentDivider()))
+                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accentDivider()))
+                .pressedTexture(ShopAppUiSupport.framedTexture(theme.buttonPressedFill(), theme.accent()))
+        );
+        return scroller;
     }
 
     private static UIElement exchangeBoard(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
@@ -318,7 +545,7 @@ final class ShopAppLayouts {
         }
         column.addChildren(
                 heroPanel(context, theme, offer, Component.translatable("screen.incore.shop.selected_offer")),
-                metricTile(Component.translatable("screen.incore.shop.price_each"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme),
+                metricTile(Component.translatable("screen.incore.shop.price_label"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme),
                 metricTile(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme)
         );
         return column;
@@ -408,17 +635,17 @@ final class ShopAppLayouts {
         });
         media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 52, Component.literal(offer.displayName())));
         row.addChildren(
-                media,
-                new UIElement().layout(layout -> {
-                    layout.flex(1);
-                    layout.minWidth(0);
-                    layout.flexDirection(FlexDirection.COLUMN);
+                        media,
+                        new UIElement().layout(layout -> {
+                            layout.flex(1);
+                            layout.minWidth(0);
+                            layout.flexDirection(FlexDirection.COLUMN);
                     layout.gapAll(3);
-                }).addChildren(
-                        textLabel(Component.literal(offer.displayName()), theme.primaryText(), false),
-                        ShopAppUiSupport.bodyLabel(Component.literal(ShopAppUiSupport.rewardSummary(offer)), theme.secondaryText()),
-                        showcaseMetricTile(Component.translatable("screen.incore.shop.price_each"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme)
-                )
+                        }).addChildren(
+                                textLabel(Component.literal(offer.displayName()), theme.primaryText(), false),
+                                ShopAppUiSupport.bodyLabel(Component.literal(ShopAppUiSupport.rewardSummary(offer)), theme.secondaryText()),
+                                showcaseMetricTile(Component.translatable("screen.incore.shop.price_label"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme)
+                        )
         );
         return row;
     }
@@ -443,6 +670,154 @@ final class ShopAppLayouts {
     private static List<ShopService.OfferView> industrialRailOffers(ShopAppLayoutContext context) {
         ShopService.TabFeedView feed = ShopAppUiSupport.activeFeed(context.data(), context.state());
         return ShopAppUiSupport.visibleOffers(feed, context.state().offerScrollRow(), INDUSTRIAL_RAIL_ROWS);
+    }
+
+    private static UIElement industrialEditorialShowcase(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        UIElement showcase = ShopAppUiSupport.tintedSurface(theme, theme.cardFill(), 8, true);
+        showcase.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(4);
+        });
+        showcase.addChildren(
+                textLabel(Component.translatable("screen.incore.shop.reward_contents"), theme.primaryText(), true),
+                industrialRewardShowcase(offer, theme)
+        );
+        return showcase;
+    }
+
+    private static UIElement industrialStatsBox(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        UIElement box = ShopAppUiSupport.liftedInsetSurface(theme, 8);
+        box.layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(4);
+        });
+        box.addChildren(
+                inlineMetricRow(
+                        Component.translatable("screen.incore.shop.price_label"),
+                        Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())),
+                        theme
+                ),
+                inlineMetricRow(
+                        Component.translatable("screen.incore.shop.stock_label"),
+                        Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())),
+                        theme
+                )
+        );
+        return box;
+    }
+
+    private static UIElement inlineMetricRow(Component title, Component value, ShopAppUiSupport.TabTheme theme) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(6);
+        });
+        row.addChildren(
+                textLabel(title, theme.secondaryText(), true).layout(layout -> {
+                    layout.flexBasis(0);
+                    layout.flexGrow(1);
+                    layout.minWidth(0);
+                }),
+                valueLabel(value, theme.primaryText())
+        );
+        return row;
+    }
+
+    private static UIElement industrialRewardShowcase(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = ShopAppUiSupport.liftedInsetSurface(theme, 8);
+        column.layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(4);
+        });
+        int visibleEntries = Math.min(2, offer.rewardEntries().size());
+        for (int i = 0; i < visibleEntries; i++) {
+            ShopService.RewardEntryView entry = offer.rewardEntries().get(i);
+            UIElement row = new UIElement().layout(layout -> {
+                layout.widthPercent(100);
+                layout.flexDirection(FlexDirection.ROW);
+                layout.alignItems(AlignItems.CENTER);
+                layout.gapAll(6);
+            });
+            row.addChildren(
+                    ShopAppUiSupport.itemIcon(
+                            ShopAppUiSupport.stackFromRewardEntry(entry),
+                            18,
+                            Component.literal(ShopAppUiSupport.rewardEntryLabel(entry))
+                    ),
+                    textLabel(Component.literal(ShopAppUiSupport.rewardEntryLabel(entry)), theme.primaryText(), true).layout(layout -> {
+                        layout.flex(1);
+                        layout.minWidth(0);
+                    }),
+                    textLabel(Component.literal("x" + entry.count()), theme.secondaryText(), true)
+            );
+            column.addChild(row);
+        }
+        if (offer.rewardEntries().size() > visibleEntries) {
+            column.addChild(textLabel(
+                    Component.literal("+" + (offer.rewardEntries().size() - visibleEntries) + " more"),
+                    theme.secondaryText(),
+                    true
+            ));
+        }
+        return column;
+    }
+
+    private static @Nullable ShopService.OfferView industrialSlotOffer(ShopAppLayoutContext context) {
+        ShopService.OfferView showcase = context.state().showcaseOffer(context.data());
+        if (showcase != null) {
+            return showcase;
+        }
+        List<ShopService.OfferView> offers = industrialDisplayOffers(context);
+        if (offers.isEmpty()) {
+            return null;
+        }
+        return offers.getFirst();
+    }
+
+    private static List<ShopService.OfferView> industrialDisplayOffers(ShopAppLayoutContext context) {
+        return ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()));
+    }
+
+    private static List<ShopService.OfferView> industrialHighlightOffers(ShopAppLayoutContext context) {
+        ShopService.OfferView focus = industrialSlotOffer(context);
+        List<ShopService.OfferView> offers = new ArrayList<>();
+        for (ShopService.OfferView offer : industrialDisplayOffers(context)) {
+            if (focus != null && offer.offerId().equals(focus.offerId())) {
+                continue;
+            }
+            offers.add(offer);
+            if (offers.size() >= 3) {
+                break;
+            }
+        }
+        return List.copyOf(offers);
+    }
+
+    private static List<ShopService.OfferView> industrialRemainingOffers(ShopAppLayoutContext context) {
+        ShopService.OfferView focus = industrialSlotOffer(context);
+        List<ShopService.OfferView> offers = new ArrayList<>();
+        int skippedHighlights = 0;
+        for (ShopService.OfferView offer : industrialDisplayOffers(context)) {
+            if (focus != null && offer.offerId().equals(focus.offerId())) {
+                continue;
+            }
+            if (skippedHighlights < 3) {
+                skippedHighlights++;
+                continue;
+            }
+            offers.add(offer);
+        }
+        return List.copyOf(offers);
     }
 
     private static List<ShopService.OfferView> industrialBoardOffers(ShopAppLayoutContext context) {
@@ -545,7 +920,7 @@ final class ShopAppLayouts {
             int height,
             boolean compact
     ) {
-        boolean selected = offer.offerId().equals(context.state().selectedOfferId());
+        boolean selected = showOfferSelectionState(context) && offer.offerId().equals(context.state().selectedOfferId());
         Button card = new Button().setText(Component.empty());
         card.layout(layout -> {
             layout.widthPercent(100);
@@ -567,6 +942,10 @@ final class ShopAppLayouts {
             context.rebuild();
         });
         return card;
+    }
+
+    private static boolean showOfferSelectionState(ShopAppLayoutContext context) {
+        return ShopAppUiSupport.detailsModeFor(context.data(), context.state().activeTab()) != ShopDetailsPresentationMode.MODAL_OVERLAY;
     }
 
     private static UIElement offerText(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
@@ -593,14 +972,15 @@ final class ShopAppLayouts {
 
     private static UIElement offerBadge(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, boolean compact) {
         UIElement column = new UIElement().layout(layout -> {
-            layout.width(compact ? 54 : 104);
+            layout.width(compact ? 72 : 120);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.alignItems(AlignItems.FLEX_END);
-            layout.gapAll(1);
+            layout.gapAll(2);
+            layout.paddingRight(4);
         });
-        column.addChild(textLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText(), true));
+        column.addChild(valueLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText()));
         if (!compact) {
-            column.addChild(textLabel(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.secondaryText(), true));
+            column.addChild(valueLabel(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.secondaryText()));
         }
         return column;
     }
@@ -730,6 +1110,17 @@ final class ShopAppLayouts {
         if (singleLine) {
             label.textStyle(style -> style.adaptiveWidth(false).textWrap(TextWrap.HIDE).textAlignHorizontal(Horizontal.LEFT));
         }
+        return label;
+    }
+
+    private static Label valueLabel(Component text, int color) {
+        Label label = ShopAppUiSupport.heading(text, color);
+        label.textStyle(style -> style
+                .adaptiveWidth(true)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.RIGHT)
+                .textColor(color)
+        );
         return label;
     }
 

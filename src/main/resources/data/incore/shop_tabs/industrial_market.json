@@ -3,7 +3,7 @@
   "palette": "tactical_archive",
   "layout": "industrial_market",
   "category_navigation": "sidebar",
-  "details_mode": "inline",
+  "details_mode": "modal",
   "categories": [
     "incore:basic_supplies",
     "incore:field_requisitions",
