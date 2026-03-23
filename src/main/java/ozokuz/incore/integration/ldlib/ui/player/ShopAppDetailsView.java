@@ -116,7 +116,7 @@ final class ShopAppDetailsView {
     }
 
     private static UIElement previewFrame(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, int size) {
-        UIElement frame = ShopAppUiSupport.mutedSurface(theme, 4);
+        UIElement frame = ShopAppUiSupport.liftedInsetSurface(theme, 4);
         frame.layout(layout -> {
             layout.width(size + 12);
             layout.height(size + 12);
@@ -156,7 +156,7 @@ final class ShopAppDetailsView {
     }
 
     private static UIElement rewardContents(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, boolean compactInline) {
-        UIElement column = ShopAppUiSupport.mutedSurface(theme, 6);
+        UIElement column = ShopAppUiSupport.liftedInsetSurface(theme, 6);
         column.layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);

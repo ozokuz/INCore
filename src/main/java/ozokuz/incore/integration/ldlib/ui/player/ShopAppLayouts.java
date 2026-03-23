@@ -399,7 +399,7 @@ final class ShopAppLayouts {
             layout.alignItems(AlignItems.FLEX_START);
             layout.gapAll(10);
         });
-        UIElement media = ShopAppUiSupport.mutedSurface(theme, 10);
+        UIElement media = ShopAppUiSupport.liftedInsetSurface(theme, 10);
         media.layout(layout -> {
             layout.width(88);
             layout.height(88);
@@ -417,7 +417,7 @@ final class ShopAppLayouts {
                 }).addChildren(
                         textLabel(Component.literal(offer.displayName()), theme.primaryText(), false),
                         ShopAppUiSupport.bodyLabel(Component.literal(ShopAppUiSupport.rewardSummary(offer)), theme.secondaryText()),
-                        metricTile(Component.translatable("screen.incore.shop.price_each"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme)
+                        showcaseMetricTile(Component.translatable("screen.incore.shop.price_each"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme)
                 )
         );
         return row;
@@ -430,8 +430,8 @@ final class ShopAppLayouts {
             layout.gapAll(6);
         });
         row.addChildren(
-                metricTile(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme),
-                metricTile(
+                showcaseMetricTile(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme),
+                showcaseMetricTile(
                         Component.translatable("screen.incore.shop.balance_label"),
                         Component.literal(ShopAppUiSupport.availableCurrencyLabel(offer.currency())),
                         theme
@@ -688,6 +688,19 @@ final class ShopAppLayouts {
 
     private static UIElement metricTile(Component title, Component value, ShopAppUiSupport.TabTheme theme) {
         UIElement tile = ShopAppUiSupport.mutedSurface(theme, 5);
+        tile.layout(layout -> {
+            layout.flex(1);
+            layout.minWidth(0);
+        });
+        tile.addChildren(
+                textLabel(title, theme.secondaryText(), true),
+                textLabel(value, theme.primaryText(), true)
+        );
+        return tile;
+    }
+
+    private static UIElement showcaseMetricTile(Component title, Component value, ShopAppUiSupport.TabTheme theme) {
+        UIElement tile = ShopAppUiSupport.liftedInsetSurface(theme, 5);
         tile.layout(layout -> {
             layout.flex(1);
             layout.minWidth(0);

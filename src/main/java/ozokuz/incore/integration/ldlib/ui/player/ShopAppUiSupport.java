@@ -326,7 +326,18 @@ final class ShopAppUiSupport {
     }
 
     static UIElement mutedSurface(TabTheme theme, int padding) {
-        return tintedSurface(theme, theme.insetFill(), padding, false);
+        return tintedSurface(theme, mixColor(theme.insetFill(), theme.sectionFill(), 0.24F), padding, false);
+    }
+
+    static UIElement liftedInsetSurface(TabTheme theme, int padding) {
+        UIElement element = new UIElement();
+        element.layout(layout -> {
+            layout.gapAll(6);
+            layout.paddingAll(padding);
+        });
+        int fill = mixColor(theme.sectionFill(), theme.primaryText(), 0.10F);
+        element.style(style -> style.backgroundTexture(softTexture(fill)));
+        return element;
     }
 
     static UIElement accentSurface(TabTheme theme, int padding) {
