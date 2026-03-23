@@ -3,6 +3,7 @@ package ozokuz.incore.integration.ldlib.ui.player;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
+import dev.vfyjxf.taffy.style.TaffyPosition;
 
 final class ShopAppDetailsModalHost {
     private ShopAppDetailsModalHost() {
@@ -18,8 +19,11 @@ final class ShopAppDetailsModalHost {
         }
 
         UIElement overlay = new UIElement().layout(layout -> {
-            layout.widthPercent(100);
-            layout.heightPercent(100);
+            layout.positionType(TaffyPosition.ABSOLUTE);
+            layout.left(0);
+            layout.right(0);
+            layout.top(0);
+            layout.bottom(0);
             layout.justifyContent(AlignContent.CENTER);
             layout.alignItems(AlignItems.CENTER);
             layout.paddingAll(20);
