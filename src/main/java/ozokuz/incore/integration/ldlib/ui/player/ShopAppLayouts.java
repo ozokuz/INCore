@@ -258,6 +258,10 @@ final class ShopAppLayouts {
             layout.minWidth(0);
         });
         Label summaryLabel = textLabel(Component.literal(ShopAppUiSupport.rewardSummary(slotOffer)), theme.secondaryText(), true);
+        summaryLabel.layout(layout -> {
+            layout.flex(1);
+            layout.minWidth(0);
+        });
         summaryLabel.textStyle(style -> style.textAlignHorizontal(Horizontal.RIGHT));
         row.addChildren(
                 titleLabel,
