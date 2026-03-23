@@ -257,16 +257,11 @@ final class ShopAppLayouts {
             layout.flex(1);
             layout.minWidth(0);
         });
-        Label summaryLabel = textLabel(Component.literal(ShopAppUiSupport.rewardSummary(slotOffer)), theme.secondaryText(), true);
-        summaryLabel.layout(layout -> {
-            layout.flex(1);
-            layout.minWidth(0);
-        });
-        summaryLabel.textStyle(style -> style.textAlignHorizontal(Horizontal.RIGHT));
-        row.addChildren(
-                titleLabel,
-                summaryLabel
-        );
+        row.addChild(titleLabel);
+        Label summaryLabel = optionalHeaderMetaLabel(slotOffer, theme);
+        if (summaryLabel != null) {
+            row.addChild(summaryLabel);
+        }
         content.addChildren(
                 row,
                 new UIElement().layout(layout -> {
@@ -343,28 +338,7 @@ final class ShopAppLayouts {
             ShopAppUiSupport.TabTheme theme,
             ShopService.OfferView offer
     ) {
-        boolean selected = showOfferSelectionState(context) && offer.offerId().equals(context.state().selectedOfferId());
-        Button card = new Button().setText(Component.empty());
-        card.text.setDisplay(false);
-        card.layout(layout -> {
-            layout.widthPercent(100);
-            layout.minHeight(40);
-            layout.flexDirection(FlexDirection.ROW);
-            layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(6);
-            layout.paddingAll(6);
-        });
-        ShopAppUiSupport.styleSelectable(card, theme, selected);
-        card.addChildren(
-                ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 20, Component.literal(offer.displayName())),
-                offerText(offer, theme).layout(layout -> layout.flex(1)),
-                offerBadge(offer, theme, true)
-        );
-        card.setOnClick(event -> {
-            context.state().openDetails(offer.offerId(), context.data());
-            context.rebuild();
-        });
-        return card;
+        return offerCard(context, offer, theme, 40, true);
     }
 
     private static UIElement categoryScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
@@ -663,17 +637,9 @@ final class ShopAppLayouts {
         });
         media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 52, Component.literal(offer.displayName())));
         row.addChildren(
-                        media,
-                        new UIElement().layout(layout -> {
-                            layout.flex(1);
-                            layout.minWidth(0);
-                            layout.flexDirection(FlexDirection.COLUMN);
-                    layout.gapAll(3);
-                        }).addChildren(
-                                textLabel(Component.literal(offer.displayName()), theme.primaryText(), false),
-                                ShopAppUiSupport.bodyLabel(Component.literal(ShopAppUiSupport.rewardSummary(offer)), theme.secondaryText()),
-                                showcaseMetricTile(Component.translatable("screen.incore.shop.price_label"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme)
-                        )
+                media,
+                offerText(offer, theme).layout(layout -> layout.flex(1)),
+                offerBadge(offer, theme, false)
         );
         return row;
     }
@@ -685,7 +651,6 @@ final class ShopAppLayouts {
             layout.gapAll(6);
         });
         row.addChildren(
-                showcaseMetricTile(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme),
                 showcaseMetricTile(
                         Component.translatable("screen.incore.shop.balance_label"),
                         Component.literal(ShopAppUiSupport.availableCurrencyLabel(offer.currency())),
@@ -738,6 +703,20 @@ final class ShopAppLayouts {
                         theme
                 )
         );
+        if (offer.rotationRemainingMillis() >= 0L) {
+            box.addChild(inlineMetricRow(
+                    Component.translatable("screen.incore.shop.time_left_label"),
+                    Component.literal(ShopAppUiSupport.rotationRemainingLabel(offer.rotationRemainingMillis())),
+                    theme
+            ));
+        }
+        if (offer.rewardEntries().size() > 1) {
+            box.addChild(inlineMetricRow(
+                    Component.translatable("screen.incore.shop.bundle_label"),
+                    Component.literal(ShopAppUiSupport.rewardSummary(offer)),
+                    theme
+            ));
+        }
         return box;
     }
 
@@ -886,7 +865,7 @@ final class ShopAppLayouts {
         UIElement left = panelColumn(theme);
         UIElement right = panelColumn(theme);
         for (int i = 0; i < offers.size(); i++) {
-            (i % 2 == 0 ? left : right).addChild(offerCard(context, offers.get(i), theme, i % 3 == 0 ? 54 : 42, true));
+            (i % 2 == 0 ? left : right).addChild(offerCard(context, offers.get(i), theme, i % 3 == 0 ? 78 : 68, true));
         }
         row.addChildren(left.layout(layout -> layout.flex(1)), right.layout(layout -> layout.flex(1)));
         return row;
@@ -914,7 +893,7 @@ final class ShopAppLayouts {
             layout.gapAll(6);
         });
         for (int i = 0; i < offers.size(); i++) {
-            (i % 2 == 0 ? left : right).addChild(offerCard(context, offers.get(i), theme, compact ? 34 : 42, compact));
+            (i % 2 == 0 ? left : right).addChild(offerCard(context, offers.get(i), theme, compact ? 58 : 66, compact));
         }
         row.addChildren(left, right);
         return row;
@@ -936,7 +915,7 @@ final class ShopAppLayouts {
             return column;
         }
         for (ShopService.OfferView offer : offers) {
-            column.addChild(offerCard(context, offer, theme, compact ? 32 : 40, compact));
+            column.addChild(offerCard(context, offer, theme, compact ? 58 : 66, compact));
         }
         return column;
     }
@@ -954,16 +933,16 @@ final class ShopAppLayouts {
             layout.widthPercent(100);
             layout.height(height);
             layout.flexDirection(FlexDirection.ROW);
-            layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(6);
-            layout.paddingAll(6);
+            layout.alignItems(AlignItems.FLEX_START);
+            layout.gapAll(compact ? 4 : 6);
+            layout.paddingAll(compact ? 4 : 6);
         });
         card.text.setDisplay(false);
         ShopAppUiSupport.styleSelectable(card, theme, selected);
         card.addChildren(
                 ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), compact ? 16 : 18, Component.literal(offer.displayName())),
                 offerText(offer, theme).layout(layout -> layout.flex(1)),
-                offerBadge(offer, theme, compact)
+                offerCardBadge(offer, theme, compact)
         );
         card.setOnClick(event -> {
             context.state().openDetails(offer.offerId(), context.data());
@@ -984,33 +963,104 @@ final class ShopAppLayouts {
             layout.gapAll(1);
         });
         column.addChildren(
-                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
-                textLabel(
-                        Component.literal(
-                                offer.rotationRemainingMillis() >= 0L
-                                        ? ShopAppUiSupport.rotationRemainingLabel(offer.rotationRemainingMillis())
-                                        : ShopAppUiSupport.rewardSummary(offer)
-                        ),
-                        offer.locked() ? theme.alertText() : theme.secondaryText(),
-                        true
-                )
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true)
         );
+        if (offer.rotationRemainingMillis() >= 0L) {
+            column.addChild(textLabel(
+                    Component.translatable("screen.incore.shop.time_left_format", ShopAppUiSupport.rotationRemainingLabel(offer.rotationRemainingMillis())),
+                    theme.secondaryText(),
+                    true
+            ));
+        }
+        if (offer.rewardEntries().size() > 1) {
+            column.addChild(textLabel(
+                    Component.literal(ShopAppUiSupport.rewardSummary(offer)),
+                    theme.secondaryText(),
+                    true
+            ));
+        }
         return column;
+    }
+
+    private static @Nullable Label optionalHeaderMetaLabel(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        String text = offer.rotationRemainingMillis() >= 0L
+                ? ShopAppUiSupport.rotationRemainingLabel(offer.rotationRemainingMillis())
+                : offer.rewardEntries().size() > 1 ? ShopAppUiSupport.rewardSummary(offer) : "";
+        if (text.isBlank()) {
+            return null;
+        }
+        Label label = textLabel(Component.literal(text), theme.secondaryText(), true);
+        label.layout(layout -> {
+            layout.flex(1);
+            layout.minWidth(0);
+        });
+        label.textStyle(style -> style.textAlignHorizontal(Horizontal.RIGHT));
+        return label;
     }
 
     private static UIElement offerBadge(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, boolean compact) {
         UIElement column = new UIElement().layout(layout -> {
-            layout.width(compact ? 72 : 120);
+            layout.width(compact ? 126 : 144);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.alignItems(AlignItems.FLEX_END);
             layout.gapAll(2);
             layout.paddingRight(4);
         });
-        column.addChild(valueLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText()));
-        if (!compact) {
-            column.addChild(valueLabel(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.secondaryText()));
+        if (compact) {
+            column.addChild(valueLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText()));
+            column.addChild(textLabel(
+                    Component.translatable("screen.incore.shop.stock.remaining", ShopAppUiSupport.stockLabel(offer.availableStock())),
+                    theme.secondaryText(),
+                    true
+            ));
+            return column;
         }
+        column.addChild(compactOfferMetricRow(
+                Component.translatable("screen.incore.shop.price_label"),
+                Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())),
+                theme.secondaryText(),
+                theme.priceText()
+        ));
+        column.addChild(compactOfferMetricRow(
+                Component.translatable("screen.incore.shop.stock_label"),
+                Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())),
+                theme.secondaryText(),
+                theme.primaryText()
+        ));
         return column;
+    }
+
+    private static UIElement offerCardBadge(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme, boolean compact) {
+        UIElement column = new UIElement().layout(layout -> {
+            layout.width(compact ? 112 : 138);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.FLEX_END);
+            layout.gapAll(compact ? 1 : 2);
+            layout.paddingRight(compact ? 4 : 4);
+        });
+        column.addChild(valueLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText()));
+        column.addChild(valueLabel(
+                Component.translatable("screen.incore.shop.stock.remaining", ShopAppUiSupport.stockLabel(offer.availableStock())),
+                theme.secondaryText()
+        ));
+        return column;
+    }
+
+    private static UIElement compactOfferMetricRow(Component title, Component value, int titleColor, int valueColor) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(4);
+        });
+        row.addChildren(
+                textLabel(title, titleColor, true).layout(layout -> layout.width(34)),
+                valueLabel(value, valueColor).layout(layout -> {
+                    layout.flex(1);
+                    layout.minWidth(0);
+                })
+        );
+        return row;
     }
 
     private static UIElement pager(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {

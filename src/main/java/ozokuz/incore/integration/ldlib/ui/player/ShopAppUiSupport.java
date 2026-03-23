@@ -192,7 +192,7 @@ final class ShopAppUiSupport {
 
     static String stockLabel(int stock) {
         return stock < 0
-                ? Component.translatable("screen.incore.shop.stock.unlimited").getString()
+                ? "\u221e"
                 : Integer.toString(stock);
     }
 
