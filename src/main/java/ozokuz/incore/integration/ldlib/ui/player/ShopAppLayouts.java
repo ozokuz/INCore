@@ -246,12 +246,22 @@ final class ShopAppLayouts {
         });
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
+            layout.minWidth(0);
             layout.flexDirection(FlexDirection.ROW);
-            layout.gapAll(1);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.gapAll(6);
         });
+        Label titleLabel = textLabel(Component.literal(slotOffer.displayName()), theme.primaryText(), true);
+        titleLabel.layout(layout -> {
+            layout.flex(1);
+            layout.minWidth(0);
+        });
+        Label summaryLabel = textLabel(Component.literal(ShopAppUiSupport.rewardSummary(slotOffer)), theme.secondaryText(), true);
+        summaryLabel.textStyle(style -> style.textAlignHorizontal(Horizontal.RIGHT));
         row.addChildren(
-                textLabel(Component.literal(slotOffer.displayName()), theme.primaryText(), true),
-                textLabel(Component.literal(ShopAppUiSupport.rewardSummary(slotOffer)), theme.secondaryText(), true)
+                titleLabel,
+                summaryLabel
         );
         content.addChildren(
                 row,
@@ -308,16 +318,20 @@ final class ShopAppLayouts {
     }
 
     private static UIElement industrialHighlightScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ScrollerView scroller = verticalScroller(theme, 6);
+        UIElement column = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(6);
+        });
         List<ShopService.OfferView> offers = industrialHighlightOffers(context);
         if (offers.isEmpty()) {
-            scroller.addScrollViewChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText()));
-            return scroller;
+            column.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText()));
+            return column;
         }
         for (ShopService.OfferView offer : offers) {
-            scroller.addScrollViewChild(industrialHighlightCard(context, theme, offer));
+            column.addChild(industrialHighlightCard(context, theme, offer));
         }
-        return scroller;
+        return column;
     }
 
     private static UIElement industrialHighlightCard(
