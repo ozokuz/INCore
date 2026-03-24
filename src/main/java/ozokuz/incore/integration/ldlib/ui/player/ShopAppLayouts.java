@@ -338,7 +338,7 @@ final class ShopAppLayouts {
             ShopAppUiSupport.TabTheme theme,
             ShopService.OfferView offer
     ) {
-        return offerCard(context, offer, theme, 40, true);
+        return offerCard(context, offer, theme, 36, true);
     }
 
     private static UIElement categoryScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
@@ -893,7 +893,7 @@ final class ShopAppLayouts {
             layout.gapAll(6);
         });
         for (int i = 0; i < offers.size(); i++) {
-            (i % 2 == 0 ? left : right).addChild(offerCard(context, offers.get(i), theme, compact ? 58 : 66, compact));
+            (i % 2 == 0 ? left : right).addChild(offerCard(context, offers.get(i), theme, compact ? 40 : 48, compact));
         }
         row.addChildren(left, right);
         return row;
@@ -915,7 +915,7 @@ final class ShopAppLayouts {
             return column;
         }
         for (ShopService.OfferView offer : offers) {
-            column.addChild(offerCard(context, offer, theme, compact ? 58 : 66, compact));
+            column.addChild(offerCard(context, offer, theme, compact ? 40 : 48, compact));
         }
         return column;
     }
