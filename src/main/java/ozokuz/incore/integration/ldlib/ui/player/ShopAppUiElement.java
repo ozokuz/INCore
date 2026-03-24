@@ -138,7 +138,7 @@ final class ShopAppUiElement extends UIElement implements IBindable<String>, Pla
         });
         balancePanel.addChildren(
                 ShopAppUiSupport.heading(Component.translatable("screen.incore.shop.balance_label"), theme.secondaryText()),
-                ShopAppUiSupport.heading(Component.literal(ShopAppUiSupport.availableCurrencyLabel(currency)), theme.priceText())
+                ShopAppUiSupport.currencyValue(currency, ShopAppUiSupport.availableCurrencyAmount(currency), theme.priceText())
         );
 
         row.addChildren(titleBlock, balancePanel);

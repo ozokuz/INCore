@@ -65,8 +65,8 @@ class ShopAppUiStateTest {
     }
 
     private static ShopService.ScreenData screenData() {
-        ShopService.CurrencyView spur = new ShopService.CurrencyView("SPUR", 1, 120);
-        ShopService.CurrencyView emerald = new ShopService.CurrencyView("Emerald", 1, 24);
+        ShopService.CurrencyView spur = new ShopService.CurrencyView("numismatics:spur", "SPUR", 1, 120);
+        ShopService.CurrencyView emerald = new ShopService.CurrencyView("minecraft:emerald", "Emerald", 1, 24);
         return new ShopService.ScreenData(
                 "incore:boutique_premium_gear",
                 "incore:chartered_diamond",
@@ -89,7 +89,7 @@ class ShopAppUiStateTest {
                                 "incore:daily_exchange",
                                 "Alpha",
                                 18,
-                                new ShopService.CurrencyView("SPUR", 18, 120),
+                                new ShopService.CurrencyView("numismatics:spur", "SPUR", 18, 120),
                                 List.of(new ShopService.RewardEntryView("minecraft:redstone", 8)),
                                 3,
                                 false,
@@ -100,7 +100,7 @@ class ShopAppUiStateTest {
                                 "incore:exchange_coolants",
                                 "Coolant Alpha",
                                 28,
-                                new ShopService.CurrencyView("SPUR", 28, 120),
+                                new ShopService.CurrencyView("numismatics:spur", "SPUR", 28, 120),
                                 List.of(new ShopService.RewardEntryView("minecraft:slime_ball", 8)),
                                 3,
                                 false,
@@ -111,7 +111,7 @@ class ShopAppUiStateTest {
                                 "incore:exchange_coolants",
                                 "Coolant Beta",
                                 40,
-                                new ShopService.CurrencyView("SPUR", 40, 120),
+                                new ShopService.CurrencyView("numismatics:spur", "SPUR", 40, 120),
                                 List.of(new ShopService.RewardEntryView("minecraft:honeycomb", 4)),
                                 1,
                                 false,
@@ -122,7 +122,7 @@ class ShopAppUiStateTest {
                                 "incore:chartered_rotation",
                                 "Chartered Diamond",
                                 9,
-                                new ShopService.CurrencyView("Emerald", 9, 24),
+                                new ShopService.CurrencyView("minecraft:emerald", "Emerald", 9, 24),
                                 List.of(new ShopService.RewardEntryView("minecraft:diamond", 1)),
                                 3,
                                 false,
@@ -133,7 +133,7 @@ class ShopAppUiStateTest {
                                 "incore:boutique_premium_gear",
                                 "Premium Glass",
                                 6,
-                                new ShopService.CurrencyView("Emerald", 6, 24),
+                                new ShopService.CurrencyView("minecraft:emerald", "Emerald", 6, 24),
                                 List.of(new ShopService.RewardEntryView("minecraft:tinted_glass", 4)),
                                 8,
                                 false,
@@ -144,7 +144,7 @@ class ShopAppUiStateTest {
                                 "incore:boutique_premium_gear",
                                 "Premium Signal",
                                 8,
-                                new ShopService.CurrencyView("Emerald", 8, 24),
+                                new ShopService.CurrencyView("minecraft:emerald", "Emerald", 8, 24),
                                 List.of(new ShopService.RewardEntryView("minecraft:ender_pearl", 2)),
                                 8,
                                 false,
@@ -155,7 +155,7 @@ class ShopAppUiStateTest {
                                 "incore:archive_artifacts",
                                 "Archive Relic",
                                 5,
-                                new ShopService.CurrencyView("Emerald", 5, 24),
+                                new ShopService.CurrencyView("minecraft:emerald", "Emerald", 5, 24),
                                 List.of(new ShopService.RewardEntryView("minecraft:experience_bottle", 4)),
                                 3,
                                 false,

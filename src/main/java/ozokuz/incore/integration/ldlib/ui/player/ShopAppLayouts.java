@@ -468,11 +468,14 @@ final class ShopAppLayouts {
         UIElement sidebar = fillPanelColumn(theme, theme.railFill());
         ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
         sidebar.addChildren(
-                dualSectionHeader(
-                        Component.translatable("screen.incore.shop.categories_heading"),
-                        Component.literal(category == null ? "" : ShopAppUiSupport.availableCurrencyLabel(category.currency())),
-                        theme
-                ),
+                sectionHeader(Component.translatable("screen.incore.shop.categories_heading"), theme),
+                category == null
+                        ? textLabel(Component.empty(), theme.secondaryText(), true)
+                        : ShopAppUiSupport.currencyValue(
+                                category.currency(),
+                                ShopAppUiSupport.availableCurrencyAmount(category.currency()),
+                                theme.priceText()
+                        ),
                 categoryButtons(context, theme, true)
         );
         return sidebar;
@@ -547,7 +550,14 @@ final class ShopAppLayouts {
         }
         column.addChildren(
                 heroPanel(context, theme, offer, Component.translatable("screen.incore.shop.selected_offer")),
-                metricTile(Component.translatable("screen.incore.shop.price_label"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme),
+                currencyMetricTile(
+                        Component.translatable("screen.incore.shop.price_label"),
+                        offer.currency(),
+                        ShopAppUiSupport.currencyAmount(offer.currency()),
+                        theme,
+                        false,
+                        theme.priceText()
+                ),
                 metricTile(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme)
         );
         return column;
@@ -651,10 +661,13 @@ final class ShopAppLayouts {
             layout.gapAll(6);
         });
         row.addChildren(
-                showcaseMetricTile(
+                currencyMetricTile(
                         Component.translatable("screen.incore.shop.balance_label"),
-                        Component.literal(ShopAppUiSupport.availableCurrencyLabel(offer.currency())),
-                        theme
+                        offer.currency(),
+                        ShopAppUiSupport.availableCurrencyAmount(offer.currency()),
+                        theme,
+                        true,
+                        theme.priceText()
                 )
         );
         return row;
@@ -692,10 +705,12 @@ final class ShopAppLayouts {
             layout.gapAll(4);
         });
         box.addChildren(
-                inlineMetricRow(
+                ShopAppUiSupport.currencyMetricRow(
                         Component.translatable("screen.incore.shop.price_label"),
-                        Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())),
-                        theme
+                        offer.currency(),
+                        ShopAppUiSupport.currencyAmount(offer.currency()),
+                        theme,
+                        theme.priceText()
                 ),
                 inlineMetricRow(
                         Component.translatable("screen.incore.shop.stock_label"),
@@ -1006,7 +1021,11 @@ final class ShopAppLayouts {
             layout.paddingRight(4);
         });
         if (compact) {
-            column.addChild(valueLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText()));
+            column.addChild(ShopAppUiSupport.currencyValue(
+                    offer.currency(),
+                    ShopAppUiSupport.currencyAmount(offer.currency()),
+                    theme.priceText()
+            ));
             column.addChild(textLabel(
                     Component.translatable("screen.incore.shop.stock.remaining", ShopAppUiSupport.stockLabel(offer.availableStock())),
                     theme.secondaryText(),
@@ -1014,10 +1033,11 @@ final class ShopAppLayouts {
             ));
             return column;
         }
-        column.addChild(compactOfferMetricRow(
+        column.addChild(compactCurrencyMetricRow(
                 Component.translatable("screen.incore.shop.price_label"),
-                Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())),
-                theme.secondaryText(),
+                offer.currency(),
+                ShopAppUiSupport.currencyAmount(offer.currency()),
+                theme,
                 theme.priceText()
         ));
         column.addChild(compactOfferMetricRow(
@@ -1037,7 +1057,11 @@ final class ShopAppLayouts {
             layout.gapAll(compact ? 1 : 2);
             layout.paddingRight(compact ? 4 : 4);
         });
-        column.addChild(valueLabel(Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme.priceText()));
+        column.addChild(ShopAppUiSupport.currencyValue(
+                offer.currency(),
+                ShopAppUiSupport.currencyAmount(offer.currency()),
+                theme.priceText()
+        ));
         column.addChild(valueLabel(
                 Component.translatable("screen.incore.shop.stock.remaining", ShopAppUiSupport.stockLabel(offer.availableStock())),
                 theme.secondaryText()
@@ -1056,6 +1080,30 @@ final class ShopAppLayouts {
         row.addChildren(
                 textLabel(title, titleColor, true).layout(layout -> layout.width(34)),
                 valueLabel(value, valueColor).layout(layout -> {
+                    layout.flex(1);
+                    layout.minWidth(0);
+                })
+        );
+        return row;
+    }
+
+    private static UIElement compactCurrencyMetricRow(
+            Component title,
+            ShopService.CurrencyView currency,
+            int amount,
+            ShopAppUiSupport.TabTheme theme,
+            int valueColor
+    ) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(4);
+        });
+        row.addChildren(
+                textLabel(title, theme.secondaryText(), true).layout(layout -> layout.width(34)),
+                ShopAppUiSupport.currencyValue(currency, amount, valueColor).layout(layout -> {
                     layout.flex(1);
                     layout.minWidth(0);
                 })
@@ -1155,6 +1203,17 @@ final class ShopAppLayouts {
                 textLabel(value, theme.primaryText(), true)
         );
         return tile;
+    }
+
+    private static UIElement currencyMetricTile(
+            Component title,
+            ShopService.CurrencyView currency,
+            int amount,
+            ShopAppUiSupport.TabTheme theme,
+            boolean lifted,
+            int valueColor
+    ) {
+        return ShopAppUiSupport.currencyMetricTile(title, currency, amount, theme, lifted, valueColor);
     }
 
     private static UIElement showcaseMetricTile(Component title, Component value, ShopAppUiSupport.TabTheme theme) {

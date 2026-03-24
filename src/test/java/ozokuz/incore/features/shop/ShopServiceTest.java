@@ -89,6 +89,20 @@ class ShopServiceTest {
     }
 
     @Test
+    void currencyFixturesPreserveBankSpurIcon() {
+        ShopService.ScreenData data = screenData();
+
+        assertEquals("numismatics:spur", data.categories().getFirst().currency().iconItemId());
+    }
+
+    @Test
+    void currencyFixturesPreserveItemCurrencyIcon() {
+        ShopService.ScreenData data = screenData();
+
+        assertEquals("minecraft:emerald", data.offers().getFirst().currency().iconItemId());
+    }
+
+    @Test
     void visibleOfferIdsForCategoryRollWindowAdvancesOneOfferAtATime() {
         ShopCategoryRotationDefinition rotation = new ShopCategoryRotationDefinition(24, 3);
         long durationMillis = 24L * 60L * 60L * 1000L;
@@ -140,8 +154,8 @@ class ShopServiceTest {
     }
 
     private static ShopService.ScreenData screenData() {
-        ShopService.CurrencyView spur = new ShopService.CurrencyView("SPUR", 1, 120);
-        ShopService.CurrencyView emerald = new ShopService.CurrencyView("Emerald", 1, 12);
+        ShopService.CurrencyView spur = new ShopService.CurrencyView("numismatics:spur", "SPUR", 1, 120);
+        ShopService.CurrencyView emerald = new ShopService.CurrencyView("minecraft:emerald", "Emerald", 1, 12);
         return new ShopService.ScreenData(
                 "incore:boutique_premium_gear",
                 "incore:premium_ghast_tears",

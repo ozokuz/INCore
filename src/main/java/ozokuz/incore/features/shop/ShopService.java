@@ -614,10 +614,11 @@ public final class ShopService {
     private static CurrencyView currencyView(ServerPlayer player, ShopCurrencySpec spec, int amountPerUnit) {
         ShopCurrencyType type = ShopCurrencyRegistry.get(spec.typeId());
         if (type == null) {
-            return new CurrencyView("", amountPerUnit, 0);
+            return new CurrencyView("minecraft:barrier", "", amountPerUnit, 0);
         }
         ShopCurrencyView built = type.buildView(player, spec, amountPerUnit);
         return new CurrencyView(
+                built.iconItemId(),
                 built.label(),
                 built.amountPerUnit(),
                 built.availableAmount()
@@ -930,6 +931,7 @@ public final class ShopService {
     }
 
     public record CurrencyView(
+            String iconItemId,
             String label,
             int amountPerUnit,
             int availableAmount
