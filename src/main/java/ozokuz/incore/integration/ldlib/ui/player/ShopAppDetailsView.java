@@ -56,15 +56,6 @@ final class ShopAppDetailsView {
                         ShopAppUiSupport.bodyLabel(Component.literal(ShopAppUiSupport.rewardSummary(offer)), theme.secondaryText())
                 )
         );
-        if (modal) {
-            Button close = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.close_overlay"), theme, 20);
-            close.layout(layout -> layout.width(74));
-            close.setOnClick(event -> {
-                context.state().closeDetails();
-                context.rebuild();
-            });
-            header.addChild(close);
-        }
 
         column.addChildren(
                 header,
@@ -73,13 +64,6 @@ final class ShopAppDetailsView {
                         Component.translatable("screen.incore.shop.price_label"),
                         offer.currency(),
                         ShopAppUiSupport.currencyAmount(offer.currency()),
-                        theme,
-                        theme.priceText()
-                ),
-                ShopAppUiSupport.currencyMetricRow(
-                        Component.translatable("screen.incore.shop.balance_label"),
-                        offer.currency(),
-                        ShopAppUiSupport.availableCurrencyAmount(offer.currency()),
                         theme,
                         theme.priceText()
                 ),
@@ -105,7 +89,7 @@ final class ShopAppDetailsView {
         }
 
         Button purchase = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.purchase"), theme, compactInline ? 18 : 20);
-        purchase.layout(layout -> layout.widthPercent(100));
+        purchase.layout(layout -> layout.flex(7));
         purchase.setActive(canPurchase);
         purchase.setOnClick(event -> {
             if (!canPurchase) {
@@ -117,7 +101,22 @@ final class ShopAppDetailsView {
                 ShopNetworking.sendPurchase(offerId, context.state().quantity(), categoryId);
             }
         });
-        column.addChild(purchase);
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.gapAll(4);
+        });
+        if (modal) {
+            Button close = ShopAppUiSupport.actionButton(Component.translatable("screen.incore.shop.close_overlay"), theme, 20);
+            close.layout(layout -> layout.flex(2));
+            close.setOnClick(event -> {
+                context.state().closeDetails();
+                context.rebuild();
+            });
+            row.addChild(close);
+        }
+        row.addChild(purchase);
+        column.addChild(row);
         return column;
     }
 
@@ -190,8 +189,7 @@ final class ShopAppDetailsView {
             layout.gapAll(compactInline ? 3 : 4);
         });
         column.addChildren(
-                titleLabel(Component.translatable("screen.incore.shop.reward_contents"), theme.primaryText()),
-                ShopAppUiSupport.bodyLabel(Component.literal(ShopAppUiSupport.rewardSummary(offer)), theme.secondaryText())
+                titleLabel(Component.translatable("screen.incore.shop.reward_contents"), theme.primaryText())
         );
         for (ShopService.RewardEntryView entry : offer.rewardEntries()) {
             UIElement row = new UIElement().layout(layout -> {
@@ -206,8 +204,7 @@ final class ShopAppDetailsView {
                             16,
                             Component.literal(ShopAppUiSupport.rewardEntryLabel(entry))
                     ),
-                    titleLabel(Component.literal(ShopAppUiSupport.rewardEntryLabel(entry)), theme.primaryText()).layout(layout -> layout.flex(1)),
-                    titleLabel(Component.literal("x" + entry.count()), theme.secondaryText())
+                    titleLabel(Component.literal(ShopAppUiSupport.rewardEntryLabel(entry)), theme.primaryText()).layout(layout -> layout.flex(1))
             );
             column.addChild(row);
         }
