@@ -224,7 +224,7 @@ final class ShopAppUiSupport {
 
     static String rotationRemainingLabel(long remainingMillis) {
         if (remainingMillis < 0L) {
-            return "";
+            return "0m";
         }
         long totalSeconds = Math.max(0L, remainingMillis / 1000L);
         long hours = totalSeconds / 3600L;
