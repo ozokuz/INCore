@@ -10,10 +10,15 @@ import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
+import dev.vfyjxf.taffy.style.FlexDirection;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 import ozokuz.incore.features.shop.ShopDetailsPresentationMode;
 import ozokuz.incore.features.shop.ShopLayoutId;
@@ -187,7 +192,7 @@ final class ShopAppUiSupport {
     }
 
     static ShopService.CurrencyView emptyCurrencyView() {
-        return new ShopService.CurrencyView("", 1, 0);
+        return new ShopService.CurrencyView("minecraft:barrier", "", 1, 0);
     }
 
     static String stockLabel(int stock) {
@@ -196,18 +201,88 @@ final class ShopAppUiSupport {
                 : Integer.toString(stock);
     }
 
-    static String currencyAmountLabel(ShopService.CurrencyView currency) {
-        if (currency.label() == null || currency.label().isBlank()) {
-            return Integer.toString(Math.max(1, currency.amountPerUnit()));
-        }
-        return currency.amountPerUnit() + " " + currency.label();
+    static int currencyAmount(ShopService.CurrencyView currency) {
+        return Math.max(1, currency.amountPerUnit());
     }
 
-    static String availableCurrencyLabel(ShopService.CurrencyView currency) {
-        if (currency.label() == null || currency.label().isBlank()) {
-            return Integer.toString(Math.max(0, currency.availableAmount()));
+    static int availableCurrencyAmount(ShopService.CurrencyView currency) {
+        return Math.max(0, currency.availableAmount());
+    }
+
+    static ItemStack stackFromCurrency(ShopService.CurrencyView currency) {
+        ResourceLocation itemId = ResourceLocation.tryParse(currency.iconItemId());
+        if (itemId == null || !BuiltInRegistries.ITEM.containsKey(itemId)) {
+            return new ItemStack(Items.BARRIER);
         }
-        return currency.availableAmount() + " " + currency.label();
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        return item == Items.AIR ? new ItemStack(Items.BARRIER) : item.getDefaultInstance();
+    }
+
+    static UIElement currencyValue(ShopService.CurrencyView currency, int amount, int color) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthAuto();
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.FLEX_END);
+            layout.gapAll(3);
+        });
+        Component tooltip = currency.label() == null || currency.label().isBlank() ? null : Component.literal(currency.label());
+        UIElement icon = tooltip == null
+                ? itemIcon(stackFromCurrency(currency), 16)
+                : itemIcon(stackFromCurrency(currency), 16, tooltip);
+        Label value = heading(Component.literal(Integer.toString(Math.max(0, amount))), color);
+        value.textStyle(style -> style
+                .adaptiveWidth(true)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.LEFT)
+                .textColor(color)
+        );
+        row.addChildren(icon, value);
+        return row;
+    }
+
+    static UIElement currencyMetricRow(Component title, ShopService.CurrencyView currency, int amount, TabTheme theme, int valueColor) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(6);
+        });
+        Label leftLabel = heading(title, theme.secondaryText());
+        leftLabel.layout(layout -> layout.width(84));
+        leftLabel.textStyle(style -> style.adaptiveWidth(false).textWrap(TextWrap.HIDE).textAlignHorizontal(Horizontal.LEFT));
+        row.addChildren(
+                leftLabel,
+                new UIElement().layout(layout -> {
+                    layout.flex(1);
+                    layout.minWidth(0);
+                    layout.flexDirection(FlexDirection.ROW);
+                    layout.justifyContent(AlignContent.FLEX_END);
+                }).addChild(currencyValue(currency, amount, valueColor))
+        );
+        return row;
+    }
+
+    static UIElement currencyMetricTile(
+            Component title,
+            ShopService.CurrencyView currency,
+            int amount,
+            TabTheme theme,
+            boolean lifted,
+            int valueColor
+    ) {
+        UIElement tile = lifted ? liftedInsetSurface(theme, 5) : mutedSurface(theme, 5);
+        tile.layout(layout -> {
+            layout.flex(1);
+            layout.minWidth(0);
+            layout.alignItems(AlignItems.FLEX_START);
+        });
+        tile.addChildren(
+                heading(title, theme.secondaryText()),
+                currencyValue(currency, amount, valueColor)
+        );
+        return tile;
     }
 
     static String rewardSummary(ShopService.OfferView offer) {

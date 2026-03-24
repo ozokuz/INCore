@@ -69,15 +69,33 @@ final class ShopAppDetailsView {
         column.addChildren(
                 header,
                 metricRow(Component.translatable("screen.incore.shop.category_label"), Component.literal(category == null ? "" : category.displayName()), theme),
-                metricRow(Component.translatable("screen.incore.shop.price_label"), Component.literal(ShopAppUiSupport.currencyAmountLabel(offer.currency())), theme),
-                metricRow(Component.translatable("screen.incore.shop.balance_label"), Component.literal(ShopAppUiSupport.availableCurrencyLabel(offer.currency())), theme),
+                ShopAppUiSupport.currencyMetricRow(
+                        Component.translatable("screen.incore.shop.price_label"),
+                        offer.currency(),
+                        ShopAppUiSupport.currencyAmount(offer.currency()),
+                        theme,
+                        theme.priceText()
+                ),
+                ShopAppUiSupport.currencyMetricRow(
+                        Component.translatable("screen.incore.shop.balance_label"),
+                        offer.currency(),
+                        ShopAppUiSupport.availableCurrencyAmount(offer.currency()),
+                        theme,
+                        theme.priceText()
+                ),
                 metricRow(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme),
                 rewardContents(offer, theme, compactInline)
         );
 
         column.addChildren(
                 quantityControls(context, theme, compactInline),
-                metricRow(Component.translatable("screen.incore.shop.total_cost_label"), Component.literal(totalCost + " " + offer.currency().label()), theme)
+                ShopAppUiSupport.currencyMetricRow(
+                        Component.translatable("screen.incore.shop.total_cost_label"),
+                        offer.currency(),
+                        totalCost,
+                        theme,
+                        theme.priceText()
+                )
         );
 
         if (offer.locked()) {
