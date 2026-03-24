@@ -286,14 +286,9 @@ final class ShopAppUiSupport {
     }
 
     static String rewardSummary(ShopService.OfferView offer) {
-        int totalCount = offer.rewardEntries().stream().mapToInt(ShopService.RewardEntryView::count).sum();
-        if (offer.rewardEntries().size() <= 1) {
-            return Component.translatable("screen.incore.shop.reward_count", totalCount).getString();
-        }
         return Component.translatable(
                 "screen.incore.shop.bundle_summary",
-                offer.rewardEntries().size(),
-                totalCount
+                offer.rewardEntries().size()
         ).getString();
     }
 
