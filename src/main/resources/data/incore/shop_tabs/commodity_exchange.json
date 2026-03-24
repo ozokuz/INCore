@@ -2,7 +2,7 @@
   "display_name": "Commodity Exchange",
   "palette": "steel_aegis",
   "layout": "commodity_exchange",
-  "category_navigation": "inline_header_strip",
+  "category_navigation": "sidebar",
   "details_mode": "inline",
   "categories": [
     "incore:daily_exchange",
