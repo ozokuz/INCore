@@ -97,6 +97,32 @@ class ShopAppUiStateTest {
     }
 
     @Test
+    void changingTabsClearsStoredScrollerPositions() {
+        ShopAppUiState state = new ShopAppUiState();
+        ShopService.ScreenData data = screenData();
+        state.reconcile(data);
+        state.setScrollerPosition("luxury_boutique.content", 0.6F);
+
+        state.selectTab(ShopTabId.COMMODITY_EXCHANGE, data);
+
+        assertEquals(0.0F, state.scrollerPosition("luxury_boutique.content"));
+        assertEquals(0.0F, state.scrollerPosition("commodity_exchange.content"));
+    }
+
+    @Test
+    void changingCategoriesClearsStoredScrollerPositions() {
+        ShopAppUiState state = new ShopAppUiState();
+        ShopService.ScreenData data = screenData();
+        state.reconcile(data);
+        state.selectTab(ShopTabId.COMMODITY_EXCHANGE, data);
+        state.setScrollerPosition("commodity_exchange.content", 0.6F);
+
+        state.selectCategory("incore:exchange_coolants", data);
+
+        assertEquals(0.0F, state.scrollerPosition("commodity_exchange.content"));
+    }
+
+    @Test
     void detailsModeSelectionMatchesTabDefinitions() {
         ShopService.ScreenData data = screenData();
 

@@ -107,6 +107,7 @@ final class ShopAppUiState {
         offerScrollRow = 0;
         detailsModalOpen = false;
         quantity = 1;
+        clearScrollerPositions();
         List<ShopService.CategoryView> categories = ShopAppUiSupport.categoriesForTab(data, tabId);
         selectedCategoryId = categories.isEmpty() ? null : categories.getFirst().categoryId();
         ShopService.TabFeedView feed = ShopAppUiSupport.feedForTab(data, tabId, selectedCategoryId);
@@ -123,6 +124,7 @@ final class ShopAppUiState {
         offerScrollRow = 0;
         detailsModalOpen = false;
         quantity = 1;
+        clearScrollerPositions();
         ShopService.TabFeedView feed = ShopAppUiSupport.feedForTab(data, activeTab, selectedCategoryId);
         selectedOfferId = firstDisplayOffer(feed);
     }
@@ -226,6 +228,10 @@ final class ShopAppUiState {
 
     private void clampQuantity(ShopService.ScreenData data) {
         quantity = Math.clamp(quantity, 1, quantityMax(data));
+    }
+
+    private void clearScrollerPositions() {
+        scrollerPositions.clear();
     }
 
     private void ensureSelectedOfferVisible(ShopService.TabFeedView feed) {
