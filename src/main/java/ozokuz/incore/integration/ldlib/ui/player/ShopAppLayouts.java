@@ -107,13 +107,24 @@ final class ShopAppLayouts {
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
             main.addChildren(
-                    arcadeBoard(context, theme).layout(layout -> {
-                        layout.flexBasisPercent(70);
-                        layout.flexGrow(1);
+                    arcadeCategoryRail(context, theme).layout(layout -> {
+                        layout.flexBasis(170);
+                        layout.flexGrow(0);
+                        layout.flexShrink(1);
+                        layout.minWidth(152);
+                        layout.maxWidth(188);
                     }),
-                    selectionSummary(context, theme).layout(layout -> {
-                        layout.flexBasisPercent(22);
+                    arcadeBoard(context, theme).layout(layout -> {
+                        layout.flexBasis(0);
                         layout.flexGrow(1);
+                        layout.minWidth(0);
+                    }),
+                    arcadePurchaseDock(context, theme).layout(layout -> {
+                        layout.flexBasis(246);
+                        layout.flexGrow(0);
+                        layout.flexShrink(1);
+                        layout.minWidth(214);
+                        layout.maxWidth(270);
                     })
             );
             return main;
@@ -125,14 +136,24 @@ final class ShopAppLayouts {
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
             main.addChildren(
-                    sidebar(context, theme).layout(layout -> {
-                        layout.flexBasis(144);
-                        layout.minWidth(128);
-                        layout.maxWidth(156);
+                    archiveCategoryRail(context, theme).layout(layout -> {
+                        layout.flexBasis(170);
+                        layout.flexGrow(0);
+                        layout.flexShrink(1);
+                        layout.minWidth(152);
+                        layout.maxWidth(188);
                     }),
                     archiveBoard(context, theme).layout(layout -> {
-                        layout.flexBasisPercent(68);
+                        layout.flexBasis(0);
                         layout.flexGrow(1);
+                        layout.minWidth(0);
+                    }),
+                    archiveIntelRail(context, theme).layout(layout -> {
+                        layout.flexBasis(246);
+                        layout.flexGrow(0);
+                        layout.flexShrink(1);
+                        layout.minWidth(220);
+                        layout.maxWidth(272);
                     })
             );
             return main;
@@ -143,7 +164,20 @@ final class ShopAppLayouts {
         @Override
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
-            main.addChild(abyssalBoard(context, theme));
+            main.addChildren(
+                    abyssalCategoryRail(context, theme).layout(layout -> {
+                        layout.flexBasis(170);
+                        layout.flexGrow(0);
+                        layout.flexShrink(1);
+                        layout.minWidth(152);
+                        layout.maxWidth(188);
+                    }),
+                    abyssalBoard(context, theme).layout(layout -> {
+                        layout.flexBasis(0);
+                        layout.flexGrow(1);
+                        layout.minWidth(0);
+                    })
+            );
             return main;
         }
     };
@@ -838,10 +872,7 @@ final class ShopAppLayouts {
     private static UIElement arcadeBoard(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement column = panelColumn(theme);
         column.addChildren(
-                navigationStrip(context, theme, 2),
-                heroPanel(context, theme, context.state().showcaseOffer(context.data()), Component.translatable("screen.incore.shop.promo_banner")),
-                boardSection(context, theme, Component.translatable("screen.incore.shop.card_board"), context.state().visibleOffers(context.data()), true, false),
-                pager(context, theme)
+                arcadeScroller(context, theme)
         );
         return column;
     }
@@ -849,9 +880,7 @@ final class ShopAppLayouts {
     private static UIElement archiveBoard(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement column = panelColumn(theme);
         column.addChildren(
-                heroPanel(context, theme, context.state().showcaseOffer(context.data()), Component.translatable("screen.incore.shop.editorial_hero")),
-                masonryBoard(context, theme, context.state().visibleOffers(context.data())),
-                pager(context, theme)
+                archiveScroller(context, theme)
         );
         return column;
     }
@@ -859,25 +888,640 @@ final class ShopAppLayouts {
     private static UIElement abyssalBoard(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement column = panelColumn(theme);
         column.addChildren(
-                navigationStrip(context, theme, 3),
+                abyssalScroller(context, theme)
+        );
+        return column;
+    }
+
+    private static UIElement arcadeScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ScrollerView scroller = verticalScroller(theme, 10);
+        scroller.addScrollViewChild(arcadeSections(context, theme));
+        return scroller;
+    }
+
+    private static UIElement arcadeSections(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(10);
+        });
+        ShopService.OfferView showcase = context.state().showcaseOffer(context.data());
+        if (showcase != null) {
+            column.addChild(arcadeHeroPanel(context, theme, showcase));
+        }
+        List<ShopService.OfferView> offers = ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()));
+        column.addChildren(
+                arcadeProductGrid(context, theme, offers),
+                arcadeDealBoard(context, theme, offers)
+        );
+        return column;
+    }
+
+    private static UIElement arcadeHeroPanel(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        boolean selected = arcadeSelectedOffer(context, context.data(), offer).offerId().equals(offer.offerId());
+        Button panel = new Button().setText(Component.empty());
+        panel.text.setDisplay(false);
+        panel.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(156);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(10);
+            layout.paddingAll(10);
+        });
+        ShopAppUiSupport.styleSelectable(panel, theme, selected);
+
+        UIElement copy = new UIElement().layout(layout -> {
+            layout.flexBasis(0);
+            layout.flexGrow(1);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.gapAll(8);
+        });
+        copy.addChildren(
+                dualSectionHeader(Component.translatable("screen.incore.shop.promo_banner"), heroMetaSubtitle(offer), theme),
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
+                ShopAppUiSupport.bodyLabel(Component.literal(arcadeNarrativeCopy(offer)), theme.secondaryText()),
+                ShopAppUiSupport.currencyValue(
+                        offer.currency(),
+                        ShopAppUiSupport.currencyAmount(offer.currency()),
+                        theme.priceText()
+                )
+        );
+
+        UIElement media = ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 10, true);
+        media.layout(layout -> {
+            layout.width(120);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+        });
+        media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 58, Component.literal(offer.displayName())));
+
+        panel.addChildren(copy, media);
+        panel.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return panel;
+    }
+
+    private static String arcadeNarrativeCopy(ShopService.OfferView offer) {
+        if (offer.rotationRemainingMillis() >= 0L) {
+            return "Rotation window " + ShopAppUiSupport.rotationRemainingLabel(offer.rotationRemainingMillis())
+                    + ". " + ShopAppUiSupport.rewardSummary(offer) + " ready for rapid checkout.";
+        }
+        return "Priority cache ready for dispatch. " + ShopAppUiSupport.rewardSummary(offer) + " available in this vendor cycle.";
+    }
+
+    private static UIElement arcadeProductGrid(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            List<ShopService.OfferView> offers
+    ) {
+        UIElement section = panelColumn(theme, theme.cardFill());
+        section.addChild(dualSectionHeader(
+                Component.translatable("screen.incore.shop.card_board"),
+                Component.translatable("screen.incore.shop.remaining_feed"),
+                theme
+        ));
+        if (offers.isEmpty()) {
+            section.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText()));
+            return section;
+        }
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(8);
+        });
+        UIElement left = new UIElement().layout(layout -> {
+            layout.flex(1);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(8);
+        });
+        UIElement right = new UIElement().layout(layout -> {
+            layout.flex(1);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(8);
+        });
+        int limit = Math.min(4, offers.size());
+        for (int i = 0; i < limit; i++) {
+            (i % 2 == 0 ? left : right).addChild(arcadeProductCard(context, theme, offers.get(i)));
+        }
+        row.addChildren(left, right);
+        section.addChild(row);
+        return section;
+    }
+
+    private static UIElement arcadeProductCard(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        boolean selected = arcadeSelectedOffer(context, context.data(), offer).offerId().equals(offer.offerId());
+        Button card = new Button().setText(Component.empty());
+        card.text.setDisplay(false);
+        card.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(126);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(8);
+            layout.paddingAll(8);
+        });
+        ShopAppUiSupport.styleSelectable(card, theme, selected);
+
+        UIElement top = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(6);
+        });
+        top.addChildren(
+                ShopAppUiSupport.tintedSurface(theme, selected ? theme.accentSoftFill() : theme.insetFill(), 6, true).layout(layout -> {
+                    layout.width(44);
+                    layout.height(44);
+                    layout.alignItems(AlignItems.CENTER);
+                    layout.justifyContent(AlignContent.CENTER);
+                }).addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 24, Component.literal(offer.displayName()))),
+                ShopAppUiSupport.currencyValue(
+                        offer.currency(),
+                        ShopAppUiSupport.currencyAmount(offer.currency()),
+                        theme.priceText()
+                )
+        );
+        card.addChildren(
+                top,
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
+                textLabel(heroMetaSubtitle(offer), theme.secondaryText(), true)
+        );
+        card.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return card;
+    }
+
+    private static UIElement arcadeDealBoard(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            List<ShopService.OfferView> offers
+    ) {
+        UIElement board = panelColumn(theme, theme.insetFill());
+        board.addChildren(
+                dualSectionHeader(
+                        Component.translatable("screen.incore.shop.selection_rail"),
+                        Component.translatable("screen.incore.shop.selection_rail_subtitle"),
+                        theme
+                )
+        );
+        if (offers.isEmpty()) {
+            board.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText()));
+            return board;
+        }
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.gapAll(12);
+        });
+        UIElement left = new UIElement().layout(layout -> {
+            layout.flexBasis(0);
+            layout.flexGrow(1);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(8);
+        });
+        left.addChildren(
+                textLabel(Component.translatable("screen.incore.shop.editorial_hero"), theme.primaryText(), true),
+                ShopAppUiSupport.bodyLabel(Component.literal("Cycle inventory is unstable. Pick from the active vendor lane before the window rolls."), theme.secondaryText())
+        );
+        UIElement right = new UIElement().layout(layout -> {
+            layout.flexBasis(0);
+            layout.flexGrow(1);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(6);
+        });
+        int start = Math.min(4, offers.size());
+        for (int i = start; i < offers.size(); i++) {
+            right.addChild(arcadeDealRow(context, theme, offers.get(i)));
+        }
+        if (offers.size() <= start) {
+            for (int i = 0; i < Math.min(3, offers.size()); i++) {
+                right.addChild(arcadeDealRow(context, theme, offers.get(i)));
+            }
+        }
+        row.addChildren(left, right);
+        board.addChild(row);
+        return board;
+    }
+
+    private static UIElement arcadeDealRow(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        boolean selected = arcadeSelectedOffer(context, context.data(), offer).offerId().equals(offer.offerId());
+        Button row = new Button().setText(Component.empty());
+        row.text.setDisplay(false);
+        row.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(34);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.gapAll(6);
+            layout.paddingAll(6);
+        });
+        ShopAppUiSupport.styleSelectable(row, theme, selected);
+        row.addChildren(
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true).layout(layout -> {
+                    layout.flex(1);
+                    layout.minWidth(0);
+                }),
+                ShopAppUiSupport.currencyValue(
+                        offer.currency(),
+                        ShopAppUiSupport.currencyAmount(offer.currency()),
+                        theme.priceText()
+                )
+        );
+        row.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return row;
+    }
+
+    private static UIElement archiveScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ScrollerView scroller = verticalScroller(theme, 10);
+        scroller.addScrollViewChild(archiveSections(context, theme));
+        return scroller;
+    }
+
+    private static UIElement archiveSections(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(10);
+        });
+        ShopService.OfferView showcase = archiveFeaturedOffer(context);
+        if (showcase != null) {
+            column.addChild(archiveHeroCard(context, theme, showcase));
+        }
+        List<ShopService.OfferView> offers = ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()));
+        if (offers.isEmpty()) {
+            column.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText()));
+            return column;
+        }
+        for (ShopService.OfferView offer : offers) {
+            if (showcase != null && showcase.offerId().equals(offer.offerId())) {
+                continue;
+            }
+            column.addChild(archiveEditorialCard(context, theme, offer));
+        }
+        return column;
+    }
+
+    private static UIElement archiveCategoryRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement rail = fillPanelColumn(theme, theme.railFill());
+        ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
+        rail.addChildren(
+                dualSectionHeader(
+                        Component.translatable("screen.incore.shop.categories_heading"),
+                        category == null ? Component.empty() : Component.literal(category.displayName()),
+                        theme
+                ),
+                category == null
+                        ? textLabel(Component.empty(), theme.secondaryText(), true)
+                        : ShopAppUiSupport.currencyValue(
+                                category.currency(),
+                                ShopAppUiSupport.availableCurrencyAmount(category.currency()),
+                                theme.priceText()
+                        ),
+                categoryScroller(context, theme)
+        );
+        return rail;
+    }
+
+    private static UIElement archiveIntelRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ShopService.OfferView offer = archiveFeaturedOffer(context);
+        UIElement rail = fillPanelColumn(theme, theme.accentSoftFill());
+        rail.addChildren(
+                dualSectionHeader(
+                        Component.translatable("screen.incore.shop.selected_offer"),
+                        Component.translatable("screen.incore.shop.selection_rail_subtitle"),
+                        theme
+                )
+        );
+        if (offer == null) {
+            rail.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offer_selected"), theme.secondaryText()));
+            return rail;
+        }
+        rail.addChildren(
+                archiveRailOfferDisplay(context, theme, offer)
+        );
+        return rail;
+    }
+
+    private static ShopService.OfferView archiveFeaturedOffer(ShopAppLayoutContext context) {
+        ShopService.OfferView selected = context.state().effectiveSelectedOffer(context.data());
+        if (selected != null) {
+            return selected;
+        }
+        return context.state().showcaseOffer(context.data());
+    }
+
+    private static UIElement archiveHeroCard(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        Button card = new Button().setText(Component.empty());
+        card.text.setDisplay(false);
+        card.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(176);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(12);
+            layout.paddingAll(10);
+        });
+        card.buttonStyle(style -> style
+                .baseTexture(ShopAppUiSupport.framedTexture(theme.cardFill(), theme.accentDivider()))
+                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
+                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
+        );
+        UIElement copy = new UIElement().layout(layout -> {
+            layout.flexBasis(0);
+            layout.flexGrow(1);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.gapAll(8);
+        });
+        copy.addChildren(
+                dualSectionHeader(Component.translatable("screen.incore.shop.editorial_hero"), heroMetaSubtitle(offer), theme),
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
+                ShopAppUiSupport.bodyLabel(Component.literal("Curated artifact briefing assembled from the active archive intake."), theme.secondaryText()),
                 new UIElement().layout(layout -> {
                     layout.widthPercent(100);
                     layout.flexDirection(FlexDirection.ROW);
                     layout.gapAll(8);
                 }).addChildren(
-                        heroPanel(context, theme, context.state().showcaseOffer(context.data()), Component.translatable("screen.incore.shop.terminal_module")).layout(layout -> {
-                            layout.flexBasisPercent(44);
-                            layout.flexGrow(1);
-                        }),
-                        inlineDetailsDock(context, theme, Component.translatable("screen.incore.shop.signal_dock")).layout(layout -> {
-                            layout.flexBasisPercent(36);
-                            layout.flexGrow(1);
-                        })
-                ),
-                boardSection(context, theme, Component.translatable("screen.incore.shop.support_board"), context.state().visibleOffers(context.data()), true, true),
-                pager(context, theme)
+                        showcaseMetricTile(
+                                Component.translatable("screen.incore.shop.price_label"),
+                                Component.literal(Integer.toString(ShopAppUiSupport.currencyAmount(offer.currency()))),
+                                theme
+                        ),
+                        showcaseMetricTile(
+                                Component.translatable("screen.incore.shop.stock_label"),
+                                Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())),
+                                theme
+                        )
+                )
         );
+        UIElement media = ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 10, true);
+        media.layout(layout -> {
+            layout.width(154);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+        });
+        media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 72, Component.literal(offer.displayName())));
+        card.addChildren(copy, media);
+        card.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return card;
+    }
+
+    private static UIElement archiveEditorialCard(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        Button card = new Button().setText(Component.empty());
+        card.text.setDisplay(false);
+        card.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(118);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(10);
+            layout.paddingAll(8);
+        });
+        card.buttonStyle(style -> style
+                .baseTexture(ShopAppUiSupport.framedTexture(theme.sectionFill(), theme.divider()))
+                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
+                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
+        );
+        UIElement media = ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 8, true);
+        media.layout(layout -> {
+            layout.width(84);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+        });
+        media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 40, Component.literal(offer.displayName())));
+        UIElement copy = new UIElement().layout(layout -> {
+            layout.flexBasis(0);
+            layout.flexGrow(1);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(6);
+        });
+        copy.addChildren(
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
+                ShopAppUiSupport.bodyLabel(Component.literal("Field note synchronized. " + heroMetaSubtitle(offer).getString()), theme.secondaryText())
+        );
+        card.addChildren(
+                media,
+                copy,
+                offerBadge(offer, theme, false)
+        );
+        card.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return card;
+    }
+
+    private static UIElement abyssalScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ScrollerView scroller = verticalScroller(theme, 10);
+        scroller.addScrollViewChild(abyssalSections(context, theme));
+        return scroller;
+    }
+
+    private static UIElement abyssalSections(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement column = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(10);
+        });
+        ShopService.OfferView showcase = context.state().showcaseOffer(context.data());
+        if (showcase != null) {
+            column.addChild(abyssalHeroPanel(context, theme, showcase));
+        }
+        column.addChild(abyssalModuleBoard(
+                context,
+                theme,
+                ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()))
+        ));
         return column;
+    }
+
+    private static UIElement abyssalHeroPanel(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        Button panel = new Button().setText(Component.empty());
+        panel.text.setDisplay(false);
+        panel.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(174);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(12);
+            layout.paddingAll(12);
+        });
+        panel.buttonStyle(style -> style
+                .baseTexture(ShopAppUiSupport.framedTexture(theme.sectionFill(), theme.accentDivider()))
+                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
+                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
+        );
+        UIElement copy = new UIElement().layout(layout -> {
+            layout.flexBasis(0);
+            layout.flexGrow(1);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.gapAll(8);
+        });
+        copy.addChildren(
+                dualSectionHeader(Component.translatable("screen.incore.shop.terminal_module"), heroMetaSubtitle(offer), theme),
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
+                ShopAppUiSupport.bodyLabel(Component.literal("Priority shipment available. Synchronize the terminal with the highlighted support loadout."), theme.secondaryText()),
+                showcaseMetricTile(
+                        Component.translatable("screen.incore.shop.price_label"),
+                        Component.literal(Integer.toString(ShopAppUiSupport.currencyAmount(offer.currency()))),
+                        theme
+                )
+        );
+        UIElement media = ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 10, true);
+        media.layout(layout -> {
+            layout.width(168);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+        });
+        media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 76, Component.literal(offer.displayName())));
+        panel.addChildren(copy, media);
+        panel.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return panel;
+    }
+
+    private static UIElement abyssalModuleBoard(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            List<ShopService.OfferView> offers
+    ) {
+        UIElement board = panelColumn(theme, theme.cardFill());
+        board.addChild(dualSectionHeader(
+                Component.translatable("screen.incore.shop.support_board"),
+                Component.translatable("screen.incore.shop.remaining_feed"),
+                theme
+        ));
+        if (offers.isEmpty()) {
+            board.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText()));
+            return board;
+        }
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.gapAll(8);
+        });
+        UIElement left = new UIElement().layout(layout -> {
+            layout.flex(1);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(8);
+        });
+        UIElement right = new UIElement().layout(layout -> {
+            layout.flex(1);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(8);
+        });
+        for (int i = 0; i < offers.size(); i++) {
+            (i % 2 == 0 ? left : right).addChild(abyssalModuleCard(context, theme, offers.get(i)));
+        }
+        row.addChildren(left, right);
+        board.addChild(row);
+        return board;
+    }
+
+    private static UIElement abyssalModuleCard(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        Button card = new Button().setText(Component.empty());
+        card.text.setDisplay(false);
+        card.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(148);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(8);
+            layout.paddingAll(8);
+        });
+        card.buttonStyle(style -> style
+                .baseTexture(ShopAppUiSupport.framedTexture(theme.sectionFill(), theme.divider()))
+                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
+                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
+        );
+        card.addChildren(
+                abyssalLabelChip(heroMetaSubtitle(offer), theme),
+                ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 8, true).layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.height(64);
+                    layout.alignItems(AlignItems.CENTER);
+                    layout.justifyContent(AlignContent.CENTER);
+                }).addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 34, Component.literal(offer.displayName()))),
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
+                new UIElement().layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.flexDirection(FlexDirection.ROW);
+                    layout.justifyContent(AlignContent.SPACE_BETWEEN);
+                    layout.alignItems(AlignItems.CENTER);
+                    layout.gapAll(6);
+                }).addChildren(
+                        ShopAppUiSupport.currencyValue(
+                                offer.currency(),
+                                ShopAppUiSupport.currencyAmount(offer.currency()),
+                                theme.priceText()
+                        ),
+                        valueLabel(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.secondaryText())
+                )
+        );
+        card.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return card;
+    }
+
+    private static UIElement abyssalLabelChip(Component text, ShopAppUiSupport.TabTheme theme) {
+        UIElement chip = ShopAppUiSupport.highlightedSurface(theme, 4);
+        chip.layout(layout -> layout.width(126));
+        chip.addChild(textLabel(text, theme.primaryText(), true));
+        return chip;
     }
 
     private static UIElement sidebar(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
@@ -950,6 +1594,43 @@ final class ShopAppLayouts {
         return dock;
     }
 
+    private static UIElement arcadePurchaseDock(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        ShopService.OfferView offer = arcadeSelectedOffer(context, context.data(), null);
+        UIElement dock = fillPanelColumn(theme, theme.accentSoftFill());
+        dock.addChildren(
+                dualSectionHeader(
+                        Component.translatable("screen.incore.shop.selection_rail"),
+                        Component.translatable("screen.incore.shop.selection_rail_subtitle"),
+                        theme
+                )
+        );
+        if (offer == null) {
+            dock.addChild(ShopAppDetailsView.createEmpty(
+                    theme,
+                    Component.translatable("screen.incore.shop.selected_offer"),
+                    Component.translatable("screen.incore.shop.no_offer_selected")
+            ));
+            return dock;
+        }
+        dock.addChildren(
+                heroPanel(context, theme, offer, Component.translatable("screen.incore.shop.selected_offer")),
+                ShopAppDetailsView.create(context, theme, offer, false)
+        );
+        return dock;
+    }
+
+    private static @Nullable ShopService.OfferView arcadeSelectedOffer(
+            ShopAppLayoutContext context,
+            ShopService.ScreenData data,
+            @Nullable ShopService.OfferView fallbackOffer
+    ) {
+        ShopService.OfferView selected = context.state().effectiveSelectedOffer(data);
+        if (selected != null) {
+            return selected;
+        }
+        return fallbackOffer;
+    }
+
     private static UIElement selectionSummary(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         var offer = context.state().selectedOffer(context.data());
         UIElement column = panelColumn(theme, theme.accentSoftFill());
@@ -977,6 +1658,98 @@ final class ShopAppLayouts {
                 metricTile(Component.translatable("screen.incore.shop.stock_label"), Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme)
         );
         return column;
+    }
+
+    private static UIElement arcadeCategoryRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement rail = fillPanelColumn(theme, theme.railFill());
+        ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
+        rail.addChildren(
+                dualSectionHeader(
+                        Component.translatable("screen.incore.shop.categories_heading"),
+                        category == null ? Component.empty() : Component.literal(category.displayName()),
+                        theme
+                ),
+                category == null
+                        ? textLabel(Component.empty(), theme.secondaryText(), true)
+                        : ShopAppUiSupport.currencyValue(
+                                category.currency(),
+                                ShopAppUiSupport.availableCurrencyAmount(category.currency()),
+                                theme.priceText()
+                        ),
+                categoryScroller(context, theme)
+        );
+        return rail;
+    }
+
+    private static UIElement abyssalCategoryRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
+        UIElement rail = fillPanelColumn(theme, theme.railFill());
+        ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
+        rail.addChildren(
+                dualSectionHeader(
+                        Component.translatable("screen.incore.shop.categories_heading"),
+                        category == null ? Component.empty() : Component.literal(category.displayName()),
+                        theme
+                ),
+                category == null
+                        ? textLabel(Component.empty(), theme.secondaryText(), true)
+                        : ShopAppUiSupport.currencyValue(
+                                category.currency(),
+                                ShopAppUiSupport.availableCurrencyAmount(category.currency()),
+                                theme.priceText()
+                        ),
+                categoryScroller(context, theme)
+        );
+        return rail;
+    }
+
+    private static UIElement archiveRailOfferDisplay(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        Button card = new Button().setText(Component.empty());
+        card.text.setDisplay(false);
+        card.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(220);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(8);
+            layout.paddingAll(10);
+        });
+        card.buttonStyle(style -> style
+                .baseTexture(ShopAppUiSupport.framedTexture(theme.sectionFill(), theme.accentDivider()))
+                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
+                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
+        );
+        card.addChildren(
+                ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 10, true).layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.height(136);
+                    layout.alignItems(AlignItems.CENTER);
+                    layout.justifyContent(AlignContent.CENTER);
+                }).addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 68, Component.literal(offer.displayName()))),
+                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
+                textLabel(heroMetaSubtitle(offer), theme.secondaryText(), true),
+                compactCurrencyMetricRow(
+                        Component.translatable("screen.incore.shop.price_label"),
+                        offer.currency(),
+                        ShopAppUiSupport.currencyAmount(offer.currency()),
+                        theme,
+                        theme.priceText()
+                ),
+                compactOfferMetricRow(
+                        Component.translatable("screen.incore.shop.stock_label"),
+                        Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())),
+                        theme.secondaryText(),
+                        theme.primaryText()
+                )
+        );
+        card.setOnClick(event -> {
+            context.state().openDetails(offer.offerId(), context.data());
+            context.rebuild();
+        });
+        return card;
     }
 
     private static UIElement showcaseWithDetails(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme, Component title) {

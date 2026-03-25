@@ -3,7 +3,7 @@
   "palette": "neon_shadow",
   "layout": "arcade_vendor",
   "category_navigation": "inline_chips",
-  "details_mode": "modal",
+  "details_mode": "inline",
   "categories": [
     "incore:vendor_daily_deals",
     "incore:salvage_exchange"

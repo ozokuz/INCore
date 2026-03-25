@@ -186,6 +186,11 @@ final class ShopAppUiState {
         return ShopAppUiSupport.findOffer(data, selectedOfferId);
     }
 
+    @Nullable ShopService.OfferView effectiveSelectedOffer(ShopService.ScreenData data) {
+        ShopService.OfferView selected = selectedOffer(data);
+        return selected != null ? selected : showcaseOffer(data);
+    }
+
     @Nullable ResourceLocation selectedOfferResource() {
         return selectedOfferId == null || selectedOfferId.isBlank() ? null : ResourceLocation.tryParse(selectedOfferId);
     }
@@ -195,7 +200,7 @@ final class ShopAppUiState {
     }
 
     int quantityMax(ShopService.ScreenData data) {
-        ShopService.OfferView offer = selectedOffer(data);
+        ShopService.OfferView offer = effectiveSelectedOffer(data);
         if (offer == null) {
             return 1;
         }
