@@ -64,6 +64,41 @@ class ShopTabDefinitionTest {
     }
 
     @Test
+    void fromJsonParsesLuxuryBoutiqueModalDefinition() {
+        JsonObject json = new JsonObject();
+        json.addProperty("display_name", "Luxury Boutique");
+        json.addProperty("palette", "obsidian_ember");
+        json.addProperty("layout", "luxury_boutique");
+        json.addProperty("category_navigation", "inline_chips");
+        json.addProperty("details_mode", "modal");
+
+        JsonArray categories = new JsonArray();
+        categories.add("incore:chartered_rotation");
+        categories.add("incore:boutique_premium_gear");
+        json.add("categories", categories);
+
+        JsonObject showcase = new JsonObject();
+        showcase.addProperty("enabled", true);
+        showcase.addProperty("slots", 1);
+        showcase.addProperty("source", "rotating_first");
+        json.add("showcase", showcase);
+
+        ShopTabDefinition definition = ShopTabDefinition.fromJson(
+                ShopTabId.LUXURY_BOUTIQUE,
+                json,
+                categoryId -> Set.of(
+                        ResourceLocation.parse("incore:chartered_rotation"),
+                        ResourceLocation.parse("incore:boutique_premium_gear")
+                ).contains(categoryId)
+        );
+
+        assertEquals(ShopLayoutId.LUXURY_BOUTIQUE, definition.layoutId());
+        assertEquals(ShopCategoryNavigationMode.INLINE_CHIPS, definition.categoryNavigationMode());
+        assertEquals(ShopDetailsPresentationMode.MODAL_OVERLAY, definition.detailsMode());
+        assertEquals(ShopShowcaseSource.ROTATING_FIRST, definition.showcase().source());
+    }
+
+    @Test
     void fromJsonRejectsUnknownCategory() {
         JsonObject json = new JsonObject();
         json.addProperty("display_name", "Industrial Market");
