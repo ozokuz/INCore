@@ -86,10 +86,10 @@ final class ShopAppLayouts {
                         layout.minWidth(0);
                     }),
                     boutiqueBoard(context, theme).layout(layout -> {
-                        layout.flexBasis(640);
+                        layout.flexBasis(480);
                         layout.flexGrow(0);
                         layout.flexShrink(1);
-                        layout.maxWidth(680);
+                        layout.maxWidth(540);
                         layout.minWidth(420);
                     }),
                     ShopAppUiSupport.spacer().layout(layout -> {
@@ -591,7 +591,7 @@ final class ShopAppLayouts {
         UIElement column = panelColumn(theme);
         column.layout(layout -> {
             layout.heightPercent(100);
-            layout.maxWidth(680);
+            layout.maxWidth(540);
         });
         column.addChildren(
                 boutiqueScroller(context, theme)
