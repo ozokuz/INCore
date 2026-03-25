@@ -89,6 +89,14 @@ class ShopServiceTest {
     }
 
     @Test
+    void topOfFeedShowcaseUsesActiveCategoryAndRemovesItFromRemainder() {
+        ShopService.TabFeedView feed = ShopService.buildTabFeed(screenData(), ShopTabId.ARCADE_VENDOR, "incore:vendor_daily_deals");
+
+        assertEquals(List.of("incore:vendor_bundle"), feed.showcaseOffers().stream().map(ShopService.OfferView::offerId).toList());
+        assertEquals(List.of(), feed.remainingOffers().stream().map(ShopService.OfferView::offerId).toList());
+    }
+
+    @Test
     void currencyFixturesPreserveBankSpurIcon() {
         ShopService.ScreenData data = screenData();
 
