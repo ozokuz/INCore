@@ -1001,11 +1001,12 @@ final class ShopAppLayouts {
             layout.flexDirection(FlexDirection.COLUMN);
             layout.gapAll(10);
         });
+        ShopService.TabFeedView feed = ShopAppUiSupport.activeFeed(context.data(), context.state());
         ShopService.OfferView showcase = context.state().showcaseOffer(context.data());
         if (showcase != null) {
             column.addChild(arcadeHeroPanel(context, theme, showcase));
         }
-        List<ShopService.OfferView> offers = ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()));
+        List<ShopService.OfferView> offers = feed.remainingOffers();
         column.addChildren(
                 arcadeProductGrid(context, theme, offers),
                 arcadeDealBoard(context, theme, offers)
@@ -1208,11 +1209,6 @@ final class ShopAppLayouts {
         for (int i = start; i < offers.size(); i++) {
             right.addChild(arcadeDealRow(context, theme, offers.get(i)));
         }
-        if (offers.size() <= start) {
-            for (int i = 0; i < Math.min(3, offers.size()); i++) {
-                right.addChild(arcadeDealRow(context, theme, offers.get(i)));
-            }
-        }
         row.addChildren(left, right);
         board.addChild(row);
         return board;
@@ -1272,20 +1268,8 @@ final class ShopAppLayouts {
 
     private static UIElement archiveCategoryRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement rail = fillPanelColumn(theme, theme.railFill());
-        ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
         rail.addChildren(
-                dualSectionHeader(
-                        Component.translatable("screen.incore.shop.categories_heading"),
-                        category == null ? Component.empty() : Component.literal(category.displayName()),
-                        theme
-                ),
-                category == null
-                        ? textLabel(Component.empty(), theme.secondaryText(), true)
-                        : ShopAppUiSupport.currencyValue(
-                                category.currency(),
-                                ShopAppUiSupport.availableCurrencyAmount(category.currency()),
-                                theme.priceText()
-                        ),
+                sectionHeader(Component.translatable("screen.incore.shop.categories_heading"), theme),
                 categoryScroller(context, theme)
         );
         return rail;
@@ -1302,7 +1286,7 @@ final class ShopAppLayouts {
     }
 
     private static List<ShopService.OfferView> archiveCatalogOffers(ShopAppLayoutContext context) {
-        return ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()));
+        return ShopAppUiSupport.activeFeed(context.data(), context.state()).remainingOffers();
     }
 
     private static UIElement archiveOfferGrid(
@@ -1526,6 +1510,7 @@ final class ShopAppLayouts {
             layout.flexDirection(FlexDirection.COLUMN);
             layout.gapAll(10);
         });
+        ShopService.TabFeedView feed = ShopAppUiSupport.activeFeed(context.data(), context.state());
         ShopService.OfferView showcase = context.state().showcaseOffer(context.data());
         if (showcase != null) {
             column.addChild(abyssalHeroPanel(context, theme, showcase));
@@ -1533,7 +1518,7 @@ final class ShopAppLayouts {
         column.addChild(abyssalModuleBoard(
                 context,
                 theme,
-                ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()))
+                feed.remainingOffers()
         ));
         return column;
     }
@@ -1759,26 +1744,16 @@ final class ShopAppLayouts {
 
     private static UIElement arcadePurchaseDock(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         ShopService.OfferView offer = arcadeSelectedOffer(context, context.data(), null);
-        UIElement dock = fillPanelColumn(theme, theme.accentSoftFill());
-        dock.addChildren(
-                dualSectionHeader(
-                        Component.translatable("screen.incore.shop.selection_rail"),
-                        Component.translatable("screen.incore.shop.selection_rail_subtitle"),
-                        theme
-                )
-        );
+        UIElement dock = panelColumn(theme, theme.accentSoftFill());
         if (offer == null) {
             dock.addChild(ShopAppDetailsView.createEmpty(
                     theme,
                     Component.translatable("screen.incore.shop.selected_offer"),
                     Component.translatable("screen.incore.shop.no_offer_selected")
-            ));
+            ).layout(layout -> layout.heightPercent(100)));
             return dock;
         }
-        dock.addChildren(
-                heroPanel(context, theme, offer, Component.translatable("screen.incore.shop.selected_offer")),
-                ShopAppDetailsView.create(context, theme, offer, false)
-        );
+        dock.addChild(ShopAppDetailsView.create(context, theme, offer, false).layout(layout -> layout.heightPercent(100)));
         return dock;
     }
 
@@ -1825,20 +1800,8 @@ final class ShopAppLayouts {
 
     private static UIElement arcadeCategoryRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement rail = fillPanelColumn(theme, theme.railFill());
-        ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
         rail.addChildren(
-                dualSectionHeader(
-                        Component.translatable("screen.incore.shop.categories_heading"),
-                        category == null ? Component.empty() : Component.literal(category.displayName()),
-                        theme
-                ),
-                category == null
-                        ? textLabel(Component.empty(), theme.secondaryText(), true)
-                        : ShopAppUiSupport.currencyValue(
-                                category.currency(),
-                                ShopAppUiSupport.availableCurrencyAmount(category.currency()),
-                                theme.priceText()
-                        ),
+                sectionHeader(Component.translatable("screen.incore.shop.categories_heading"), theme),
                 categoryScroller(context, theme)
         );
         return rail;
@@ -1846,20 +1809,8 @@ final class ShopAppLayouts {
 
     private static UIElement abyssalCategoryRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
         UIElement rail = fillPanelColumn(theme, theme.railFill());
-        ShopService.CategoryView category = ShopAppUiSupport.findCategory(context.data(), context.state().selectedCategoryId());
         rail.addChildren(
-                dualSectionHeader(
-                        Component.translatable("screen.incore.shop.categories_heading"),
-                        category == null ? Component.empty() : Component.literal(category.displayName()),
-                        theme
-                ),
-                category == null
-                        ? textLabel(Component.empty(), theme.secondaryText(), true)
-                        : ShopAppUiSupport.currencyValue(
-                                category.currency(),
-                                ShopAppUiSupport.availableCurrencyAmount(category.currency()),
-                                theme.priceText()
-                        ),
+                sectionHeader(Component.translatable("screen.incore.shop.categories_heading"), theme),
                 categoryScroller(context, theme)
         );
         return rail;
