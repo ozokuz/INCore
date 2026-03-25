@@ -60,7 +60,7 @@ class ShopAppUiStateTest {
     void detailsModeSelectionMatchesTabDefinitions() {
         ShopService.ScreenData data = screenData();
 
-        assertEquals(ShopDetailsPresentationMode.INLINE_DOCK, ShopAppUiSupport.detailsModeFor(data, ShopTabId.LUXURY_BOUTIQUE));
+        assertEquals(ShopDetailsPresentationMode.MODAL_OVERLAY, ShopAppUiSupport.detailsModeFor(data, ShopTabId.LUXURY_BOUTIQUE));
         assertEquals(ShopDetailsPresentationMode.MODAL_OVERLAY, ShopAppUiSupport.detailsModeFor(data, ShopTabId.ARCHIVE_EDITORIAL));
     }
 
@@ -72,7 +72,7 @@ class ShopAppUiStateTest {
                 "incore:chartered_diamond",
                 List.of(
                         new ShopService.TabView("commodity_exchange", "Commodity Exchange", "steel_aegis", "commodity_exchange", "sidebar", "inline", List.of("incore:daily_exchange", "incore:exchange_coolants"), new ShopService.ShowcaseView(false, 0, "top_of_feed", List.of())),
-                        new ShopService.TabView("luxury_boutique", "Luxury Boutique", "obsidian_ember", "luxury_boutique", "inline_segmented_selector", "inline", List.of("incore:chartered_rotation", "incore:boutique_premium_gear"), new ShopService.ShowcaseView(true, 1, "rotating_first", List.of())),
+                        new ShopService.TabView("luxury_boutique", "Luxury Boutique", "obsidian_ember", "luxury_boutique", "inline_chips", "modal", List.of("incore:chartered_rotation", "incore:boutique_premium_gear"), new ShopService.ShowcaseView(true, 1, "rotating_first", List.of())),
                         new ShopService.TabView("archive_editorial", "Archive Editorial", "blood_protocol", "archive_editorial", "sidebar", "modal", List.of("incore:archive_artifacts", "incore:expedition_cache"), new ShopService.ShowcaseView(true, 1, "category_pinned", List.of("incore:archive_artifacts")))
                 ),
                 List.of(

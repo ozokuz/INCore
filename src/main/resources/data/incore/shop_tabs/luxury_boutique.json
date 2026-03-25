@@ -2,8 +2,8 @@
   "display_name": "Luxury Boutique",
   "palette": "obsidian_ember",
   "layout": "luxury_boutique",
-  "category_navigation": "inline_segmented_selector",
-  "details_mode": "inline",
+  "category_navigation": "inline_chips",
+  "details_mode": "modal",
   "categories": [
     "incore:chartered_rotation",
     "incore:boutique_premium_gear"
