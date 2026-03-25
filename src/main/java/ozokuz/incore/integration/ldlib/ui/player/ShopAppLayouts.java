@@ -218,7 +218,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement industrialListingScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ScrollerView scroller = verticalScroller(theme, 8);
+        ScrollerView scroller = verticalScroller(context, theme, "content", 8);
         scroller.addScrollViewChildren(
                 industrialTopShelf(context, theme),
                 boardSection(
@@ -397,12 +397,17 @@ final class ShopAppLayouts {
     }
 
     private static UIElement categoryScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ScrollerView scroller = verticalScroller(theme, 4);
+        ScrollerView scroller = verticalScroller(context, theme, "categories", 4);
         scroller.addScrollViewChild(categoryButtons(context, theme, true));
         return scroller;
     }
 
-    private static ScrollerView verticalScroller(ShopAppUiSupport.TabTheme theme, int gap) {
+    private static ScrollerView verticalScroller(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            String keySuffix,
+            int gap
+    ) {
         ScrollerView scroller = new ScrollerView()
                 .scrollerStyle(style -> style
                         .mode(ScrollerMode.VERTICAL)
@@ -440,6 +445,9 @@ final class ShopAppLayouts {
                 .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accentDivider()))
                 .pressedTexture(ShopAppUiSupport.framedTexture(theme.buttonPressedFill(), theme.accent()))
         );
+        String scrollKey = context.state().activeTab().serialized() + "." + keySuffix;
+        scroller.verticalScroller.setNormalizedValue(context.state().scrollerPosition(scrollKey), false);
+        scroller.verticalScroller.setOnValueChanged(value -> context.state().setScrollerPosition(scrollKey, scroller.verticalScroller.getNormalizedValue()));
         return scroller;
     }
 
@@ -456,7 +464,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement commodityListingScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ScrollerView scroller = verticalScroller(theme, 8);
+        ScrollerView scroller = verticalScroller(context, theme, "offers", 8);
         scroller.addScrollViewChild(commodityOfferColumn(context, theme));
         return scroller;
     }
@@ -592,7 +600,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement boutiqueScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ScrollerView scroller = verticalScroller(theme, 12);
+        ScrollerView scroller = verticalScroller(context, theme, "content", 12);
         scroller.addScrollViewChild(boutiqueCategoryGroups(context, theme));
         return scroller;
     }
@@ -894,7 +902,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement arcadeScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ScrollerView scroller = verticalScroller(theme, 10);
+        ScrollerView scroller = verticalScroller(context, theme, "content", 10);
         scroller.addScrollViewChild(arcadeSections(context, theme));
         return scroller;
     }
@@ -1159,7 +1167,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement archiveScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ScrollerView scroller = verticalScroller(theme, 10);
+        ScrollerView scroller = verticalScroller(context, theme, "content", 10);
         scroller.addScrollViewChild(archiveSections(context, theme));
         return scroller;
     }
@@ -1352,7 +1360,7 @@ final class ShopAppLayouts {
     }
 
     private static UIElement abyssalScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ScrollerView scroller = verticalScroller(theme, 10);
+        ScrollerView scroller = verticalScroller(context, theme, "content", 10);
         scroller.addScrollViewChild(abyssalSections(context, theme));
         return scroller;
     }

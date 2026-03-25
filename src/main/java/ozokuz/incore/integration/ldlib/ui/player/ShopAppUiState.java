@@ -1,6 +1,8 @@
 package ozokuz.incore.integration.ldlib.ui.player;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import ozokuz.incore.features.shop.ShopDetailsPresentationMode;
@@ -15,6 +17,7 @@ final class ShopAppUiState {
     private boolean detailsModalOpen;
     private int quantity = 1;
     private int visibleOfferRows = ShopAppUiSupport.VISIBLE_OFFER_ROWS;
+    private final Map<String, Float> scrollerPositions = new HashMap<>();
 
     void setVisibleOfferRows(int visibleOfferRows) {
         this.visibleOfferRows = Math.max(1, visibleOfferRows);
@@ -28,6 +31,7 @@ final class ShopAppUiState {
             offerScrollRow = 0;
             detailsModalOpen = false;
             quantity = 1;
+            scrollerPositions.clear();
             return;
         }
 
@@ -52,6 +56,7 @@ final class ShopAppUiState {
             quantity = 1;
             return;
         }
+        ensureSelectedOfferVisible(feed);
 
         if (!selectedOfferId.equals(previousOfferId)) {
             quantity = 1;
@@ -87,6 +92,14 @@ final class ShopAppUiState {
 
     int offerScrollRow() {
         return offerScrollRow;
+    }
+
+    float scrollerPosition(String key) {
+        return scrollerPositions.getOrDefault(key, 0.0F);
+    }
+
+    void setScrollerPosition(String key, float position) {
+        scrollerPositions.put(key, Math.clamp(position, 0.0F, 1.0F));
     }
 
     void selectTab(ShopTabId tabId, ShopService.ScreenData data) {
@@ -129,6 +142,7 @@ final class ShopAppUiState {
             quantity = 1;
         }
         selectedOfferId = offerId;
+        ensureSelectedOfferVisible(ShopAppUiSupport.activeFeed(data, this));
         clampQuantity(data);
     }
 
@@ -212,6 +226,29 @@ final class ShopAppUiState {
 
     private void clampQuantity(ShopService.ScreenData data) {
         quantity = Math.clamp(quantity, 1, quantityMax(data));
+    }
+
+    private void ensureSelectedOfferVisible(ShopService.TabFeedView feed) {
+        if (selectedOfferId == null || selectedOfferId.isBlank()) {
+            return;
+        }
+        int selectedRow = -1;
+        for (int i = 0; i < feed.remainingOffers().size(); i++) {
+            if (selectedOfferId.equals(feed.remainingOffers().get(i).offerId())) {
+                selectedRow = i;
+                break;
+            }
+        }
+        if (selectedRow < 0) {
+            offerScrollRow = Math.clamp(offerScrollRow, 0, maxOfferScroll(feed.remainingOffers().size()));
+            return;
+        }
+        if (selectedRow < offerScrollRow) {
+            offerScrollRow = selectedRow;
+        } else if (selectedRow >= offerScrollRow + visibleOfferRows) {
+            offerScrollRow = selectedRow - visibleOfferRows + 1;
+        }
+        offerScrollRow = Math.clamp(offerScrollRow, 0, maxOfferScroll(feed.remainingOffers().size()));
     }
 
     private ShopTabId resolveActiveTab(ShopService.ScreenData data) {
