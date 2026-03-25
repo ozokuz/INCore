@@ -8,6 +8,7 @@ import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import ozokuz.incore.features.shop.ShopService;
 import ozokuz.incore.features.shop.network.ShopNetworking;
@@ -95,8 +96,8 @@ final class ShopAppDetailsView {
             if (!canPurchase) {
                 return;
             }
-            var offerId = context.state().selectedOfferResource();
-            var categoryId = context.state().selectedCategoryResource();
+            ResourceLocation offerId = ResourceLocation.tryParse(offer.offerId());
+            ResourceLocation categoryId = ResourceLocation.tryParse(offer.categoryId());
             if (offerId != null) {
                 ShopNetworking.sendPurchase(offerId, context.state().quantity(), categoryId);
             }

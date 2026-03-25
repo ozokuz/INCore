@@ -61,7 +61,9 @@ class ShopAppUiStateTest {
         ShopService.ScreenData data = screenData();
 
         assertEquals(ShopDetailsPresentationMode.MODAL_OVERLAY, ShopAppUiSupport.detailsModeFor(data, ShopTabId.LUXURY_BOUTIQUE));
+        assertEquals(ShopDetailsPresentationMode.INLINE_DOCK, ShopAppUiSupport.detailsModeFor(data, ShopTabId.ARCADE_VENDOR));
         assertEquals(ShopDetailsPresentationMode.MODAL_OVERLAY, ShopAppUiSupport.detailsModeFor(data, ShopTabId.ARCHIVE_EDITORIAL));
+        assertEquals(ShopDetailsPresentationMode.MODAL_OVERLAY, ShopAppUiSupport.detailsModeFor(data, ShopTabId.ABYSSAL_TERMINAL));
     }
 
     private static ShopService.ScreenData screenData() {
@@ -73,15 +75,19 @@ class ShopAppUiStateTest {
                 List.of(
                         new ShopService.TabView("commodity_exchange", "Commodity Exchange", "steel_aegis", "commodity_exchange", "sidebar", "inline", List.of("incore:daily_exchange", "incore:exchange_coolants"), new ShopService.ShowcaseView(false, 0, "top_of_feed", List.of())),
                         new ShopService.TabView("luxury_boutique", "Luxury Boutique", "obsidian_ember", "luxury_boutique", "inline_chips", "modal", List.of("incore:chartered_rotation", "incore:boutique_premium_gear"), new ShopService.ShowcaseView(true, 1, "rotating_first", List.of())),
-                        new ShopService.TabView("archive_editorial", "Archive Editorial", "blood_protocol", "archive_editorial", "sidebar", "modal", List.of("incore:archive_artifacts", "incore:expedition_cache"), new ShopService.ShowcaseView(true, 1, "category_pinned", List.of("incore:archive_artifacts")))
+                        new ShopService.TabView("arcade_vendor", "Arcade Vendor", "neon_shadow", "arcade_vendor", "inline_chips", "inline", List.of("incore:vendor_daily_deals"), new ShopService.ShowcaseView(true, 1, "top_of_feed", List.of())),
+                        new ShopService.TabView("archive_editorial", "Archive Editorial", "blood_protocol", "archive_editorial", "sidebar", "modal", List.of("incore:archive_artifacts", "incore:expedition_cache"), new ShopService.ShowcaseView(true, 1, "category_pinned", List.of("incore:archive_artifacts"))),
+                        new ShopService.TabView("abyssal_terminal", "Abyssal Terminal", "abyssal_protocol", "abyssal_terminal", "inline_module_strip", "modal", List.of("incore:abyssal_signal_kits"), new ShopService.ShowcaseView(true, 1, "top_of_feed", List.of()))
                 ),
                 List.of(
                         new ShopService.CategoryView("incore:daily_exchange", "Daily Exchange", "per_item", "daily_noon", 12, false, spur, false, -1, 1),
                         new ShopService.CategoryView("incore:exchange_coolants", "Exchange Coolants", "per_item", "daily_noon", 12, false, spur, false, -1, 2),
                         new ShopService.CategoryView("incore:chartered_rotation", "Chartered Rotation", "category_bucket", "shop_rotation", 8, false, emerald, true, 7_200_000L, 1),
                         new ShopService.CategoryView("incore:boutique_premium_gear", "Boutique Premium Gear", "category_bucket", "none", 12, false, emerald, false, -1, 2),
+                        new ShopService.CategoryView("incore:vendor_daily_deals", "Vendor Daily Deals", "category_bucket", "daily_noon", 8, false, spur, false, -1, 1),
                         new ShopService.CategoryView("incore:archive_artifacts", "Archive Artifacts", "category_bucket", "none", 8, false, emerald, false, -1, 1),
-                        new ShopService.CategoryView("incore:expedition_cache", "Expedition Cache", "category_bucket", "none", 12, false, spur, false, -1, 1)
+                        new ShopService.CategoryView("incore:expedition_cache", "Expedition Cache", "category_bucket", "none", 12, false, spur, false, -1, 1),
+                        new ShopService.CategoryView("incore:abyssal_signal_kits", "Abyssal Signal Kits", "per_item", "shop_rotation", 8, false, spur, true, 7_200_000L, 1)
                 ),
                 List.of(
                         new ShopService.OfferView(
