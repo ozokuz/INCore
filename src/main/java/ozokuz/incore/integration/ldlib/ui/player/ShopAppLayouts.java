@@ -11,6 +11,7 @@ import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
+import dev.vfyjxf.taffy.style.TaffyPosition;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.network.chat.Component;
@@ -220,13 +221,6 @@ final class ShopAppLayouts {
                         layout.flexBasis(0);
                         layout.flexGrow(1);
                         layout.minWidth(0);
-                    }),
-                    archiveIntelRail(context, theme).layout(layout -> {
-                        layout.flexBasis(246);
-                        layout.flexGrow(0);
-                        layout.flexShrink(1);
-                        layout.minWidth(220);
-                        layout.maxWidth(272);
                     })
             );
             return main;
@@ -1270,23 +1264,9 @@ final class ShopAppLayouts {
         UIElement column = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(10);
+            layout.gapAll(0);
         });
-        ShopService.OfferView showcase = archiveFeaturedOffer(context);
-        if (showcase != null) {
-            column.addChild(archiveHeroCard(context, theme, showcase));
-        }
-        List<ShopService.OfferView> offers = ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()));
-        if (offers.isEmpty()) {
-            column.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText()));
-            return column;
-        }
-        for (ShopService.OfferView offer : offers) {
-            if (showcase != null && showcase.offerId().equals(offer.offerId())) {
-                continue;
-            }
-            column.addChild(archiveEditorialCard(context, theme, offer));
-        }
+        column.addChild(archiveCatalogSection(context, theme));
         return column;
     }
 
@@ -1311,146 +1291,227 @@ final class ShopAppLayouts {
         return rail;
     }
 
-    private static UIElement archiveIntelRail(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
-        ShopService.OfferView offer = archiveFeaturedOffer(context);
-        UIElement rail = fillPanelColumn(theme, theme.accentSoftFill());
-        rail.addChildren(
-                dualSectionHeader(
-                        Component.translatable("screen.incore.shop.selected_offer"),
-                        Component.translatable("screen.incore.shop.selection_rail_subtitle"),
-                        theme
-                )
-        );
-        if (offer == null) {
-            rail.addChild(ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offer_selected"), theme.secondaryText()));
-            return rail;
-        }
-        rail.addChildren(
-                archiveRailOfferDisplay(context, theme, offer)
-        );
-        return rail;
+    private static UIElement archiveCatalogSection(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme
+    ) {
+        UIElement section = panelColumn(theme, theme.cardFill());
+        section.layout(layout -> layout.paddingAll(6));
+        section.addChild(archiveOfferGrid(context, theme, archiveCatalogOffers(context)));
+        return section;
     }
 
-    private static ShopService.OfferView archiveFeaturedOffer(ShopAppLayoutContext context) {
-        ShopService.OfferView selected = context.state().effectiveSelectedOffer(context.data());
-        if (selected != null) {
-            return selected;
-        }
-        return context.state().showcaseOffer(context.data());
+    private static List<ShopService.OfferView> archiveCatalogOffers(ShopAppLayoutContext context) {
+        return ShopAppUiSupport.displayOffers(ShopAppUiSupport.activeFeed(context.data(), context.state()));
     }
 
-    private static UIElement archiveHeroCard(
+    private static UIElement archiveOfferGrid(
             ShopAppLayoutContext context,
             ShopAppUiSupport.TabTheme theme,
-            ShopService.OfferView offer
+            List<ShopService.OfferView> offers
     ) {
-        Button card = new Button().setText(Component.empty());
-        card.text.setDisplay(false);
-        card.layout(layout -> {
+        if (offers.isEmpty()) {
+            return ShopAppUiSupport.bodyLabel(Component.translatable("screen.incore.shop.no_offers"), theme.secondaryText());
+        }
+        UIElement column = new UIElement().layout(layout -> {
             layout.widthPercent(100);
-            layout.minHeight(176);
-            layout.flexDirection(FlexDirection.ROW);
-            layout.alignItems(AlignItems.STRETCH);
-            layout.gapAll(12);
-            layout.paddingAll(10);
-        });
-        card.buttonStyle(style -> style
-                .baseTexture(ShopAppUiSupport.framedTexture(theme.cardFill(), theme.accentDivider()))
-                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
-                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
-        );
-        UIElement copy = new UIElement().layout(layout -> {
-            layout.flexBasis(0);
-            layout.flexGrow(1);
-            layout.minWidth(0);
-            layout.flexDirection(FlexDirection.COLUMN);
-            layout.justifyContent(AlignContent.SPACE_BETWEEN);
-            layout.gapAll(8);
-        });
-        copy.addChildren(
-                dualSectionHeader(Component.translatable("screen.incore.shop.editorial_hero"), heroMetaSubtitle(offer), theme),
-                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
-                ShopAppUiSupport.bodyLabel(Component.literal("Curated artifact briefing assembled from the active archive intake."), theme.secondaryText()),
-                new UIElement().layout(layout -> {
-                    layout.widthPercent(100);
-                    layout.flexDirection(FlexDirection.ROW);
-                    layout.gapAll(8);
-                }).addChildren(
-                        showcaseMetricTile(
-                                Component.translatable("screen.incore.shop.price_label"),
-                                Component.literal(Integer.toString(ShopAppUiSupport.currencyAmount(offer.currency()))),
-                                theme
-                        ),
-                        showcaseMetricTile(
-                                Component.translatable("screen.incore.shop.stock_label"),
-                                Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())),
-                                theme
-                        )
-                )
-        );
-        UIElement media = ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 10, true);
-        media.layout(layout -> {
-            layout.width(154);
-            layout.alignItems(AlignItems.CENTER);
-            layout.justifyContent(AlignContent.CENTER);
-        });
-        media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 72, Component.literal(offer.displayName())));
-        card.addChildren(copy, media);
-        card.setOnClick(event -> {
-            context.state().openDetails(offer.offerId(), context.data());
-            context.rebuild();
-        });
-        return card;
-    }
-
-    private static UIElement archiveEditorialCard(
-            ShopAppLayoutContext context,
-            ShopAppUiSupport.TabTheme theme,
-            ShopService.OfferView offer
-    ) {
-        Button card = new Button().setText(Component.empty());
-        card.text.setDisplay(false);
-        card.layout(layout -> {
-            layout.widthPercent(100);
-            layout.minHeight(118);
-            layout.flexDirection(FlexDirection.ROW);
-            layout.alignItems(AlignItems.STRETCH);
-            layout.gapAll(10);
-            layout.paddingAll(8);
-        });
-        card.buttonStyle(style -> style
-                .baseTexture(ShopAppUiSupport.framedTexture(theme.sectionFill(), theme.divider()))
-                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
-                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
-        );
-        UIElement media = ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 8, true);
-        media.layout(layout -> {
-            layout.width(84);
-            layout.alignItems(AlignItems.CENTER);
-            layout.justifyContent(AlignContent.CENTER);
-        });
-        media.addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 40, Component.literal(offer.displayName())));
-        UIElement copy = new UIElement().layout(layout -> {
-            layout.flexBasis(0);
-            layout.flexGrow(1);
             layout.minWidth(0);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.gapAll(6);
         });
-        copy.addChildren(
+        for (int i = 0; i < offers.size(); i += 5) {
+            column.addChild(archiveGridRow(context, theme, offers, i));
+        }
+        return column;
+    }
+
+    private static UIElement archiveGridRow(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            List<ShopService.OfferView> offers,
+            int startIndex
+    ) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.minWidth(0);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(6);
+        });
+        for (int slot = 0; slot < 5; slot++) {
+            int index = startIndex + slot;
+            if (index < offers.size()) {
+                row.addChild(archiveGridCard(context, theme, offers.get(index)).layout(layout -> {
+                    layout.flex(1);
+                    layout.minWidth(0);
+                }));
+            } else {
+                row.addChild(ShopAppUiSupport.spacer().layout(layout -> {
+                    layout.flex(1);
+                    layout.minWidth(0);
+                }));
+            }
+        }
+        return row;
+    }
+
+    private static UIElement archiveGridCard(
+            ShopAppLayoutContext context,
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.OfferView offer
+    ) {
+        Button card = new Button().setText(Component.empty());
+        card.text.setDisplay(false);
+        card.layout(layout -> {
+            layout.widthPercent(100);
+            layout.minHeight(120);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(0);
+            layout.paddingAll(0);
+        });
+        card.buttonStyle(style -> style
+                .baseTexture(ShopAppUiSupport.framedTexture(theme.sectionFill(), theme.divider()))
+                .hoverTexture(ShopAppUiSupport.framedTexture(theme.accentSoftFill(), theme.accent()))
+                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
+        );
+
+        UIElement content = new UIElement();
+        content.setAllowHitTest(false);
+        content.layout(layout -> {
+            layout.widthPercent(100);
+            layout.heightPercent(100);
+            layout.minWidth(0);
+            layout.minHeight(118);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.STRETCH);
+            layout.gapAll(1);
+            layout.paddingLeft(2);
+            layout.paddingRight(2);
+            layout.paddingTop(2);
+            layout.paddingBottom(2);
+        });
+
+        UIElement media = new UIElement();
+        media.setAllowHitTest(false);
+        media.layout(layout -> {
+            layout.widthPercent(100);
+            layout.flex(1);
+            layout.minHeight(72);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+        });
+        media.style(style -> style.backgroundTexture(ShopAppUiSupport.flatTexture(theme.insetFill())));
+        UIElement badgeRow = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.positionType(TaffyPosition.ABSOLUTE);
+            layout.left(0);
+            layout.right(0);
+            layout.top(0);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.justifyContent(AlignContent.SPACE_BETWEEN);
+            layout.alignItems(AlignItems.FLEX_START);
+            layout.gapAll(4);
+            layout.paddingLeft(4);
+            layout.paddingRight(4);
+            layout.paddingTop(4);
+        });
+        badgeRow.setAllowHitTest(false);
+        UIElement leftBadges = new UIElement().layout(layout -> {
+            layout.widthAuto();
+            layout.flexDirection(FlexDirection.ROW);
+            layout.flexWrap(dev.vfyjxf.taffy.style.FlexWrap.WRAP);
+            layout.gapAll(3);
+        });
+        leftBadges.setAllowHitTest(false);
+        leftBadges.addChild(archiveInfoBadge(
+                Component.translatable("screen.incore.shop.stock.remaining", ShopAppUiSupport.stockLabel(offer.availableStock())),
+                theme,
+                false
+        ));
+        if (offer.rotationRemainingMillis() >= 0L) {
+            leftBadges.addChild(archiveInfoBadge(
+                    Component.translatable("screen.incore.shop.time_left_format", ShopAppUiSupport.rotationRemainingLabel(offer.rotationRemainingMillis())),
+                    theme,
+                    true
+            ));
+        }
+        badgeRow.addChild(leftBadges);
+        media.addChildren(
+                new UIElement().layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.flex(1);
+                    layout.alignItems(AlignItems.CENTER);
+                    layout.justifyContent(AlignContent.CENTER);
+                }).addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 32, Component.literal(offer.displayName()))),
+                badgeRow
+        );
+
+        UIElement footer = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(1);
+            layout.paddingLeft(3);
+            layout.paddingRight(3);
+            layout.paddingTop(2);
+            layout.paddingBottom(2);
+        });
+        footer.setAllowHitTest(false);
+        footer.style(style -> style.backgroundTexture(ShopAppUiSupport.flatTexture(theme.sectionFill())));
+        footer.addChildren(
                 textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
-                ShopAppUiSupport.bodyLabel(Component.literal("Field note synchronized. " + heroMetaSubtitle(offer).getString()), theme.secondaryText())
+                archiveSummaryLine(offer, theme),
+                new UIElement().layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.flexDirection(FlexDirection.ROW);
+                    layout.justifyContent(AlignContent.SPACE_BETWEEN);
+                    layout.alignItems(AlignItems.CENTER);
+                    layout.gapAll(6);
+                }).addChildren(
+                        ShopAppUiSupport.currencyValue(
+                                offer.currency(),
+                                ShopAppUiSupport.currencyAmount(offer.currency()),
+                                theme.priceText()
+                        ),
+                        valueLabel(Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())), theme.primaryText())
+                )
         );
-        card.addChildren(
-                media,
-                copy,
-                offerBadge(offer, theme, false)
-        );
+
+        content.addChildren(media, footer);
+        card.addChild(content);
         card.setOnClick(event -> {
             context.state().openDetails(offer.offerId(), context.data());
             context.rebuild();
         });
         return card;
+    }
+
+    private static UIElement archiveInfoBadge(Component text, ShopAppUiSupport.TabTheme theme, boolean accent) {
+        UIElement badge = ShopAppUiSupport.tintedSurface(theme, accent ? theme.accentSoftFill() : theme.sectionFill(), 3, true);
+        badge.setAllowHitTest(false);
+        badge.layout(layout -> {
+            layout.widthAuto();
+            layout.minWidth(20);
+        });
+        Label label = ShopAppUiSupport.heading(text, accent ? theme.primaryText() : theme.secondaryText());
+        label.textStyle(style -> style
+                .adaptiveWidth(true)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.LEFT)
+                .textColor(accent ? theme.primaryText() : theme.secondaryText())
+        );
+        badge.addChild(label);
+        return badge;
+    }
+
+    private static Label archiveSummaryLine(ShopService.OfferView offer, ShopAppUiSupport.TabTheme theme) {
+        return textLabel(
+                offer.rotationRemainingMillis() >= 0L
+                        ? Component.translatable("screen.incore.shop.time_left_format", ShopAppUiSupport.rotationRemainingLabel(offer.rotationRemainingMillis()))
+                        : Component.literal(ShopAppUiSupport.rewardSummary(offer)),
+                theme.secondaryText(),
+                true
+        );
     }
 
     private static UIElement abyssalScroller(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
@@ -1802,56 +1863,6 @@ final class ShopAppLayouts {
                 categoryScroller(context, theme)
         );
         return rail;
-    }
-
-    private static UIElement archiveRailOfferDisplay(
-            ShopAppLayoutContext context,
-            ShopAppUiSupport.TabTheme theme,
-            ShopService.OfferView offer
-    ) {
-        Button card = new Button().setText(Component.empty());
-        card.text.setDisplay(false);
-        card.layout(layout -> {
-            layout.widthPercent(100);
-            layout.minHeight(220);
-            layout.flexDirection(FlexDirection.COLUMN);
-            layout.alignItems(AlignItems.STRETCH);
-            layout.gapAll(8);
-            layout.paddingAll(10);
-        });
-        card.buttonStyle(style -> style
-                .baseTexture(ShopAppUiSupport.framedTexture(theme.sectionFill(), theme.accentDivider()))
-                .hoverTexture(ShopAppUiSupport.framedTexture(theme.cardHoverFill(), theme.accentDivider()))
-                .pressedTexture(ShopAppUiSupport.framedTexture(theme.cardSelectedFill(), theme.accent()))
-        );
-        card.addChildren(
-                ShopAppUiSupport.tintedSurface(theme, theme.insetFill(), 10, true).layout(layout -> {
-                    layout.widthPercent(100);
-                    layout.height(136);
-                    layout.alignItems(AlignItems.CENTER);
-                    layout.justifyContent(AlignContent.CENTER);
-                }).addChild(ShopAppUiSupport.itemIcon(ShopAppUiSupport.stackForOffer(offer), 68, Component.literal(offer.displayName()))),
-                textLabel(Component.literal(offer.displayName()), theme.primaryText(), true),
-                textLabel(heroMetaSubtitle(offer), theme.secondaryText(), true),
-                compactCurrencyMetricRow(
-                        Component.translatable("screen.incore.shop.price_label"),
-                        offer.currency(),
-                        ShopAppUiSupport.currencyAmount(offer.currency()),
-                        theme,
-                        theme.priceText()
-                ),
-                compactOfferMetricRow(
-                        Component.translatable("screen.incore.shop.stock_label"),
-                        Component.literal(ShopAppUiSupport.stockLabel(offer.availableStock())),
-                        theme.secondaryText(),
-                        theme.primaryText()
-                )
-        );
-        card.setOnClick(event -> {
-            context.state().openDetails(offer.offerId(), context.data());
-            context.rebuild();
-        });
-        return card;
     }
 
     private static UIElement showcaseWithDetails(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme, Component title) {
