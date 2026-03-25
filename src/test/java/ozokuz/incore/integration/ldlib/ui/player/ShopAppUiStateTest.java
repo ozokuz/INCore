@@ -57,6 +57,46 @@ class ShopAppUiStateTest {
     }
 
     @Test
+    void selectOfferMovesRemainingFeedIntoView() {
+        ShopAppUiState state = new ShopAppUiState();
+        state.setVisibleOfferRows(1);
+        ShopService.ScreenData data = screenData();
+
+        state.selectTab(ShopTabId.COMMODITY_EXCHANGE, data);
+        state.selectCategory("incore:exchange_coolants", data);
+        state.selectOffer("incore:coolant_beta", data);
+
+        assertEquals(1, state.offerScrollRow());
+        assertEquals("incore:coolant_beta", state.selectedOfferId());
+    }
+
+    @Test
+    void reconcileScrollsRequestedOfferIntoView() {
+        ShopAppUiState state = new ShopAppUiState();
+        state.setVisibleOfferRows(1);
+
+        state.reconcile(screenData("incore:exchange_coolants", "incore:coolant_beta"));
+
+        assertEquals(ShopTabId.COMMODITY_EXCHANGE, state.activeTab());
+        assertEquals("incore:exchange_coolants", state.selectedCategoryId());
+        assertEquals("incore:coolant_beta", state.selectedOfferId());
+        assertEquals(1, state.offerScrollRow());
+    }
+
+    @Test
+    void reconcilePreservesStoredScrollerPositions() {
+        ShopAppUiState state = new ShopAppUiState();
+        ShopService.ScreenData data = screenData();
+        state.reconcile(data);
+        state.selectTab(ShopTabId.COMMODITY_EXCHANGE, data);
+        state.setScrollerPosition("commodity_exchange.content", 0.6F);
+
+        state.reconcile(screenData());
+
+        assertEquals(0.6F, state.scrollerPosition("commodity_exchange.content"));
+    }
+
+    @Test
     void detailsModeSelectionMatchesTabDefinitions() {
         ShopService.ScreenData data = screenData();
 
@@ -67,11 +107,15 @@ class ShopAppUiStateTest {
     }
 
     private static ShopService.ScreenData screenData() {
+        return screenData("incore:boutique_premium_gear", "incore:chartered_diamond");
+    }
+
+    private static ShopService.ScreenData screenData(String selectedCategoryId, String selectedOfferId) {
         ShopService.CurrencyView spur = new ShopService.CurrencyView("numismatics:spur", "SPUR", 1, 120);
         ShopService.CurrencyView emerald = new ShopService.CurrencyView("minecraft:emerald", "Emerald", 1, 24);
         return new ShopService.ScreenData(
-                "incore:boutique_premium_gear",
-                "incore:chartered_diamond",
+                selectedCategoryId,
+                selectedOfferId,
                 List.of(
                         new ShopService.TabView("commodity_exchange", "Commodity Exchange", "steel_aegis", "commodity_exchange", "sidebar", "inline", List.of("incore:daily_exchange", "incore:exchange_coolants"), new ShopService.ShowcaseView(false, 0, "top_of_feed", List.of())),
                         new ShopService.TabView("luxury_boutique", "Luxury Boutique", "obsidian_ember", "luxury_boutique", "inline_chips", "modal", List.of("incore:chartered_rotation", "incore:boutique_premium_gear"), new ShopService.ShowcaseView(true, 1, "rotating_first", List.of())),
