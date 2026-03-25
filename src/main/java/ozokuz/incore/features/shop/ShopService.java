@@ -75,6 +75,7 @@ public final class ShopService {
 
         for (ShopCategoryDefinition category : ShopCategoryManager.all()) {
             boolean locked = isCategoryLocked(data, player, category.id());
+            int unlockLevel = unlockLevelForCategory(category.id());
             int stock = category.stockMode() == ShopStockMode.CATEGORY_BUCKET
                     ? stockForCategoryBucket(data, playerState, category)
                     : -1;
@@ -90,7 +91,8 @@ public final class ShopService {
                     currencyView(player, category.defaultCurrency(), 1),
                     category.rotation() != null,
                     category.rotation() == null ? -1L : uiRemainingMillis(remainingMillisForCurrentStep(now, category.rotation())),
-                    visibleOffers.size()
+                    visibleOffers.size(),
+                    unlockLevel
             ));
 
             for (VisibleOffer visibleOffer : visibleOffers) {
@@ -465,6 +467,11 @@ public final class ShopService {
             case "incore:abyssal_signal_kits" -> PlayerFeatureUnlockIds.SHOP_ABYSSAL_SIGNAL_KITS;
             default -> null;
         };
+    }
+
+    private static int unlockLevelForCategory(ResourceLocation categoryId) {
+        ResourceLocation unlockId = requiredUnlockForCategory(categoryId);
+        return unlockId == null ? 0 : Math.max(0, PlayerFeatureUnlockService.requiredLevel(unlockId));
     }
 
     private static void reconcilePlayerState(
@@ -913,7 +920,8 @@ public final class ShopService {
             CurrencyView currency,
             boolean rotating,
             long rotationRemainingMillis,
-            int visibleOfferCount
+            int visibleOfferCount,
+            int unlockLevel
     ) {
     }
 

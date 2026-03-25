@@ -192,12 +192,12 @@ class ShopServiceTest {
                         )
                 ),
                 List.of(
-                        new ShopService.CategoryView("incore:vendor_daily_deals", "Vendor Daily Deals", "category_bucket", "daily_noon", 24, false, spur, false, -1, 1),
-                        new ShopService.CategoryView("incore:salvage_exchange", "Salvage Exchange", "category_bucket", "shop_rotation", 18, false, emerald, true, 3_600_000L, 5),
-                        new ShopService.CategoryView("incore:chartered_rotation", "Chartered Rotation", "category_bucket", "shop_rotation", 12, false, emerald, true, 3_600_000L, 1),
-                        new ShopService.CategoryView("incore:boutique_premium_gear", "Boutique Premium Gear", "category_bucket", "none", 16, false, emerald, false, -1, 2),
-                        new ShopService.CategoryView("incore:archive_artifacts", "Archive Artifacts", "category_bucket", "none", 18, false, emerald, false, -1, 1),
-                        new ShopService.CategoryView("incore:expedition_cache", "Expedition Cache", "category_bucket", "none", 40, false, spur, false, -1, 1)
+                        new ShopService.CategoryView("incore:vendor_daily_deals", "Vendor Daily Deals", "category_bucket", "daily_noon", 24, false, spur, false, -1, 1, 0),
+                        new ShopService.CategoryView("incore:salvage_exchange", "Salvage Exchange", "category_bucket", "shop_rotation", 18, false, emerald, true, 3_600_000L, 5, 0),
+                        new ShopService.CategoryView("incore:chartered_rotation", "Chartered Rotation", "category_bucket", "shop_rotation", 12, false, emerald, true, 3_600_000L, 1, 0),
+                        new ShopService.CategoryView("incore:boutique_premium_gear", "Boutique Premium Gear", "category_bucket", "none", 16, false, emerald, false, -1, 2, 0),
+                        new ShopService.CategoryView("incore:archive_artifacts", "Archive Artifacts", "category_bucket", "none", 18, false, emerald, false, -1, 1, 0),
+                        new ShopService.CategoryView("incore:expedition_cache", "Expedition Cache", "category_bucket", "none", 40, false, spur, false, -1, 1, 0)
                 ),
                 List.of(
                         new ShopService.OfferView("incore:chartered_diamond", "incore:chartered_rotation", "Chartered Diamond", 48, emerald, List.of(new ShopService.RewardEntryView("minecraft:diamond", 1)), 2, false, 3_600_000L),
