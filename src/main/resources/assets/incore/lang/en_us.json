@@ -877,6 +877,8 @@
   "screen.incore.shop.no_offer_selected": "No shop offer selected.",
   "screen.incore.shop.locked": "Locked",
   "screen.incore.shop.locked_short": "Locked",
+  "screen.incore.shop.category_locked": "Category Locked",
+  "screen.incore.shop.category_unlocks_at": "Unlocks at player level %s",
   "screen.incore.shop.stock.unlimited": "Unlimited",
   "screen.incore.shop.stock.remaining": "Stock: %s",
   "screen.incore.shop.stock_label": "Stock",

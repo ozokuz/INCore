@@ -27,6 +27,24 @@ final class ShopAppLayouts {
         @Override
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
+            ShopService.CategoryView lockedCategory = ShopAppUiSupport.lockedActiveCategory(context.data(), context.state());
+            if (lockedCategory != null) {
+                main.addChildren(
+                        industrialSidebar(context, theme).layout(layout -> {
+                            layout.heightPercent(100);
+                            layout.flexBasis(168);
+                            layout.minWidth(152);
+                            layout.maxWidth(184);
+                        }),
+                        selectedCategoryLockedDisplay(theme, lockedCategory).layout(layout -> {
+                            layout.heightPercent(100);
+                            layout.flexBasis(0);
+                            layout.flexGrow(1);
+                            layout.minWidth(0);
+                        })
+                );
+                return main;
+            }
             main.addChildren(
                     industrialSidebar(context, theme).layout(layout -> {
                         layout.heightPercent(100);
@@ -49,6 +67,25 @@ final class ShopAppLayouts {
         @Override
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
+            ShopService.CategoryView lockedCategory = ShopAppUiSupport.lockedActiveCategory(context.data(), context.state());
+            if (lockedCategory != null) {
+                main.addChildren(
+                        commodityRail(context, theme).layout(layout -> {
+                            layout.flexBasis(136);
+                            layout.flexGrow(0);
+                            layout.flexShrink(1);
+                            layout.minWidth(112);
+                            layout.maxWidth(152);
+                        }),
+                        selectedCategoryLockedDisplay(theme, lockedCategory).layout(layout -> {
+                            layout.flexBasis(0);
+                            layout.flexGrow(1);
+                            layout.flexShrink(1);
+                            layout.minWidth(0);
+                        })
+                );
+                return main;
+            }
             main.addChildren(
                     commodityRail(context, theme).layout(layout -> {
                         layout.flexBasis(136);
@@ -106,6 +143,24 @@ final class ShopAppLayouts {
         @Override
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
+            ShopService.CategoryView lockedCategory = ShopAppUiSupport.lockedActiveCategory(context.data(), context.state());
+            if (lockedCategory != null) {
+                main.addChildren(
+                        arcadeCategoryRail(context, theme).layout(layout -> {
+                            layout.flexBasis(170);
+                            layout.flexGrow(0);
+                            layout.flexShrink(1);
+                            layout.minWidth(152);
+                            layout.maxWidth(188);
+                        }),
+                        selectedCategoryLockedDisplay(theme, lockedCategory).layout(layout -> {
+                            layout.flexBasis(0);
+                            layout.flexGrow(1);
+                            layout.minWidth(0);
+                        })
+                );
+                return main;
+            }
             main.addChildren(
                     arcadeCategoryRail(context, theme).layout(layout -> {
                         layout.flexBasis(170);
@@ -135,6 +190,24 @@ final class ShopAppLayouts {
         @Override
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
+            ShopService.CategoryView lockedCategory = ShopAppUiSupport.lockedActiveCategory(context.data(), context.state());
+            if (lockedCategory != null) {
+                main.addChildren(
+                        archiveCategoryRail(context, theme).layout(layout -> {
+                            layout.flexBasis(170);
+                            layout.flexGrow(0);
+                            layout.flexShrink(1);
+                            layout.minWidth(152);
+                            layout.maxWidth(188);
+                        }),
+                        selectedCategoryLockedDisplay(theme, lockedCategory).layout(layout -> {
+                            layout.flexBasis(0);
+                            layout.flexGrow(1);
+                            layout.minWidth(0);
+                        })
+                );
+                return main;
+            }
             main.addChildren(
                     archiveCategoryRail(context, theme).layout(layout -> {
                         layout.flexBasis(170);
@@ -164,6 +237,24 @@ final class ShopAppLayouts {
         @Override
         public UIElement createContentRow(ShopAppLayoutContext context, ShopAppUiSupport.TabTheme theme) {
             UIElement main = baseRow();
+            ShopService.CategoryView lockedCategory = ShopAppUiSupport.lockedActiveCategory(context.data(), context.state());
+            if (lockedCategory != null) {
+                main.addChildren(
+                        abyssalCategoryRail(context, theme).layout(layout -> {
+                            layout.flexBasis(170);
+                            layout.flexGrow(0);
+                            layout.flexShrink(1);
+                            layout.minWidth(152);
+                            layout.maxWidth(188);
+                        }),
+                        selectedCategoryLockedDisplay(theme, lockedCategory).layout(layout -> {
+                            layout.flexBasis(0);
+                            layout.flexGrow(1);
+                            layout.minWidth(0);
+                        })
+                );
+                return main;
+            }
             main.addChildren(
                     abyssalCategoryRail(context, theme).layout(layout -> {
                         layout.flexBasis(170);
@@ -629,6 +720,9 @@ final class ShopAppLayouts {
             ShopService.CategoryView category,
             boolean includeHero
     ) {
+        if (category.locked()) {
+            return selectedCategoryLockedDisplay(theme, category);
+        }
         ShopService.TabFeedView feed = ShopAppUiSupport.feedForTab(context.data(), context.state().activeTab(), category.categoryId());
         List<ShopService.OfferView> displayOffers = ShopAppUiSupport.displayOffers(feed);
         UIElement group = ShopAppUiSupport.tintedSurface(theme, theme.cardFill(), 10, false);
@@ -2495,6 +2589,22 @@ final class ShopAppLayouts {
         UIElement column = panelColumn(theme, fill);
         column.layout(layout -> layout.heightPercent(100));
         return column;
+    }
+
+    private static UIElement selectedCategoryLockedDisplay(
+            ShopAppUiSupport.TabTheme theme,
+            ShopService.CategoryView category
+    ) {
+        UIElement panel = panelColumn(theme, theme.sectionFill());
+        panel.layout(layout -> {
+            layout.heightPercent(100);
+            layout.minWidth(0);
+        });
+        panel.addChild(ShopAppUiSupport.lockedCategoryDisplay(theme, category).layout(layout -> {
+            layout.flex(1);
+            layout.minHeight(0);
+        }));
+        return panel;
     }
 
     private static UIElement baseRow() {

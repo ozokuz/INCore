@@ -114,6 +114,15 @@ final class ShopAppUiSupport {
         return null;
     }
 
+    static @Nullable ShopService.CategoryView activeCategory(ShopService.ScreenData data, ShopAppUiState state) {
+        return findCategory(data, state.selectedCategoryId());
+    }
+
+    static @Nullable ShopService.CategoryView lockedActiveCategory(ShopService.ScreenData data, ShopAppUiState state) {
+        ShopService.CategoryView category = activeCategory(data, state);
+        return category != null && category.locked() ? category : null;
+    }
+
     static ShopTabId tabForCategory(ShopService.ScreenData data, ShopService.CategoryView category) {
         return tabForCategoryId(data, category.categoryId());
     }
@@ -451,6 +460,39 @@ final class ShopAppUiSupport {
         return label;
     }
 
+    static UIElement lockedCategoryDisplay(TabTheme theme, ShopService.CategoryView category) {
+        UIElement panel = highlightedSurface(theme, 12);
+        panel.layout(layout -> {
+            layout.widthPercent(100);
+            layout.heightPercent(100);
+            layout.minHeight(180);
+            layout.justifyContent(AlignContent.CENTER);
+            layout.alignItems(AlignItems.CENTER);
+        });
+
+        UIElement column = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.maxWidth(320);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.alignItems(AlignItems.CENTER);
+            layout.justifyContent(AlignContent.CENTER);
+            layout.gapAll(6);
+        });
+        column.addChildren(
+                centeredHeading(Component.literal("\uD83D\uDD12"), theme.primaryText()),
+                centeredHeading(Component.translatable("screen.incore.shop.category_locked"), theme.primaryText())
+        );
+        if (category.unlockLevel() > 0) {
+            column.addChild(centeredBodyLabel(
+                    Component.translatable("screen.incore.shop.category_unlocks_at", category.unlockLevel()),
+                    theme.secondaryText()
+            ));
+        }
+
+        panel.addChild(column);
+        return panel;
+    }
+
     static UIElement itemIcon(ItemStack stack, int size, @Nullable Component... tooltips) {
         UIElement icon = new UIElement().layout(layout -> {
             layout.width(size);
@@ -491,6 +533,20 @@ final class ShopAppUiSupport {
 
     static IGuiTexture flatTexture(int fill) {
         return new BeveledRectTexture(fill, fill, fill, fill, 0, 0);
+    }
+
+    private static Label centeredHeading(Component text, int color) {
+        Label label = heading(text, color);
+        label.layout(layout -> layout.widthPercent(100));
+        label.textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER));
+        return label;
+    }
+
+    private static Label centeredBodyLabel(Component text, int color) {
+        Label label = bodyLabel(text, color);
+        label.layout(layout -> layout.widthPercent(100));
+        label.textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER));
+        return label;
     }
 
     static int brightenColor(int argb, float amount) {
