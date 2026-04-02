@@ -16,9 +16,10 @@ public final class BattlePassScheduleGameTests {
     private static final ResourceLocation SEASON_ALPHA = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "season_alpha");
     private static final ResourceLocation SEASON_BRAVO = ResourceLocation.fromNamespaceAndPath(INCore.MODID, "season_bravo");
 
-    @GameTest(template = "empty", timeoutTicks = 20)
+    @GameTest(template = "empty", timeoutTicks = 20, batch = "battlepass_schedule_bootstrap")
     public static void schedule_bootstraps_first_ordered_set(GameTestHelper helper) {
         MinecraftServer server = requireServer(helper);
+        resetSchedule(server);
         Instant weekStart = BattlePassWeekTime.weekStart(BattlePassWeekTime.now(server)).toInstant();
         Instant now = weekStart.plusSeconds(3 * 24 * 60 * 60L);
 
@@ -32,9 +33,10 @@ public final class BattlePassScheduleGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", timeoutTicks = 20)
+    @GameTest(template = "empty", timeoutTicks = 20, batch = "battlepass_schedule_advance")
     public static void schedule_advances_and_wraps_by_duration(GameTestHelper helper) {
         MinecraftServer server = requireServer(helper);
+        resetSchedule(server);
         BattlePassScheduleSavedData data = BattlePassScheduleSavedData.get(server);
         Instant weekStart = BattlePassWeekTime.weekStart(BattlePassWeekTime.now(server)).toInstant();
         // season_alpha and season_bravo are both configured as two-week battle passes in test data.
@@ -51,9 +53,10 @@ public final class BattlePassScheduleGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "empty", timeoutTicks = 20)
+    @GameTest(template = "empty", timeoutTicks = 20, batch = "battlepass_schedule_manual_rotate")
     public static void manual_set_and_rotate_reset_to_current_week_start(GameTestHelper helper) {
         MinecraftServer server = requireServer(helper);
+        resetSchedule(server);
         Instant baseWeekStart = BattlePassWeekTime.weekStart(BattlePassWeekTime.now(server)).toInstant();
         Instant midWeek = baseWeekStart.plusSeconds(2 * 24 * 60 * 60L);
 
@@ -62,9 +65,10 @@ public final class BattlePassScheduleGameTests {
         helper.assertValueEqual(baseWeekStart.toEpochMilli(), manual.startsAt().toEpochMilli(), "expected manual set to align to the current week start");
 
         Instant nextWeekMid = baseWeekStart.plusSeconds((7L * 24L * 60L * 60L) + (2 * 24L * 60L * 60L));
+        Instant nextWeekStart = BattlePassWeekTime.weekStart(BattlePassWeekTime.now(server).plusWeeks(1)).toInstant();
         BattlePassDefinition rotated = BattlePassManager.rotateForcedSet(server, 1, nextWeekMid).orElseThrow();
         helper.assertValueEqual(SEASON_ALPHA.toString(), rotated.id().toString(), "expected manual rotation to wrap according to configured order");
-        helper.assertValueEqual(baseWeekStart.plusSeconds(7L * 24L * 60L * 60L).toEpochMilli(), rotated.startsAt().toEpochMilli(), "expected manual rotation to reset to that week's start");
+        helper.assertValueEqual(nextWeekStart.toEpochMilli(), rotated.startsAt().toEpochMilli(), "expected manual rotation to reset to that week's start");
         helper.succeed();
     }
 
@@ -72,5 +76,10 @@ public final class BattlePassScheduleGameTests {
         MinecraftServer server = helper.getLevel().getServer();
         helper.assertTrue(server != null, "expected game test server");
         return server;
+    }
+
+    private static void resetSchedule(MinecraftServer server) {
+        BattlePassManager.setForcedWeek(null);
+        BattlePassScheduleSavedData.get(server).setActiveSet("", 0L);
     }
 }
