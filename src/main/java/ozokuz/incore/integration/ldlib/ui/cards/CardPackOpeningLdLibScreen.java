@@ -72,8 +72,8 @@ public final class CardPackOpeningLdLibScreen extends ModularUIScreen {
         }).style(style -> style.backgroundTexture(RectTexture.of(0x66000000)));
 
         UIElement modal = new UIElement().layout(layout -> {
-            layout.width(340);
-            layout.height(176);
+            layout.width(392);
+            layout.height(236);
             layout.paddingAll(12);
             layout.gapAll(8);
             layout.flexDirection(FlexDirection.COLUMN);
@@ -157,8 +157,13 @@ public final class CardPackOpeningLdLibScreen extends ModularUIScreen {
             layout.alignItems(AlignItems.CENTER);
             layout.justifyContent(AlignContent.CENTER);
         });
+        button.text.getLayout().flex(1);
         button.text.getLayout().heightPercent(100);
-        button.textStyle(style -> style.textColor(0xFFFFFFFF).adaptiveWidth(false).textWrap(TextWrap.HIDE));
+        button.textStyle(style -> style
+                .textColor(0xFFFFFFFF)
+                .adaptiveWidth(false)
+                .textWrap(TextWrap.HIDE)
+                .textAlignHorizontal(Horizontal.CENTER));
         button.buttonStyle(style -> style
                 .baseTexture(RectTexture.of(0xFF35516B))
                 .hoverTexture(RectTexture.of(0xFF436782))
