@@ -86,7 +86,15 @@ public final class DeckStationItemHandler implements IItemHandlerModifiable {
         if (!isValidSlot(slot)) {
             return;
         }
-        blockEntity.setItem(slot, slot == DeckStationBlockEntity.OUTPUT_SLOT ? ItemStack.EMPTY : stack);
+        if (slot == DeckStationBlockEntity.OUTPUT_SLOT) {
+            blockEntity.setItem(slot, ItemStack.EMPTY);
+            return;
+        }
+        if (!stack.isEmpty() && !isItemValid(slot, stack)) {
+            return;
+        }
+        ItemStack toSet = stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(Math.min(1, stack.getCount()));
+        blockEntity.setItem(slot, toSet);
     }
 
     @Override

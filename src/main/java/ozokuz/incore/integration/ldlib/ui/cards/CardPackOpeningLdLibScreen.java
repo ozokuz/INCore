@@ -55,7 +55,7 @@ public final class CardPackOpeningLdLibScreen extends ModularUIScreen {
     }
 
     private void refresh() {
-        subtitleLabel.setText(Component.literal("Revealed " + state.revealedCards + "/" + state.data.pulls().size()));
+        subtitleLabel.setText(Component.translatable("ldlib.cardpack.revealed", state.revealedCards, state.data.pulls().size()));
         doneButton.setActive(state.canDone());
         skipButton.setActive(state.canSkip());
         for (int i = 0; i < cards.size(); i++) {
@@ -119,7 +119,7 @@ public final class CardPackOpeningLdLibScreen extends ModularUIScreen {
             layout.justifyContent(AlignContent.CENTER);
         });
 
-        state.skipButton = actionButton(Component.literal("Skip"), 74);
+        state.skipButton = actionButton(Component.translatable("ldlib.button.skip"), 74);
         state.skipButton.setOnClick(event -> state.revealAll());
         state.doneButton = actionButton(Component.translatable("gui.done"), 80);
         state.doneButton.setOnClick(event -> Minecraft.getInstance().setScreen(null));
@@ -266,7 +266,7 @@ public final class CardPackOpeningLdLibScreen extends ModularUIScreen {
             this.typeLabel.textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER));
             this.nameLabel = label(Component.empty(), UIScreenTheme.OtherContent.PACK_NAME_TEXT, true);
             this.nameLabel.textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER));
-            this.foilLabel = label(Component.literal("FOIL"), UIScreenTheme.OtherContent.PACK_FOIL_LABEL_TEXT, true);
+            this.foilLabel = label(Component.translatable("ldlib.label.foil"), UIScreenTheme.OtherContent.PACK_FOIL_LABEL_TEXT, true);
             this.foilLabel.textStyle(style -> style.textAlignHorizontal(Horizontal.CENTER));
             revealedFace.addChildren(rarityLabel, typeLabel, nameLabel, foilLabel);
 
@@ -284,8 +284,8 @@ public final class CardPackOpeningLdLibScreen extends ModularUIScreen {
             }
             rarityLabel.setText(Component.literal(entry.rarity() + "★"));
             rarityLabel.textStyle(style -> style.textColor(rarityColor(entry)));
-            typeLabel.setText(Component.literal(entry.moduleType()));
-            nameLabel.setText(Component.literal(truncate(entry.cardName(), 14)));
+            typeLabel.setText(entry.moduleType() != null ? Component.literal(entry.moduleType()) : Component.empty());
+            nameLabel.setText(entry.cardName() != null ? Component.literal(truncate(entry.cardName(), 14)) : Component.empty());
             nameLabel.textStyle(style -> style.textColor(entry.foil()
                     ? UIScreenTheme.OtherContent.PACK_NAME_FOIL_TEXT
                     : UIScreenTheme.OtherContent.PACK_NAME_TEXT));
