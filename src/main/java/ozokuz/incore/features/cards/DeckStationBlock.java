@@ -1,12 +1,13 @@
 package ozokuz.incore.features.cards;
 
+import com.lowdragmc.lowdraglib2.gui.factory.BlockUIMenuType;
+import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -19,8 +20,9 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ozokuz.incore.integration.ldlib.ui.cards.DeckStationLdLibUi;
 
-public class DeckStationBlock extends BaseEntityBlock {
+public class DeckStationBlock extends BaseEntityBlock implements BlockUIMenuType.BlockUI {
     public static final MapCodec<DeckStationBlock> CODEC = simpleCodec(DeckStationBlock::new);
 
     public DeckStationBlock() {
@@ -50,6 +52,20 @@ public class DeckStationBlock extends BaseEntityBlock {
     }
 
     @Override
+    public ModularUI createUI(BlockUIMenuType.BlockUIHolder holder) {
+        return DeckStationLdLibUi.create(holder);
+    }
+
+    @Override
+    public boolean stillValid(BlockUIMenuType.BlockUIHolder holder) {
+        if (!BlockUIMenuType.BlockUI.super.stillValid(holder)) {
+            return false;
+        }
+        return holder.player.level().getBlockEntity(holder.pos) instanceof DeckStationBlockEntity station
+                && station.stillValid(holder.player);
+    }
+
+    @Override
     protected @NotNull ItemInteractionResult useItemOn(
             ItemStack stack,
             @NotNull BlockState state,
@@ -63,9 +79,8 @@ public class DeckStationBlock extends BaseEntityBlock {
             return ItemInteractionResult.SUCCESS;
         }
 
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(provider, pos);
+        if (player instanceof ServerPlayer serverPlayer) {
+            BlockUIMenuType.openUI(serverPlayer, pos);
         }
         return ItemInteractionResult.SUCCESS;
     }
@@ -76,9 +91,8 @@ public class DeckStationBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
 
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(provider, pos);
+        if (player instanceof ServerPlayer serverPlayer) {
+            BlockUIMenuType.openUI(serverPlayer, pos);
         }
         return InteractionResult.CONSUME;
     }

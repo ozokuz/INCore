@@ -7,23 +7,18 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeckStationBlockEntity extends BlockEntity implements MenuProvider, Container {
+public class DeckStationBlockEntity extends BlockEntity implements Container {
     public static final int MODULE_SLOT_COUNT = 20;
     public static final int CORE_SLOT = 20;
     public static final int BOX_SLOT = 21;
@@ -303,17 +298,6 @@ public class DeckStationBlockEntity extends BlockEntity implements MenuProvider,
             list.add(row);
         }
         tag.put("items", list);
-    }
-
-    @Override
-    public @NotNull Component getDisplayName() {
-        return Component.translatable("block.incore.deck_station");
-    }
-
-    @Override
-    public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory, @NotNull Player player) {
-        refreshPreview();
-        return new DeckStationMenu(containerId, inventory, this);
     }
 
     @Override

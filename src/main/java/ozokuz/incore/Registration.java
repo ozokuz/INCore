@@ -22,7 +22,6 @@ import ozokuz.incore.features.cards.DeckCoreItem;
 import ozokuz.incore.features.cards.DeckItem;
 import ozokuz.incore.features.cards.DeckStationBlock;
 import ozokuz.incore.features.cards.DeckStationBlockEntity;
-import ozokuz.incore.features.cards.DeckStationMenu;
 import ozokuz.incore.features.cards.DecryptorBlock;
 import ozokuz.incore.features.encounter_spawner.EncounterSpawnerBE;
 import ozokuz.incore.features.encounter_spawner.EncounterSpawnerBlock;
@@ -218,7 +217,6 @@ public class Registration {
             ITEMS.registerItem("arena_reward_rift", properties -> new ArenaRewardCrateBlockItem(ARENA_REWARD_RIFT_BLOCK.get(), properties));
     public static final DeferredBlock<Block> DECK_STATION_BLOCK = BLOCKS.register("deck_station", () -> new DeckStationBlock());
     public static final Supplier<BlockEntityType<DeckStationBlockEntity>> DECK_STATION_BE = BLOCK_ENTITY_TYPES.register("deck_station", () -> BlockEntityType.Builder.of(DeckStationBlockEntity::new, DECK_STATION_BLOCK.get()).build(null));
-    public static final Supplier<MenuType<DeckStationMenu>> DECK_STATION_MENU = MENU_TYPES.register("deck_station", () -> IMenuTypeExtension.create((id, inv, data) -> new DeckStationMenu(id, inv, (DeckStationBlockEntity) inv.player.level().getBlockEntity(data.readBlockPos()))));
     public static final DeferredItem<BlockItem> DECK_STATION_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("deck_station", DECK_STATION_BLOCK);
     public static final DeferredBlock<Block> CARD_DECRYPTOR_BLOCK = BLOCKS.register("card_decryptor", DecryptorBlock::new);
     public static final DeferredItem<BlockItem> CARD_DECRYPTOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("card_decryptor", CARD_DECRYPTOR_BLOCK);

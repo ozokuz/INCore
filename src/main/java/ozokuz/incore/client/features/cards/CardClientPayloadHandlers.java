@@ -1,8 +1,9 @@
 package ozokuz.incore.client.features.cards;
 
 import com.google.gson.Gson;
-import ozokuz.incore.features.cards.CardPackService;
 import net.minecraft.client.Minecraft;
+import ozokuz.incore.features.cards.CardPackService;
+import ozokuz.incore.integration.ldlib.ui.cards.CardPackOpeningLdLibScreen;
 
 public final class CardClientPayloadHandlers {
     private static final Gson GSON = new Gson();
@@ -16,6 +17,6 @@ public final class CardClientPayloadHandlers {
             return;
         }
 
-        Minecraft.getInstance().setScreen(new CardPackOpeningScreen(data));
+        Minecraft.getInstance().setScreen(new CardPackOpeningLdLibScreen(data));
     }
 }
