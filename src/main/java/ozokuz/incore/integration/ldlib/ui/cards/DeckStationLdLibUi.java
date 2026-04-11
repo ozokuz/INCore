@@ -110,14 +110,19 @@ public final class DeckStationLdLibUi {
         int infoX = RIGHT_PANEL_X + 6;
         int infoY = RIGHT_PANEL_Y + 20;
         root.addChild(boundLabel(() -> Component.literal("Modules: " + station.moduleCount()), infoX, infoY, RIGHT_PANEL_W - 12, UIScreenTheme.Crafting.BODY_TEXT));
-        root.addChild(boundLabel(() -> Component.literal("Points: " + station.usedPoints() + "/" + station.capacity()), infoX, infoY + 12, RIGHT_PANEL_W - 12, pointsColor(station)));
+        root.addChild(boundLabel(() -> Component.literal("Points: " + station.usedPoints() + "/" + station.capacity()).withColor(pointsColor(station)), infoX, infoY + 12, RIGHT_PANEL_W - 12, UIScreenTheme.Crafting.BODY_TEXT));
         root.addChild(boundLabel(() -> Component.literal("Max Integrity: " + station.maxIntegrity()), infoX, infoY + 24, RIGHT_PANEL_W - 12, UIScreenTheme.Crafting.BODY_TEXT));
         root.addChild(boundLabel(
-                () -> station.isValidPreview() ? Component.literal("Status: Valid") : Component.literal("Status: Invalid"),
+                () -> {
+                    int statusColor = station.isValidPreview() ? UIScreenTheme.Crafting.SUCCESS_TEXT : UIScreenTheme.Crafting.DANGER_TEXT;
+                    return station.isValidPreview()
+                            ? Component.literal("Status: Valid").withColor(statusColor)
+                            : Component.literal("Status: Invalid").withColor(statusColor);
+                },
                 infoX,
                 infoY + 36,
                 RIGHT_PANEL_W - 12,
-                station.isValidPreview() ? UIScreenTheme.Crafting.SUCCESS_TEXT : UIScreenTheme.Crafting.DANGER_TEXT
+                UIScreenTheme.Crafting.BODY_TEXT
         ));
         root.addChild(boundWrappedLabel(
                 () -> station.isValidPreview()
