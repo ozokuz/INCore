@@ -11,7 +11,6 @@ import ozokuz.incore.client.features.party.PartyHudFeature;
 import ozokuz.incore.client.features.entropy.EntropyBarHudFeature;
 import ozokuz.incore.client.features.stamina.StaminaBarHudFeature;
 import ozokuz.incore.client.features.status.StatusScreenReturnTracker;
-import ozokuz.incore.client.features.cards.CardDeckStationScreen;
 import ozokuz.incore.client.features.market.MarketAutoTraderScreen;
 import ozokuz.incore.client.features.market.MarketTerminalCardScreen;
 import ozokuz.incore.client.features.market.MarketTerminalMeCardScreen;
@@ -91,7 +90,6 @@ public class INCoreClient {
     }
 
     private void onRegisterScreens(RegisterMenuScreensEvent event) {
-        event.register(Registration.DECK_STATION_MENU.get(), CardDeckStationScreen::new);
         event.register(Registration.MARKET_TERMINAL_CARD_MENU.get(), MarketTerminalCardScreen::new);
         event.register(Registration.MARKET_TERMINAL_ME_CARD_MENU.get(), MarketTerminalMeCardScreen::new);
         event.register(Registration.SHIPMENT_TERMINAL_MENU.get(), ShipmentTerminalScreen::new);
